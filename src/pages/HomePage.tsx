@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { CreditCard, CardFilterOptions } from '../types';
 import FilterPanel from '../components/FilterPanel';
 import CardList from '../components/CardList';
+import CardDetailsPopup from '../components/CardDetailsPopup';
+import ComparisonBar from '../components/ComparisonBar';
 import { dummyBanks, dummyCreditCards } from '../dummy-data/credit-cards';
 import '../styles/HomePage.css';
 
@@ -12,6 +14,7 @@ const HomePage: React.FC = () => {
   const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [viewedCard, setViewedCard] = useState<CreditCard | null>(null);
 
   useEffect(() => {
     // Simulate API call to fetch cards
@@ -32,9 +35,31 @@ const HomePage: React.FC = () => {
       if (prev.includes(card.id)) {
         return prev.filter(id => id !== card.id);
       } else {
+        // Check if we've reached the maximum number of selections
+        if (prev.length >= 4) {
+          alert('You can only select up to 4 cards for comparison');
+          return prev;
+        }
         return [...prev, card.id];
       }
     });
+  };
+
+  const handleViewCardDetails = (card: CreditCard) => {
+    setViewedCard(card);
+  };
+
+  const handleCloseCardDetails = () => {
+    setViewedCard(null);
+  };
+
+  const handleAddToCompare = (card: CreditCard) => {
+    handleCardSelect(card);
+    // Don't close the popup so user can see the "Added to Compare" state
+  };
+
+  const handleRemoveFromCompare = (cardId: number) => {
+    setSelectedCardIds(prev => prev.filter(id => id !== cardId));
   };
 
   const handleFilterChange = (filters: CardFilterOptions) => {
@@ -127,21 +152,25 @@ const HomePage: React.FC = () => {
                 onCardSelect={handleCardSelect}
                 selectedCardIds={selectedCardIds}
                 maxSelections={4}
+                onViewCardDetails={handleViewCardDetails}
               />
 
-              {selectedCardIds.length > 0 && (
-                <div className="comparison-cta">
-                  <p>
-                    <span className="selected-count">{selectedCardIds.length}</span> cards selected
-                  </p>
-                  <Link 
-                    to={`/compare?ids=${selectedCardIds.join(',')}`}
-                    className="compare-button"
-                  >
-                    Compare Selected Cards
-                  </Link>
-                </div>
+              {/* Card Details Popup */}
+              {viewedCard && (
+                <CardDetailsPopup
+                  card={viewedCard}
+                  onClose={handleCloseCardDetails}
+                  onAddToCompare={handleAddToCompare}
+                  isInCompareList={selectedCardIds.includes(viewedCard.id)}
+                />
               )}
+
+              {/* Comparison Bar */}
+              <ComparisonBar
+                selectedCards={cards.filter(card => selectedCardIds.includes(card.id))}
+                onRemoveCard={handleRemoveFromCompare}
+                maxSelections={4}
+              />
             </>
           )}
         </div>

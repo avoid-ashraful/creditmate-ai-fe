@@ -32,6 +32,10 @@ export interface CreditCard {
   sourceUrl: string;
   isActive: boolean;
   lastUpdated: Date;
+  images: {
+    small: string;
+    full: string;
+  }[];
 }
 
 /**

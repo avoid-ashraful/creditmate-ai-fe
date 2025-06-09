@@ -69,6 +69,16 @@ export const dummyCreditCards: CreditCard[] = [
     sourceUrl: 'https://www.ebl.com.bd/personal/cards/credit-cards/platinum-card',
     isActive: true,
     lastUpdated: new Date('2025-05-15'),
+    images: [
+      {
+        small: '/assets/cards/ebl-platinum-small-1.png',
+        full: '/assets/cards/ebl-platinum-full-1.png',
+      },
+      {
+        small: '/assets/cards/ebl-platinum-small-2.png',
+        full: '/assets/cards/ebl-platinum-full-2.png',
+      },
+    ],
   },
   {
     id: 2,
@@ -94,6 +104,16 @@ export const dummyCreditCards: CreditCard[] = [
     sourceUrl: 'https://www.sc.com/bd/credit-cards/visa-platinum',
     isActive: true,
     lastUpdated: new Date('2025-05-28'),
+    images: [
+      {
+        small: '/assets/cards/scb-platinum-small-1.png',
+        full: '/assets/cards/scb-platinum-full-1.png',
+      },
+      {
+        small: '/assets/cards/scb-platinum-small-2.png',
+        full: '/assets/cards/scb-platinum-full-2.png',
+      },
+    ],
   },
   {
     id: 3,
@@ -119,6 +139,16 @@ export const dummyCreditCards: CreditCard[] = [
     sourceUrl: 'https://www.bracbank.com/credit-cards/signature',
     isActive: true,
     lastUpdated: new Date('2025-06-01'),
+    images: [
+      {
+        small: '/assets/cards/brac-signature-small-1.png',
+        full: '/assets/cards/brac-signature-full-1.png',
+      },
+      {
+        small: '/assets/cards/brac-signature-small-2.png',
+        full: '/assets/cards/brac-signature-full-2.png',
+      },
+    ],
   },
   {
     id: 4,
@@ -144,6 +174,16 @@ export const dummyCreditCards: CreditCard[] = [
     sourceUrl: 'https://www.dutchbanglabank.com/cards/titanium-card',
     isActive: true,
     lastUpdated: new Date('2025-05-10'),
+    images: [
+      {
+        small: '/assets/cards/dbbl-titanium-small-1.png',
+        full: '/assets/cards/dbbl-titanium-full-1.png',
+      },
+      {
+        small: '/assets/cards/dbbl-titanium-small-2.png',
+        full: '/assets/cards/dbbl-titanium-full-2.png',
+      },
+    ],
   },
   {
     id: 5,
@@ -169,6 +209,16 @@ export const dummyCreditCards: CreditCard[] = [
     sourceUrl: 'https://www.thecitybank.com/cards/amex-gold',
     isActive: true,
     lastUpdated: new Date('2025-05-20'),
+    images: [
+      {
+        small: '/assets/cards/city-amex-gold-small-1.png',
+        full: '/assets/cards/city-amex-gold-full-1.png',
+      },
+      {
+        small: '/assets/cards/city-amex-gold-small-2.png',
+        full: '/assets/cards/city-amex-gold-full-2.png',
+      },
+    ],
   },
   {
     id: 6,
@@ -194,6 +244,16 @@ export const dummyCreditCards: CreditCard[] = [
     sourceUrl: 'https://www.ebl.com.bd/personal/cards/credit-cards/classic-card',
     isActive: true,
     lastUpdated: new Date('2025-05-12'),
+    images: [
+      {
+        small: '/assets/cards/ebl-classic-small-1.png',
+        full: '/assets/cards/ebl-classic-full-1.png',
+      },
+      {
+        small: '/assets/cards/ebl-classic-small-2.png',
+        full: '/assets/cards/ebl-classic-full-2.png',
+      },
+    ],
   },
   {
     id: 7,
@@ -219,6 +279,16 @@ export const dummyCreditCards: CreditCard[] = [
     sourceUrl: 'https://www.bracbank.com/credit-cards/platinum',
     isActive: true,
     lastUpdated: new Date('2025-05-25'),
+    images: [
+      {
+        small: '/assets/cards/brac-platinum-small-1.png',
+        full: '/assets/cards/brac-platinum-full-1.png',
+      },
+      {
+        small: '/assets/cards/brac-platinum-small-2.png',
+        full: '/assets/cards/brac-platinum-full-2.png',
+      },
+    ],
   },
   {
     id: 8,
@@ -244,6 +314,16 @@ export const dummyCreditCards: CreditCard[] = [
     sourceUrl: 'https://www.sc.com/bd/credit-cards/gold-card',
     isActive: true,
     lastUpdated: new Date('2025-05-18'),
+    images: [
+      {
+        small: '/assets/cards/scb-gold-small-1.png',
+        full: '/assets/cards/scb-gold-full-1.png',
+      },
+      {
+        small: '/assets/cards/scb-gold-small-2.png',
+        full: '/assets/cards/scb-gold-full-2.png',
+      },
+    ],
   },
   {
     id: 9,
@@ -269,6 +349,16 @@ export const dummyCreditCards: CreditCard[] = [
     sourceUrl: 'https://www.thecitybank.com/cards/visa-classic',
     isActive: true,
     lastUpdated: new Date('2025-05-08'),
+    images: [
+      {
+        small: '/assets/cards/city-visa-classic-small-1.png',
+        full: '/assets/cards/city-visa-classic-full-1.png',
+      },
+      {
+        small: '/assets/cards/city-visa-classic-small-2.png',
+        full: '/assets/cards/city-visa-classic-full-2.png',
+      },
+    ],
   },
   {
     id: 10,
@@ -294,5 +384,15 @@ export const dummyCreditCards: CreditCard[] = [
     sourceUrl: 'https://www.dutchbanglabank.com/cards/visa-classic',
     isActive: true,
     lastUpdated: new Date('2025-05-05'),
+    images: [
+      {
+        small: '/assets/cards/dbbl-visa-classic-small-1.png',
+        full: '/assets/cards/dbbl-visa-classic-full-1.png',
+      },
+      {
+        small: '/assets/cards/dbbl-visa-classic-small-2.png',
+        full: '/assets/cards/dbbl-visa-classic-full-2.png',
+      },
+    ],
   },
 ];

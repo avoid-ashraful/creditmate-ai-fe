@@ -8,6 +8,7 @@ interface CardListProps {
   selectedCardIds?: number[];
   maxSelections?: number;
   showSelectionIndicator?: boolean;
+  onViewCardDetails?: (card: CreditCard) => void;
 }
 
 const CardList: React.FC<CardListProps> = ({
@@ -16,6 +17,7 @@ const CardList: React.FC<CardListProps> = ({
   selectedCardIds = [],
   maxSelections = 4,
   showSelectionIndicator = true,
+  onViewCardDetails,
 }) => {
   const [displayLimit, setDisplayLimit] = useState<number>(10);
 
@@ -70,6 +72,7 @@ const CardList: React.FC<CardListProps> = ({
             isSelected={selectedCardIds.includes(card.id)}
             onSelect={() => handleCardSelect(card)}
             selectable={!!onCardSelect}
+            onViewDetails={onViewCardDetails}
           />
         ))}
       </div>

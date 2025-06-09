@@ -6,6 +6,7 @@ interface CardListItemProps {
   isSelected?: boolean;
   onSelect?: () => void;
   selectable?: boolean;
+  onViewDetails?: (card: CreditCard) => void;
 }
 
 const CardListItem: React.FC<CardListItemProps> = ({
@@ -13,12 +14,32 @@ const CardListItem: React.FC<CardListItemProps> = ({
   isSelected = false,
   onSelect,
   selectable = false,
+  onViewDetails,
 }) => {
+  const handleClick = () => {
+    if (onViewDetails) {
+      onViewDetails(card);
+    }
+  };
+
+  const handleAddToCompare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onSelect) {
+      onSelect();
+    }
+  };
+
   return (
     <div 
-      className={`card-list-item ${isSelected ? 'selected' : ''} ${selectable ? 'selectable' : ''}`}
-      onClick={selectable ? onSelect : undefined}
+      className={`card-list-item ${isSelected ? 'selected' : ''}`}
+      onClick={handleClick}
     >
+      {card.images && card.images.length > 0 && (
+        <div className="card-image">
+          <img src={card.images[0].small} alt={card.name} />
+        </div>
+      )}
+
       <div className="card-header">
         <h3 className="card-name">{card.name}</h3>
         <span className="bank-name">Bank ID: {card.bankId}</span>
@@ -64,14 +85,13 @@ const CardListItem: React.FC<CardListItemProps> = ({
       </div>
 
       {selectable && (
-        <div className="selection-indicator">
-          <input 
-            type="checkbox" 
-            checked={isSelected}
-            onChange={onSelect}
-            onClick={(e) => e.stopPropagation()}
-          />
-          <span>{isSelected ? 'Selected' : 'Select'}</span>
+        <div className="compare-button-container">
+          <button 
+            className={`add-to-compare-btn ${isSelected ? 'in-list' : ''}`}
+            onClick={handleAddToCompare}
+          >
+            {isSelected ? 'Remove from Compare' : 'Add to Compare'}
+          </button>
         </div>
       )}
     </div>
