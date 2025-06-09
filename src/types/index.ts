@@ -26,9 +26,11 @@ export interface CreditCard {
   loungeAccessDomestic: number;
   cashAdvanceFee: string;
   latePaymentFee: string;
-  annualFeeWaiverPolicy: Record<string, any> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  annualFeeWaiverPolicy: Record<string, any> | null; // Waiver policy structure varies by bank
   rewardPointsPolicy: string;
-  additionalFeatures: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  additionalFeatures: any[]; // Using any as features can be of various types and structures
   sourceUrl: string;
   isActive: boolean;
   lastUpdated: Date;

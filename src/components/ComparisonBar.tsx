@@ -1,9 +1,11 @@
+import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
 import { Link } from 'react-router-dom';
+
+import { GradientComparisonBar } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
+
 import '../styles/ComparisonBar.css';
-import { motion, AnimatePresence } from 'framer-motion';
-import { GradientComparisonBar, GradientButton } from '../styles/StyledComponents';
 
 interface ComparisonBarProps {
   selectedCards: CreditCard[];
@@ -22,11 +24,12 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
 
   return (
     <GradientComparisonBar>
-      <motion.div 
+      <motion.div
         className="comparison-bar-content"
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      >
         <div className="selected-cards">
           <div className="selected-count">
             <span>{selectedCards.length}</span>/{maxSelections}
@@ -35,8 +38,8 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
           <div className="card-chips">
             <AnimatePresence>
               {selectedCards.map(card => (
-                <motion.div 
-                  key={card.id} 
+                <motion.div
+                  key={card.id}
                   className="card-chip"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -45,8 +48,8 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
                   layout
                 >
                   <span className="card-name">{card.name}</span>
-                  <motion.button 
-                    className="remove-card" 
+                  <motion.button
+                    className="remove-card"
                     onClick={() => onRemoveCard(card.id)}
                     title="Remove from comparison"
                     whileHover={{ scale: 1.2 }}
@@ -57,9 +60,9 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
                 </motion.div>
               ))}
 
-            {Array.from({ length: maxSelections - selectedCards.length }).map((_, index) => (
-                <motion.div 
-                  key={`empty-${index}`} 
+              {Array.from({ length: maxSelections - selectedCards.length }).map((_, index) => (
+                <motion.div
+                  key={`empty-${index}`}
                   className="card-chip empty"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 0.6 }}
@@ -75,10 +78,10 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
 
         <div className="comparison-actions">
           <motion.div whileHover={{ scale: selectedCards.length >= 2 ? 1.05 : 1 }}>
-            <Link 
+            <Link
               to={`/compare?ids=${selectedCards.map(card => card.id).join(',')}`}
               className={`compare-button ${selectedCards.length < 2 ? 'disabled' : ''}`}
-              onClick={(e) => {
+              onClick={e => {
                 if (selectedCards.length < 2) {
                   e.preventDefault();
                   alert('Please select at least 2 cards to compare');

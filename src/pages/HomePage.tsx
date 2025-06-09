@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { CreditCard, CardFilterOptions } from '../types';
-import FilterPanel from '../components/FilterPanel';
-import CardList from '../components/CardList';
+
 import CardDetailsPopup from '../components/CardDetailsPopup';
+import CardList from '../components/CardList';
 import ComparisonBar from '../components/ComparisonBar';
+import FilterPanel from '../components/FilterPanel';
 import { dummyBanks, dummyCreditCards } from '../dummy-data/credit-cards';
+import { CreditCard, CardFilterOptions } from '../types';
 import '../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
@@ -119,14 +119,16 @@ const HomePage: React.FC = () => {
       <section className="hero-section">
         <div className="hero-content">
           <h1>Find Your Perfect Credit Card</h1>
-          <p>Compare credit cards from top banks in Bangladesh and make informed financial decisions</p>
+          <p>
+            Compare credit cards from top banks in Bangladesh and make informed financial decisions
+          </p>
 
           <form className="search-form" onSubmit={handleSearchSubmit}>
             <input
               type="text"
               placeholder="Search for cards by name or features..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
             />
             <button type="submit">Search</button>
           </form>
@@ -135,7 +137,7 @@ const HomePage: React.FC = () => {
 
       <section className="main-content">
         <div className="filter-sidebar">
-          <FilterPanel 
+          <FilterPanel
             banks={dummyBanks}
             onFilterChange={handleFilterChange}
             initialFilters={{ searchTerm }}

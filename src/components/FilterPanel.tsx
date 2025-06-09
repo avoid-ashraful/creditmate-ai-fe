@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import { CardFilterOptions, Bank } from '../types';
 import './FilterPanel.css';
 
@@ -70,9 +71,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     <div className={`filter-panel ${expanded ? 'expanded' : 'collapsed'}`}>
       <div className="filter-header" onClick={toggleExpanded}>
         <h3>Filter Options</h3>
-        <button className="toggle-button">
-          {expanded ? 'Collapse' : 'Expand'}
-        </button>
+        <button className="toggle-button">{expanded ? 'Collapse' : 'Expand'}</button>
       </div>
 
       {expanded && (
@@ -86,7 +85,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     type="checkbox"
                     id={`bank-${bank.id}`}
                     checked={(filters.bankIds || []).includes(bank.id)}
-                    onChange={(e) => handleBankSelection(bank.id, e.target.checked)}
+                    onChange={e => handleBankSelection(bank.id, e.target.checked)}
                   />
                   <label htmlFor={`bank-${bank.id}`}>{bank.name}</label>
                 </div>

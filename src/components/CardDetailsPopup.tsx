@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import { CreditCard } from '../types';
 import '../styles/CardDetailsPopup.css';
 
@@ -24,33 +25,41 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
 
   const nextImage = () => {
     if (card.images && card.images.length > 0) {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % card.images.length);
+      setCurrentImageIndex(prevIndex => (prevIndex + 1) % card.images.length);
     }
   };
 
   const prevImage = () => {
     if (card.images && card.images.length > 0) {
-      setCurrentImageIndex((prevIndex) => (prevIndex - 1 + card.images.length) % card.images.length);
+      setCurrentImageIndex(prevIndex => (prevIndex - 1 + card.images.length) % card.images.length);
     }
   };
 
   return (
     <div className="popup-overlay" onClick={onClose}>
       <div className="card-details-popup" onClick={handlePopupClick}>
-        <button className="close-button" onClick={onClose}>×</button>
+        <button className="close-button" onClick={onClose}>
+          ×
+        </button>
 
         {card.images && card.images.length > 0 && (
           <div className="card-image-gallery">
-            <img 
-              src={card.images[currentImageIndex].full} 
-              alt={`${card.name} - Image ${currentImageIndex + 1}`} 
+            <img
+              src={card.images[currentImageIndex].full}
+              alt={`${card.name} - Image ${currentImageIndex + 1}`}
               className="card-full-image"
             />
             {card.images.length > 1 && (
               <div className="image-navigation">
-                <button onClick={prevImage} className="nav-button prev">&lt;</button>
-                <span className="image-counter">{currentImageIndex + 1} / {card.images.length}</span>
-                <button onClick={nextImage} className="nav-button next">&gt;</button>
+                <button onClick={prevImage} className="nav-button prev">
+                  &lt;
+                </button>
+                <span className="image-counter">
+                  {currentImageIndex + 1} / {card.images.length}
+                </span>
+                <button onClick={nextImage} className="nav-button next">
+                  &gt;
+                </button>
               </div>
             )}
           </div>
@@ -79,16 +88,16 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
             <div className="detail-row">
               <span className="detail-label">International:</span>
               <span className="detail-value">
-                {card.loungeAccessInternational > 0 
-                  ? `${card.loungeAccessInternational} visits per year` 
+                {card.loungeAccessInternational > 0
+                  ? `${card.loungeAccessInternational} visits per year`
                   : 'Not available'}
               </span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Domestic:</span>
               <span className="detail-value">
-                {card.loungeAccessDomestic > 0 
-                  ? `${card.loungeAccessDomestic} visits per year` 
+                {card.loungeAccessDomestic > 0
+                  ? `${card.loungeAccessDomestic} visits per year`
                   : 'Not available'}
               </span>
             </div>
@@ -108,7 +117,9 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
 
           <div className="detail-section">
             <h3>Annual Fee Waiver</h3>
-            <p>{card.annualFeeWaiverPolicy ? card.annualFeeWaiverPolicy.conditions : 'Not available'}</p>
+            <p>
+              {card.annualFeeWaiverPolicy ? card.annualFeeWaiverPolicy.conditions : 'Not available'}
+            </p>
           </div>
 
           <div className="detail-section">
@@ -129,7 +140,9 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
             <h3>More Information</h3>
             <div className="detail-row">
               <span className="detail-label">Source:</span>
-              <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer">Official Website</a>
+              <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer">
+                Official Website
+              </a>
             </div>
             <div className="detail-row">
               <span className="detail-label">Last Updated:</span>
@@ -139,7 +152,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
         </div>
 
         <div className="popup-footer">
-          <button 
+          <button
             className={`add-to-compare-btn ${isInCompareList ? 'in-list' : ''}`}
             onClick={() => onAddToCompare(card)}
           >

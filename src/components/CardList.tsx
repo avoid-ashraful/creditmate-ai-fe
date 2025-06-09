@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { CreditCard } from '../types';
-import CardListItem from './CardListItem';
 import { motion } from 'framer-motion';
-import { staggerContainer, GradientButton, ShimmerCard } from '../styles/StyledComponents';
+import React, { useState } from 'react';
+
+import { staggerContainer, GradientButton } from '../styles/StyledComponents';
+import { CreditCard } from '../types';
+
+import CardListItem from './CardListItem';
 
 interface CardListProps {
   cards: CreditCard[];
@@ -25,7 +27,7 @@ const CardList: React.FC<CardListProps> = ({
 
   if (!cards || cards.length === 0) {
     return (
-      <motion.div 
+      <motion.div
         className="no-results"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -66,12 +68,14 @@ const CardList: React.FC<CardListProps> = ({
         <h2>Credit Cards ({cards.length})</h2>
         {showSelectionIndicator && maxSelections > 0 && (
           <div className="selection-indicator">
-            <span>Selected: {selectedCardIds.length} of {maxSelections}</span>
+            <span>
+              Selected: {selectedCardIds.length} of {maxSelections}
+            </span>
           </div>
         )}
       </div>
 
-      <motion.div 
+      <motion.div
         className="cards-container"
         variants={staggerContainer}
         initial="hidden"
@@ -90,13 +94,13 @@ const CardList: React.FC<CardListProps> = ({
       </motion.div>
 
       {displayLimit < cards.length && (
-        <motion.div 
+        <motion.div
           className="load-more"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <GradientButton 
+          <GradientButton
             onClick={loadMore}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

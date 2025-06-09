@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import HomePage from './pages/HomePage';
+
+import AboutPage from './pages/AboutPage';
 import ComparisonPage from './pages/ComparisonPage';
 import GlossaryPage from './pages/GlossaryPage';
-import AboutPage from './pages/AboutPage';
+import HomePage from './pages/HomePage';
 import './styles/App.css';
 import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
 
@@ -54,17 +55,29 @@ const App: React.FC = () => {
             <div className="footer-section">
               <h3>Quick Links</h3>
               <ul>
-                <li><Link to="/">Home</Link></li>
-                <li><Link to="/compare">Compare Cards</Link></li>
-                <li><Link to="/glossary">Glossary</Link></li>
-                <li><Link to="/about">About</Link></li>
+                <li>
+                  <Link to="/">Home</Link>
+                </li>
+                <li>
+                  <Link to="/compare">Compare Cards</Link>
+                </li>
+                <li>
+                  <Link to="/glossary">Glossary</Link>
+                </li>
+                <li>
+                  <Link to="/about">About</Link>
+                </li>
               </ul>
             </div>
             <div className="footer-section">
               <h3>Legal</h3>
               <ul>
-                <li><Link to="/terms">Terms of Service</Link></li>
-                <li><Link to="/privacy">Privacy Policy</Link></li>
+                <li>
+                  <Link to="/terms">Terms of Service</Link>
+                </li>
+                <li>
+                  <Link to="/privacy">Privacy Policy</Link>
+                </li>
               </ul>
             </div>
           </div>

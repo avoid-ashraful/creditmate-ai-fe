@@ -1,7 +1,7 @@
 import React from 'react';
-import { CreditCard } from '../types';
+
 import { AnimatedCard, GradientButton, fadeInUp } from '../styles/StyledComponents';
-import { motion } from 'framer-motion';
+import { CreditCard } from '../types';
 
 interface CardListItemProps {
   card: CreditCard;
@@ -32,7 +32,7 @@ const CardListItem: React.FC<CardListItemProps> = ({
   };
 
   return (
-    <AnimatedCard 
+    <AnimatedCard
       className={`card-list-item ${isSelected ? 'selected' : ''}`}
       onClick={handleClick}
       variants={fadeInUp}
@@ -68,7 +68,7 @@ const CardListItem: React.FC<CardListItemProps> = ({
             {card.loungeAccessInternational > 0 ? `${card.loungeAccessInternational} Int'l` : ''}
             {card.loungeAccessInternational > 0 && card.loungeAccessDomestic > 0 ? ' / ' : ''}
             {card.loungeAccessDomestic > 0 ? `${card.loungeAccessDomestic} Domestic` : ''}
-            {(card.loungeAccessInternational === 0 && card.loungeAccessDomestic === 0) ? 'None' : ''}
+            {card.loungeAccessInternational === 0 && card.loungeAccessDomestic === 0 ? 'None' : ''}
           </span>
         </div>
       </div>
@@ -92,7 +92,7 @@ const CardListItem: React.FC<CardListItemProps> = ({
 
       {selectable && (
         <div className="compare-button-container">
-          <GradientButton 
+          <GradientButton
             className={`add-to-compare-btn ${isSelected ? 'in-list' : ''}`}
             onClick={handleAddToCompare}
             whileHover={{ scale: 1.05 }}

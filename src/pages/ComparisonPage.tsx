@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { CreditCard } from '../types';
+
 import CardComparisonTable from '../components/CardComparisonTable';
 import { dummyCreditCards } from '../dummy-data/credit-cards';
+import { CreditCard } from '../types';
 import '../styles/ComparisonPage.css';
 
 const ComparisonPage: React.FC = () => {
   const location = useLocation();
   const [selectedCards, setSelectedCards] = useState<CreditCard[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [comparisonId, setComparisonId] = useState<string>('');
+  const [_, setComparisonId] = useState<string>('');
 
   useEffect(() => {
     // Parse card IDs from URL query params
@@ -64,7 +65,8 @@ const ComparisonPage: React.FC = () => {
     const shareableUrl = `${window.location.origin}/compare?ids=${cardIds}&cid=${randomId}`;
 
     // Copy to clipboard
-    navigator.clipboard.writeText(shareableUrl)
+    navigator.clipboard
+      .writeText(shareableUrl)
       .then(() => {
         alert('Comparison link copied to clipboard!');
       })
@@ -80,7 +82,9 @@ const ComparisonPage: React.FC = () => {
       <div className="comparison-header">
         <h1>Credit Card Comparison</h1>
         <div className="comparison-actions">
-          <Link to="/" className="back-link">← Back to All Cards</Link>
+          <Link to="/" className="back-link">
+            ← Back to All Cards
+          </Link>
           {selectedCards.length > 0 && (
             <button className="share-button" onClick={generateShareableLink}>
               Share Comparison
@@ -97,7 +101,9 @@ const ComparisonPage: React.FC = () => {
             <div className="empty-state">
               <h2>No Cards Selected</h2>
               <p>Please select credit cards to compare from the home page.</p>
-              <Link to="/" className="button">Browse Credit Cards</Link>
+              <Link to="/" className="button">
+                Browse Credit Cards
+              </Link>
             </div>
           ) : (
             <>
@@ -107,8 +113,8 @@ const ComparisonPage: React.FC = () => {
                   {selectedCards.map(card => (
                     <div key={card.id} className="card-chip">
                       <span>{card.name}</span>
-                      <button 
-                        className="remove-card" 
+                      <button
+                        className="remove-card"
                         onClick={() => handleRemoveCard(card.id)}
                         title="Remove from comparison"
                       >
@@ -119,16 +125,13 @@ const ComparisonPage: React.FC = () => {
                 </div>
               </div>
 
-              <CardComparisonTable 
-                cards={selectedCards}
-                highlightDifferences={true}
-              />
+              <CardComparisonTable cards={selectedCards} highlightDifferences={true} />
 
               <div className="comparison-footer">
                 <p>Last updated: {new Date().toLocaleDateString()}</p>
                 <p className="disclaimer">
-                  Disclaimer: This information is provided for comparison purposes only. 
-                  Please verify all details with the respective banks before applying for any credit card.
+                  Disclaimer: This information is provided for comparison purposes only. Please
+                  verify all details with the respective banks before applying for any credit card.
                 </p>
               </div>
             </>

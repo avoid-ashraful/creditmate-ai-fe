@@ -1,5 +1,5 @@
-import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import { motion } from 'framer-motion';
+import styled, { keyframes, createGlobalStyle } from 'styled-components';
 
 // Color variables to match the existing theme
 const colors = {
@@ -45,7 +45,7 @@ export const GradientHeader = styled.header`
   top: 0;
   z-index: 100;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  
+
   .header-content {
     max-width: 1200px;
     margin: 0 auto;
@@ -54,19 +54,19 @@ export const GradientHeader = styled.header`
     justify-content: space-between;
     align-items: center;
   }
-  
+
   .logo a {
     font-size: 1.5rem;
     font-weight: 700;
     color: white;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
-  
+
   .main-nav ul {
     display: flex;
     gap: 1.5rem;
   }
-  
+
   .main-nav a {
     color: white;
     font-weight: 500;
@@ -74,7 +74,7 @@ export const GradientHeader = styled.header`
     border-radius: 0.25rem;
     transition: all 0.2s ease;
   }
-  
+
   .main-nav a:hover,
   .main-nav a.active {
     background-color: rgba(255, 255, 255, 0.15);
@@ -92,12 +92,12 @@ export const AnimatedCard = styled(motion.div)`
   border: 1px solid ${colors.border};
   overflow: hidden;
   position: relative;
-  
+
   &:hover {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     transform: translateY(-4px);
   }
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -120,12 +120,12 @@ export const GradientButton = styled(motion.button)`
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
-  
+
   &:hover {
     background: linear-gradient(90deg, ${colors.primaryDark}, ${colors.primary});
     box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.4);
   }
-  
+
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
@@ -138,7 +138,7 @@ export const GradientFooter = styled.footer`
   color: white;
   padding: 2rem 0 1rem;
   margin-top: auto;
-  
+
   .footer-content {
     max-width: 1200px;
     margin: 0 auto;
@@ -147,12 +147,12 @@ export const GradientFooter = styled.footer`
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 2rem;
   }
-  
+
   .footer-section h3 {
     font-size: 1.25rem;
     margin-bottom: 1rem;
     position: relative;
-    
+
     &::after {
       content: '';
       position: absolute;
@@ -163,23 +163,23 @@ export const GradientFooter = styled.footer`
       background: linear-gradient(90deg, ${colors.primary}, ${colors.accent});
     }
   }
-  
+
   .footer-section ul {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .footer-section a {
     color: #e2e8f0;
     transition: all 0.2s ease;
-    
+
     &:hover {
       color: white;
       transform: translateX(2px);
     }
   }
-  
+
   .copyright {
     text-align: center;
     margin-top: 2rem;
@@ -201,7 +201,7 @@ export const GradientComparisonBar = styled.div`
   width: 100%;
   z-index: 50;
   box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
-  
+
   .comparison-content {
     max-width: 1200px;
     margin: 0 auto;
@@ -209,12 +209,12 @@ export const GradientComparisonBar = styled.div`
     justify-content: space-between;
     align-items: center;
   }
-  
+
   .selected-cards {
     display: flex;
     gap: 1rem;
   }
-  
+
   .compare-button {
     background: linear-gradient(90deg, ${colors.accent}, #059669);
     color: white;
@@ -224,7 +224,7 @@ export const GradientComparisonBar = styled.div`
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    
+
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);
@@ -235,11 +235,11 @@ export const GradientComparisonBar = styled.div`
 // Animation variants for Framer Motion
 export const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
-    transition: { duration: 0.5 }
-  }
+    transition: { duration: 0.5 },
+  },
 };
 
 export const staggerContainer = {
@@ -247,9 +247,9 @@ export const staggerContainer = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 
 // Shimmer effect for loading states

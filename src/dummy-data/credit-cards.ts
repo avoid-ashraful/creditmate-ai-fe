@@ -130,7 +130,8 @@ export const dummyCreditCards: CreditCard[] = [
       period: 'yearly',
       conditions: 'Annual fee waived for spending BDT 400,000 in a year',
     },
-    rewardPointsPolicy: 'Earn 2 points for every BDT 100 spent locally, 3 points for international spending.',
+    rewardPointsPolicy:
+      'Earn 2 points for every BDT 100 spent locally, 3 points for international spending.',
     additionalFeatures: [
       'Dedicated relationship manager',
       'Complimentary golf access at select courses',
@@ -165,7 +166,8 @@ export const dummyCreditCards: CreditCard[] = [
       period: 'yearly',
       conditions: 'Annual fee waived for spending BDT 200,000 in 12 months',
     },
-    rewardPointsPolicy: 'Earn 1 point for every BDT 75 spent. Points redeemable for cashback or gift vouchers.',
+    rewardPointsPolicy:
+      'Earn 1 point for every BDT 75 spent. Points redeemable for cashback or gift vouchers.',
     additionalFeatures: [
       'EMI facilities at 0% interest at partner stores',
       '15% discount at select restaurants',

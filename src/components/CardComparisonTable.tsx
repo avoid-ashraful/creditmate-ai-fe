@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { CreditCard } from '../types';
 
 interface CardComparisonTableProps {
@@ -6,9 +7,9 @@ interface CardComparisonTableProps {
   highlightDifferences?: boolean;
 }
 
-const CardComparisonTable: React.FC<CardComparisonTableProps> = ({ 
-  cards, 
-  highlightDifferences = true 
+const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
+  cards,
+  highlightDifferences = true,
 }) => {
   if (!cards || cards.length === 0) {
     return <div className="empty-state">No cards selected for comparison</div>;
@@ -42,18 +43,14 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
           <tr className={hasDifferences('annualFee') ? 'highlight-difference' : ''}>
             <td className="feature-name">Annual Fee</td>
             {cards.map(card => (
-              <td key={`${card.id}-fee`}>
-                BDT {card.annualFee.toLocaleString()}
-              </td>
+              <td key={`${card.id}-fee`}>BDT {card.annualFee.toLocaleString()}</td>
             ))}
           </tr>
 
           <tr className={hasDifferences('interestRateApr') ? 'highlight-difference' : ''}>
             <td className="feature-name">Interest Rate (APR)</td>
             {cards.map(card => (
-              <td key={`${card.id}-apr`}>
-                {card.interestRateApr}%
-              </td>
+              <td key={`${card.id}-apr`}>{card.interestRateApr}%</td>
             ))}
           </tr>
 
@@ -61,8 +58,8 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
             <td className="feature-name">International Lounge Access</td>
             {cards.map(card => (
               <td key={`${card.id}-intl-lounge`}>
-                {card.loungeAccessInternational > 0 
-                  ? `${card.loungeAccessInternational} visits per year` 
+                {card.loungeAccessInternational > 0
+                  ? `${card.loungeAccessInternational} visits per year`
                   : 'Not available'}
               </td>
             ))}
@@ -72,8 +69,8 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
             <td className="feature-name">Domestic Lounge Access</td>
             {cards.map(card => (
               <td key={`${card.id}-dom-lounge`}>
-                {card.loungeAccessDomestic > 0 
-                  ? `${card.loungeAccessDomestic} visits per year` 
+                {card.loungeAccessDomestic > 0
+                  ? `${card.loungeAccessDomestic} visits per year`
                   : 'Not available'}
               </td>
             ))}
@@ -97,8 +94,8 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
             <td className="feature-name">Annual Fee Waiver</td>
             {cards.map(card => (
               <td key={`${card.id}-waiver`}>
-                {card.annualFeeWaiverPolicy 
-                  ? card.annualFeeWaiverPolicy.conditions 
+                {card.annualFeeWaiverPolicy
+                  ? card.annualFeeWaiverPolicy.conditions
                   : 'Not available'}
               </td>
             ))}
@@ -127,9 +124,7 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
           <tr>
             <td className="feature-name">Last Updated</td>
             {cards.map(card => (
-              <td key={`${card.id}-updated`}>
-                {card.lastUpdated.toLocaleDateString()}
-              </td>
+              <td key={`${card.id}-updated`}>{card.lastUpdated.toLocaleDateString()}</td>
             ))}
           </tr>
         </tbody>
