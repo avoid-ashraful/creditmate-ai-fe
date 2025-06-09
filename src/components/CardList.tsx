@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { CreditCard } from '../types';
 import CardListItem from './CardListItem';
+import { motion } from 'framer-motion';
+import { staggerContainer, GradientButton, ShimmerCard } from '../styles/StyledComponents';
 
 interface CardListProps {
   cards: CreditCard[];
@@ -23,10 +25,15 @@ const CardList: React.FC<CardListProps> = ({
 
   if (!cards || cards.length === 0) {
     return (
-      <div className="no-results">
+      <motion.div 
+        className="no-results"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <h3>No credit cards found</h3>
         <p>Try adjusting your search or filter criteria</p>
-      </div>
+      </motion.div>
     );
   }
 
@@ -64,7 +71,12 @@ const CardList: React.FC<CardListProps> = ({
         )}
       </div>
 
-      <div className="cards-container">
+      <motion.div 
+        className="cards-container"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
         {displayedCards.map(card => (
           <CardListItem
             key={card.id}
@@ -75,14 +87,23 @@ const CardList: React.FC<CardListProps> = ({
             onViewDetails={onViewCardDetails}
           />
         ))}
-      </div>
+      </motion.div>
 
       {displayLimit < cards.length && (
-        <div className="load-more">
-          <button onClick={loadMore}>
+        <motion.div 
+          className="load-more"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <GradientButton 
+            onClick={loadMore}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
             Load More ({cards.length - displayLimit} remaining)
-          </button>
-        </div>
+          </GradientButton>
+        </motion.div>
       )}
     </div>
   );

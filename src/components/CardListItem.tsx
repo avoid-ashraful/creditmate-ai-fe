@@ -1,5 +1,7 @@
 import React from 'react';
 import { CreditCard } from '../types';
+import { AnimatedCard, GradientButton, fadeInUp } from '../styles/StyledComponents';
+import { motion } from 'framer-motion';
 
 interface CardListItemProps {
   card: CreditCard;
@@ -30,9 +32,13 @@ const CardListItem: React.FC<CardListItemProps> = ({
   };
 
   return (
-    <div 
+    <AnimatedCard 
       className={`card-list-item ${isSelected ? 'selected' : ''}`}
       onClick={handleClick}
+      variants={fadeInUp}
+      initial="hidden"
+      animate="visible"
+      whileHover={{ y: -5 }}
     >
       {card.images && card.images.length > 0 && (
         <div className="card-image">
@@ -86,15 +92,17 @@ const CardListItem: React.FC<CardListItemProps> = ({
 
       {selectable && (
         <div className="compare-button-container">
-          <button 
+          <GradientButton 
             className={`add-to-compare-btn ${isSelected ? 'in-list' : ''}`}
             onClick={handleAddToCompare}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             {isSelected ? 'Remove from Compare' : 'Add to Compare'}
-          </button>
+          </GradientButton>
         </div>
       )}
-    </div>
+    </AnimatedCard>
   );
 };
 

@@ -5,12 +5,14 @@ import ComparisonPage from './pages/ComparisonPage';
 import GlossaryPage from './pages/GlossaryPage';
 import AboutPage from './pages/AboutPage';
 import './styles/App.css';
+import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
 
 const App: React.FC = () => {
   return (
     <Router>
+      <GradientBackground />
       <div className="app">
-        <header className="app-header">
+        <GradientHeader>
           <div className="header-content">
             <div className="logo">
               <Link to="/">CreditMate AI</Link>
@@ -32,7 +34,7 @@ const App: React.FC = () => {
               </ul>
             </nav>
           </div>
-        </header>
+        </GradientHeader>
 
         <main className="app-content">
           <Routes>
@@ -43,7 +45,7 @@ const App: React.FC = () => {
           </Routes>
         </main>
 
-        <footer className="app-footer">
+        <GradientFooter>
           <div className="footer-content">
             <div className="footer-section">
               <h3>CreditMate AI</h3>
@@ -69,7 +71,7 @@ const App: React.FC = () => {
           <div className="copyright">
             <p>&copy; {new Date().getFullYear()} CreditMate AI. All rights reserved.</p>
           </div>
-        </footer>
+        </GradientFooter>
       </div>
     </Router>
   );

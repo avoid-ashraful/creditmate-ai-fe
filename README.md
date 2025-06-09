@@ -13,10 +13,13 @@ CreditMate AI is a platform designed to simplify financial decision-making for B
 - Intuitive search and filtering functionality
 - Side-by-side comparison of selected credit cards
 - Educational content about financial terminology and concepts
+- Modern UI with gradient styling and smooth animations
+- Responsive design that works on desktop, tablet, and mobile devices
 
 ## Tech Stack
 
 - **Frontend**: React.js with TypeScript
+- **Styling**: Styled Components, Framer Motion for animations
 - **Backend**: Django with Django REST Framework (planned)
 - **Database**: PostgreSQL (planned)
 - **Package Manager**: npm
@@ -56,7 +59,8 @@ src/
 ├── components/        # Reusable UI components
 ├── dummy-data/        # Mock data for development
 ├── pages/             # Page components
-├── styles/            # CSS styles
+├── styles/            # CSS styles and styled components
+│   └── StyledComponents.tsx  # Enhanced styled components with animations
 ├── types/             # TypeScript type definitions
 ├── App.tsx            # Main application component
 └── index.tsx          # Application entry point
