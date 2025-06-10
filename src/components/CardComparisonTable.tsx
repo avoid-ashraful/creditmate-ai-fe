@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { dummyBanks } from '../dummy-data/credit-cards';
 import { CreditCard } from '../types';
 
 interface CardComparisonTableProps {
@@ -14,6 +15,11 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
   if (!cards || cards.length === 0) {
     return <div className="empty-state">No cards selected for comparison</div>;
   }
+
+  const getBankName = (bankId: number): string => {
+    const bank = dummyBanks.find(b => b.id === bankId);
+    return bank?.name || `Bank ID: ${bankId}`;
+  };
 
   // Helper function to check if values are different among cards
   const hasDifferences = (key: keyof CreditCard): boolean => {
@@ -33,7 +39,7 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
               <th key={card.id} className="card-column">
                 <div className="card-header">
                   <h3>{card.name}</h3>
-                  <span className="bank-name">by Bank ID: {card.bankId}</span>
+                  <span className="bank-name">by {getBankName(card.bankId)}</span>
                 </div>
               </th>
             ))}

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { dummyBanks } from '../dummy-data/credit-cards';
 import { AnimatedCard, GradientButton, fadeInUp } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
 
@@ -18,6 +19,11 @@ const CardListItem: React.FC<CardListItemProps> = ({
   selectable = false,
   onViewDetails,
 }) => {
+  const getBankName = (bankId: number): string => {
+    const bank = dummyBanks.find(b => b.id === bankId);
+    return bank?.name || `Bank ID: ${bankId}`;
+  };
+
   const handleClick = () => {
     if (onViewDetails) {
       onViewDetails(card);
@@ -48,7 +54,7 @@ const CardListItem: React.FC<CardListItemProps> = ({
 
       <div className="card-header">
         <h3 className="card-name">{card.name}</h3>
-        <span className="bank-name">Bank ID: {card.bankId}</span>
+        <span className="bank-name">{getBankName(card.bankId)}</span>
       </div>
 
       <div className="card-details">

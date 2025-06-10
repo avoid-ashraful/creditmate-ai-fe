@@ -98,8 +98,12 @@ const HomePage: React.FC = () => {
     if (filters.searchTerm) {
       const term = filters.searchTerm.toLowerCase();
       result = result.filter(card => {
+        const bank = dummyBanks.find(b => b.id === card.bankId);
+        const bankName = bank?.name || '';
+
         return (
           card.name.toLowerCase().includes(term) ||
+          bankName.toLowerCase().includes(term) ||
           card.rewardPointsPolicy.toLowerCase().includes(term) ||
           card.additionalFeatures.some(feature => feature.toLowerCase().includes(term))
         );
@@ -126,12 +130,33 @@ const HomePage: React.FC = () => {
           <form className="search-form" onSubmit={handleSearchSubmit}>
             <input
               type="text"
-              placeholder="Search for cards by name or features..."
+              placeholder="Search by card name, bank, or features..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
             <button type="submit">Search</button>
           </form>
+        </div>
+      </section>
+
+      <section className="stats-section">
+        <div className="stats-container">
+          <div className="stat-item">
+            <span className="stat-number">{dummyBanks.length}</span>
+            <span className="stat-label">Partner Banks</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-number">{dummyCreditCards.length}+</span>
+            <span className="stat-label">Credit Cards</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-number">24/7</span>
+            <span className="stat-label">Expert Support</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-number">100%</span>
+            <span className="stat-label">Free Service</span>
+          </div>
         </div>
       </section>
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { dummyBanks } from '../dummy-data/credit-cards';
 import { CreditCard } from '../types';
 import '../styles/CardDetailsPopup.css';
 
@@ -17,6 +18,11 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
   isInCompareList,
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const getBankName = (bankId: number): string => {
+    const bank = dummyBanks.find(b => b.id === bankId);
+    return bank?.name || `Bank ID: ${bankId}`;
+  };
 
   // Prevent clicks inside the popup from closing it
   const handlePopupClick = (e: React.MouseEvent) => {
@@ -36,7 +42,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
   };
 
   return (
-    <div className="popup-overlay" onClick={onClose}>
+    <div className="popup-overlay" onClick={onClose} data-testid="popup-overlay">
       <div className="card-details-popup" onClick={handlePopupClick}>
         <button className="close-button" onClick={onClose}>
           ×
@@ -46,7 +52,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
           <div className="card-image-gallery">
             <img
               src={card.images[currentImageIndex].full}
-              alt={`${card.name} - Image ${currentImageIndex + 1}`}
+              alt={`${card.name} - ${currentImageIndex + 1}`}
               className="card-full-image"
             />
             {card.images.length > 1 && (
@@ -67,7 +73,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
 
         <div className="popup-header">
           <h2>{card.name}</h2>
-          <span className="bank-name">Bank ID: {card.bankId}</span>
+          <span className="bank-name">{getBankName(card.bankId)}</span>
         </div>
 
         <div className="popup-content">

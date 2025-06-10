@@ -26,7 +26,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    let newValue: any;
+    let newValue: string | number | boolean | undefined;
 
     if (type === 'checkbox') {
       newValue = checked;
