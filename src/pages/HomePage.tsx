@@ -4,12 +4,13 @@ import CardDetailsPopup from '../components/CardDetailsPopup';
 import CardList from '../components/CardList';
 import ComparisonBar from '../components/ComparisonBar';
 import FilterPanel from '../components/FilterPanel';
-import { dummyBanks, dummyCreditCards } from '../dummy-data/credit-cards';
-import { CreditCard, CardFilterOptions } from '../types';
+import { apiService } from '../services/api';
+import { CreditCard, Bank, CardFilterOptions } from '../types';
 import '../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
   const [cards, setCards] = useState<CreditCard[]>([]);
+  const [banks, setBanks] = useState<Bank[]>([]);
   const [filteredCards, setFilteredCards] = useState<CreditCard[]>([]);
   const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -17,17 +18,33 @@ const HomePage: React.FC = () => {
   const [viewedCard, setViewedCard] = useState<CreditCard | null>(null);
 
   useEffect(() => {
-    // Simulate API call to fetch cards
-    const fetchCards = () => {
+    const fetchInitialData = async () => {
       setIsLoading(true);
-      setTimeout(() => {
-        setCards(dummyCreditCards);
-        setFilteredCards(dummyCreditCards);
+      try {
+        // Fetch banks and credit cards in parallel
+        const [banksResponse, cardsResponse] = await Promise.all([
+          apiService.getBanks(),
+          apiService.getCreditCards({ page_size: 100 }),
+        ]);
+
+        // Transform API responses to frontend types
+        const transformedBanks = banksResponse.results.map(bank => apiService.transformBank(bank));
+        const transformedCards = cardsResponse.results.map(card =>
+          apiService.transformCreditCard(card)
+        );
+
+        setBanks(transformedBanks);
+        setCards(transformedCards);
+        setFilteredCards(transformedCards);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        // Keep empty arrays as fallback
+      } finally {
         setIsLoading(false);
-      }, 500); // Simulate network delay
+      }
     };
 
-    fetchCards();
+    fetchInitialData();
   }, []);
 
   const handleCardSelect = (card: CreditCard) => {
@@ -62,55 +79,25 @@ const HomePage: React.FC = () => {
     setSelectedCardIds(prev => prev.filter(id => id !== cardId));
   };
 
-  const handleFilterChange = (filters: CardFilterOptions) => {
-    let result = [...cards];
+  const handleFilterChange = async (filters: CardFilterOptions) => {
+    try {
+      setIsLoading(true);
 
-    // Apply bank filter
-    if (filters.bankIds && filters.bankIds.length > 0) {
-      result = result.filter(card => filters.bankIds?.includes(card.bankId));
-    }
-
-    // Apply annual fee range
-    if (filters.minAnnualFee !== undefined) {
-      result = result.filter(card => card.annualFee >= (filters.minAnnualFee || 0));
-    }
-    if (filters.maxAnnualFee !== undefined) {
-      result = result.filter(card => card.annualFee <= (filters.maxAnnualFee || Infinity));
-    }
-
-    // Apply interest rate range
-    if (filters.minInterestRate !== undefined) {
-      result = result.filter(card => card.interestRateApr >= (filters.minInterestRate || 0));
-    }
-    if (filters.maxInterestRate !== undefined) {
-      result = result.filter(card => card.interestRateApr <= (filters.maxInterestRate || Infinity));
-    }
-
-    // Apply lounge access filters
-    if (filters.hasInternationalLounge) {
-      result = result.filter(card => card.loungeAccessInternational > 0);
-    }
-    if (filters.hasDomesticLounge) {
-      result = result.filter(card => card.loungeAccessDomestic > 0);
-    }
-
-    // Apply search term filter
-    if (filters.searchTerm) {
-      const term = filters.searchTerm.toLowerCase();
-      result = result.filter(card => {
-        const bank = dummyBanks.find(b => b.id === card.bankId);
-        const bankName = bank?.name || '';
-
-        return (
-          card.name.toLowerCase().includes(term) ||
-          bankName.toLowerCase().includes(term) ||
-          card.rewardPointsPolicy.toLowerCase().includes(term) ||
-          card.additionalFeatures.some(feature => feature.toLowerCase().includes(term))
-        );
+      // Use API filtering instead of client-side filtering
+      const response = await apiService.getCreditCards({
+        ...filters,
+        page_size: 100,
       });
-    }
 
-    setFilteredCards(result);
+      const transformedCards = response.results.map(card => apiService.transformCreditCard(card));
+      setFilteredCards(transformedCards);
+    } catch (error) {
+      console.error('Failed to filter cards:', error);
+      // Fallback to showing all cards
+      setFilteredCards(cards);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -142,11 +129,11 @@ const HomePage: React.FC = () => {
       <section className="stats-section">
         <div className="stats-container">
           <div className="stat-item">
-            <span className="stat-number">{dummyBanks.length}</span>
+            <span className="stat-number">{banks.length}</span>
             <span className="stat-label">Partner Banks</span>
           </div>
           <div className="stat-item">
-            <span className="stat-number">{dummyCreditCards.length}+</span>
+            <span className="stat-number">{cards.length}+</span>
             <span className="stat-label">Credit Cards</span>
           </div>
           <div className="stat-item">
@@ -163,7 +150,7 @@ const HomePage: React.FC = () => {
       <section className="main-content">
         <div className="filter-sidebar">
           <FilterPanel
-            banks={dummyBanks}
+            banks={banks}
             onFilterChange={handleFilterChange}
             initialFilters={{ searchTerm }}
           />

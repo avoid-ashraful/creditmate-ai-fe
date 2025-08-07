@@ -136,7 +136,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
           <div className="detail-section">
             <h3>Additional Features</h3>
             <ul className="feature-list">
-              {card.additionalFeatures.map((feature, index) => (
+              {card.additionalFeatures?.map((feature, index) => (
                 <li key={index}>{feature}</li>
               ))}
             </ul>

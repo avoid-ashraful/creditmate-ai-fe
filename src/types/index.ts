@@ -44,14 +44,46 @@ export interface CreditCard {
  * Filter options for credit card search
  */
 export interface CardFilterOptions {
+  bankId?: number;
   bankIds?: number[];
+  bankName?: string;
+  searchTerm?: string;
+
+  // Annual fee filters
+  annualFeeRange?: {
+    min?: number;
+    max?: number;
+  };
+  annualFeeRangeString?: string; // Format: "min,max" e.g., "0,200"
+  hasAnnualFee?: boolean;
+
+  // Interest rate filters
+  interestRateRange?: {
+    min?: number;
+    max?: number;
+  };
+  interestRateRangeString?: string; // Format: "min,max" e.g., "18.0,25.0"
+
+  // Lounge access filters
+  hasLoungeAccess?: boolean;
+  hasInternationalLounge?: boolean;
+  hasDomesticLounge?: boolean;
+  minInternationalLounge?: number;
+  minDomesticLounge?: number;
+
+  // Feature filters
+  hasAdditionalFeatures?: boolean;
+  featureSearch?: string;
+  hasFeeWaiver?: boolean;
+
+  // Status
+  isActive?: boolean;
+
+  // Legacy support
   minAnnualFee?: number;
   maxAnnualFee?: number;
   minInterestRate?: number;
   maxInterestRate?: number;
-  hasInternationalLounge?: boolean;
-  hasDomesticLounge?: boolean;
-  searchTerm?: string;
 }
 
 /**
