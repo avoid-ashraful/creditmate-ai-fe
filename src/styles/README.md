@@ -33,20 +33,24 @@ This project has been enhanced with modern styling techniques using third-party 
 ## Component Enhancements
 
 ### App Layout
+
 - Added gradient background to the entire application
 - Enhanced header with animated gradient
 - Enhanced footer with gradient styling
 
 ### Card Components
+
 - Added hover animations
 - Added gradient accents
 - Improved visual hierarchy
 
 ### Buttons
+
 - Replaced standard buttons with gradient buttons
 - Added hover and tap animations
 
 ### Comparison Bar
+
 - Added gradient background
 - Enhanced with spring animations
 - Improved card chip animations
@@ -56,6 +60,7 @@ This project has been enhanced with modern styling techniques using third-party 
 The styled components are located in `src/styles/StyledComponents.tsx` and can be imported and used throughout the application. The components are designed to be composable and reusable.
 
 Example:
+
 ```tsx
 import { GradientButton, AnimatedCard } from '../styles/StyledComponents';
 

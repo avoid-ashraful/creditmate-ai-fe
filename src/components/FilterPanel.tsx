@@ -24,6 +24,15 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     }
   }, [initialFilters]);
 
+  // Helper function to validate range string format
+  const validateRangeString = (value: string): boolean => {
+    if (!value.trim()) return true; // Empty is valid
+    const parts = value.split(',');
+    if (parts.length !== 2) return false;
+    const [min, max] = parts.map(p => parseFloat(p.trim()));
+    return !isNaN(min) && !isNaN(max) && min <= max;
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     let newValue: string | number | boolean | undefined;
@@ -36,10 +45,55 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       newValue = value;
     }
 
-    setFilters(prev => ({
-      ...prev,
-      [name]: newValue,
-    }));
+    // Handle nested range objects for API compatibility
+    if (name === 'minAnnualFee' || name === 'maxAnnualFee') {
+      setFilters(prev => ({
+        ...prev,
+        annualFeeRange: {
+          ...prev.annualFeeRange,
+          [name === 'minAnnualFee' ? 'min' : 'max']: newValue as number | undefined,
+        },
+        // Keep legacy support
+        [name]: newValue,
+        // Clear string range when using individual inputs
+        annualFeeRangeString: undefined,
+      }));
+    } else if (name === 'minInterestRate' || name === 'maxInterestRate') {
+      setFilters(prev => ({
+        ...prev,
+        interestRateRange: {
+          ...prev.interestRateRange,
+          [name === 'minInterestRate' ? 'min' : 'max']: newValue as number | undefined,
+        },
+        // Keep legacy support
+        [name]: newValue,
+        // Clear string range when using individual inputs
+        interestRateRangeString: undefined,
+      }));
+    } else if (name === 'annualFeeRangeString') {
+      // Clear individual range inputs when using string format
+      setFilters(prev => ({
+        ...prev,
+        [name]: newValue as string,
+        annualFeeRange: undefined,
+        minAnnualFee: undefined,
+        maxAnnualFee: undefined,
+      }));
+    } else if (name === 'interestRateRangeString') {
+      // Clear individual range inputs when using string format
+      setFilters(prev => ({
+        ...prev,
+        [name]: newValue as string,
+        interestRateRange: undefined,
+        minInterestRate: undefined,
+        maxInterestRate: undefined,
+      }));
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        [name]: newValue,
+      }));
+    }
   };
 
   const handleBankSelection = (bankId: number, checked: boolean) => {
@@ -54,7 +108,26 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   const applyFilters = () => {
-    onFilterChange(filters);
+    // Validate string range formats before applying
+    const validatedFilters = { ...filters };
+
+    if (
+      validatedFilters.annualFeeRangeString &&
+      !validateRangeString(validatedFilters.annualFeeRangeString)
+    ) {
+      alert('Invalid annual fee range format. Please use "min,max" format (e.g., "0,200").');
+      return;
+    }
+
+    if (
+      validatedFilters.interestRateRangeString &&
+      !validateRangeString(validatedFilters.interestRateRangeString)
+    ) {
+      alert('Invalid interest rate range format. Please use "min,max" format (e.g., "18.0,25.0").');
+      return;
+    }
+
+    onFilterChange(validatedFilters);
   };
 
   const resetFilters = () => {
@@ -121,6 +194,17 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 />
               </div>
             </div>
+            <div className="range-string-input">
+              <label htmlFor="annualFeeRangeString">Or Range (min,max):</label>
+              <input
+                type="text"
+                id="annualFeeRangeString"
+                name="annualFeeRangeString"
+                value={filters.annualFeeRangeString || ''}
+                onChange={handleInputChange}
+                placeholder="e.g., 0,200"
+              />
+            </div>
           </div>
 
           <div className="filter-section">
@@ -153,11 +237,58 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 />
               </div>
             </div>
+            <div className="range-string-input">
+              <label htmlFor="interestRateRangeString">Or Range (min,max):</label>
+              <input
+                type="text"
+                id="interestRateRangeString"
+                name="interestRateRangeString"
+                value={filters.interestRateRangeString || ''}
+                onChange={handleInputChange}
+                placeholder="e.g., 18.0,25.0"
+              />
+            </div>
+          </div>
+
+          <div className="filter-section">
+            <h4>Annual Fee Options</h4>
+            <div className="checkbox-inputs">
+              <div className="input-group">
+                <input
+                  type="checkbox"
+                  id="hasAnnualFee"
+                  name="hasAnnualFee"
+                  checked={filters.hasAnnualFee || false}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="hasAnnualFee">Has Annual Fee</label>
+              </div>
+              <div className="input-group">
+                <input
+                  type="checkbox"
+                  id="hasFeeWaiver"
+                  name="hasFeeWaiver"
+                  checked={filters.hasFeeWaiver || false}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="hasFeeWaiver">Has Fee Waiver Policy</label>
+              </div>
+            </div>
           </div>
 
           <div className="filter-section">
             <h4>Lounge Access</h4>
             <div className="checkbox-inputs">
+              <div className="input-group">
+                <input
+                  type="checkbox"
+                  id="hasLoungeAccess"
+                  name="hasLoungeAccess"
+                  checked={filters.hasLoungeAccess || false}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="hasLoungeAccess">Any Lounge Access</label>
+              </div>
               <div className="input-group">
                 <input
                   type="checkbox"
@@ -178,6 +309,58 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 />
                 <label htmlFor="hasDomesticLounge">Domestic Lounge Access</label>
               </div>
+            </div>
+            <div className="range-inputs">
+              <div className="input-group">
+                <label htmlFor="minInternationalLounge">Min International:</label>
+                <input
+                  type="number"
+                  id="minInternationalLounge"
+                  name="minInternationalLounge"
+                  value={filters.minInternationalLounge || ''}
+                  onChange={handleInputChange}
+                  placeholder="Min"
+                  min="0"
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="minDomesticLounge">Min Domestic:</label>
+                <input
+                  type="number"
+                  id="minDomesticLounge"
+                  name="minDomesticLounge"
+                  value={filters.minDomesticLounge || ''}
+                  onChange={handleInputChange}
+                  placeholder="Min"
+                  min="0"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="filter-section">
+            <h4>Features</h4>
+            <div className="checkbox-inputs">
+              <div className="input-group">
+                <input
+                  type="checkbox"
+                  id="hasAdditionalFeatures"
+                  name="hasAdditionalFeatures"
+                  checked={filters.hasAdditionalFeatures || false}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="hasAdditionalFeatures">Has Additional Features</label>
+              </div>
+            </div>
+            <div className="search-input">
+              <input
+                type="text"
+                id="featureSearch"
+                name="featureSearch"
+                value={filters.featureSearch || ''}
+                onChange={handleInputChange}
+                placeholder="Search in features"
+              />
             </div>
           </div>
 

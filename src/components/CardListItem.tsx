@@ -87,10 +87,10 @@ const CardListItem: React.FC<CardListItemProps> = ({
       <div className="card-features">
         <h4>Key Features</h4>
         <ul className="feature-list">
-          {card.additionalFeatures.slice(0, 2).map((feature, index) => (
+          {card.additionalFeatures?.slice(0, 2).map((feature, index) => (
             <li key={index}>{feature}</li>
           ))}
-          {card.additionalFeatures.length > 2 && (
+          {card.additionalFeatures && card.additionalFeatures.length > 2 && (
             <li className="more-features">+{card.additionalFeatures.length - 2} more</li>
           )}
         </ul>

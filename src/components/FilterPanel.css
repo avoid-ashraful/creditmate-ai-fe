@@ -49,6 +49,36 @@
   padding-bottom: 0;
 }
 
+/* Range string input styles */
+.range-string-input {
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-color-light, #f0f0f0);
+}
+
+.range-string-input label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-color-secondary, #666);
+  margin-bottom: var(--spacing-xs, 0.25rem);
+  font-style: italic;
+}
+
+.range-string-input input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  background-color: var(--background-color-light, #f9f9f9);
+}
+
+.range-string-input input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background-color: white;
+}
+
 .filter-section h4 {
   margin-bottom: var(--spacing-md);
   font-size: 1rem;
@@ -67,7 +97,7 @@
   gap: var(--spacing-sm);
 }
 
-.bank-option input[type="checkbox"] {
+.bank-option input[type='checkbox'] {
   margin: 0;
 }
 
@@ -89,7 +119,7 @@
   color: var(--text-light);
 }
 
-.input-group input[type="number"] {
+.input-group input[type='number'] {
   padding: var(--spacing-sm);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
@@ -97,7 +127,7 @@
   transition: border-color 0.2s ease;
 }
 
-.input-group input[type="number"]:focus {
+.input-group input[type='number']:focus {
   border-color: var(--primary-color);
 }
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 
 import CardComparisonTable from '../components/CardComparisonTable';
-import { dummyCreditCards, dummyBanks } from '../dummy-data/credit-cards';
+import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import '../styles/ComparisonPage.css';
 
@@ -13,32 +13,42 @@ const ComparisonPage: React.FC = () => {
   const [comparisonId, setComparisonId] = useState<string>('');
 
   useEffect(() => {
-    // Parse card IDs from URL query params
-    const queryParams = new URLSearchParams(location.search);
-    const cardIds = queryParams.get('ids');
-    const comparisonIdParam = queryParams.get('cid');
+    const fetchComparisonData = async () => {
+      const queryParams = new URLSearchParams(location.search);
+      const cardIds = queryParams.get('ids');
+      const comparisonIdParam = queryParams.get('cid');
 
-    if (comparisonIdParam) {
-      setComparisonId(comparisonIdParam);
-      // Here you would fetch the comparison by ID from the API
-      // For now, we'll just use dummy data
-    }
+      if (comparisonIdParam) {
+        setComparisonId(comparisonIdParam);
+        // Here you would fetch the comparison by ID from the API
+        // For now, we'll just use the ids parameter
+      }
 
-    if (cardIds) {
-      // Parse comma-separated IDs
-      const ids = cardIds.split(',').map(id => parseInt(id, 10));
+      if (cardIds) {
+        setIsLoading(true);
+        try {
+          // Use API to fetch specific cards for comparison
+          const response = await apiService.getCreditCards({
+            ids: cardIds,
+            page_size: 4,
+          });
 
-      // Simulate API call to fetch card details
-      setIsLoading(true);
-      setTimeout(() => {
-        // Filter dummy cards based on IDs from URL
-        const cardsToCompare = dummyCreditCards.filter(card => ids.includes(card.id));
-        setSelectedCards(cardsToCompare);
+          const transformedCards = response.results.map(card =>
+            apiService.transformCreditCard(card)
+          );
+          setSelectedCards(transformedCards);
+        } catch (error) {
+          console.error('Failed to fetch comparison cards:', error);
+          setSelectedCards([]);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
         setIsLoading(false);
-      }, 500);
-    } else {
-      setIsLoading(false);
-    }
+      }
+    };
+
+    fetchComparisonData();
   }, [location.search]);
 
   const handleRemoveCard = (cardId: number) => {
@@ -78,8 +88,9 @@ const ComparisonPage: React.FC = () => {
   };
 
   const getBankName = (bankId: number): string => {
-    const bank = dummyBanks.find(b => b.id === bankId);
-    return bank?.name || `Bank ID: ${bankId}`;
+    // Since we have API data, we could fetch bank details or use bank info from cards
+    // For now, let's return a simple fallback - in a real app, you'd want to fetch bank details
+    return `Bank ID: ${bankId}`;
   };
 
   return (
