@@ -20,3 +20,7 @@ value = "3000"
 [[deploy.environmentVariables]]
 name = "GENERATE_SOURCEMAP"
 value = "false"
+
+[[deploy.environmentVariables]]
+name = "CI"
+value = "false"

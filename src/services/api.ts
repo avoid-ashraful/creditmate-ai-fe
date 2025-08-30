@@ -21,9 +21,9 @@ export interface CreditCardApiResponse {
   lounge_access_domestic: number;
   cash_advance_fee: string;
   late_payment_fee: string;
-  annual_fee_waiver_policy: Record<string, any> | null;
+  annual_fee_waiver_policy: Record<string, unknown> | null;
   reward_points_policy: string;
-  additional_features: any[];
+  additional_features: unknown[];
   is_active: boolean;
   has_lounge_access: boolean;
   total_lounge_access: number;
@@ -65,12 +65,14 @@ class ApiService {
       const data = await response.json();
 
       if (ENV.ENABLE_API_LOGGING) {
+        // eslint-disable-next-line no-console
         console.log('API Response:', { url, status: response.status, data });
       }
 
       return data;
     } catch (error) {
       if (ENV.ENABLE_API_LOGGING) {
+        // eslint-disable-next-line no-console
         console.error('API fetch error:', { url, error });
       }
       throw error;
