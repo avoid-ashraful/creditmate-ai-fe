@@ -1,0 +1,136 @@
+.faq-chatbot {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  min-width: 320px;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(40, 60, 120, 0.18);
+  padding: 0;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  z-index: 10000;
+  overflow: hidden;
+  border: 1px solid #e0e7ef;
+  animation: chatbot-fade-in 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes chatbot-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  padding: 18px 24px 10px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-bottom: 1px solid #e0e7ef;
+}
+
+.chat-header svg {
+  font-size: 1.2rem;
+  margin-right: 8px;
+}
+
+.chat-header strong {
+  font-size: 1.08rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.chat-header button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #fff;
+  transition: color 0.2s;
+}
+
+.chat-header button:hover {
+  color: #ff6b81;
+}
+
+.chat-window {
+  background: #f8fafc;
+  border-radius: 0 0 12px 12px;
+  padding: 18px 24px 12px 24px;
+  max-height: 260px;
+  overflow-y: auto;
+  border-bottom: 1px solid #e0e7ef;
+}
+
+.message {
+  display: block;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 8px;
+  max-width: 80%;
+  box-shadow: 0 2px 8px rgba(40, 60, 120, 0.06);
+  word-wrap: break-word;
+}
+
+.message.user {
+  background: linear-gradient(135deg, #2563eb 0%, #667eea 100%);
+  color: #fff;
+  text-align: right;
+  margin-left: auto;
+  border-bottom-right-radius: 2px;
+}
+
+.message.bot {
+  background: #e0e7ef;
+  color: #222;
+  text-align: left;
+  border-bottom-left-radius: 2px;
+}
+
+.chat-input {
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px 18px 24px;
+  background: #fff;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #e0e7ef;
+  font-size: 15px;
+  background: #f8fafc;
+  transition: border 0.2s;
+}
+
+.chat-input input:focus {
+  border: 1.5px solid #667eea;
+  outline: none;
+}
+
+.chat-input button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(40, 60, 120, 0.1);
+  transition: background 0.2s;
+}
+
+.chat-input button:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}

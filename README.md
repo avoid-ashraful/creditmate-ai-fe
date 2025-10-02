@@ -21,17 +21,20 @@ A comprehensive credit card comparison platform designed specifically for Bangla
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/your-username/credit-mate-ai.git
 cd credit-mate-ai
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm start
 ```
@@ -111,6 +114,7 @@ This project maintains high code quality standards through:
 ### Testing
 
 Run tests with:
+
 ```bash
 npm test
 ```
@@ -149,18 +153,21 @@ Please ensure your code follows the existing style guidelines and includes appro
 ## 📋 Roadmap
 
 ### Phase 1 (Current - MVP)
+
 - ✅ Core comparison functionality
 - ✅ Search and filtering
 - ✅ Responsive design
 - ✅ Educational content
 
 ### Phase 2 (Planned)
+
 - User accounts and preferences
 - Save and share comparisons
 - User reviews and ratings
 - Enhanced mobile experience
 
 ### Phase 3 (Future)
+
 - Personalized recommendations
 - Advanced analytics
 - API integrations

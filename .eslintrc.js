@@ -27,15 +27,18 @@ module.exports = {
   plugins: ['react', 'react-hooks', '@typescript-eslint', 'import'],
   rules: {
     // Basic rules
-    'max-len': ['error', { code: 100, ignoreUrls: true, ignoreStrings: true, ignoreTemplateLiterals: true }],
+    'max-len': [
+      'error',
+      { code: 100, ignoreUrls: true, ignoreStrings: true, ignoreTemplateLiterals: true },
+    ],
     'no-console': ['warn', { allow: ['warn', 'error'] }],
-    
+
     // React rules
     'react/prop-types': 'off',
     'react/react-in-jsx-scope': 'off',
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
-    
+
     // Import rules
     'import/order': [
       'error',
@@ -47,7 +50,7 @@ module.exports = {
     ],
     'import/no-duplicates': 'error',
     'import/no-unresolved': 'off', // TypeScript takes care of this
-    
+
     // TypeScript rules
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',

@@ -1,5 +1,18 @@
 /* Base styles */
 :root {
+  /* Dark mode variables */
+  .dark-mode {
+    --primary-color: #60a5fa;
+    --primary-dark: #2563eb;
+    --primary-light: #1d4ed8;
+    --secondary-color: #f8fafc;
+    --accent-color: #10b981;
+    --text-color: #f1f5f9;
+    --text-light: #94a3b8;
+    --background-color: #0f172a;
+    --card-bg: #1e293b;
+    --border-color: #334155;
+  }
   --primary-color: #2563eb;
   --primary-dark: #1d4ed8;
   --primary-light: #60a5fa;
