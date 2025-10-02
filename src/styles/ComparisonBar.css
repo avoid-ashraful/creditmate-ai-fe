@@ -126,17 +126,17 @@
     flex-direction: column;
     padding: 0 15px;
   }
-  
+
   .selected-cards {
     margin-bottom: 15px;
     width: 100%;
   }
-  
+
   .comparison-actions {
     margin-left: 0;
     width: 100%;
   }
-  
+
   .compare-button {
     width: 100%;
     text-align: center;

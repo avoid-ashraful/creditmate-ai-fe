@@ -1,0 +1,49 @@
+.reward-calculator-page {
+  max-width: 600px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  padding: 32px;
+}
+
+.calculator-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.calculator-form label {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.calculator-form input[type='number'],
+.calculator-form select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  margin-top: 4px;
+}
+
+.calculator-form button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+.calculator-result {
+  margin-top: 32px;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}

@@ -67,7 +67,7 @@
   gap: var(--spacing-sm);
 }
 
-.bank-option input[type="checkbox"] {
+.bank-option input[type='checkbox'] {
   margin: 0;
 }
 
@@ -89,7 +89,7 @@
   color: var(--text-light);
 }
 
-.input-group input[type="number"] {
+.input-group input[type='number'] {
   padding: var(--spacing-sm);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
@@ -97,7 +97,7 @@
   transition: border-color 0.2s ease;
 }
 
-.input-group input[type="number"]:focus {
+.input-group input[type='number']:focus {
   border-color: var(--primary-color);
 }
 

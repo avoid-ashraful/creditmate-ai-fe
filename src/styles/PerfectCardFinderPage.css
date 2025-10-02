@@ -1,0 +1,110 @@
+.perfect-card-finder-page {
+  max-width: 700px;
+  margin: 50px auto;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4f0f9 100%);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.perfect-card-finder-page h1 {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 30px;
+  color: #3b3b3b;
+}
+
+.finder-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.finder-form label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+  margin-right: 10px;
+}
+
+.finder-form input[type='number'] {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #cfd8dc;
+  margin-top: 6px;
+  font-size: 1rem;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+.finder-form input[type='number']:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 8px rgba(102, 126, 234, 0.3);
+  outline: none;
+}
+
+.finder-form fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.finder-form legend {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.finder-form input[type='checkbox'] {
+  margin-right: 10px;
+  accent-color: #667eea;
+}
+
+.finder-form button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-top: 16px;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.finder-form button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(118, 75, 162, 0.3);
+}
+
+.finder-results {
+  margin-top: 40px;
+}
+
+.finder-results h2 {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #3b3b3b;
+  margin-bottom: 24px;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Optional: smooth card hover */
+.card-list-item {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-list-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
