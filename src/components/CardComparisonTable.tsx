@@ -16,9 +16,11 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
     return <div className="empty-state">No cards selected for comparison</div>;
   }
 
-  const getBankName = (bankId: number): string => {
-    const bank = dummyBanks.find(b => b.id === bankId);
-    return bank?.name || `Bank ID: ${bankId}`;
+  const getBankName = (card: CreditCard): string => {
+    if (card.bankName) return card.bankName;
+    if (card.bankId === undefined) return 'Data not available';
+    const bank = dummyBanks.find(b => b.id === card.bankId);
+    return bank?.name || `Bank ID: ${card.bankId}`;
   };
 
   // Helper function to check if values are different among cards
@@ -27,6 +29,18 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
 
     const values = cards.map(card => card[key]);
     return new Set(values).size > 1;
+  };
+
+  // Helper to format annual fee with null handling
+  const formatAnnualFee = (fee: number | null): string => {
+    if (fee === null) return 'Data not available';
+    return `BDT ${fee.toLocaleString()}`;
+  };
+
+  // Helper to format interest rate with null handling
+  const formatInterestRate = (rate: number | null): string => {
+    if (rate === null) return 'Data not available';
+    return `${rate}%`;
   };
 
   return (
@@ -39,7 +53,7 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
               <th key={card.id} className="card-column">
                 <div className="card-header">
                   <h3>{card.name}</h3>
-                  <span className="bank-name">by {getBankName(card.bankId)}</span>
+                  <span className="bank-name">by {getBankName(card)}</span>
                 </div>
               </th>
             ))}
@@ -49,14 +63,14 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
           <tr className={hasDifferences('annualFee') ? 'highlight-difference' : ''}>
             <td className="feature-name">Annual Fee</td>
             {cards.map(card => (
-              <td key={`${card.id}-fee`}>BDT {card.annualFee.toLocaleString()}</td>
+              <td key={`${card.id}-fee`}>{formatAnnualFee(card.annualFee)}</td>
             ))}
           </tr>
 
           <tr className={hasDifferences('interestRateApr') ? 'highlight-difference' : ''}>
             <td className="feature-name">Interest Rate (APR)</td>
             {cards.map(card => (
-              <td key={`${card.id}-apr`}>{card.interestRateApr}%</td>
+              <td key={`${card.id}-apr`}>{formatInterestRate(card.interestRateApr)}</td>
             ))}
           </tr>
 
@@ -64,9 +78,11 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
             <td className="feature-name">International Lounge Access</td>
             {cards.map(card => (
               <td key={`${card.id}-intl-lounge`}>
-                {card.loungeAccessInternational > 0
-                  ? `${card.loungeAccessInternational} visits per year`
-                  : 'Not available'}
+                {card.loungeAccessInternational === null
+                  ? 'Data not available'
+                  : card.loungeAccessInternational === ''
+                  ? 'None'
+                  : card.loungeAccessInternational}
               </td>
             ))}
           </tr>
@@ -75,9 +91,11 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
             <td className="feature-name">Domestic Lounge Access</td>
             {cards.map(card => (
               <td key={`${card.id}-dom-lounge`}>
-                {card.loungeAccessDomestic > 0
-                  ? `${card.loungeAccessDomestic} visits per year`
-                  : 'Not available'}
+                {card.loungeAccessDomestic === null
+                  ? 'Data not available'
+                  : card.loungeAccessDomestic === ''
+                  ? 'None'
+                  : card.loungeAccessDomestic}
               </td>
             ))}
           </tr>
@@ -130,7 +148,9 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
           <tr>
             <td className="feature-name">Last Updated</td>
             {cards.map(card => (
-              <td key={`${card.id}-updated`}>{card.lastUpdated.toLocaleDateString()}</td>
+              <td key={`${card.id}-updated`}>
+                {card.lastUpdated ? card.lastUpdated.toLocaleDateString() : 'Data not available'}
+              </td>
             ))}
           </tr>
         </tbody>

@@ -19,7 +19,9 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const getBankName = (bankId: number): string => {
+  const getBankName = (bankId: number | undefined): string => {
+    if (card.bankName) return card.bankName;
+    if (bankId === undefined) return 'Bank: Data not available';
     const bank = dummyBanks.find(b => b.id === bankId);
     return bank?.name || `Bank ID: ${bankId}`;
   };
@@ -41,6 +43,18 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
     }
   };
 
+  // Helper to format annual fee with null handling
+  const formatAnnualFee = (fee: number | null): string => {
+    if (fee === null) return 'Data not available';
+    return `BDT ${fee.toLocaleString()}`;
+  };
+
+  // Helper to format interest rate with null handling
+  const formatInterestRate = (rate: number | null): string => {
+    if (rate === null) return 'Data not available';
+    return `${rate}% APR`;
+  };
+
   return (
     <div className="popup-overlay" onClick={onClose} data-testid="popup-overlay">
       <div className="card-details-popup" onClick={handlePopupClick}>
@@ -58,13 +72,13 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
             {card.images.length > 1 && (
               <div className="image-navigation">
                 <button onClick={prevImage} className="nav-button prev">
-                  &lt;
+                  {'<'}
                 </button>
                 <span className="image-counter">
                   {currentImageIndex + 1} / {card.images.length}
                 </span>
                 <button onClick={nextImage} className="nav-button next">
-                  &gt;
+                  {'>'}
                 </button>
               </div>
             )}
@@ -81,11 +95,11 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
             <h3>Basic Information</h3>
             <div className="detail-row">
               <span className="detail-label">Annual Fee:</span>
-              <span className="detail-value">BDT {card.annualFee.toLocaleString()}</span>
+              <span className="detail-value">{formatAnnualFee(card.annualFee)}</span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Interest Rate:</span>
-              <span className="detail-value">{card.interestRateApr}% APR</span>
+              <span className="detail-value">{formatInterestRate(card.interestRateApr)}</span>
             </div>
           </div>
 
@@ -94,17 +108,21 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
             <div className="detail-row">
               <span className="detail-label">International:</span>
               <span className="detail-value">
-                {card.loungeAccessInternational > 0
-                  ? `${card.loungeAccessInternational} visits per year`
-                  : 'Not available'}
+                {card.loungeAccessInternational === null
+                  ? 'Data not available'
+                  : card.loungeAccessInternational === ''
+                  ? 'None'
+                  : card.loungeAccessInternational}
               </span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Domestic:</span>
               <span className="detail-value">
-                {card.loungeAccessDomestic > 0
-                  ? `${card.loungeAccessDomestic} visits per year`
-                  : 'Not available'}
+                {card.loungeAccessDomestic === null
+                  ? 'Data not available'
+                  : card.loungeAccessDomestic === ''
+                  ? 'None'
+                  : card.loungeAccessDomestic}
               </span>
             </div>
           </div>
@@ -146,13 +164,19 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
             <h3>More Information</h3>
             <div className="detail-row">
               <span className="detail-label">Source:</span>
-              <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer">
-                Official Website
-              </a>
+              {card.sourceUrl ? (
+                <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer">
+                  Official Website
+                </a>
+              ) : (
+                <span className="detail-value">Data not available</span>
+              )}
             </div>
             <div className="detail-row">
               <span className="detail-label">Last Updated:</span>
-              <span className="detail-value">{card.lastUpdated.toLocaleDateString()}</span>
+              <span className="detail-value">
+                {card.lastUpdated ? card.lastUpdated.toLocaleDateString() : 'Data not available'}
+              </span>
             </div>
           </div>
         </div>

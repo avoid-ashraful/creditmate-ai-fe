@@ -20,14 +20,11 @@ const ComparisonPage: React.FC = () => {
 
       if (comparisonIdParam) {
         setComparisonId(comparisonIdParam);
-        // Here you would fetch the comparison by ID from the API
-        // For now, we'll just use the ids parameter
       }
 
       if (cardIds) {
         setIsLoading(true);
         try {
-          // Use API to fetch specific cards for comparison
           const response = await apiService.getCreditCards({
             ids: cardIds,
             page_size: 4,
@@ -54,7 +51,6 @@ const ComparisonPage: React.FC = () => {
   const handleRemoveCard = (cardId: number) => {
     setSelectedCards(prev => prev.filter(card => card.id !== cardId));
 
-    // Update URL to reflect removed card
     const remainingIds = selectedCards
       .filter(card => card.id !== cardId)
       .map(card => card.id)
@@ -68,13 +64,10 @@ const ComparisonPage: React.FC = () => {
   };
 
   const generateShareableLink = () => {
-    // In a real application, this would create a persistent link in the backend
-    // For now, we'll just use the current URL
     const cardIds = selectedCards.map(card => card.id).join(',');
     const currentId = comparisonId || Math.random().toString(36).substring(2, 10);
     const shareableUrl = `${window.location.origin}/compare?ids=${cardIds}&cid=${currentId}`;
 
-    // Copy to clipboard
     navigator.clipboard
       .writeText(shareableUrl)
       .then(() => {
@@ -85,12 +78,6 @@ const ComparisonPage: React.FC = () => {
       });
 
     return shareableUrl;
-  };
-
-  const getBankName = (bankId: number): string => {
-    // Since we have API data, we could fetch bank details or use bank info from cards
-    // For now, let's return a simple fallback - in a real app, you'd want to fetch bank details
-    return `Bank ID: ${bankId}`;
   };
 
   return (
@@ -134,7 +121,8 @@ const ComparisonPage: React.FC = () => {
                   <div key={card.id} className="card-chip">
                     <div className="card-chip-content">
                       <div className="card-chip-name">{card.name}</div>
-                      <div className="card-chip-bank">{getBankName(card.bankId)}</div>
+                      {/* Bank name would come from API - for now use bankId */}
+                      <div className="card-chip-bank">Bank ID: {card.bankId}</div>
                     </div>
                     <button
                       className="remove-card"
