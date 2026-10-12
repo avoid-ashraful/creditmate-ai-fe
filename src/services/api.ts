@@ -15,8 +15,8 @@ export interface CreditCardApiResponse {
   bank: Bank;
   bank_id: number;
   name: string;
-  annual_fee: number;
-  interest_rate_apr: number;
+  annual_fee: number | null;
+  interest_rate_apr: number | null;
   lounge_access_international: number;
   lounge_access_domestic: number;
   cash_advance_fee: string;

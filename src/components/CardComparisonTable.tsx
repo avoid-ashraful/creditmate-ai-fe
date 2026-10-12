@@ -29,6 +29,18 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
     return new Set(values).size > 1;
   };
 
+  // Helper to format annual fee with null handling
+  const formatAnnualFee = (fee: number | null): string => {
+    if (fee === null) return 'Data not available';
+    return `BDT ${fee.toLocaleString()}`;
+  };
+
+  // Helper to format interest rate with null handling
+  const formatInterestRate = (rate: number | null): string => {
+    if (rate === null) return 'Data not available';
+    return `${rate}%`;
+  };
+
   return (
     <div className="comparison-table-container">
       <table className="comparison-table">
@@ -49,14 +61,14 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
           <tr className={hasDifferences('annualFee') ? 'highlight-difference' : ''}>
             <td className="feature-name">Annual Fee</td>
             {cards.map(card => (
-              <td key={`${card.id}-fee`}>BDT {card.annualFee.toLocaleString()}</td>
+              <td key={`${card.id}-fee`}>{formatAnnualFee(card.annualFee)}</td>
             ))}
           </tr>
 
           <tr className={hasDifferences('interestRateApr') ? 'highlight-difference' : ''}>
             <td className="feature-name">Interest Rate (APR)</td>
             {cards.map(card => (
-              <td key={`${card.id}-apr`}>{card.interestRateApr}%</td>
+              <td key={`${card.id}-apr`}>{formatInterestRate(card.interestRateApr)}</td>
             ))}
           </tr>
 

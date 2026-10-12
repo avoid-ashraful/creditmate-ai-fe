@@ -41,6 +41,18 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
     }
   };
 
+  // Helper to format annual fee with null handling
+  const formatAnnualFee = (fee: number | null): string => {
+    if (fee === null) return 'Data not available';
+    return `BDT ${fee.toLocaleString()}`;
+  };
+
+  // Helper to format interest rate with null handling
+  const formatInterestRate = (rate: number | null): string => {
+    if (rate === null) return 'Data not available';
+    return `${rate}% APR`;
+  };
+
   return (
     <div className="popup-overlay" onClick={onClose} data-testid="popup-overlay">
       <div className="card-details-popup" onClick={handlePopupClick}>
@@ -58,13 +70,13 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
             {card.images.length > 1 && (
               <div className="image-navigation">
                 <button onClick={prevImage} className="nav-button prev">
-                  &lt;
+                  {'<'}
                 </button>
                 <span className="image-counter">
                   {currentImageIndex + 1} / {card.images.length}
                 </span>
                 <button onClick={nextImage} className="nav-button next">
-                  &gt;
+                  {'>'}
                 </button>
               </div>
             )}
@@ -81,11 +93,11 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
             <h3>Basic Information</h3>
             <div className="detail-row">
               <span className="detail-label">Annual Fee:</span>
-              <span className="detail-value">BDT {card.annualFee.toLocaleString()}</span>
+              <span className="detail-value">{formatAnnualFee(card.annualFee)}</span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Interest Rate:</span>
-              <span className="detail-value">{card.interestRateApr}% APR</span>
+              <span className="detail-value">{formatInterestRate(card.interestRateApr)}</span>
             </div>
           </div>
 

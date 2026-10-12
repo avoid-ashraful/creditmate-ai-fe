@@ -37,6 +37,18 @@ const CardListItem: React.FC<CardListItemProps> = ({
     }
   };
 
+  // Helper to format annual fee with null handling
+  const formatAnnualFee = (fee: number | null): string => {
+    if (fee === null) return 'Data not available';
+    return `BDT ${fee.toLocaleString()}`;
+  };
+
+  // Helper to format interest rate with null handling
+  const formatInterestRate = (rate: number | null): string => {
+    if (rate === null) return 'Data not available';
+    return `${rate}% APR`;
+  };
+
   return (
     <AnimatedCard
       className={`card-list-item ${isSelected ? 'selected' : ''}`}
@@ -60,12 +72,12 @@ const CardListItem: React.FC<CardListItemProps> = ({
       <div className="card-details">
         <div className="detail-row">
           <span className="detail-label">Annual Fee:</span>
-          <span className="detail-value">BDT {card.annualFee.toLocaleString()}</span>
+          <span className="detail-value">{formatAnnualFee(card.annualFee)}</span>
         </div>
 
         <div className="detail-row">
           <span className="detail-label">Interest Rate:</span>
-          <span className="detail-value">{card.interestRateApr}% APR</span>
+          <span className="detail-value">{formatInterestRate(card.interestRateApr)}</span>
         </div>
 
         <div className="detail-row">

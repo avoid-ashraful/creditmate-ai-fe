@@ -15,13 +15,14 @@ export interface Bank {
 
 /**
  * Credit Card entity with complete product information
+ * Note: annualFee and interestRateApr can be null if data is not available from source
  */
 export interface CreditCard {
   id: number;
   bankId: number;
   name: string;
-  annualFee: number;
-  interestRateApr: number;
+  annualFee: number | null;
+  interestRateApr: number | null;
   loungeAccessInternational: number;
   loungeAccessDomestic: number;
   cashAdvanceFee: string;
