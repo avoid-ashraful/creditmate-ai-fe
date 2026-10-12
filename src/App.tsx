@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 import AboutPage from './pages/AboutPage';
+import CategoryPage from './pages/CategoryPage';
 import ComparisonPage from './pages/ComparisonPage';
 import GlossaryPage from './pages/GlossaryPage';
 import HomePage from './pages/HomePage';
@@ -40,6 +41,7 @@ const App: React.FC = () => {
         <main className="app-content">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/compare" element={<ComparisonPage />} />
             <Route path="/glossary" element={<GlossaryPage />} />
             <Route path="/about" element={<AboutPage />} />
