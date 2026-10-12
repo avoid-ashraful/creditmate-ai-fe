@@ -41,7 +41,7 @@
   letter-spacing: -0.02em;
 }
 
-.comparison-actions {
+.comparison-page .comparison-actions {
   display: flex;
   gap: 20px;
   align-items: center;
@@ -129,14 +129,14 @@
   font-weight: 600;
 }
 
-.card-chips {
+.comparison-page .card-chips {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.card-chip {
+.comparison-page .card-chip {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   border: 2px solid #e2e8f0;
   color: var(--text-color);
@@ -150,31 +150,31 @@
   overflow: hidden;
 }
 
-.card-chip:hover {
+.comparison-page .card-chip:hover {
   border-color: #667eea;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
 }
 
-.card-chip-content {
+.comparison-page .card-chip-content {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.card-chip-name {
+.comparison-page .card-chip-name {
   font-weight: 600;
   font-size: 1rem;
   color: var(--text-color);
 }
 
-.card-chip-bank {
+.comparison-page .card-chip-bank {
   font-size: 0.85rem;
   color: var(--text-light);
   font-weight: 500;
 }
 
-.remove-card {
+.comparison-page .remove-card {
   background: #ef4444;
   border: none;
   color: white;
@@ -190,7 +190,7 @@
   line-height: 1;
 }
 
-.remove-card:hover {
+.comparison-page .remove-card:hover {
   background: #dc2626;
   transform: scale(1.1);
 }
@@ -386,7 +386,7 @@
     overflow-wrap: anywhere;
   }
 
-  .remove-card {
+  .comparison-page .remove-card {
     flex: 0 0 44px;
     width: 44px;
     height: 44px;
@@ -552,7 +552,7 @@
     font-size: 2rem;
   }
 
-  .card-chips {
+  .comparison-page .card-chips {
     grid-template-columns: 1fr;
   }
 
@@ -568,7 +568,7 @@
     gap: 20px;
   }
 
-  .comparison-actions {
+  .comparison-page .comparison-actions {
     width: 100%;
     justify-content: space-between;
   }
@@ -605,7 +605,7 @@
 }
 
 @media (max-width: 480px) {
-  .comparison-actions {
+  .comparison-page .comparison-actions {
     flex-direction: column;
     gap: 16px;
   }
@@ -618,11 +618,11 @@
     font-size: 1.25rem;
   }
 
-  .card-chip {
+  .comparison-page .card-chip {
     padding: 12px 16px;
   }
 
-  .card-chip-name {
+  .comparison-page .card-chip-name {
     font-size: 0.9rem;
   }
 
