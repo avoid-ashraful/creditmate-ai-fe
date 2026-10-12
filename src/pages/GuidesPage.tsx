@@ -15,7 +15,9 @@ import '../styles/GuidesPage.css';
  * The page keeps its own SEO metadata in <head> (title, description, canonical,
  * Open Graph, Twitter and JSON-LD) because the app is a client rendered SPA and
  * this repo does not run a prerender step. See the task 9.1 report for what that
- * means for crawlers.
+ * means for crawlers. Because the other routes (Home included) do not touch
+ * <head>, the metadata effect snapshots the previous values and restores them
+ * on unmount, removing only the tags this page created (see applyHeadWrites).
  */
 
 const GUIDES_PATH = '/guides';
@@ -33,24 +35,89 @@ const ensureHeadElement = <T extends HTMLElement>(selector: string, tag: string)
   return created;
 };
 
-const setMeta = (attribute: 'name' | 'property', key: string, content: string): void => {
-  const selector = `meta[${attribute}="${key}"]`;
-  const meta = ensureHeadElement<HTMLMetaElement>(selector, 'meta');
-  meta.setAttribute(attribute, key);
-  meta.setAttribute('content', content);
+/**
+ * Metadata lifecycle (task 9.1 follow-up).
+ *
+ * The guides routes own shared <head> state (title, meta tags, canonical link,
+ * JSON-LD), but the other pages - including Home - do not touch <head> at all.
+ * Without a rollback, a guide's canonical URL, og:url and Article JSON-LD would
+ * keep describing the Home page to crawlers after navigating away.
+ *
+ * `applyHeadWrites` snapshots `document.title` plus the prior node behind every
+ * selector it is about to write, applies the writes, and returns the cleanup
+ * React runs on unmount or before the next write:
+ *   - a tag that existed before is restored in place (attributes and text), and
+ *   - a tag that this helper created (absent from the snapshot) is removed.
+ * Tags outside the snapshot - anything the page never wrote - are left alone.
+ */
+type HeadWrite = {
+  /** Unique selector, so the snapshot can tell "pre-existing" from "created". */
+  selector: string;
+  tag: 'meta' | 'link' | 'script';
+  attributes: Record<string, string>;
+  /** Text content for JSON-LD scripts. */
+  text?: string;
 };
 
-const setLink = (rel: string, href: string): void => {
-  const link = ensureHeadElement<HTMLLinkElement>(`link[rel="${rel}"]`, 'link');
-  link.setAttribute('rel', rel);
-  link.setAttribute('href', href);
+type HeadSnapshotEntry = {
+  node: HTMLElement;
+  /** True when no node matched the selector before this page wrote it. */
+  created: boolean;
+  attributes: [string, string][];
+  text: string | null;
 };
 
-const setJsonLd = (id: string, data: unknown): void => {
-  const script = ensureHeadElement<HTMLScriptElement>(`script#${id}`, 'script');
-  script.setAttribute('id', id);
-  script.setAttribute('type', 'application/ld+json');
-  script.textContent = JSON.stringify(data);
+const applyHeadWrites = (title: string, writes: HeadWrite[]): (() => void) => {
+  const priorTitle = document.title;
+  const snapshot = new Map<string, HeadSnapshotEntry>();
+
+  writes.forEach(({ selector, tag, attributes, text }) => {
+    let entry = snapshot.get(selector);
+    if (!entry) {
+      const existing = document.querySelector<HTMLElement>(selector);
+      entry = {
+        node: existing ?? ensureHeadElement<HTMLElement>(selector, tag),
+        created: existing === null,
+        attributes: existing
+          ? Array.from(existing.attributes).map(attr => [attr.name, attr.value] as [string, string])
+          : [],
+        text: existing ? existing.textContent : null,
+      };
+      snapshot.set(selector, entry);
+    }
+    const target = entry.node;
+    Object.entries(attributes).forEach(([name, value]) => target.setAttribute(name, value));
+    if (typeof text === 'string') {
+      target.textContent = text;
+    }
+  });
+
+  document.title = title;
+
+  return () => {
+    document.title = priorTitle;
+    snapshot.forEach(({ node, created, attributes, text }) => {
+      if (created) {
+        // The snapshot proves no tag matched this selector before we wrote it,
+        // so this node is ours to remove.
+        node.remove();
+        return;
+      }
+      // Restore the pre-existing tag in place; re-attach it if something in
+      // between detached it, then put its attributes and text back.
+      if (!node.isConnected) {
+        document.head.appendChild(node);
+      }
+      const priorNames = new Set(attributes.map(([name]) => name));
+      Array.from(node.attributes).forEach(attr => {
+        if (!priorNames.has(attr.name)) {
+          node.removeAttribute(attr.name);
+        }
+      });
+      attributes.forEach(([name, value]) => node.setAttribute(name, value));
+      node.textContent = text;
+    });
+  };
 };
 
 const formatDate = (isoDate: string): string =>
@@ -143,21 +210,85 @@ const GuidesPage: React.FC = () => {
   }, [guide, canonical, origin]);
 
   useEffect(() => {
-    document.title = title;
-    setMeta('name', 'description', description);
-    setMeta('name', 'robots', 'index,follow');
-    setMeta('property', 'og:site_name', SITE_NAME);
-    setMeta('property', 'og:type', guide ? 'article' : 'website');
-    setMeta('property', 'og:locale', 'en_US');
-    setMeta('property', 'og:title', title);
-    setMeta('property', 'og:description', description);
-    setMeta('property', 'og:url', canonical);
-    setMeta('name', 'twitter:card', 'summary');
-    setMeta('name', 'twitter:title', title);
-    setMeta('name', 'twitter:description', description);
-    setLink('canonical', canonical);
-    setJsonLd('guides-structured-data', structuredData.primary);
-    setJsonLd('guides-breadcrumb-data', structuredData.crumbs);
+    const writes: HeadWrite[] = [
+      {
+        selector: 'meta[name="description"]',
+        tag: 'meta',
+        attributes: { name: 'description', content: description },
+      },
+      {
+        selector: 'meta[name="robots"]',
+        tag: 'meta',
+        attributes: { name: 'robots', content: 'index,follow' },
+      },
+      {
+        selector: 'meta[property="og:site_name"]',
+        tag: 'meta',
+        attributes: { property: 'og:site_name', content: SITE_NAME },
+      },
+      {
+        selector: 'meta[property="og:type"]',
+        tag: 'meta',
+        attributes: { property: 'og:type', content: guide ? 'article' : 'website' },
+      },
+      {
+        selector: 'meta[property="og:locale"]',
+        tag: 'meta',
+        attributes: { property: 'og:locale', content: 'en_US' },
+      },
+      {
+        selector: 'meta[property="og:title"]',
+        tag: 'meta',
+        attributes: { property: 'og:title', content: title },
+      },
+      {
+        selector: 'meta[property="og:description"]',
+        tag: 'meta',
+        attributes: { property: 'og:description', content: description },
+      },
+      {
+        selector: 'meta[property="og:url"]',
+        tag: 'meta',
+        attributes: { property: 'og:url', content: canonical },
+      },
+      {
+        selector: 'meta[name="twitter:card"]',
+        tag: 'meta',
+        attributes: { name: 'twitter:card', content: 'summary' },
+      },
+      {
+        selector: 'meta[name="twitter:title"]',
+        tag: 'meta',
+        attributes: { name: 'twitter:title', content: title },
+      },
+      {
+        selector: 'meta[name="twitter:description"]',
+        tag: 'meta',
+        attributes: { name: 'twitter:description', content: description },
+      },
+      {
+        selector: 'link[rel="canonical"]',
+        tag: 'link',
+        attributes: { rel: 'canonical', href: canonical },
+      },
+      {
+        selector: 'script#guides-structured-data',
+        tag: 'script',
+        attributes: { id: 'guides-structured-data', type: 'application/ld+json' },
+        text: JSON.stringify(structuredData.primary),
+      },
+      {
+        selector: 'script#guides-breadcrumb-data',
+        tag: 'script',
+        attributes: { id: 'guides-breadcrumb-data', type: 'application/ld+json' },
+        text: JSON.stringify(structuredData.crumbs),
+      },
+    ];
+
+    // The returned cleanup restores the prior <head> state when the page
+    // unmounts (for example navigating a guide back to Home, which has no
+    // metadata of its own) and before every index/detail re-write.
+    return applyHeadWrites(title, writes);
   }, [title, description, canonical, guide, structuredData]);
 
   if (notFound) {

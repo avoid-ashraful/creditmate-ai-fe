@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import App from '../App';
 import { guides } from '../content/guides';
+import { server } from '../mocks/jest.setup';
 
 import GuidesPage from './GuidesPage';
 
@@ -26,6 +27,9 @@ const readJsonLd = (id: string): Record<string, unknown> | null => {
   return JSON.parse(node.textContent) as Record<string, unknown>;
 };
 
+// eslint-disable-next-line testing-library/no-node-access
+const headCount = (selector: string): number => document.head.querySelectorAll(selector).length;
+
 const renderGuides = (path: string) =>
   render(
     <MemoryRouter initialEntries={[path]}>
@@ -41,6 +45,12 @@ beforeEach(() => {
   document.title = '';
   window.history.pushState({}, '', '/');
 });
+
+// The guide -> Home route regression mounts HomePage, which fetches through the
+// mocked API exactly like HomePage.test.tsx does.
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 
 describe('GuidesPage index', () => {
   test('renders the four required guides', () => {
@@ -247,5 +257,118 @@ describe('App route integration', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: /credit card guides and how-tos/i })
     ).toBeInTheDocument();
+  });
+
+  test('navigating from a guide back to Home clears the guide metadata and restores what was there', async () => {
+    // Tags that already existed before the SPA routed into a guide.
+    const priorDescription = document.createElement('meta');
+    priorDescription.setAttribute('name', 'description');
+    priorDescription.setAttribute('content', 'Home page description');
+    document.head.appendChild(priorDescription);
+    const priorCanonical = document.createElement('link');
+    priorCanonical.setAttribute('rel', 'canonical');
+    priorCanonical.setAttribute('href', 'http://localhost/');
+    document.head.appendChild(priorCanonical);
+    document.title = 'CreditMate AI';
+
+    window.history.pushState({}, '', '/guides/maximizing-lounge-access-benefits');
+    render(<App />);
+
+    // The guide owns <head> while it is on screen...
+    expect(document.title).toBe('Maximizing lounge access benefits | CreditMate AI');
+    expect(headQuery('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'http://localhost/guides/maximizing-lounge-access-benefits'
+    );
+    expect(readMeta('meta[property="og:type"]')).toBe('article');
+    expect(readMeta('meta[name="description"]')).not.toBe('Home page description');
+    expect(readJsonLd('guides-structured-data')?.['@type']).toBe('Article');
+
+    // ...but HomePage has no metadata of its own, so leaving the guide must
+    // roll back everything the guides page wrote.
+    fireEvent.click(screen.getAllByRole('link', { name: 'Home' })[0]);
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /find your perfect credit card/i })
+    ).toBeInTheDocument();
+    // Let HomePage's mocked API fetch settle inside act.
+    expect(await screen.findByText(/Test Credit Card/i)).toBeInTheDocument();
+
+    expect(document.title).toBe('CreditMate AI');
+    // Pre-existing tags are restored to their prior values.
+    expect(readMeta('meta[name="description"]')).toBe('Home page description');
+    expect(headQuery('link[rel="canonical"]')?.getAttribute('href')).toBe('http://localhost/');
+    // Tags the guides page created are removed.
+    expect(headQuery('script#guides-structured-data')).toBeNull();
+    expect(headQuery('script#guides-breadcrumb-data')).toBeNull();
+    expect(headQuery('meta[property="og:type"]')).toBeNull();
+    expect(headQuery('meta[property="og:url"]')).toBeNull();
+    expect(readMeta('meta[name="robots"]')).toBeNull();
+    expect(readMeta('meta[name="twitter:card"]')).toBeNull();
+  });
+});
+
+describe('Head metadata lifecycle', () => {
+  test('index -> detail -> index restores each view metadata without duplicating or losing tags', () => {
+    // A tag the guides page never writes must survive every transition.
+    const viewport = document.createElement('meta');
+    viewport.setAttribute('name', 'viewport');
+    viewport.setAttribute('content', 'width=device-width, initial-scale=1');
+    document.head.appendChild(viewport);
+
+    renderGuides('/guides');
+    const metaCount = headCount('meta');
+
+    fireEvent.click(screen.getByRole('link', { name: 'Understanding annual fee waivers' }));
+
+    expect(document.title).toBe('Understanding annual fee waivers | CreditMate AI');
+    expect(headQuery('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'http://localhost/guides/understanding-annual-fee-waivers'
+    );
+    expect(readMeta('meta[property="og:type"]')).toBe('article');
+    expect(readJsonLd('guides-structured-data')?.['@type']).toBe('Article');
+    // The transition rewrites in place instead of piling up duplicate tags.
+    expect(headCount('meta')).toBe(metaCount);
+    expect(headQuery('meta[name="viewport"]')).toBe(viewport);
+
+    fireEvent.click(screen.getByRole('link', { name: 'All guides' }));
+
+    expect(document.title).toBe('Credit card guides and how-tos | CreditMate AI');
+    expect(headQuery('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'http://localhost/guides'
+    );
+    expect(readJsonLd('guides-structured-data')?.['@type']).toBe('CollectionPage');
+    expect(headCount('meta')).toBe(metaCount);
+    expect(headQuery('meta[name="viewport"]')).toBe(viewport);
+    expect(headCount('link[rel="canonical"]')).toBe(1);
+  });
+
+  test('unmounting a guide restores the prior head state and removes only the tags it created', () => {
+    const priorDescription = document.createElement('meta');
+    priorDescription.setAttribute('name', 'description');
+    priorDescription.setAttribute('content', 'Pre-existing description');
+    document.head.appendChild(priorDescription);
+    document.title = 'Pre-existing title';
+
+    const { unmount } = renderGuides('/guides/choosing-your-first-credit-card');
+
+    expect(document.title).toBe('How to choose your first credit card | CreditMate AI');
+    expect(readMeta('meta[name="description"]')).not.toBe('Pre-existing description');
+    expect(headQuery('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'http://localhost/guides/choosing-your-first-credit-card'
+    );
+
+    unmount();
+
+    expect(document.title).toBe('Pre-existing title');
+    // The original node is restored, not replaced by a fresh one.
+    expect(headQuery('meta[name="description"]')).toBe(priorDescription);
+    expect(readMeta('meta[name="description"]')).toBe('Pre-existing description');
+    // Every node the helper created is gone.
+    expect(headQuery('link[rel="canonical"]')).toBeNull();
+    expect(headQuery('meta[name="robots"]')).toBeNull();
+    expect(headQuery('meta[property="og:type"]')).toBeNull();
+    expect(headQuery('meta[property="og:url"]')).toBeNull();
+    expect(headQuery('meta[name="twitter:card"]')).toBeNull();
+    expect(headQuery('script#guides-structured-data')).toBeNull();
+    expect(headQuery('script#guides-breadcrumb-data')).toBeNull();
   });
 });
