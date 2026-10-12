@@ -106,11 +106,22 @@ in JavaScript (comparisons, inline styles, tests).
 3. _Sync_ / _Push_ to import the `global` set.
 
 Token types are mapped to the plugin's vocabulary (`color`, `spacing`,
-`fontSizes`, `boxShadow`, …). Shadows are emitted as structured
-`{ x, y, blur, spread, color, type }` objects (arrays for multi-layer shadows)
-because the plugin cannot parse a CSS `box-shadow` string. Gradients are CSS
-`linear-gradient()` strings and are exported as generic `other` tokens — they
-document the gradients but need manual stops in Figma.
+`fontSizes`, `boxShadow`, …). Two types need conversion because Figma cannot
+consume the CSS form:
+
+- **Shadows** are emitted as structured `{ x, y, blur, spread, color, type }`
+  objects (arrays for multi-layer shadows) because the plugin cannot parse a
+  CSS `box-shadow` string.
+- **Letter spacing** is emitted in `percent` rather than `em`. Tokens Studio
+  can _store_ an `em` letter-spacing token but cannot apply it to a text node
+  ([docs](https://docs.tokens.studio/manage-tokens/token-types/typography/letter-spacing)),
+  and 1em is 100% of the font size, so `-0.025em` becomes `-2.5%`. The CSS and
+  TypeScript outputs keep the authored `em` values.
+
+Comma-separated font-family fallback stacks _are_ supported by the plugin, so
+they are passed through verbatim. Gradients are CSS `linear-gradient()` strings
+and are exported as generic `other` tokens — they document the gradients but
+need manual stops in Figma.
 
 ## Token reference
 

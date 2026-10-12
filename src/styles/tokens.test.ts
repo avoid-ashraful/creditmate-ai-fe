@@ -327,6 +327,76 @@ describe('design token build outputs', () => {
 });
 
 /**
+ * Tokens Studio can store an `em` letter-spacing token but cannot apply it to a
+ * Figma text node; `percent` is the unit Figma accepts. The Figma build
+ * therefore converts `em` -> `%` (1em = 100%) while CSS and TypeScript keep the
+ * authored `em` values.
+ *
+ * https://docs.tokens.studio/manage-tokens/token-types/typography/letter-spacing
+ */
+describe('design tokens — Figma letter-spacing units', () => {
+  const figmaLetterSpacing = (
+    JSON.parse(readOutput(figmaOutputPath)) as {
+      global: { typography: { letterSpacing: Record<string, { value: unknown }> } };
+    }
+  ).global.typography.letterSpacing;
+
+  it('converts every em value to percent', () => {
+    expect(figmaLetterSpacing.tight.value).toBe('-2.5%');
+    expect(figmaLetterSpacing.normal.value).toBe('0%');
+    expect(figmaLetterSpacing.wide.value).toBe('2.5%');
+    expect(figmaLetterSpacing.wider.value).toBe('5%');
+  });
+
+  it('leaves no unit letters anywhere in the Figma letter-spacing set', () => {
+    const values = Object.entries(figmaLetterSpacing).map(
+      ([name, token]) => [name, String(token.value)] as const
+    );
+
+    // Inspect the token values themselves (no message text) so a stray unit
+    // cannot hide behind a diagnostic string.
+    values.forEach(([, value]) => {
+      expect(value).toMatch(/%$/);
+      expect(value).not.toMatch(/[a-z]/i);
+    });
+
+    expect(Object.fromEntries(values)).toEqual({
+      tight: '-2.5%',
+      normal: '0%',
+      wide: '2.5%',
+      wider: '5%',
+    });
+  });
+
+  it('keeps the authored em values in CSS and TypeScript', () => {
+    expect(typography.letterSpacing.tight).toBe('-0.025em');
+    expect(typography.letterSpacing.normal).toBe('0');
+    expect(typography.letterSpacing.wide).toBe('0.025em');
+    expect(typography.letterSpacing.wider).toBe('0.05em');
+
+    const css = readOutput(cssOutputPath);
+    expect(css).toContain('--typography-letter-spacing-tight: -0.025em');
+    expect(css).toContain('--typography-letter-spacing-wide: 0.025em');
+  });
+
+  it('leaves the Figma font-family stacks untouched', () => {
+    // The docs confirm comma separated fallback lists are supported, so the
+    // sans stack must reach Figma verbatim rather than being rewritten.
+    const fontFamily = (
+      JSON.parse(readOutput(figmaOutputPath)) as {
+        global: {
+          typography: { fontFamily: Record<string, { value: unknown; type: string }> };
+        };
+      }
+    ).global.typography.fontFamily;
+
+    expect(fontFamily.sans.value).toBe(typography.fontFamily.sans);
+    expect(String(fontFamily.sans.value)).toContain(',');
+    expect(fontFamily.sans.type).toBe('fontFamilies');
+  });
+});
+
+/**
  * `src/styles/App.css` declares a hand written `:root` block that the existing
  * pages consume through `var(--radius-md)`, `var(--shadow-sm)`, ... and is
  * bundled AFTER `src/styles/tokens.css`, so it currently wins the cascade for

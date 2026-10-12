@@ -1,6 +1,27 @@
+import { figmaLetterSpacing } from './letter-spacing.mjs';
+import { shadowValue } from './shadow.mjs';
 import { figmaType, formatWithPrettier } from './utils.mjs';
 
-import { shadowValue } from './shadow.mjs';
+/**
+ * Returns the `{ value, type }` pair the Tokens Studio plugin expects, applying
+ * the per-type conversions Figma needs that the CSS output does not.
+ */
+function figmaValue(token) {
+  // Tokens Studio needs structured objects, it cannot parse a box-shadow string.
+  if (token.type === 'shadow') {
+    return shadowValue(token.value);
+  }
+
+  const type = figmaType(token);
+
+  // Figma can store but not apply an `em` letter-spacing token; percent is the
+  // usable unit. CSS and TypeScript keep the authored `em` value.
+  if (type === 'letterSpacing') {
+    return { type, value: figmaLetterSpacing(token.value) };
+  }
+
+  return { type, value: token.value };
+}
 
 /**
  * Style Dictionary format: `figma/tokens`
@@ -27,15 +48,7 @@ export default function figmaTokens({ dictionary, options = {} }) {
       node = node[key];
     }
 
-    const isShadow = token.type === 'shadow';
-    const { type, value } = isShadow
-      ? shadowValue(token.value)
-      : { type: figmaType(token), value: token.value };
-
-    const entry = {
-      value,
-      type,
-    };
+    const entry = figmaValue(token);
     const description = token.description ?? token.comment;
     if (description) {
       entry.description = description;
