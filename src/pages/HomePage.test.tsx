@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
@@ -129,10 +129,11 @@ test('selects cards and exposes compare navigation', async () => {
   expect(await screen.findByText(/Credit Card Comparison/i)).toBeInTheDocument();
   await screen.findAllByText(/Test Credit Card/i);
   await screen.findAllByText(/Other Rewards Card/i);
-  expect(screen.getAllByText(/by Test Bank/i)).toHaveLength(1);
-  expect(screen.getAllByText(/by Other Bank/i)).toHaveLength(1);
-  expect(screen.getAllByText(/BDT 1,000/i)).toHaveLength(1);
-  expect(screen.getAllByText(/BDT 0/i)).toHaveLength(1);
+  const comparison = within(screen.getByRole('region', { name: 'Compare card features' }));
+  expect(comparison.getByText(/by Test Bank/i)).toBeInTheDocument();
+  expect(comparison.getByText(/by Other Bank/i)).toBeInTheDocument();
+  expect(comparison.getByText(/BDT 1,000/i)).toBeInTheDocument();
+  expect(comparison.getByText(/BDT 0/i)).toBeInTheDocument();
 });
 
 // Fixture contract: minimal CreditCardListSerializer list shape only.

@@ -128,6 +128,7 @@ const ComparisonPage: React.FC = () => {
                       className="remove-card"
                       onClick={() => handleRemoveCard(card.id)}
                       title="Remove from comparison"
+                      aria-label={`Remove ${card.name} from comparison`}
                     >
                       ×
                     </button>
