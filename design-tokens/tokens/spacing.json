@@ -1,0 +1,54 @@
+{
+  "spacing": {
+    "none": {
+      "value": "0",
+      "type": "spacing",
+      "comment": "Explicit zero. Use instead of omitting padding/margin when documented."
+    },
+    "2xs": {
+      "value": "2px",
+      "type": "spacing",
+      "comment": "Hairline rhythm, icon-to-label gaps."
+    },
+    "xs": {
+      "value": "4px",
+      "type": "spacing",
+      "comment": "4px base unit x1."
+    },
+    "sm": {
+      "value": "8px",
+      "type": "spacing",
+      "comment": "4px base unit x2."
+    },
+    "md": {
+      "value": "16px",
+      "type": "spacing",
+      "comment": "4px base unit x4. Default padding for cards and sections."
+    },
+    "lg": {
+      "value": "24px",
+      "type": "spacing",
+      "comment": "4px base unit x6. Default card padding in the current UI."
+    },
+    "xl": {
+      "value": "32px",
+      "type": "spacing",
+      "comment": "4px base unit x8. Section separation."
+    },
+    "2xl": {
+      "value": "48px",
+      "type": "spacing",
+      "comment": "4px base unit x12. Page-section separation."
+    },
+    "3xl": {
+      "value": "64px",
+      "type": "spacing",
+      "comment": "4px base unit x16. Hero / large page blocks."
+    },
+    "4xl": {
+      "value": "96px",
+      "type": "spacing",
+      "comment": "4px base unit x24. Full-bleed section rhythm."
+    }
+  }
+}

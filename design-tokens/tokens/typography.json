@@ -1,0 +1,132 @@
+{
+  "typography": {
+    "fontFamily": {
+      "sans": {
+        "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+        "type": "fontFamily",
+        "comment": "System UI stack. Matches the existing body font in src/styles/index.css."
+      },
+      "mono": {
+        "value": "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
+        "type": "fontFamily",
+        "comment": "Code, fees, and tabular numerals."
+      }
+    },
+    "fontSize": {
+      "xs": {
+        "value": "12px",
+        "type": "fontSizes",
+        "comment": "Captions, badges, table meta."
+      },
+      "sm": {
+        "value": "14px",
+        "type": "fontSizes",
+        "comment": "Secondary body, form labels."
+      },
+      "md": {
+        "value": "16px",
+        "type": "fontSizes",
+        "comment": "Default body size."
+      },
+      "lg": {
+        "value": "18px",
+        "type": "fontSizes",
+        "comment": "Lead paragraphs, card titles."
+      },
+      "xl": {
+        "value": "20px",
+        "type": "fontSizes",
+        "comment": "Section headings."
+      },
+      "2xl": {
+        "value": "24px",
+        "type": "fontSizes",
+        "comment": "Page headings."
+      },
+      "3xl": {
+        "value": "30px",
+        "type": "fontSizes",
+        "comment": "Hero headings on tablet and up."
+      },
+      "4xl": {
+        "value": "36px",
+        "type": "fontSizes",
+        "comment": "Hero heading on desktop."
+      },
+      "5xl": {
+        "value": "48px",
+        "type": "fontSizes",
+        "comment": "Marketing hero only."
+      }
+    },
+    "fontWeight": {
+      "regular": {
+        "value": 400,
+        "type": "fontWeights"
+      },
+      "medium": {
+        "value": 500,
+        "type": "fontWeights"
+      },
+      "semibold": {
+        "value": 600,
+        "type": "fontWeights"
+      },
+      "bold": {
+        "value": 700,
+        "type": "fontWeights"
+      }
+    },
+    "lineHeight": {
+      "none": {
+        "value": 1,
+        "type": "lineHeights",
+        "comment": "Icon-only or single-line display text."
+      },
+      "tight": {
+        "value": 1.25,
+        "type": "lineHeights",
+        "comment": "Headings."
+      },
+      "snug": {
+        "value": 1.375,
+        "type": "lineHeights",
+        "comment": "Sub-headings and card titles."
+      },
+      "normal": {
+        "value": 1.5,
+        "type": "lineHeights",
+        "comment": "Default body copy."
+      },
+      "relaxed": {
+        "value": 1.625,
+        "type": "lineHeights",
+        "comment": "Long-form reading, glossary entries."
+      },
+      "loose": {
+        "value": 2,
+        "type": "lineHeights"
+      }
+    },
+    "letterSpacing": {
+      "tight": {
+        "value": "-0.025em",
+        "comment": "Large headings only.",
+        "type": "letterSpacing"
+      },
+      "normal": {
+        "value": "0",
+        "type": "letterSpacing"
+      },
+      "wide": {
+        "value": "0.025em",
+        "type": "letterSpacing"
+      },
+      "wider": {
+        "value": "0.05em",
+        "comment": "Uppercase micro-labels.",
+        "type": "letterSpacing"
+      }
+    }
+  }
+}
