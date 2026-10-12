@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 import AboutPage from './pages/AboutPage';
+import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
 import ComparisonPage from './pages/ComparisonPage';
 import GlossaryPage from './pages/GlossaryPage';
@@ -53,6 +54,7 @@ const App: React.FC = () => {
         <main className="app-content">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
             <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/compare" element={<ComparisonPage />} />
             <Route path="/perfect-card-finder" element={<RecommendationQuiz />} />

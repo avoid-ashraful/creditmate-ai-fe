@@ -25,6 +25,7 @@ jest.mock('framer-motion', () => {
 const mockCreditCard: CreditCard = {
   id: 1,
   bankId: 123,
+  bankName: 'Test Bank',
   name: 'Test Credit Card',
   annualFee: 5000,
   interestRateApr: 18.5,
@@ -70,7 +71,7 @@ describe('CardListItem Component', () => {
     expect(screen.getByText('Test Credit Card')).toBeInTheDocument();
 
     // Check if bank ID is rendered
-    expect(screen.getByText('Bank ID: 123')).toBeInTheDocument();
+    expect(screen.getByText('Test Bank')).toBeInTheDocument();
 
     // Check if annual fee is rendered
     expect(screen.getByText('BDT 5,000')).toBeInTheDocument();
@@ -148,6 +149,16 @@ describe('CardListItem Component', () => {
     // Check if onViewDetails was called with the correct card
     expect(mockOnViewDetails).toHaveBeenCalledTimes(1);
     expect(mockOnViewDetails).toHaveBeenCalledWith(mockCreditCard);
+  });
+
+  test('links to the full details route without opening the card popup', () => {
+    const onViewDetails = jest.fn();
+    render(<CardListItem card={mockCreditCard} onViewDetails={onViewDetails} />);
+
+    const detailsLink = screen.getByRole('link', { name: 'Full card details' });
+    expect(detailsLink).toHaveAttribute('href', '/card/test-bank/test-credit-card');
+    fireEvent.click(detailsLink);
+    expect(onViewDetails).not.toHaveBeenCalled();
   });
 
   // Test edge case: no callbacks provided

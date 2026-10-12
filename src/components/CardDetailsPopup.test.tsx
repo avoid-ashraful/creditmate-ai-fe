@@ -9,6 +9,7 @@ import CardDetailsPopup from './CardDetailsPopup';
 const mockCreditCard: CreditCard = {
   id: 1,
   bankId: 123,
+  bankName: 'Eastern Bank Limited',
   name: 'Premium Gold Card',
   annualFee: 5000,
   interestRateApr: 18.5,
@@ -73,8 +74,8 @@ describe('CardDetailsPopup Component', () => {
     // Check if card name is rendered
     expect(screen.getByText('Premium Gold Card')).toBeInTheDocument();
 
-    // Check if bank ID is rendered
-    expect(screen.getByText('Bank ID: 123')).toBeInTheDocument();
+    // Check if the bank name is rendered.
+    expect(screen.getByText('Eastern Bank Limited')).toBeInTheDocument();
 
     // Check if annual fee is rendered
     expect(screen.getByText('BDT 5,000')).toBeInTheDocument();
@@ -111,6 +112,10 @@ describe('CardDetailsPopup Component', () => {
 
     // Check if add to compare button is rendered
     expect(screen.getByText('Add to Compare')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Full card details' })).toHaveAttribute(
+      'href',
+      '/card/eastern-bank-limited/premium-gold-card'
+    );
   });
 
   // Test card without images

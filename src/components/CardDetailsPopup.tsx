@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import { dummyBanks } from '../dummy-data/credit-cards';
 import { CreditCard } from '../types';
+import { slugify } from '../utils/slugify';
 import '../styles/CardDetailsPopup.css';
 
 interface CardDetailsPopupProps {
@@ -54,6 +55,8 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
     if (rate === null) return 'Data not available';
     return `${rate}% APR`;
   };
+
+  const detailUrl = card.bankName ? `/card/${slugify(card.bankName)}/${slugify(card.name)}` : null;
 
   return (
     <div className="popup-overlay" onClick={onClose} data-testid="popup-overlay">
@@ -182,6 +185,11 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
         </div>
 
         <div className="popup-footer">
+          {detailUrl && (
+            <a className="full-details-link" href={detailUrl}>
+              Full card details
+            </a>
+          )}
           <button
             className={`add-to-compare-btn ${isInCompareList ? 'in-list' : ''}`}
             onClick={() => onAddToCompare(card)}

@@ -3,6 +3,7 @@ import React from 'react';
 import { dummyBanks } from '../dummy-data/credit-cards';
 import { AnimatedCard, GradientButton, fadeInUp } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
+import { slugify } from '../utils/slugify';
 
 interface CardListItemProps {
   card: CreditCard;
@@ -124,6 +125,16 @@ const CardListItem: React.FC<CardListItemProps> = ({
           )}
         </ul>
       </div>
+
+      {card.bankName && (
+        <a
+          className="card-detail-link"
+          href={`/card/${slugify(card.bankName)}/${slugify(card.name)}`}
+          onClick={event => event.stopPropagation()}
+        >
+          Full card details
+        </a>
+      )}
 
       {selectable && (
         <div className="compare-button-container">
