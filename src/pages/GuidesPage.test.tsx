@@ -1,0 +1,217 @@
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import React from 'react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+
+import App from '../App';
+import { guides } from '../content/guides';
+
+import GuidesPage from './GuidesPage';
+
+/**
+ * <head> metadata lives outside the rendered body, so Testing Library queries
+ * cannot reach it. These two helpers are the only direct DOM access in this
+ * file and they only read/inspect document.head.
+ */
+// eslint-disable-next-line testing-library/no-node-access
+const headQuery = (selector: string): Element | null => document.querySelector(selector);
+
+const readMeta = (selector: string): string | null =>
+  headQuery(selector)?.getAttribute('content') ?? null;
+
+const readJsonLd = (id: string): Record<string, unknown> | null => {
+  const node = headQuery(`script#${id}`);
+  if (!node || !node.textContent) {
+    return null;
+  }
+  return JSON.parse(node.textContent) as Record<string, unknown>;
+};
+
+const renderGuides = (path: string) =>
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path="/guides" element={<GuidesPage />} />
+        <Route path="/guides/:slug" element={<GuidesPage />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+beforeEach(() => {
+  document.head.innerHTML = '';
+  document.title = '';
+  window.history.pushState({}, '', '/');
+});
+
+describe('GuidesPage index', () => {
+  test('renders the four required guides', () => {
+    renderGuides('/guides');
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: /credit card guides and how-tos/i })
+    ).toBeInTheDocument();
+
+    const list = screen.getByRole('navigation', { name: /user guides/i });
+    expect(within(list).getAllByRole('listitem')).toHaveLength(guides.length);
+
+    guides.forEach(guide => {
+      expect(within(list).getByRole('link', { name: guide.title })).toBeInTheDocument();
+    });
+
+    // The four titles required by task 9.1 acceptance criteria.
+    expect(screen.getByRole('link', { name: 'How to choose your first credit card' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Understanding annual fee waivers' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Maximizing lounge access benefits' })).toBeTruthy();
+    expect(
+      screen.getByRole('link', { name: 'Credit card vs debit card in Bangladesh' })
+    ).toBeTruthy();
+  });
+
+  test('lists exactly the four acceptance-criteria slugs', () => {
+    expect(guides.map(guide => guide.slug)).toEqual([
+      'choosing-your-first-credit-card',
+      'understanding-annual-fee-waivers',
+      'maximizing-lounge-access-benefits',
+      'credit-card-vs-debit-card',
+    ]);
+  });
+
+  test('sets index metadata and JSON-LD', () => {
+    renderGuides('/guides');
+
+    expect(document.title).toBe('Credit card guides and how-tos | CreditMate AI');
+
+    const description = readMeta('meta[name="description"]');
+    expect(description).toBeTruthy();
+    expect(description).toContain('credit card');
+
+    expect(headQuery('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'http://localhost/guides'
+    );
+    expect(readMeta('meta[property="og:title"]')).toBe(document.title);
+    expect(readMeta('meta[property="og:url"]')).toBe('http://localhost/guides');
+    expect(readMeta('meta[property="og:site_name"]')).toBe('CreditMate AI');
+    expect(readMeta('meta[name="twitter:card"]')).toBe('summary');
+    expect(readMeta('meta[name="robots"]')).toBe('index,follow');
+
+    const structuredData = readJsonLd('guides-structured-data');
+    expect(structuredData).toBeTruthy();
+    expect(structuredData?.['@type']).toBe('CollectionPage');
+    expect(structuredData?.['@context']).toBe('https://schema.org');
+
+    const crumbs = readJsonLd('guides-breadcrumb-data');
+    expect(crumbs?.['@type']).toBe('BreadcrumbList');
+  });
+
+  test('only links to routes the app implements', () => {
+    renderGuides('/guides');
+
+    expect(screen.getByRole('link', { name: /compare cards/i })).toHaveAttribute(
+      'href',
+      '/compare'
+    );
+
+    const hrefs = screen.getAllByRole('link').map(link => link.getAttribute('href'));
+    // Two internal links per guide card (heading link + "Read guide" link).
+    expect(hrefs.filter(href => href?.startsWith('/guides/'))).toHaveLength(guides.length * 2);
+    hrefs.forEach(href => {
+      expect(href).toMatch(/^\/$|^\/(about|compare|glossary)(\/|$)|^\/guides(\/|$)/);
+    });
+  });
+});
+
+describe('GuidesPage detail', () => {
+  test('navigates from the index into a guide', () => {
+    renderGuides('/guides');
+
+    fireEvent.click(screen.getByRole('link', { name: 'Understanding annual fee waivers' }));
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Understanding annual fee waivers' })
+    ).toBeInTheDocument();
+    expect(document.title).toBe('Understanding annual fee waivers | CreditMate AI');
+  });
+
+  test('renders sections, breadcrumb and the authoritative sources', () => {
+    renderGuides('/guides/choosing-your-first-credit-card');
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Check if you can get one' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Know your rights' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Sources' })).toBeInTheDocument();
+
+    const breadcrumb = screen.getByRole('navigation', { name: /breadcrumb/i });
+    expect(within(breadcrumb).getByRole('link', { name: 'Guides' })).toHaveAttribute(
+      'href',
+      '/guides'
+    );
+
+    const externalLinks = screen
+      .getAllByRole('link')
+      .filter(link => (link.getAttribute('href') ?? '').startsWith('http'));
+
+    expect(externalLinks.length).toBeGreaterThan(0);
+    expect(externalLinks.map(link => link.getAttribute('href'))).toContain(
+      'https://www.bb.org.bd/mediaroom/circulars/brpd/mar152026brpd-19e.pdf'
+    );
+    externalLinks.forEach(link => {
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+      expect(link).toHaveAttribute('target', '_blank');
+    });
+  });
+
+  test('sets article metadata with the guide date', () => {
+    renderGuides('/guides/maximizing-lounge-access-benefits');
+
+    expect(document.title).toBe('Maximizing lounge access benefits | CreditMate AI');
+    expect(readMeta('meta[name="description"]')).toBe(
+      guides.find(guide => guide.slug === 'maximizing-lounge-access-benefits')?.description
+    );
+    expect(headQuery('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'http://localhost/guides/maximizing-lounge-access-benefits'
+    );
+    expect(readMeta('meta[property="og:type"]')).toBe('article');
+    expect(screen.getByText(/^Updated 12 Oct 2026$/)).toHaveAttribute('datetime', '2026-10-12');
+
+    const structuredData = readJsonLd('guides-structured-data');
+    expect(structuredData?.['@type']).toBe('Article');
+    expect(structuredData?.dateModified).toBe('2026-10-12');
+    expect(structuredData?.headline).toBe('Maximizing lounge access benefits');
+  });
+
+  test('renders the comparison table with the sourced interest cap', () => {
+    renderGuides('/guides/credit-card-vs-debit-card');
+
+    const table = screen.getByRole('table');
+    expect(within(table).getByRole('columnheader', { name: 'Debit card' })).toBeInTheDocument();
+    expect(within(table).getByRole('columnheader', { name: 'Credit card' })).toBeInTheDocument();
+    // The cap comes from Bangladesh Bank BRPD-1 Circular No. 09 (15 March 2026).
+    expect(within(table).getByText(/up to 25 percent on what you owe/i)).toBeInTheDocument();
+  });
+
+  test('shows a friendly not-found state for an unknown slug', () => {
+    renderGuides('/guides/does-not-exist');
+
+    expect(screen.getByRole('heading', { level: 1, name: /guide not found/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /see all guides/i })).toHaveAttribute(
+      'href',
+      '/guides'
+    );
+    expect(document.title).toBe('Guide not found | CreditMate AI');
+  });
+});
+
+describe('App route integration', () => {
+  test('header and footer expose /guides and the route renders the guides page', () => {
+    window.history.pushState({}, '', '/guides');
+    render(<App />);
+
+    const guidesLinks = screen.getAllByRole('link', { name: 'Guides' });
+    expect(guidesLinks.length).toBeGreaterThanOrEqual(2);
+    guidesLinks.forEach(link => expect(link).toHaveAttribute('href', '/guides'));
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: /credit card guides and how-tos/i })
+    ).toBeInTheDocument();
+  });
+});
