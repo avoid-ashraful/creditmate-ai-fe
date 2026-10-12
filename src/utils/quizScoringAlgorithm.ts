@@ -303,7 +303,8 @@ export const decodeQuizResult = (
     if (
       !Array.isArray(parsed?.cardIds) ||
       !parsed.cardIds.every((id: unknown) => Number.isInteger(id)) ||
-      !Number.isFinite(answers?.monthlySpend) || answers.monthlySpend < 0 ||
+      !Number.isFinite(answers?.monthlySpend) ||
+      answers.monthlySpend < 0 ||
       !['travel', 'dining', 'shopping', 'cashback', 'premium'].includes(answers?.primaryUse) ||
       !['frequent', 'occasional', 'never'].includes(answers?.travelFrequency) ||
       !['none', 'low', 'moderate', 'high'].includes(answers?.feeTolerance) ||
