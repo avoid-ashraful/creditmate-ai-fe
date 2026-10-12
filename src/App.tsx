@@ -7,6 +7,7 @@ import ComparisonPage from './pages/ComparisonPage';
 import GlossaryPage from './pages/GlossaryPage';
 import GuidesPage from './pages/GuidesPage';
 import HomePage from './pages/HomePage';
+import RecommendationQuiz from './pages/RecommendationQuiz';
 import './styles/App.css';
 import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
 
@@ -24,6 +25,9 @@ const App: React.FC = () => {
               <ul>
                 <li>
                   <Link to="/">Home</Link>
+                </li>
+                <li>
+                  <Link to="/perfect-card-finder">Quiz</Link>
                 </li>
                 <li>
                   <Link to="/compare">Compare Cards</Link>
@@ -47,6 +51,7 @@ const App: React.FC = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/compare" element={<ComparisonPage />} />
+            <Route path="/perfect-card-finder" element={<RecommendationQuiz />} />
             <Route path="/guides" element={<GuidesPage />} />
             <Route path="/guides/:slug" element={<GuidesPage />} />
             <Route path="/glossary" element={<GlossaryPage />} />
@@ -65,6 +70,9 @@ const App: React.FC = () => {
               <ul>
                 <li>
                   <Link to="/">Home</Link>
+                </li>
+                <li>
+                  <Link to="/perfect-card-finder">Quiz</Link>
                 </li>
                 <li>
                   <Link to="/compare">Compare Cards</Link>
