@@ -4,6 +4,7 @@ import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
 import { apiService, CreditCardApiResponse } from '../services/api';
+import { CreditCard } from '../types';
 
 import RewardCalculatorPage from './RewardCalculatorPage';
 
@@ -59,7 +60,10 @@ let consoleError: jest.SpyInstance;
 let consoleWarn: jest.SpyInstance;
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  // react-scripts sets `resetMocks: true`, which clears the inline mock
+  // implementations defined in the jest.mock factory before every test.
+  // Re-apply the identity transform so the page receives the raw test cards.
+  (apiService.transformCreditCard as jest.Mock).mockImplementation((card: CreditCard) => card);
   consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
   consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
 });
