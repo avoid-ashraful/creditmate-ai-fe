@@ -323,11 +323,11 @@ const GuidesPage: React.FC = () => {
       <section className="guides-cta">
         <h2>Ready to compare cards?</h2>
         <p>
-          Open the compare page to see annual fees, interest rates, lounge access and fee waiver
-          policies side by side.
+          Start on the home page. Use the fee waiver and lounge filters there, pick two to four
+          cards, then press Compare Cards to see them side by side.
         </p>
-        <Link className="guides-button" to="/compare">
-          Compare cards
+        <Link className="guides-button" to="/">
+          Browse cards on the home page
         </Link>
       </section>
     </div>

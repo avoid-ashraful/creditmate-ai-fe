@@ -4,13 +4,18 @@
  * This module is the single source of truth for the copy rendered by
  * `src/pages/GuidesPage.tsx`. The same four guides are published as Markdown in
  * `creditmate-ai-be/docs/user/`, and both copies are measured by
- * `docs/user/readability_check.py` (Flesch-Kincaid grade must stay below 8.0).
+ * `docs/user/readability_check.py` (Flesch-Kincaid grade must stay below 8.0)
+ * and cross-checked with `docs/user/readability_textstat.py`.
  *
  * Editorial rules:
  * - No fee, rate or eligibility figure may appear here unless it comes from a
  *   source listed in the matching guide's `sources` array.
- * - Only features that exist in this app may be linked to (currently `/compare`
- *   and `/glossary`).
+ * - Regulatory summaries must keep the qualifications in the source (for
+ *   example the 7 working day closure deadline applies only when there is no
+ *   outstanding balance).
+ * - Only features that exist in this app may be described. The filter panel
+ *   (fee waiver, lounge) lives on `/`; `/compare` only shows cards that were
+ *   already selected on `/`.
  */
 
 export interface GuideSource {
@@ -83,9 +88,9 @@ export const guides: Guide[] = [
       {
         heading: 'Check if you can get one',
         paragraphs: [
-          'Bangladesh Bank sets the basic rules. You must be a citizen or a resident. You must be 18 years old or older on the day you apply. A student as young as 16 can get a second card. The student must be a dependent on the main cardholder.',
+          'Bangladesh Bank sets the basic rules. You must be a citizen or a resident. You must be 18 years old or older on the day you apply. A student aged 16 can get a second card. The student must be directly dependent on the main cardholder.',
           'You also need a valid e-TIN. Your credit report, called a CIB report, must be clean. You must pass the bank Know Your Customer check. That check asks for your identity papers.',
-          'Low-income earners can ask for a secured card. A secured card sits on a fixed deposit. Retirees may qualify on pension and savings income.',
+          'A bank may give a low-income applicant a card that sits on a fixed deposit. Retirees may qualify on pension and investment income. Neither one is a right. The bank decides.',
         ],
       },
       {
@@ -93,8 +98,8 @@ export const guides: Guide[] = [
         paragraphs: [
           'The annual fee is a price you pay each year. Some cards drop that fee if you spend enough. Read our guide on annual fee waivers to learn more.',
           'Interest is the big cost. Bangladesh Bank caps the yearly interest at 25 percent. The bank charges that rate only on money you owe. It does not charge you on the full bill.',
-          'Pay the full bill by the due date. The card then gives you an interest free period. Cash advances break that rule. You may pay interest from day one on cash.',
-          'The late fee is a fine for late payment. The bank can charge it once. It cannot stack a new fine on top each day.',
+          'Pay the full bill by the due date. The card then gives you an interest free period. A cash advance may not get that free period. You could owe interest sooner on cash than on a purchase.',
+          'The late fee is a fine for late payment. The bank can charge it once, unless you have made new buys. It cannot add a fresh fine each day. The fine never joins the sum used to work out interest.',
         ],
         bullets: [
           'Annual fee: a yearly price for holding the card.',
@@ -106,7 +111,7 @@ export const guides: Guide[] = [
       {
         heading: 'Look at these five things',
         paragraphs: [
-          'Compare each card on one page with our compare tool. Use it after you shortlist two or three cards.',
+          'To line cards up side by side, start on the home page. Pick two to four cards there, then press Compare Cards.',
         ],
         steps: [
           'The annual fee, and how to get it waived.',
@@ -133,8 +138,8 @@ export const guides: Guide[] = [
         paragraphs: [
           'Your bank cannot send you a card you did not ask for. It cannot raise your limit or swap your card without your OK. A text code must confirm each new card before you use it.',
           'The bank must tell you 30 days before any fee change. It must highlight the new part. You can close the card free if the terms get worse for you.',
-          'You can ask to close a card through a hotline, email or a branch. The bank has seven working days to close it. Any credit left on the card goes back to your bank account.',
-          'Report a lost card fast. Your bank must block it at once. It must pay back any charge you did not make within seven working days.',
+          'Only the main cardholder can ask to close a card. You can use a hotline, email, website or a branch. If you owe nothing, the bank must close it within seven working days. Any credit left then goes back to your bank account.',
+          'Report a lost card fast. Your bank must block it at once. Once the bank knows the card is lost or stolen, it must pay back any charge you did not make. It has seven working days to do that.',
         ],
       },
       {
@@ -180,9 +185,10 @@ export const guides: Guide[] = [
       {
         heading: 'What is an annual fee?',
         paragraphs: [
-          'An annual fee is the price of holding a card. Your bank charges it once a year. Bangladesh Bank calls it a non-transactional fee. That name means the fee is not linked to a sale. Other examples are the card report fee and the text alert fee.',
+          'An annual fee is the price of holding a card. Your bank charges it once a year. Bangladesh Bank calls it a non-transactional fee. That name means the fee is not linked to a sale. The rule also names the CIB fee and the SMS fee as examples.',
           'Your bank cannot charge that fee before your card works. A card you never activated must not cost you.',
           'Paying only that fee cannot make you late. If you owe nothing on sales, no extra fine applies. The bank may add the normal interest on the fee. It must not mark you as a bad payer for the fee.',
+          'If you pay only part of your bill, the bank may settle that fee first. It then adjusts what you owe on sales.',
         ],
       },
       {
@@ -204,15 +210,16 @@ export const guides: Guide[] = [
           'No fee before the card is active.',
           'No extra fine when only the fee is left to pay.',
           'No bad credit mark for unpaid fees.',
-          'Late fines can be charged only once at a time.',
+          'Late fines can be charged only once, and only if no new sale is added.',
           'A late fine never joins the sum used to work out interest.',
         ],
       },
       {
         heading: 'How to get a waiver',
         paragraphs: [
-          'Each bank sets its own terms. We list the words each bank uses on our compare page. Tick the box marked Has Fee Waiver Policy to see them. Keep every email. Keep every text message. They are your proof.',
+          'Each bank sets its own terms. Start on our home page. Tick the box marked Has Fee Waiver Policy. The list then shows only the cards that publish a waiver rule. Keep every email. Keep every text message. They are your proof.',
           'Some banks state the deal in plain words. Eastern Bank PLC lists cards with a yearly fee waiver. It also lists cards with no renewal fee. Some of its cards ask for 24 sales a year. Others drop the fee for life.',
+          'Bangladesh Bank keeps links to every bank fee page. Use that page to find the right link. Our home page lists the waiver rule for each card we track.',
         ],
         steps: [
           'Open your bank schedule of charges.',
@@ -226,7 +233,7 @@ export const guides: Guide[] = [
       {
         heading: 'If the fee still shows up',
         paragraphs: [
-          'Ask for the reason in writing. Your bank must tell you 30 days before a fee change. It must send that note in clear writing. The changed part must stand out. If the change hurts you, you can close the card. The bank must close it with no extra charge.',
+          'Ask for the reason in writing. Your bank must tell you 30 days before a fee change. It must send that note in clear writing. The changed part must stand out. If the change hurts you, you can surrender the card. The bank must allow that with no extra charge.',
           'Bangladesh Bank runs a Customers Interest Protection Center. You can call 16236 or write to bb.cipc@bb.org.bd. Your bank must also name a dispute officer on its website. Ask for a complaint number when you call.',
         ],
       },
@@ -295,7 +302,7 @@ export const guides: Guide[] = [
       {
         heading: 'Read the fine print',
         paragraphs: [
-          'The bank says its premium cardholders can use the rooms as per policy. That phrase means terms apply. Read the terms for your card before you fly.',
+          'The bank says its privilege clients and premium credit card holders can use the rooms as per policy. That phrase means terms apply. Read the terms for your card before you fly.',
           'Some banks join world wide lounge groups. Eastern Bank PLC lists lounge access with SKYLOUNGE. It also lists a Priority Pass plan. Those groups work in airports outside Bangladesh. Save the fee list for your card. Keep it with your tickets.',
         ],
         bullets: [
@@ -317,7 +324,7 @@ export const guides: Guide[] = [
           'Save your lounge receipt for your claim.',
         ],
         paragraphs: [
-          'Our compare page shows the lounge count for each card. Use the lounge filters to sort them. You can set a low mark for a count.',
+          'Our home page shows the lounge count for each card. Tick Any Lounge Access to cut the list down. You can also set a lowest number of visits. Pick the cards you like, then press Compare Cards to see them side by side.',
         ],
       },
       {
@@ -383,7 +390,7 @@ export const guides: Guide[] = [
         paragraphs: [
           'A credit card is a small loan in your pocket. Your bank gives you a set sum to spend. You pay the bank back on a set date. Bangladesh Bank calls that sum a credit limit.',
           'Only a bank can give you a credit card in Bangladesh. Any scheduled bank may issue a Taka card. A bank that handles foreign cash may issue a foreign card.',
-          'If you pay the full bill on time, you get an interest free period. If you pay part of it, interest starts the day after the due date. The bank never charges you interest from the day of sale. Cash advances are the one case that breaks this rule.',
+          'If you pay the full bill on time, you get an interest free period. If you pay part of it, interest starts the day after the due date. The bank never charges you interest from the day of sale. A cash advance may have no interest free period, so you could owe interest sooner on cash.',
         ],
       },
       {
@@ -436,7 +443,7 @@ export const guides: Guide[] = [
       {
         heading: 'If you do not have a credit card yet',
         paragraphs: [
-          'Read our first credit card guide. It walks you through the steps. Then compare cards on our compare page. The filters can show only cards with a fee waiver or a lounge plan.',
+          'Read our first credit card guide. It walks you through the steps. Then open our home page. The filters there can show only cards with a fee waiver or a lounge plan. Pick two or three, then press Compare Cards.',
         ],
       },
     ],

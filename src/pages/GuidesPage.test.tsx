@@ -105,12 +105,16 @@ describe('GuidesPage index', () => {
   test('only links to routes the app implements', () => {
     renderGuides('/guides');
 
-    expect(screen.getByRole('link', { name: /compare cards/i })).toHaveAttribute(
+    // The filter panel lives on the home page, so the call to action starts there.
+    expect(screen.getByRole('link', { name: /browse cards on the home page/i })).toHaveAttribute(
       'href',
-      '/compare'
+      '/'
     );
 
     const hrefs = screen.getAllByRole('link').map(link => link.getAttribute('href'));
+    // `/compare` only renders cards already selected on `/`, so it is never linked
+    // from a guide as a browse/filter screen.
+    expect(hrefs.filter(href => href === '/compare')).toHaveLength(0);
     // Two internal links per guide card (heading link + "Read guide" link).
     expect(hrefs.filter(href => href?.startsWith('/guides/'))).toHaveLength(guides.length * 2);
     hrefs.forEach(href => {
@@ -158,6 +162,36 @@ describe('GuidesPage detail', () => {
       expect(link).toHaveAttribute('rel', 'noopener noreferrer');
       expect(link).toHaveAttribute('target', '_blank');
     });
+  });
+
+  test('keeps the material qualifications from the Bangladesh Bank guideline', () => {
+    renderGuides('/guides/choosing-your-first-credit-card');
+
+    // BRPD-1 Circular No. 09 s.16(c): the 7 working day deadline applies only
+    // when no outstanding balance exists.
+    expect(
+      screen.getByText(/if you owe nothing, the bank must close it within seven working days/i)
+    ).toBeInTheDocument();
+    // s.16(b): only the principal (main) cardholder may request closure.
+    expect(
+      screen.getByText(/only the main cardholder can ask to close a card/i)
+    ).toBeInTheDocument();
+    // s.12(g): the bank is liable only after it is told the card is lost/stolen.
+    expect(screen.getByText(/once the bank knows the card is lost or stolen/i)).toBeInTheDocument();
+    // s.7(f): a cash advance *may* have no interest free period - never "day one".
+    expect(screen.getByText(/a cash advance may not get that free period/i)).toBeInTheDocument();
+  });
+
+  test('describes the real app flow: filter on the home page, then compare', () => {
+    renderGuides('/guides/understanding-annual-fee-waivers');
+
+    expect(screen.getByText(/start on our home page/i)).toBeInTheDocument();
+    expect(screen.getByText(/tick the box marked has fee waiver policy/i)).toBeInTheDocument();
+
+    // /compare only renders cards already selected on /, so a guide must never
+    // present it as a browse or filter screen.
+    const hrefs = screen.getAllByRole('link').map(link => link.getAttribute('href'));
+    expect(hrefs).not.toContain('/compare');
   });
 
   test('sets article metadata with the guide date', () => {
