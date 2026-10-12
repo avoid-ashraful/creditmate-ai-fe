@@ -1,0 +1,62 @@
+{
+  "shadow": {
+    "none": {
+      "value": "none",
+      "type": "shadow",
+      "comment": "Flat surfaces. Prefer over removing the property entirely."
+    },
+    "xs": {
+      "value": "0 1px 2px 0 rgba(15, 23, 42, 0.06)",
+      "type": "shadow",
+      "comment": "Resting state for dense lists and inline controls."
+    },
+    "sm": {
+      "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      "type": "shadow",
+      "comment": "Matches the legacy --shadow-sm already used by inputs, cards and popovers."
+    },
+    "md": {
+      "value": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      "type": "shadow",
+      "comment": "Default card shadow. Identical to the current AnimatedCard shadow."
+    },
+    "lg": {
+      "value": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+      "type": "shadow",
+      "comment": "Hover and raised state. Identical to the current card hover shadow."
+    },
+    "xl": {
+      "value": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+      "type": "shadow",
+      "comment": "Dropdowns, popovers, sticky comparison bar."
+    },
+    "2xl": {
+      "value": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+      "type": "shadow",
+      "comment": "Modals and dialogs."
+    },
+    "inner": {
+      "value": "inset 0 2px 4px 0 rgba(15, 23, 42, 0.06)",
+      "type": "shadow",
+      "comment": "Inset wells such as disabled or read-only inputs."
+    },
+    "focus": {
+      "value": "0 0 0 3px rgba(37, 99, 235, 0.35)",
+      "type": "shadow",
+      "comment": "Keyboard focus ring. Pair with color.border.focus."
+    },
+    "focusError": {
+      "value": "0 0 0 3px rgba(239, 68, 68, 0.35)",
+      "type": "shadow"
+    },
+    "primaryGlow": {
+      "value": "0 4px 6px -1px rgba(37, 99, 235, 0.3)",
+      "type": "shadow",
+      "comment": "Primary button resting shadow (current GradientButton value)."
+    },
+    "primaryGlowStrong": {
+      "value": "0 6px 8px -1px rgba(37, 99, 235, 0.4)",
+      "type": "shadow"
+    }
+  }
+}

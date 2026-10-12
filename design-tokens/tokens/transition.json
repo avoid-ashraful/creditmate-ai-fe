@@ -1,0 +1,87 @@
+{
+  "transition": {
+    "duration": {
+      "instant": {
+        "value": "0ms",
+        "type": "duration",
+        "comment": "State changes that must feel immediate."
+      },
+      "fast": {
+        "value": "150ms",
+        "type": "duration",
+        "comment": "Hover, focus, and small colour changes."
+      },
+      "base": {
+        "value": "200ms",
+        "type": "duration",
+        "comment": "Default transition duration."
+      },
+      "slow": {
+        "value": "300ms",
+        "type": "duration",
+        "comment": "Panels, drawers, expanding content."
+      },
+      "slower": {
+        "value": "500ms",
+        "type": "duration",
+        "comment": "Page-level and hero animations."
+      }
+    },
+    "easing": {
+      "linear": { "value": "linear", "type": "cubicBezier" },
+      "ease": { "value": "ease", "type": "cubicBezier" },
+      "easeIn": { "value": "cubic-bezier(0.4, 0, 1, 1)", "type": "cubicBezier" },
+      "easeOut": {
+        "value": "cubic-bezier(0, 0, 0.2, 1)",
+        "type": "cubicBezier",
+        "comment": "Default easing for entrances."
+      },
+      "easeInOut": {
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "type": "cubicBezier",
+        "comment": "Default easing for moves and fades."
+      }
+    },
+    "property": {
+      "colors": {
+        "value": "color, background-color, border-color, fill, stroke",
+        "type": "transitionProperty",
+        "comment": "Properties for hover/focus colour feedback. Expanded into a valid CSS shorthand by transition.preset.colors."
+      },
+      "singleColor": {
+        "value": "color",
+        "type": "transitionProperty",
+        "comment": "Safe to combine with duration and easing in a single shorthand."
+      },
+      "opacity": { "value": "opacity", "type": "transitionProperty" },
+      "transform": { "value": "transform", "type": "transitionProperty" },
+      "shadow": { "value": "box-shadow", "type": "transitionProperty" },
+      "all": { "value": "all", "type": "transitionProperty" }
+    },
+    "preset": {
+      "colors": {
+        "value": "color {transition.duration.fast} {transition.easing.easeInOut}, background-color {transition.duration.fast} {transition.easing.easeInOut}, border-color {transition.duration.fast} {transition.easing.easeInOut}, fill {transition.duration.fast} {transition.easing.easeInOut}, stroke {transition.duration.fast} {transition.easing.easeInOut}",
+        "type": "transition",
+        "comment": "Each property carries its own duration/easing: CSS only honours timing functions on the trailing shorthand entry."
+      },
+      "singleColor": {
+        "value": "{transition.property.singleColor} {transition.duration.fast} {transition.easing.easeInOut}",
+        "type": "transition",
+        "comment": "Ready-to-use shorthand for a single property."
+      },
+      "shadow": {
+        "value": "{transition.property.shadow} {transition.duration.base} {transition.easing.easeInOut}",
+        "type": "transition",
+        "comment": "Ready-to-use shorthand: elevation changes on cards."
+      },
+      "transform": {
+        "value": "{transition.property.transform} {transition.duration.base} {transition.easing.easeOut}",
+        "type": "transition"
+      },
+      "all": {
+        "value": "{transition.property.all} {transition.duration.base} {transition.easing.ease}",
+        "type": "transition"
+      }
+    }
+  }
+}

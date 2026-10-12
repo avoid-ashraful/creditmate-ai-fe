@@ -1,0 +1,598 @@
+{
+  "color": {
+    "white": {
+      "value": "#ffffff",
+      "type": "color",
+      "comment": "Pure white. Use for surfaces and text on dark backgrounds."
+    },
+    "black": {
+      "value": "#000000",
+      "type": "color",
+      "comment": "Pure black. Rarely used directly; prefer slate-900 for dark surfaces."
+    },
+    "blue": {
+      "50": {
+        "type": "color",
+        "value": "#eff6ff"
+      },
+      "100": {
+        "type": "color",
+        "value": "#dbeafe"
+      },
+      "200": {
+        "type": "color",
+        "value": "#bfdbfe"
+      },
+      "300": {
+        "type": "color",
+        "value": "#93c5fd"
+      },
+      "400": {
+        "type": "color",
+        "value": "#60a5fa"
+      },
+      "500": {
+        "type": "color",
+        "value": "#2563eb"
+      },
+      "600": {
+        "type": "color",
+        "value": "#1d4ed8"
+      },
+      "700": {
+        "type": "color",
+        "value": "#1e40af"
+      },
+      "800": {
+        "type": "color",
+        "value": "#1e3a8a"
+      },
+      "900": {
+        "type": "color",
+        "value": "#172554"
+      }
+    },
+    "indigo": {
+      "50": {
+        "type": "color",
+        "value": "#eef2ff"
+      },
+      "100": {
+        "type": "color",
+        "value": "#e0e7ff"
+      },
+      "200": {
+        "type": "color",
+        "value": "#c7d2fe"
+      },
+      "300": {
+        "type": "color",
+        "value": "#a5b4fc"
+      },
+      "400": {
+        "type": "color",
+        "value": "#818cf8"
+      },
+      "500": {
+        "type": "color",
+        "value": "#6366f1"
+      },
+      "600": {
+        "type": "color",
+        "value": "#4f46e5"
+      },
+      "700": {
+        "type": "color",
+        "value": "#4338ca"
+      },
+      "800": {
+        "type": "color",
+        "value": "#3730a3"
+      },
+      "900": {
+        "type": "color",
+        "value": "#312e81"
+      }
+    },
+    "sky": {
+      "50": {
+        "type": "color",
+        "value": "#f0f9ff"
+      },
+      "100": {
+        "type": "color",
+        "value": "#e0f2fe"
+      },
+      "200": {
+        "type": "color",
+        "value": "#bae6fd"
+      },
+      "300": {
+        "type": "color",
+        "value": "#7dd3fc"
+      },
+      "400": {
+        "type": "color",
+        "value": "#38bdf8"
+      },
+      "500": {
+        "type": "color",
+        "value": "#0ea5e9"
+      },
+      "600": {
+        "type": "color",
+        "value": "#0284c7"
+      },
+      "700": {
+        "type": "color",
+        "value": "#0369a1"
+      },
+      "800": {
+        "type": "color",
+        "value": "#075985"
+      },
+      "900": {
+        "type": "color",
+        "value": "#0c4a6e"
+      }
+    },
+    "emerald": {
+      "50": {
+        "type": "color",
+        "value": "#ecfdf5"
+      },
+      "100": {
+        "type": "color",
+        "value": "#d1fae5"
+      },
+      "200": {
+        "type": "color",
+        "value": "#a7f3d0"
+      },
+      "300": {
+        "type": "color",
+        "value": "#6ee7b7"
+      },
+      "400": {
+        "type": "color",
+        "value": "#34d399"
+      },
+      "500": {
+        "type": "color",
+        "value": "#10b981"
+      },
+      "600": {
+        "type": "color",
+        "value": "#059669"
+      },
+      "700": {
+        "type": "color",
+        "value": "#047857"
+      },
+      "800": {
+        "type": "color",
+        "value": "#065f46"
+      },
+      "900": {
+        "type": "color",
+        "value": "#064e3b"
+      }
+    },
+    "amber": {
+      "50": {
+        "type": "color",
+        "value": "#fffbeb"
+      },
+      "100": {
+        "type": "color",
+        "value": "#fef3c7"
+      },
+      "200": {
+        "type": "color",
+        "value": "#fde68a"
+      },
+      "300": {
+        "type": "color",
+        "value": "#fcd34d"
+      },
+      "400": {
+        "type": "color",
+        "value": "#fbbf24"
+      },
+      "500": {
+        "type": "color",
+        "value": "#f59e0b"
+      },
+      "600": {
+        "type": "color",
+        "value": "#d97706"
+      },
+      "700": {
+        "type": "color",
+        "value": "#b45309"
+      },
+      "800": {
+        "type": "color",
+        "value": "#92400e"
+      },
+      "900": {
+        "type": "color",
+        "value": "#78350f"
+      }
+    },
+    "red": {
+      "50": {
+        "type": "color",
+        "value": "#fef2f2"
+      },
+      "100": {
+        "type": "color",
+        "value": "#fee2e2"
+      },
+      "200": {
+        "type": "color",
+        "value": "#fecaca"
+      },
+      "300": {
+        "type": "color",
+        "value": "#fca5a5"
+      },
+      "400": {
+        "type": "color",
+        "value": "#f87171"
+      },
+      "500": {
+        "type": "color",
+        "value": "#ef4444"
+      },
+      "600": {
+        "type": "color",
+        "value": "#dc2626"
+      },
+      "700": {
+        "type": "color",
+        "value": "#b91c1c"
+      },
+      "800": {
+        "type": "color",
+        "value": "#991b1b"
+      },
+      "900": {
+        "type": "color",
+        "value": "#7f1d1d"
+      }
+    },
+    "slate": {
+      "50": {
+        "type": "color",
+        "value": "#f8fafc"
+      },
+      "100": {
+        "type": "color",
+        "value": "#f1f5f9"
+      },
+      "200": {
+        "type": "color",
+        "value": "#e2e8f0"
+      },
+      "300": {
+        "type": "color",
+        "value": "#cbd5e1"
+      },
+      "400": {
+        "type": "color",
+        "value": "#94a3b8"
+      },
+      "500": {
+        "type": "color",
+        "value": "#64748b"
+      },
+      "600": {
+        "type": "color",
+        "value": "#475569"
+      },
+      "700": {
+        "type": "color",
+        "value": "#334155"
+      },
+      "800": {
+        "type": "color",
+        "value": "#1e293b"
+      },
+      "900": {
+        "type": "color",
+        "value": "#0f172a"
+      }
+    },
+    "brand": {
+      "gradientFrom": {
+        "value": "#667eea",
+        "type": "color",
+        "comment": "Start of the legacy CreditMate brand gradient carried over from the original design."
+      },
+      "gradientTo": {
+        "value": "#764ba2",
+        "type": "color",
+        "comment": "End of the legacy CreditMate brand gradient carried over from the original design."
+      }
+    },
+    "primary": {
+      "base": {
+        "value": "{color.blue.500}",
+        "comment": "Default brand / interactive color.",
+        "type": "color"
+      },
+      "hover": {
+        "value": "{color.blue.600}",
+        "type": "color"
+      },
+      "active": {
+        "value": "{color.blue.700}",
+        "type": "color"
+      },
+      "subtle": {
+        "value": "{color.blue.50}",
+        "comment": "Tinted surface for selected / highlighted rows.",
+        "type": "color"
+      },
+      "border": {
+        "value": "{color.blue.200}",
+        "type": "color"
+      },
+      "contrast": {
+        "value": "{color.white}",
+        "comment": "Text/icon color placed on top of primary.",
+        "type": "color"
+      }
+    },
+    "secondary": {
+      "base": {
+        "value": "{color.slate.900}",
+        "comment": "Dark neutral used for header, footer and comparison bar.",
+        "type": "color"
+      },
+      "hover": {
+        "value": "{color.slate.800}",
+        "type": "color"
+      },
+      "contrast": {
+        "value": "{color.white}",
+        "type": "color"
+      }
+    },
+    "success": {
+      "base": {
+        "value": "{color.emerald.500}",
+        "type": "color"
+      },
+      "hover": {
+        "value": "{color.emerald.600}",
+        "type": "color"
+      },
+      "subtle": {
+        "value": "{color.emerald.50}",
+        "type": "color"
+      },
+      "border": {
+        "value": "{color.emerald.200}",
+        "type": "color"
+      },
+      "contrast": {
+        "value": "{color.white}",
+        "type": "color"
+      }
+    },
+    "warning": {
+      "base": {
+        "value": "{color.amber.500}",
+        "type": "color"
+      },
+      "hover": {
+        "value": "{color.amber.600}",
+        "type": "color"
+      },
+      "subtle": {
+        "value": "{color.amber.50}",
+        "type": "color"
+      },
+      "border": {
+        "value": "{color.amber.200}",
+        "type": "color"
+      },
+      "contrast": {
+        "value": "{color.amber.900}",
+        "comment": "Amber needs dark text for AA contrast.",
+        "type": "color"
+      }
+    },
+    "error": {
+      "base": {
+        "value": "{color.red.500}",
+        "type": "color"
+      },
+      "hover": {
+        "value": "{color.red.600}",
+        "type": "color"
+      },
+      "subtle": {
+        "value": "{color.red.50}",
+        "type": "color"
+      },
+      "border": {
+        "value": "{color.red.200}",
+        "type": "color"
+      },
+      "contrast": {
+        "value": "{color.white}",
+        "type": "color"
+      }
+    },
+    "info": {
+      "base": {
+        "value": "{color.sky.500}",
+        "type": "color"
+      },
+      "subtle": {
+        "value": "{color.sky.50}",
+        "type": "color"
+      },
+      "border": {
+        "value": "{color.sky.200}",
+        "type": "color"
+      },
+      "contrast": {
+        "value": "{color.white}",
+        "type": "color"
+      }
+    },
+    "background": {
+      "base": {
+        "value": "{color.slate.50}",
+        "comment": "App canvas behind all content.",
+        "type": "color"
+      },
+      "surface": {
+        "value": "{color.white}",
+        "comment": "Cards, modals, panels.",
+        "type": "color"
+      },
+      "elevated": {
+        "value": "{color.white}",
+        "type": "color"
+      },
+      "muted": {
+        "value": "{color.slate.100}",
+        "comment": "Striped rows, code blocks, disabled areas.",
+        "type": "color"
+      },
+      "inverse": {
+        "value": "{color.slate.900}",
+        "comment": "Dark strips such as the comparison bar.",
+        "type": "color"
+      },
+      "overlay": {
+        "value": "rgba(15, 23, 42, 0.6)",
+        "type": "color",
+        "comment": "Scrim behind modals and popups."
+      }
+    },
+    "text": {
+      "primary": {
+        "value": "{color.slate.800}",
+        "comment": "Body copy and headings.",
+        "type": "color"
+      },
+      "secondary": {
+        "value": "{color.slate.500}",
+        "comment": "Supporting copy, captions, meta.",
+        "type": "color"
+      },
+      "tertiary": {
+        "value": "{color.slate.400}",
+        "comment": "Placeholders, disabled labels.",
+        "type": "color"
+      },
+      "disabled": {
+        "value": "{color.slate.400}",
+        "type": "color"
+      },
+      "inverse": {
+        "value": "{color.white}",
+        "comment": "Text on dark surfaces.",
+        "type": "color"
+      },
+      "inverseSecondary": {
+        "value": "{color.slate.400}",
+        "type": "color"
+      },
+      "link": {
+        "value": "{color.blue.500}",
+        "type": "color"
+      },
+      "linkHover": {
+        "value": "{color.blue.600}",
+        "type": "color"
+      },
+      "onPrimary": {
+        "value": "{color.primary.contrast}",
+        "type": "color"
+      }
+    },
+    "border": {
+      "base": {
+        "value": "{color.slate.200}",
+        "comment": "Default 1px borders.",
+        "type": "color"
+      },
+      "strong": {
+        "value": "{color.slate.300}",
+        "comment": "Emphasised borders and dividers.",
+        "type": "color"
+      },
+      "subtle": {
+        "value": "{color.slate.100}",
+        "type": "color"
+      },
+      "focus": {
+        "value": "{color.blue.500}",
+        "comment": "Focus ring color, pairs with shadow.focus.",
+        "type": "color"
+      },
+      "error": {
+        "value": "{color.red.500}",
+        "type": "color"
+      }
+    },
+    "state": {
+      "hoverSurface": {
+        "value": "{color.slate.100}",
+        "comment": "Row / list-item hover background.",
+        "type": "color"
+      },
+      "selectedSurface": {
+        "value": "{color.blue.50}",
+        "type": "color"
+      },
+      "disabledSurface": {
+        "value": "{color.slate.100}",
+        "type": "color"
+      },
+      "disabledBorder": {
+        "value": "{color.slate.200}",
+        "type": "color"
+      }
+    },
+    "gradient": {
+      "brand": {
+        "type": "gradient",
+        "value": "linear-gradient(135deg, {color.brand.gradientFrom} 0%, {color.brand.gradientTo} 100%)",
+        "comment": "Legacy CreditMate brand gradient."
+      },
+      "header": {
+        "type": "gradient",
+        "value": "linear-gradient(-45deg, {color.primary.base}, {color.blue.400}, {color.indigo.600}, {color.indigo.400})",
+        "comment": "Animated site header background (see GradientHeader)."
+      },
+      "primaryButton": {
+        "type": "gradient",
+        "value": "linear-gradient(90deg, {color.primary.base}, {color.primary.hover})"
+      },
+      "accentButton": {
+        "type": "gradient",
+        "value": "linear-gradient(90deg, {color.success.base}, {color.success.hover})"
+      },
+      "footer": {
+        "type": "gradient",
+        "value": "linear-gradient(to right, {color.secondary.base}, {color.secondary.hover})"
+      },
+      "background": {
+        "type": "gradient",
+        "value": "linear-gradient(135deg, {color.background.base} 0%, {color.indigo.50} 100%)"
+      },
+      "cardAccent": {
+        "type": "gradient",
+        "value": "linear-gradient(90deg, {color.primary.base}, {color.success.base})"
+      }
+    }
+  }
+}
