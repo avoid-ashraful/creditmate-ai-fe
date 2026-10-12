@@ -19,7 +19,9 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const getBankName = (bankId: number): string => {
+  const getBankName = (bankId: number | undefined): string => {
+    if (card.bankName) return card.bankName;
+    if (bankId === undefined) return 'Bank: Data not available';
     const bank = dummyBanks.find(b => b.id === bankId);
     return bank?.name || `Bank ID: ${bankId}`;
   };
@@ -106,17 +108,21 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
             <div className="detail-row">
               <span className="detail-label">International:</span>
               <span className="detail-value">
-                {card.loungeAccessInternational > 0
-                  ? `${card.loungeAccessInternational} visits per year`
-                  : 'Not available'}
+                {card.loungeAccessInternational === null
+                  ? 'Data not available'
+                  : card.loungeAccessInternational === ''
+                  ? 'None'
+                  : card.loungeAccessInternational}
               </span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Domestic:</span>
               <span className="detail-value">
-                {card.loungeAccessDomestic > 0
-                  ? `${card.loungeAccessDomestic} visits per year`
-                  : 'Not available'}
+                {card.loungeAccessDomestic === null
+                  ? 'Data not available'
+                  : card.loungeAccessDomestic === ''
+                  ? 'None'
+                  : card.loungeAccessDomestic}
               </span>
             </div>
           </div>
@@ -158,13 +164,19 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
             <h3>More Information</h3>
             <div className="detail-row">
               <span className="detail-label">Source:</span>
-              <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer">
-                Official Website
-              </a>
+              {card.sourceUrl ? (
+                <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer">
+                  Official Website
+                </a>
+              ) : (
+                <span className="detail-value">Data not available</span>
+              )}
             </div>
             <div className="detail-row">
               <span className="detail-label">Last Updated:</span>
-              <span className="detail-value">{card.lastUpdated.toLocaleDateString()}</span>
+              <span className="detail-value">
+                {card.lastUpdated ? card.lastUpdated.toLocaleDateString() : 'Data not available'}
+              </span>
             </div>
           </div>
         </div>

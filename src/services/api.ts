@@ -12,24 +12,27 @@ export interface ApiResponse<T> {
 
 export interface CreditCardApiResponse {
   id: number;
-  bank: Bank;
-  bank_id: number;
+  bank?: Bank;
+  bank_id?: number;
+  bank_name?: string;
   name: string;
-  annual_fee: number | null;
-  interest_rate_apr: number | null;
-  lounge_access_international: number;
-  lounge_access_domestic: number;
-  cash_advance_fee: string;
-  late_payment_fee: string;
-  annual_fee_waiver_policy: Record<string, unknown> | null;
-  reward_points_policy: string;
-  additional_features: unknown[];
+  // DRF serializes DecimalFields as strings (e.g. "2000.00"); numbers accepted for safety
+  annual_fee: number | string | null;
+  interest_rate_apr: number | string | null;
+  // Lounge fields are free text in real BE data (e.g. "5 visits", "Unlimited")
+  lounge_access_international?: string | number;
+  lounge_access_domestic?: string | number;
+  cash_advance_fee?: string;
+  late_payment_fee?: string;
+  annual_fee_waiver_policy?: Record<string, unknown> | null;
+  reward_points_policy?: string;
+  additional_features?: unknown[];
   is_active: boolean;
-  has_lounge_access: boolean;
-  total_lounge_access: number;
-  has_annual_fee: boolean;
-  created: string;
-  modified: string;
+  has_lounge_access?: boolean;
+  total_lounge_access?: number;
+  has_annual_fee?: boolean;
+  created?: string;
+  modified?: string;
   sourceUrl?: string;
   images?: Array<{ small: string; full: string }>;
 }
@@ -44,6 +47,54 @@ export interface BankApiResponse {
   created: string;
   modified: string;
 }
+
+/**
+ * Normalize a DRF decimal (string) or number into a number.
+ * Returns null (unknown) for null, empty, or unparseable values so
+ * unknown fees stay unknown and are never treated as zero.
+ * Only strict decimal notation is accepted (no hex, exponents, or units).
+ */
+const normalizeDecimal = (value: number | string | null | undefined): number | null => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  const trimmed = value.trim();
+  // Strict DRF decimal format only: optional sign, digits, optional fraction
+  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+/**
+ * Normalize lounge access into truthful display text without inventing counts.
+ * Numeric-looking values are rendered with a 'visits' suffix; free text
+ * (e.g. 'Unlimited') is preserved as-is.
+ */
+export const normalizeLoungeAccess = (value: string | number | null | undefined): string | null => {
+  // null/undefined means the field was absent from the response (unknown)
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return null;
+    if (value <= 0) return '';
+    return `${value} visits`;
+  }
+  const trimmed = value.trim();
+  if (trimmed === '') return '';
+  if (/^\d+$/.test(trimmed)) {
+    const count = Number(trimmed);
+    return count > 0 ? `${count} visits` : '';
+  }
+  if (/^\d+\s+visits?$/i.test(trimmed)) return trimmed;
+  return trimmed;
+};
+
+/**
+ * Parse an API-modified timestamp; invalid or missing dates stay unknown.
+ */
+const parseModifiedDate = (value: string | null | undefined): Date | null => {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
 
 class ApiService {
   private async fetchApi<T>(endpoint: string, params?: URLSearchParams): Promise<T> {
@@ -111,6 +162,9 @@ class ApiService {
 
       // Bank filters
       if (filters.bankId) params.append('bank', filters.bankId.toString());
+      if (filters.bankIds && filters.bankIds.length > 0) {
+        params.append('bank_ids', filters.bankIds.join(','));
+      }
       if (filters.bankName) params.append('bank_name', filters.bankName);
 
       // Search
@@ -230,20 +284,23 @@ class ApiService {
   transformCreditCard(apiCard: CreditCardApiResponse): CreditCard {
     return {
       id: apiCard.id,
-      bankId: apiCard.bank_id,
+      // Keep absent bank identity absent; never render 'Bank ID: 0'
+      bankId: apiCard.bank_id ?? apiCard.bank?.id,
+      bankName: apiCard.bank_name ?? apiCard.bank?.name,
       name: apiCard.name,
-      annualFee: apiCard.annual_fee,
-      interestRateApr: apiCard.interest_rate_apr,
-      loungeAccessInternational: apiCard.lounge_access_international,
-      loungeAccessDomestic: apiCard.lounge_access_domestic,
-      cashAdvanceFee: apiCard.cash_advance_fee,
-      latePaymentFee: apiCard.late_payment_fee,
-      annualFeeWaiverPolicy: apiCard.annual_fee_waiver_policy,
-      rewardPointsPolicy: apiCard.reward_points_policy,
-      additionalFeatures: apiCard.additional_features,
+      annualFee: normalizeDecimal(apiCard.annual_fee),
+      interestRateApr: normalizeDecimal(apiCard.interest_rate_apr),
+      loungeAccessInternational: normalizeLoungeAccess(apiCard.lounge_access_international),
+      loungeAccessDomestic: normalizeLoungeAccess(apiCard.lounge_access_domestic),
+      cashAdvanceFee: apiCard.cash_advance_fee ?? '',
+      latePaymentFee: apiCard.late_payment_fee ?? '',
+      annualFeeWaiverPolicy: apiCard.annual_fee_waiver_policy ?? null,
+      rewardPointsPolicy: apiCard.reward_points_policy ?? '',
+      additionalFeatures: apiCard.additional_features ?? [],
       isActive: apiCard.is_active,
       sourceUrl: apiCard.sourceUrl || '',
-      lastUpdated: new Date(apiCard.modified),
+      // Never invent freshness: missing modified date stays unknown (null)
+      lastUpdated: parseModifiedDate(apiCard.modified),
       images: apiCard.images || [],
     };
   }

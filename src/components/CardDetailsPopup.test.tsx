@@ -12,8 +12,8 @@ const mockCreditCard: CreditCard = {
   name: 'Premium Gold Card',
   annualFee: 5000,
   interestRateApr: 18.5,
-  loungeAccessInternational: 2,
-  loungeAccessDomestic: 3,
+  loungeAccessInternational: '2 visits',
+  loungeAccessDomestic: '3 visits',
   cashAdvanceFee: '2%',
   latePaymentFee: 'BDT 500',
   annualFeeWaiverPolicy: {
@@ -54,8 +54,8 @@ const mockCreditCardNoWaiver: CreditCard = {
 const mockCreditCardNoLounge: CreditCard = {
   ...mockCreditCard,
   id: 4,
-  loungeAccessInternational: 0,
-  loungeAccessDomestic: 0,
+  loungeAccessInternational: '',
+  loungeAccessDomestic: '',
 };
 
 describe('CardDetailsPopup Component', () => {
@@ -83,8 +83,8 @@ describe('CardDetailsPopup Component', () => {
     expect(screen.getByText('18.5% APR')).toBeInTheDocument();
 
     // Check if lounge access is rendered
-    expect(screen.getByText('2 visits per year')).toBeInTheDocument();
-    expect(screen.getByText('3 visits per year')).toBeInTheDocument();
+    expect(screen.getByText('2 visits')).toBeInTheDocument();
+    expect(screen.getByText('3 visits')).toBeInTheDocument();
 
     // Check if fees are rendered
     expect(screen.getByText('2%')).toBeInTheDocument();
@@ -158,7 +158,7 @@ describe('CardDetailsPopup Component', () => {
     );
 
     // Check if "Not available" is displayed for lounge access
-    const notAvailableTexts = screen.getAllByText('Not available');
+    const notAvailableTexts = screen.getAllByText('None');
     expect(notAvailableTexts.length).toBeGreaterThanOrEqual(2);
   });
 

@@ -16,9 +16,11 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
     return <div className="empty-state">No cards selected for comparison</div>;
   }
 
-  const getBankName = (bankId: number): string => {
-    const bank = dummyBanks.find(b => b.id === bankId);
-    return bank?.name || `Bank ID: ${bankId}`;
+  const getBankName = (card: CreditCard): string => {
+    if (card.bankName) return card.bankName;
+    if (card.bankId === undefined) return 'Data not available';
+    const bank = dummyBanks.find(b => b.id === card.bankId);
+    return bank?.name || `Bank ID: ${card.bankId}`;
   };
 
   // Helper function to check if values are different among cards
@@ -51,7 +53,7 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
               <th key={card.id} className="card-column">
                 <div className="card-header">
                   <h3>{card.name}</h3>
-                  <span className="bank-name">by {getBankName(card.bankId)}</span>
+                  <span className="bank-name">by {getBankName(card)}</span>
                 </div>
               </th>
             ))}
@@ -76,9 +78,11 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
             <td className="feature-name">International Lounge Access</td>
             {cards.map(card => (
               <td key={`${card.id}-intl-lounge`}>
-                {card.loungeAccessInternational > 0
-                  ? `${card.loungeAccessInternational} visits per year`
-                  : 'Not available'}
+                {card.loungeAccessInternational === null
+                  ? 'Data not available'
+                  : card.loungeAccessInternational === ''
+                  ? 'None'
+                  : card.loungeAccessInternational}
               </td>
             ))}
           </tr>
@@ -87,9 +91,11 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
             <td className="feature-name">Domestic Lounge Access</td>
             {cards.map(card => (
               <td key={`${card.id}-dom-lounge`}>
-                {card.loungeAccessDomestic > 0
-                  ? `${card.loungeAccessDomestic} visits per year`
-                  : 'Not available'}
+                {card.loungeAccessDomestic === null
+                  ? 'Data not available'
+                  : card.loungeAccessDomestic === ''
+                  ? 'None'
+                  : card.loungeAccessDomestic}
               </td>
             ))}
           </tr>
@@ -142,7 +148,9 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
           <tr>
             <td className="feature-name">Last Updated</td>
             {cards.map(card => (
-              <td key={`${card.id}-updated`}>{card.lastUpdated.toLocaleDateString()}</td>
+              <td key={`${card.id}-updated`}>
+                {card.lastUpdated ? card.lastUpdated.toLocaleDateString() : 'Data not available'}
+              </td>
             ))}
           </tr>
         </tbody>

@@ -19,9 +19,13 @@ const CardListItem: React.FC<CardListItemProps> = ({
   selectable = false,
   onViewDetails,
 }) => {
-  const getBankName = (bankId: number): string => {
-    const bank = dummyBanks.find(b => b.id === bankId);
-    return bank?.name || `Bank ID: ${bankId}`;
+  const getBankName = (bankId: number | undefined): string => {
+    if (card.bankName) return card.bankName;
+    if (bankId !== undefined) {
+      const bank = dummyBanks.find(b => b.id === bankId);
+      return bank?.name || `Bank ID: ${bankId}`;
+    }
+    return 'Bank: Data not available';
   };
 
   const handleClick = () => {
@@ -83,10 +87,23 @@ const CardListItem: React.FC<CardListItemProps> = ({
         <div className="detail-row">
           <span className="detail-label">Lounge Access:</span>
           <span className="detail-value">
-            {card.loungeAccessInternational > 0 ? `${card.loungeAccessInternational} Int'l` : ''}
-            {card.loungeAccessInternational > 0 && card.loungeAccessDomestic > 0 ? ' / ' : ''}
-            {card.loungeAccessDomestic > 0 ? `${card.loungeAccessDomestic} Domestic` : ''}
-            {card.loungeAccessInternational === 0 && card.loungeAccessDomestic === 0 ? 'None' : ''}
+            {card.loungeAccessInternational === null && card.loungeAccessDomestic === null
+              ? 'Data not available'
+              : ''}
+            {card.loungeAccessInternational !== null && card.loungeAccessInternational !== ''
+              ? `${card.loungeAccessInternational} (Int'l)`
+              : ''}
+            {card.loungeAccessInternational && card.loungeAccessDomestic ? ' / ' : ''}
+            {card.loungeAccessDomestic !== null && card.loungeAccessDomestic !== ''
+              ? `${card.loungeAccessDomestic} (Domestic)`
+              : ''}
+            {card.loungeAccessInternational === '' &&
+            (card.loungeAccessDomestic === '' || card.loungeAccessDomestic === null)
+              ? 'None'
+              : ''}
+            {card.loungeAccessDomestic === '' && card.loungeAccessInternational === null
+              ? 'None'
+              : ''}
           </span>
         </div>
       </div>

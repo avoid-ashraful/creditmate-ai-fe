@@ -19,12 +19,15 @@ export interface Bank {
  */
 export interface CreditCard {
   id: number;
-  bankId: number;
+  bankId?: number; // undefined when the response does not include a bank identity
+  bankName?: string;
   name: string;
   annualFee: number | null;
   interestRateApr: number | null;
-  loungeAccessInternational: number;
-  loungeAccessDomestic: number;
+  // Truthful display text from backend (e.g. "5 visits", "Unlimited"); counts are never invented.
+  // null = field absent in response (unknown), '' = explicitly no access shown as "None".
+  loungeAccessInternational: string | null;
+  loungeAccessDomestic: string | null;
   cashAdvanceFee: string;
   latePaymentFee: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +37,7 @@ export interface CreditCard {
   additionalFeatures: any[]; // Using any as features can be of various types and structures
   sourceUrl: string;
   isActive: boolean;
-  lastUpdated: Date;
+  lastUpdated: Date | null; // null when API omits the modified date - freshness stays unknown
   images: {
     small: string;
     full: string;
