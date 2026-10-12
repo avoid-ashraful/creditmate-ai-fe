@@ -29,6 +29,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "tokens:build": "style-dictionary build -c style-dictionary.config.mjs",
+    "tokens:clean": "style-dictionary clean -c style-dictionary.config.mjs",
+    "tokens:check": "node scripts/verify-tokens.mjs",
     "lint": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
     "check-format": "prettier --check \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
@@ -68,6 +71,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "husky": "^8.0.3",
     "lint-staged": "^15.2.0",
-    "prettier": "^2.8.8"
+    "prettier": "^2.8.8",
+    "style-dictionary": "^4.4.0"
   }
 }
