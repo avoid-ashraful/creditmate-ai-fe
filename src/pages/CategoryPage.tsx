@@ -1,0 +1,305 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+
+import CardDetailsPopup from '../components/CardDetailsPopup';
+import CardList from '../components/CardList';
+import ComparisonBar from '../components/ComparisonBar';
+import { getCategoryBySlug } from '../config/categories';
+import { apiService, CreditCardApiResponse } from '../services/api';
+import { CreditCard } from '../types';
+import { resetSeoMeta, setSeoMeta } from '../utils/seo';
+import '../styles/HomePage.css';
+import '../styles/CategoryPage.css';
+
+const PAGE_SIZE = 100;
+
+interface CategoryResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: CreditCardApiResponse[];
+}
+
+interface QueryStreams {
+  primary: { page: number; exhausted: boolean };
+  alternate: { page: number; exhausted: boolean };
+}
+
+const mergeCards = (cards: CreditCard[]): CreditCard[] => {
+  const mergedCards = new Map(cards.map(card => [card.id, card]));
+  cards.forEach(card => mergedCards.set(card.id, card));
+  return Array.from(mergedCards.values());
+};
+
+const transformResponses = (responses: CategoryResponse[]): CreditCard[] =>
+  mergeCards(
+    responses.flatMap(response =>
+      response.results.map(card => apiService.transformCreditCard(card))
+    )
+  );
+
+const CategoryPage: React.FC = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const category = slug ? getCategoryBySlug(slug) : undefined;
+
+  const [cards, setCards] = useState<CreditCard[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
+  const [viewedCard, setViewedCard] = useState<CreditCard | null>(null);
+  const [queryStreams, setQueryStreams] = useState<QueryStreams>({
+    primary: { page: 1, exhausted: false },
+    alternate: { page: 1, exhausted: false },
+  });
+  const [hasMorePages, setHasMorePages] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const queryGenerationRef = useRef(0);
+
+  useEffect(() => {
+    if (category) {
+      setSeoMeta({
+        title: category.metaTitle,
+        description: category.metaDescription,
+        canonicalPath: `/category/${category.slug}`,
+      });
+    }
+    return () => {
+      resetSeoMeta();
+    };
+  }, [category]);
+
+  useEffect(() => {
+    const loadedCardIds = new Set(cards.map(card => card.id));
+    setSelectedCardIds(previousIds => previousIds.filter(id => loadedCardIds.has(id)));
+  }, [cards]);
+
+  useEffect(() => {
+    if (!category) return;
+
+    const requestGeneration = ++queryGenerationRef.current;
+    let cancelled = false;
+    setIsLoadingMore(false);
+    setHasMorePages(false);
+    const { fallbackSearchTerm, ...filters } = category.filters;
+
+    const fetchInitialCards = async (): Promise<void> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const responses: CategoryResponse[] = fallbackSearchTerm
+          ? await Promise.all([
+              apiService.getCreditCards({
+                ...filters,
+                page_size: PAGE_SIZE,
+              }),
+              apiService.getCreditCards({
+                ...filters,
+                searchTerm: fallbackSearchTerm,
+                page_size: PAGE_SIZE,
+              }),
+            ])
+          : [
+              await apiService.getCreditCards({
+                ...filters,
+                page_size: PAGE_SIZE,
+              }),
+            ];
+
+        if (cancelled) return;
+        if (queryGenerationRef.current !== requestGeneration) return;
+        const transformedCards = transformResponses(responses);
+        setCards(transformedCards);
+        setTotalCount(transformedCards.length);
+        setQueryStreams({
+          primary: {
+            page: responses[0].next ? 2 : 1,
+            exhausted: !responses[0].next,
+          },
+          alternate: {
+            page: responses[1]?.next ? 2 : 1,
+            exhausted: !responses[1]?.next,
+          },
+        });
+        setHasMorePages(responses.some(response => response.next !== null));
+      } catch (fetchError) {
+        if (cancelled) return;
+        if (queryGenerationRef.current !== requestGeneration) return;
+        console.error('Failed to fetch category cards:', fetchError);
+        setError('Failed to load credit cards. Please try again later.');
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    fetchInitialCards();
+    return () => {
+      cancelled = true;
+    };
+  }, [category]);
+
+  const loadMoreCards = async (): Promise<void> => {
+    if (!category || !hasMorePages || isLoadingMore) return;
+
+    const requestGeneration = queryGenerationRef.current;
+    setIsLoadingMore(true);
+    const { fallbackSearchTerm, ...filters } = category.filters;
+    const requests: Array<{
+      stream: 'primary' | 'alternate';
+      page: number;
+      request: Promise<CategoryResponse>;
+    }> = [];
+
+    if (!queryStreams.primary.exhausted) {
+      requests.push({
+        stream: 'primary',
+        page: queryStreams.primary.page,
+        request: apiService.getCreditCards({
+          ...filters,
+          page: queryStreams.primary.page,
+          page_size: PAGE_SIZE,
+        }),
+      });
+    }
+
+    if (fallbackSearchTerm && !queryStreams.alternate.exhausted) {
+      requests.push({
+        stream: 'alternate',
+        page: queryStreams.alternate.page,
+        request: apiService.getCreditCards({
+          ...filters,
+          searchTerm: fallbackSearchTerm,
+          page: queryStreams.alternate.page,
+          page_size: PAGE_SIZE,
+        }),
+      });
+    }
+
+    if (requests.length === 0) {
+      setHasMorePages(false);
+      setIsLoadingMore(false);
+      return;
+    }
+
+    try {
+      const responses = await Promise.all(requests.map(request => request.request));
+      if (queryGenerationRef.current !== requestGeneration) return;
+      setCards(previousCards => {
+        const nextCards = mergeCards([...previousCards, ...transformResponses(responses)]);
+        setTotalCount(nextCards.length);
+        return nextCards;
+      });
+      setQueryStreams(previousStreams => {
+        const updatedStreams: QueryStreams = { ...previousStreams };
+        requests.forEach((request, index) => {
+          if (responses[index].next) {
+            updatedStreams[request.stream] = {
+              page: request.page + 1,
+              exhausted: false,
+            };
+          } else {
+            updatedStreams[request.stream] = { page: request.page, exhausted: true };
+          }
+        });
+        return updatedStreams;
+      });
+      setHasMorePages(requests.some((request, index) => Boolean(responses[index].next)));
+    } catch (fetchError) {
+      if (queryGenerationRef.current !== requestGeneration) return;
+      console.error('Failed to load more category cards:', fetchError);
+      setError('Failed to load additional credit cards. Please try again later.');
+    } finally {
+      if (queryGenerationRef.current === requestGeneration) {
+        setIsLoadingMore(false);
+      }
+    }
+  };
+
+  if (!category) {
+    return (
+      <div className="category-page">
+        <div className="category-not-found">
+          <h1>Category not found</h1>
+          <p>The category you are looking for does not exist.</p>
+          <Link to="/">Back to homepage</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const handleCardSelect = (card: CreditCard) => {
+    setSelectedCardIds(prev => {
+      if (prev.includes(card.id)) {
+        return prev.filter(id => id !== card.id);
+      }
+      if (prev.length >= 4) {
+        alert('You can only select up to 4 cards for comparison');
+        return prev;
+      }
+      return [...prev, card.id];
+    });
+  };
+
+  return (
+    <div className="category-page">
+      <div className="category-header">
+        <span className="category-badge">{category.badge}</span>
+        <h1>
+          {category.icon} {category.name} Credit Cards
+        </h1>
+        <p>{category.description}</p>
+        {!isLoading && !error && (
+          <span className="category-count">
+            {totalCount} card{totalCount === 1 ? '' : 's'} found
+          </span>
+        )}
+      </div>
+
+      {isLoading ? (
+        <div className="loading-state">Loading {category.name} credit cards...</div>
+      ) : error ? (
+        <div className="error-state">{error}</div>
+      ) : (
+        <>
+          <CardList
+            cards={cards}
+            onCardSelect={handleCardSelect}
+            selectedCardIds={selectedCardIds}
+            maxSelections={4}
+            onViewCardDetails={setViewedCard}
+          />
+
+          {viewedCard && (
+            <CardDetailsPopup
+              card={viewedCard}
+              onClose={() => setViewedCard(null)}
+              onAddToCompare={handleCardSelect}
+              isInCompareList={selectedCardIds.includes(viewedCard.id)}
+            />
+          )}
+
+          {hasMorePages && (
+            <div className="load-more-container">
+              <button
+                type="button"
+                className="load-more-button"
+                onClick={loadMoreCards}
+                disabled={isLoadingMore}
+              >
+                {isLoadingMore ? 'Loading more cards...' : 'Load more cards'}
+              </button>
+            </div>
+          )}
+
+          <ComparisonBar
+            selectedCards={cards.filter(card => selectedCardIds.includes(card.id))}
+            onRemoveCard={cardId => setSelectedCardIds(prev => prev.filter(id => id !== cardId))}
+            maxSelections={4}
+          />
+        </>
+      )}
+    </div>
+  );
+};
+
+export default CategoryPage;

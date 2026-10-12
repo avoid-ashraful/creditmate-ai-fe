@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 import CardDetailsPopup from '../components/CardDetailsPopup';
 import CardList from '../components/CardList';
+import CategoryCard from '../components/CategoryCard';
 import ComparisonBar from '../components/ComparisonBar';
 import FilterPanel from '../components/FilterPanel';
+import { CATEGORIES } from '../config/categories';
 import { apiService } from '../services/api';
 import { CreditCard, Bank, CardFilterOptions } from '../types';
 import '../styles/HomePage.css';
@@ -123,6 +125,12 @@ const HomePage: React.FC = () => {
             />
             <button type="submit">Search</button>
           </form>
+
+          <div className="category-grid">
+            {CATEGORIES.map(category => (
+              <CategoryCard key={category.slug} category={category} />
+            ))}
+          </div>
         </div>
       </section>
 
