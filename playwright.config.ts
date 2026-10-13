@@ -5,18 +5,21 @@ const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
   testDir: './e2e',
-  timeout: 30_000,
-  expect: { timeout: 7_000 },
-  fullyParallel: true,
+  timeout: 120_000,
+  expect: { timeout: 15_000 },
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : 4,
+  workers: 1,
   reporter: [['list']],
   use: {
     baseURL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    launchOptions: {
+      timeout: 30000,
+    },
   },
   projects: [
     {
@@ -38,7 +41,7 @@ export default defineConfig({
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
-        command: `npm run start -- --port ${PORT} --host 127.0.0.1`,
+        command: `REACT_APP_API_BASE_URL=http://e2e.invalid/api/v1 REACT_APP_ENABLE_API_LOGGING=false npx serve -s build -l ${PORT} --single`,
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,

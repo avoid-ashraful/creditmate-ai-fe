@@ -1,4 +1,4 @@
-import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
+import { getCLS, getFID, getFCP, getLCP, getTTFB, Metric } from 'web-vitals';
 
 /**
  * Web Vitals Reporting Hooks
@@ -21,7 +21,7 @@ export interface EnrichedWebVitalMetric {
   value: number;
   delta: number;
   id: string;
-  entries: Array<PerformanceEntry | { toJSON(): unknown }>;
+  entries: Array<PerformanceEntry | { toJSON(): unknown } | Metric['entries'][number]>;
   timestamp: number;
   url: string;
   userAgent: string;
@@ -59,11 +59,9 @@ export function initWebVitalsReporting(options: WebVitalsReporterOptions = {}) {
 
   if (!shouldReport) return () => undefined;
 
-  // web-vitals v2 doesn't return cleanup functions, so we use a no-op
-  // Using any to avoid complex type compatibility issues with web-vitals v2 internals
-  const reportMetric = (metric: any) => {
+  const reportMetric = (metric: Metric) => {
     // Add timestamp and page info
-    const enrichedMetric = {
+    const enrichedMetric: EnrichedWebVitalMetric = {
       ...metric,
       timestamp: Date.now(),
       url: window.location.href,
@@ -76,6 +74,7 @@ export function initWebVitalsReporting(options: WebVitalsReporterOptions = {}) {
     if (logToConsole) {
       const emoji = getMetricEmoji(metric.name);
       const rating = getMetricRating(metric.name, metric.value);
+      // eslint-disable-next-line no-console
       console.log(
         `${emoji} [Web Vitals] ${metric.name}: ${metric.value.toFixed(2)} ${
           metric.delta ? `(delta: ${metric.delta.toFixed(2)})` : ''

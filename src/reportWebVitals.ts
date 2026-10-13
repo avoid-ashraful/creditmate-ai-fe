@@ -32,7 +32,7 @@ const reportWebVitals = (onPerfEntry?: ReportHandler) => {
             value: metric.value,
             delta: metric.delta,
             id: metric.id,
-            entries: metric.entries as any,
+            entries: metric.entries as unknown as PerformanceEntry[],
           });
         }
       },
@@ -42,8 +42,10 @@ const reportWebVitals = (onPerfEntry?: ReportHandler) => {
     window.addEventListener('beforeunload', () => {
       const result = checkPerformanceBudget(DEFAULT_PERFORMANCE_BUDGET);
       if (!result.passed) {
+        // eslint-disable-next-line no-console
         console.warn('⚠️ Performance budget violations:', result.violations);
       } else {
+        // eslint-disable-next-line no-console
         console.log('✅ Performance budget met');
       }
     });
