@@ -15,6 +15,7 @@ import AboutPage from './pages/AboutPage';
 import AccountPage from './pages/AccountPage';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
+import CollectionPage from './pages/CollectionPage';
 import ComparisonPage from './pages/ComparisonPage';
 import ExperimentResults from './pages/ExperimentResults/ExperimentResults';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -26,6 +27,8 @@ import RecommendationQuiz from './pages/RecommendationQuiz';
 import RegisterPage from './pages/RegisterPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import RewardCalculatorPage from './pages/RewardCalculatorPage';
+import SavedPage from './pages/SavedPage';
+import SharedPage from './pages/SharedPage';
 import './styles/App.css';
 import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
 
@@ -72,6 +75,23 @@ export const AppRoutes: React.FC = () => {
         <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
         <Route path="/category/:slug" element={<CategoryPage />} />
         <Route path="/compare" element={<ComparisonPage />} />
+        <Route path="/shared/:token" element={<SharedPage />} />
+        <Route
+          path="/saved"
+          element={
+            <ProtectedRoute>
+              <SavedPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/saved/collections/:id"
+          element={
+            <ProtectedRoute>
+              <CollectionPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/perfect-card-finder" element={<RecommendationQuiz />} />
         <Route path="/reward-calculator" element={<RewardCalculatorPage />} />
         <Route path="/guides" element={<GuidesPage />} />

@@ -18,7 +18,7 @@ import { ENV } from '../config/env';
 /** sessionStorage key for the refresh token. */
 export const REFRESH_TOKEN_STORAGE_KEY = 'creditmate.auth.refresh';
 
-const HTTP_METHOD = { get: 'GET', post: 'POST', patch: 'PATCH' } as const;
+const HTTP_METHOD = { get: 'GET', post: 'POST', patch: 'PATCH', delete: 'DELETE' } as const;
 type HttpMethod = (typeof HTTP_METHOD)[keyof typeof HTTP_METHOD];
 
 export interface AuthUser {
@@ -237,6 +237,21 @@ export class AuthClient {
     return this.request<AuthUser>('me/', { authenticated: true });
   }
 
+  /** Request an API endpoint outside `/auth/` using the same bearer token and refresh flow. */
+  async requestApi<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    if (!options.authenticated) return this.parse<T>(await this.sendUrl(path, options, null));
+    const token = this.accessToken ?? (await this.refreshAccessToken());
+    let response = await this.sendUrl(path, options, token);
+    if (response.status === 401 && this.refreshToken) {
+      const retryToken =
+        this.accessToken && this.accessToken !== token
+          ? this.accessToken
+          : await this.refreshAccessToken();
+      response = await this.sendUrl(path, options, retryToken);
+    }
+    return this.parse<T>(response);
+  }
+
   async updateMe(patch: Partial<AuthUser>): Promise<AuthUser> {
     return this.request<AuthUser>('me/', {
       method: HTTP_METHOD.patch,
@@ -314,11 +329,15 @@ export class AuthClient {
   }
 
   private send(path: string, options: RequestOptions, token: string | null): Promise<Response> {
+    return this.sendUrl(`auth/${path}`, options, token);
+  }
+
+  private sendUrl(path: string, options: RequestOptions, token: string | null): Promise<Response> {
     const headers: Record<string, string> = { Accept: 'application/json' };
     if (options.body !== undefined) headers['Content-Type'] = 'application/json';
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    return fetch(`${this.baseUrl}/auth/${path}`, {
+    return fetch(`${this.baseUrl}/${path.replace(/^\//, '')}`, {
       method: options.method ?? HTTP_METHOD.get,
       headers,
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,

@@ -75,6 +75,9 @@ export const AccountMenu: React.FC = () => {
           <Link to="/account" onClick={() => setOpen(false)}>
             {copy.headerAccountLink}
           </Link>
+          <Link to="/saved" onClick={() => setOpen(false)}>
+            {lang === 'bn' ? 'সংরক্ষিত আইটেম' : 'Saved items'}
+          </Link>
           <button type="button" className="account-menu-logout" onClick={handleLogout}>
             {copy.headerLogout}
           </button>
