@@ -300,4 +300,4 @@ const typeaheadUtils = {
 
 export default typeaheadUtils;
 
-export { highlightParts };
+export { highlightParts, parseDidYouMean };

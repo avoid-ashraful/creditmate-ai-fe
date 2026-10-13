@@ -343,7 +343,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         }}
         role="combobox"
         aria-autocomplete="list"
-        aria-controls={isOpen ? listboxId : undefined}
+        aria-controls={listboxId}
         aria-expanded={isOpen}
         aria-activedescendant={
           activeIndex >= 0 && activeIndex < options.length
