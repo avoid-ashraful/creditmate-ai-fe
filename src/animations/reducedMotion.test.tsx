@@ -4,8 +4,10 @@ import path from 'path';
 import { render, screen, waitFor } from '@testing-library/react';
 import { motion } from 'framer-motion';
 import React from 'react';
+import { MemoryRouter } from 'react-router-dom';
 
 import CardList from '../components/CardList';
+import ComparisonBar from '../components/ComparisonBar';
 import { dummyCreditCards } from '../dummy-data/credit-cards';
 
 import { MotionProvider, usePrefersReducedMotion } from './index';
@@ -69,6 +71,24 @@ describe('global reduced-motion support', () => {
     );
 
     dummyCreditCards.slice(0, 3).forEach(card => {
+      expect(screen.getByText(card.name)).toBeVisible();
+    });
+  });
+
+  it('comparison bar chips are visible immediately', () => {
+    render(
+      <MemoryRouter>
+        <MotionProvider>
+          <ComparisonBar
+            selectedCards={dummyCreditCards.slice(0, 2)}
+            onRemoveCard={jest.fn()}
+            maxSelections={4}
+          />
+        </MotionProvider>
+      </MemoryRouter>
+    );
+
+    dummyCreditCards.slice(0, 2).forEach(card => {
       expect(screen.getByText(card.name)).toBeVisible();
     });
   });
