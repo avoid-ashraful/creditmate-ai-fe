@@ -572,7 +572,10 @@ const AdvancedSearchPage: React.FC = () => {
   }
 
   return (
-    <div className={`advanced-search-page ${isDark ? 'dark' : ''}`}>
+    <div
+      className={`advanced-search-page ${isDark ? 'dark' : ''}`}
+      data-testid="advanced-search-page"
+    >
       <div className="page-header">
         <h1>{pickLang(lang, 'Advanced Search', 'উন্নত অনুসন্ধান')}</h1>
         <p>
@@ -672,7 +675,9 @@ const AdvancedSearchPage: React.FC = () => {
                     disabled={cat.count === 0}
                   />
                   <span className="category-name">{pickLang(lang, cat.name, cat.name)}</span>
-                  <span className="category-count">{cat.count}</span>
+                  <span className="category-count" data-testid={`category-count-${cat.slug}`}>
+                    {cat.count}
+                  </span>
                 </label>
               ))}
             </div>
