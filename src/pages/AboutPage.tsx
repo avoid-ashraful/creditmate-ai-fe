@@ -3,66 +3,50 @@ import { Link } from 'react-router-dom';
 
 import '../styles/AboutPage.css';
 import { useSeoMeta } from '../hooks/useSeoMeta';
+import { useLanguage, getCommonCopy } from '../locales';
 
 const AboutPage: React.FC = () => {
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
   useSeoMeta({
-    title: 'About | CreditMate AI',
-    description:
-      'CreditMate AI simplifies credit card decisions in Bangladesh with clear, unbiased and easily comparable card information.',
+    title: common.aboutTitle,
+    description: common.aboutSubtitle,
     canonicalPath: '/about',
   });
 
   return (
     <div className="about-page">
       <div className="about-header">
-        <h1>About CreditMate AI</h1>
-        <p>The most trusted credit card comparison platform in Bangladesh</p>
+        <h1>{common.aboutTitle}</h1>
+        <p>{common.aboutSubtitle}</p>
       </div>
 
       <section className="mission-section">
         <div className="content-container">
-          <h2>Our Mission</h2>
-          <p>
-            CreditMate AI aims to simplify financial decision-making for Bangladeshi consumers by
-            providing clear, unbiased, and easily comparable credit card information. Our platform
-            aggregates, standardizes, and presents complex financial data in a user-friendly format,
-            supporting informed decisions aligned with users&apos; unique financial goals and
-            lifestyles.
-          </p>
+          <h2>{common.missionTitle}</h2>
+          <p>{common.missionDescription}</p>
         </div>
       </section>
 
       <section className="problem-section">
         <div className="content-container">
-          <h2>The Problem We&apos;re Solving</h2>
+          <h2>{common.problemTitle}</h2>
           <div className="problem-grid">
             <div className="problem-card">
-              <h3>Information Fragmentation</h3>
-              <p>
-                Users struggle to access consistent and clear credit card information due to
-                scattered data across numerous bank websites.
-              </p>
+              <h3>{common.problemInfoFragmentationTitle}</h3>
+              <p>{common.problemInfoFragmentationDesc}</p>
             </div>
             <div className="problem-card">
-              <h3>Complex Documentation</h3>
-              <p>
-                Key information like fees and interest rates is buried in lengthy,
-                difficult-to-interpret PDF documents.
-              </p>
+              <h3>{common.problemComplexDocsTitle}</h3>
+              <p>{common.problemComplexDocsDesc}</p>
             </div>
             <div className="problem-card">
-              <h3>Transparency Issues</h3>
-              <p>
-                Hidden terms, ambiguous reward policies, and unclear eligibility criteria make it
-                challenging to assess true card value.
-              </p>
+              <h3>{common.problemTransparencyTitle}</h3>
+              <p>{common.problemTransparencyDesc}</p>
             </div>
             <div className="problem-card">
-              <h3>Decision Fatigue</h3>
-              <p>
-                Lack of comparative tools leads to confusion, causing suboptimal decisions based on
-                promotional material rather than factual comparisons.
-              </p>
+              <h3>{common.problemDecisionFatigueTitle}</h3>
+              <p>{common.problemDecisionFatigueDesc}</p>
             </div>
           </div>
         </div>
@@ -70,42 +54,25 @@ const AboutPage: React.FC = () => {
 
       <section className="solution-section">
         <div className="content-container">
-          <h2>Our Solution</h2>
-          <p>
-            CreditMate AI offers a comprehensive platform with standardized comparisons, intuitive
-            search functionality, and educational resources to help users make informed financial
-            decisions. We maintain transparency through clear presentation of information and
-            don&apos;t promote specific cards without clear indication.
-          </p>
+          <h2>{common.solutionTitle}</h2>
+          <p>{common.solutionDescription}</p>
 
           <div className="feature-list">
             <div className="feature">
-              <h3>Data Aggregation</h3>
-              <p>
-                Centralized repository containing up-to-date credit card information from all major
-                Bangladeshi banks
-              </p>
+              <h3>{common.solutionDataAggregationTitle}</h3>
+              <p>{common.solutionDataAggregationDesc}</p>
             </div>
             <div className="feature">
-              <h3>Standardized Comparisons</h3>
-              <p>
-                Clear, consistent formats to easily compare critical information such as fees,
-                rewards, and lounge access
-              </p>
+              <h3>{common.solutionStandardizedComparisonsTitle}</h3>
+              <p>{common.solutionStandardizedComparisonsDesc}</p>
             </div>
             <div className="feature">
-              <h3>Intuitive Search & Filters</h3>
-              <p>
-                User-friendly search functionality and filters enabling quick identification of
-                suitable credit cards
-              </p>
+              <h3>{common.solutionIntuitiveSearchTitle}</h3>
+              <p>{common.solutionIntuitiveSearchDesc}</p>
             </div>
             <div className="feature">
-              <h3>Educational Content</h3>
-              <p>
-                Informative articles and guides covering financial literacy topics to help users
-                understand credit cards better
-              </p>
+              <h3>{common.solutionEducationalContentTitle}</h3>
+              <p>{common.solutionEducationalContentDesc}</p>
             </div>
           </div>
         </div>
@@ -113,36 +80,27 @@ const AboutPage: React.FC = () => {
 
       <section className="team-section">
         <div className="content-container">
-          <h2>Our Team</h2>
-          <p className="team-intro">
-            CreditMate AI was founded by a team of financial experts and technology enthusiasts
-            committed to bringing transparency to the Bangladeshi financial market.
-          </p>
+          <h2>{common.teamTitle}</h2>
+          <p className="team-intro">{common.teamIntro}</p>
 
           <div className="team-members">
             <div className="team-member">
               <div className="member-photo placeholder"></div>
-              <h3>Jane Doe</h3>
-              <p>Founder & CEO</p>
-              <p className="member-bio">
-                Former banking executive with 15 years of experience in the financial sector.
-              </p>
+              <h3>{common.teamMember1Name}</h3>
+              <p>{common.teamMember1Role}</p>
+              <p className="member-bio">{common.teamMember1Bio}</p>
             </div>
             <div className="team-member">
               <div className="member-photo placeholder"></div>
-              <h3>John Smith</h3>
-              <p>Chief Technology Officer</p>
-              <p className="member-bio">
-                Tech entrepreneur with expertise in fintech solutions and data analytics.
-              </p>
+              <h3>{common.teamMember2Name}</h3>
+              <p>{common.teamMember2Role}</p>
+              <p className="member-bio">{common.teamMember2Bio}</p>
             </div>
             <div className="team-member">
               <div className="member-photo placeholder"></div>
-              <h3>Sarah Rahman</h3>
-              <p>Head of Content</p>
-              <p className="member-bio">
-                Financial educator with a passion for simplifying complex financial concepts.
-              </p>
+              <h3>{common.teamMember3Name}</h3>
+              <p>{common.teamMember3Role}</p>
+              <p className="member-bio">{common.teamMember3Bio}</p>
             </div>
           </div>
         </div>
@@ -150,24 +108,24 @@ const AboutPage: React.FC = () => {
 
       <section className="contact-section">
         <div className="content-container">
-          <h2>Contact Us</h2>
-          <p>Have questions or suggestions? We&apos;d love to hear from you!</p>
+          <h2>{common.contactTitle}</h2>
+          <p>{common.contactDescription}</p>
           <div className="contact-info">
             <div className="contact-item">
-              <h3>Email</h3>
-              <p>info@creditmate.ai</p>
+              <h3>{common.contactEmailLabel}</h3>
+              <p>{common.contactEmailValue}</p>
             </div>
             <div className="contact-item">
-              <h3>Address</h3>
-              <p>123 Financial Street, Dhaka, Bangladesh</p>
+              <h3>{common.contactAddressLabel}</h3>
+              <p>{common.contactAddressValue}</p>
             </div>
           </div>
           <div className="cta-buttons">
             <Link to="/" className="primary-button">
-              Start Comparing Cards
+              {common.contactStartComparing}
             </Link>
             <Link to="/glossary" className="secondary-button">
-              Explore Our Glossary
+              {common.contactExploreGlossary}
             </Link>
           </div>
         </div>

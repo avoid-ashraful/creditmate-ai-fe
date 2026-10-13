@@ -6,6 +6,7 @@ import ComparisonBar from '../components/ComparisonBar';
 import Toast from '../components/Toast';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { isTreatment } from '../lib/experiments';
+import { useLanguage, getCommonCopy } from '../locales';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import { rankCards, encodeQuizResult, decodeQuizResult } from '../utils/quizScoringAlgorithm';
@@ -35,6 +36,8 @@ type LoadingState = 'idle' | 'loading' | 'error' | 'empty';
 const RecommendationQuiz: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
   const [currentStep, setCurrentStep] = useState<StepType>('spend');
   const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
   const [quizState, setQuizState] = useState<QuizState>({
@@ -231,18 +234,20 @@ const RecommendationQuiz: React.FC = () => {
     const copyPromise = navigator.clipboard?.writeText(shareUrl);
     if (copyPromise && typeof copyPromise.then === 'function') {
       copyPromise
-        .then(() => setShareMessage('Results link copied to clipboard!'))
-        .catch(() =>
-          setShareMessage(
-            'Unable to copy the link automatically. Please copy it from the address bar.'
-          )
-        );
+        .then(() => setShareMessage(common.quizShareSuccess))
+        .catch(() => setShareMessage(common.quizShareError));
     } else {
-      setShareMessage('Results link copied to clipboard!');
+      setShareMessage(common.quizShareSuccess);
     }
   };
 
-  const progressSteps = ['Spending', 'Use', 'Travel', 'Fees', 'Tier'];
+  const progressSteps = [
+    common.quizStepSpend,
+    common.quizStepUse,
+    common.quizStepTravel,
+    common.quizStepFee,
+    common.quizStepTier,
+  ];
   const allSteps = [STEPS.spend, STEPS.use, STEPS.travel, STEPS.fee, STEPS.tier] as const;
   const stepIndex = allSteps.indexOf(currentStep as (typeof allSteps)[number]);
   const progress = ((stepIndex + 1) / progressSteps.length) * 100;
@@ -253,10 +258,10 @@ const RecommendationQuiz: React.FC = () => {
       <div className="recommendation-quiz-page">
         <div className="quiz-container">
           <div className="quiz-header">
-            <h1>Find Your Perfect Credit Card</h1>
+            <h1>{common.quizTitle}</h1>
           </div>
           <div className="quiz-step" role="status" aria-live="polite">
-            <p>Loading available cards...</p>
+            <p>{common.quizLoadingCards}</p>
           </div>
         </div>
       </div>
@@ -268,10 +273,10 @@ const RecommendationQuiz: React.FC = () => {
       <div className="recommendation-quiz-page">
         <div className="quiz-container">
           <div className="quiz-header">
-            <h1>Find Your Perfect Credit Card</h1>
+            <h1>{common.quizTitle}</h1>
           </div>
           <div className="quiz-step" role="alert">
-            <p>Sorry, we couldn&apos;t load the cards right now. Please try again later.</p>
+            <p>{common.quizErrorLoading}</p>
             {apiError && <p>{apiError}</p>}
           </div>
         </div>
@@ -284,10 +289,10 @@ const RecommendationQuiz: React.FC = () => {
       <div className="recommendation-quiz-page">
         <div className="quiz-container">
           <div className="quiz-header">
-            <h1>Find Your Perfect Credit Card</h1>
+            <h1>{common.quizTitle}</h1>
           </div>
           <div className="quiz-step" role="status">
-            <p>No cards available at the moment. Please try again later.</p>
+            <p>{common.quizEmptyCards}</p>
           </div>
         </div>
       </div>
@@ -305,17 +310,15 @@ const RecommendationQuiz: React.FC = () => {
         <div className="quiz-progress-bar">
           <div className="progress-fill" style={{ width: `${progress}%` }} />
           <div className="progress-label">
-            Step {stepIndex + 1} of {progressSteps.length}
+            {common.quizProgressLabel} {stepIndex + 1} of {progressSteps.length}
           </div>
         </div>
       )}
 
       <div className="quiz-container">
         <div className="quiz-header">
-          <h1>Find Your Perfect Credit Card</h1>
-          {currentStep !== STEPS.results && (
-            <p>Answer a few quick questions to get personalized recommendations</p>
-          )}
+          <h1>{common.quizTitle}</h1>
+          {currentStep !== STEPS.results && <p>{common.quizSubtitle}</p>}
         </div>
 
         {currentStep === STEPS.spend && (
@@ -323,9 +326,9 @@ const RecommendationQuiz: React.FC = () => {
             className="quiz-step"
             role="region"
             aria-live="polite"
-            aria-label="Monthly spending step"
+            aria-label={common.quizStepSpend}
           >
-            <h2>What&apos;s your typical monthly spending?</h2>
+            <h2>{common.quizMonthlySpendLabel}</h2>
             <div className="step-content">
               <input
                 type="range"
@@ -338,8 +341,11 @@ const RecommendationQuiz: React.FC = () => {
                 className="spend-slider"
               />
               <div className="spend-display">
-                <span className="spend-value">৳{(quizState.monthlySpend / 1000).toFixed(0)}k</span>
-                <span className="spend-label">per month</span>
+                <span className="spend-value">
+                  {common.quizMonthlySpendValue}
+                  {(quizState.monthlySpend / 1000).toFixed(0)}k
+                </span>
+                <span className="spend-label">{common.quizMonthlySpendPerMonth}</span>
               </div>
               <div className="spend-presets">
                 {[20000, 50000, 100000, 200000].map(amount => (
@@ -349,7 +355,8 @@ const RecommendationQuiz: React.FC = () => {
                     className={`preset-btn ${quizState.monthlySpend === amount ? 'active' : ''}`}
                     aria-pressed={quizState.monthlySpend === amount}
                   >
-                    ৳{(amount / 1000).toFixed(0)}k
+                    {common.quizMonthlySpendValue}
+                    {(amount / 1000).toFixed(0)}k
                   </button>
                 ))}
               </div>
@@ -362,18 +369,32 @@ const RecommendationQuiz: React.FC = () => {
             className="quiz-step"
             role="region"
             aria-live="polite"
-            aria-label="Primary usage step"
+            aria-label={common.quizStepUse}
           >
-            <h2>What will you use the card for most?</h2>
+            <h2>{common.quizPrimaryUseLabel}</h2>
             <div className="step-content options-grid">
-              {(['travel', 'dining', 'shopping', 'cashback', 'premium'] as const).map(use => (
+              {common.quizPrimaryUseOptions.map((use, idx) => (
                 <button
                   key={use}
-                  onClick={() => handlePrimaryUseChange(use)}
-                  className={`option-btn ${quizState.primaryUse === use ? 'selected' : ''}`}
-                  aria-pressed={quizState.primaryUse === use}
+                  onClick={() =>
+                    handlePrimaryUseChange(
+                      ['travel', 'dining', 'shopping', 'cashback', 'premium'][
+                        idx
+                      ] as QuizState['primaryUse']
+                    )
+                  }
+                  className={`option-btn ${
+                    quizState.primaryUse ===
+                    ['travel', 'dining', 'shopping', 'cashback', 'premium'][idx]
+                      ? 'selected'
+                      : ''
+                  }`}
+                  aria-pressed={
+                    quizState.primaryUse ===
+                    ['travel', 'dining', 'shopping', 'cashback', 'premium'][idx]
+                  }
                 >
-                  {use.charAt(0).toUpperCase() + use.slice(1)}
+                  {use}
                 </button>
               ))}
             </div>
@@ -385,18 +406,28 @@ const RecommendationQuiz: React.FC = () => {
             className="quiz-step"
             role="region"
             aria-live="polite"
-            aria-label="Travel frequency step"
+            aria-label={common.quizStepTravel}
           >
-            <h2>How often do you travel?</h2>
+            <h2>{common.quizTravelFrequencyLabel}</h2>
             <div className="step-content options-grid">
-              {(['frequent', 'occasional', 'never'] as const).map(freq => (
+              {common.quizTravelFrequencyOptions.map((freq, idx) => (
                 <button
                   key={freq}
-                  onClick={() => handleTravelFrequencyChange(freq)}
-                  className={`option-btn ${quizState.travelFrequency === freq ? 'selected' : ''}`}
-                  aria-pressed={quizState.travelFrequency === freq}
+                  onClick={() =>
+                    handleTravelFrequencyChange(
+                      ['frequent', 'occasional', 'never'][idx] as QuizState['travelFrequency']
+                    )
+                  }
+                  className={`option-btn ${
+                    quizState.travelFrequency === ['frequent', 'occasional', 'never'][idx]
+                      ? 'selected'
+                      : ''
+                  }`}
+                  aria-pressed={
+                    quizState.travelFrequency === ['frequent', 'occasional', 'never'][idx]
+                  }
                 >
-                  {freq.charAt(0).toUpperCase() + freq.slice(1)}
+                  {freq}
                 </button>
               ))}
             </div>
@@ -408,20 +439,26 @@ const RecommendationQuiz: React.FC = () => {
             className="quiz-step"
             role="region"
             aria-live="polite"
-            aria-label="Annual fee tolerance step"
+            aria-label={common.quizStepFee}
           >
-            <h2>What&apos;s your annual fee tolerance?</h2>
+            <h2>{common.quizFeeToleranceLabel}</h2>
             <div className="step-content options-grid">
-              {(['none', 'low', 'moderate', 'high'] as const).map(tolerance => (
+              {common.quizFeeToleranceOptions.map((tolerance, idx) => (
                 <button
                   key={tolerance}
-                  onClick={() => handleFeeToleranceChange(tolerance)}
-                  className={`option-btn ${quizState.feeTolerance === tolerance ? 'selected' : ''}`}
-                  aria-pressed={quizState.feeTolerance === tolerance}
+                  onClick={() =>
+                    handleFeeToleranceChange(
+                      ['none', 'low', 'moderate', 'high'][idx] as QuizState['feeTolerance']
+                    )
+                  }
+                  className={`option-btn ${
+                    quizState.feeTolerance === ['none', 'low', 'moderate', 'high'][idx]
+                      ? 'selected'
+                      : ''
+                  }`}
+                  aria-pressed={quizState.feeTolerance === ['none', 'low', 'moderate', 'high'][idx]}
                 >
-                  {tolerance === 'none'
-                    ? 'No fees'
-                    : tolerance.charAt(0).toUpperCase() + tolerance.slice(1)}
+                  {tolerance}
                 </button>
               ))}
             </div>
@@ -429,17 +466,28 @@ const RecommendationQuiz: React.FC = () => {
         )}
 
         {currentStep === STEPS.tier && (
-          <div className="quiz-step" role="region" aria-live="polite" aria-label="Card tier step">
-            <h2>What card tier interests you?</h2>
+          <div
+            className="quiz-step"
+            role="region"
+            aria-live="polite"
+            aria-label={common.quizStepTier}
+          >
+            <h2>{common.quizCardTierLabel}</h2>
             <div className="step-content options-grid">
-              {(['basic', 'standard', 'premium'] as const).map(tier => (
+              {common.quizCardTierOptions.map((tier, idx) => (
                 <button
                   key={tier}
-                  onClick={() => handleCardTierChange(tier)}
-                  className={`option-btn ${quizState.cardTier === tier ? 'selected' : ''}`}
-                  aria-pressed={quizState.cardTier === tier}
+                  onClick={() =>
+                    handleCardTierChange(
+                      ['basic', 'standard', 'premium'][idx] as QuizState['cardTier']
+                    )
+                  }
+                  className={`option-btn ${
+                    quizState.cardTier === ['basic', 'standard', 'premium'][idx] ? 'selected' : ''
+                  }`}
+                  aria-pressed={quizState.cardTier === ['basic', 'standard', 'premium'][idx]}
                 >
-                  {tier.charAt(0).toUpperCase() + tier.slice(1)}
+                  {tier}
                 </button>
               ))}
             </div>
@@ -451,18 +499,21 @@ const RecommendationQuiz: React.FC = () => {
             className="quiz-step results-step"
             role="region"
             aria-live="polite"
-            aria-label="Quiz results"
+            aria-label={common.quizStepResults}
           >
-            <h2>Your Top Recommendations</h2>
+            <h2>{common.quizResultsTitle}</h2>
             <div className="results-container">
               <div className="recommended-cards">
                 {recommendedCards.map(({ card, score, reason }, idx) => (
                   <div key={card.id} className="result-card">
-                    <div className="result-rank">#{idx + 1}</div>
+                    <div className="result-rank">
+                      {common.quizResultRank}
+                      {idx + 1}
+                    </div>
                     <div className="result-score">{score}</div>
                     <CardListItem card={card} isSelected={false} onSelect={() => undefined} />
                     <div className="result-reason">
-                      <strong>Why this card:</strong> {reason}
+                      <strong>{common.quizResultReason}</strong> {reason}
                     </div>
                   </div>
                 ))}
@@ -474,7 +525,7 @@ const RecommendationQuiz: React.FC = () => {
                 className="action-btn share-btn"
                 title="Copy shareable link to clipboard"
               >
-                📤 Share Results
+                {common.quizShareButton}
               </button>
               <Toast className="share-message" message={shareMessage} />
               <button
@@ -482,14 +533,14 @@ const RecommendationQuiz: React.FC = () => {
                 className="action-btn see-all-btn"
                 title="Browse all credit cards"
               >
-                👀 See All Cards
+                {common.quizSeeAllButton}
               </button>
               <button
                 onClick={handleRetake}
                 className="action-btn retake-btn"
                 title="Start the quiz over"
               >
-                🔄 Retake Quiz
+                {common.quizRetakeButton}
               </button>
             </div>
           </div>
@@ -503,14 +554,14 @@ const RecommendationQuiz: React.FC = () => {
               className="nav-btn prev-btn"
               aria-label="Go to previous step"
             >
-              ← Back
+              {common.quizNavBack}
             </button>
             <button
               onClick={handleNext}
               className="nav-btn next-btn"
               aria-label="Go to next step or see results"
             >
-              {stepIndex === 4 ? 'See Results' : 'Next'} →
+              {stepIndex === 4 ? common.quizNavSeeResults : common.quizNavNext}
             </button>
           </div>
         )}

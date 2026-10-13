@@ -14,6 +14,7 @@ import { CATEGORIES } from '../config/categories';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { getVariant } from '../lib/experiments';
+import { useLanguage, getCommonCopy } from '../locales';
 import { apiService } from '../services/api';
 import { CreditCard, Bank, CardFilterOptions } from '../types';
 import { organizationJsonLd, websiteJsonLd } from '../utils/structuredData';
@@ -21,6 +22,8 @@ import '../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
   // `?search=` comes from the WebSite SearchAction in structured data. It is read
   // once on mount so the initial load and the search box agree.
   const [initialSearch] = useState<string>(() => searchParams.get('search')?.trim() ?? '');
@@ -91,7 +94,7 @@ const HomePage: React.FC = () => {
         return prev.filter(id => id !== card.id);
       } else {
         if (!hasCapacity) {
-          setSelectionMessage('You can only select up to 4 cards for comparison.');
+          setSelectionMessage(common.categorySelectionLimit);
           return prev;
         }
         setSelectionMessage('');
@@ -177,12 +180,12 @@ const HomePage: React.FC = () => {
 
   // Hero CTA text variants
   const heroCtaText =
-    heroCtaVariant === 'treatment' ? 'Start Your Card Search' : 'Find Your Perfect Credit Card';
+    heroCtaVariant === 'treatment' ? common.homeHeroCtaTreatment : common.homeHeroCtaControl;
 
   const heroSubtext =
     heroCtaVariant === 'treatment'
-      ? "Compare top credit cards from Bangladesh's leading banks in seconds"
-      : 'Compare credit cards from top banks in Bangladesh and make informed financial decisions';
+      ? common.homeHeroSubtextTreatment
+      : common.homeHeroSubtextControl;
 
   // Card layout variant: 'grid' (control) or 'list' (treatment)
   const cardLayout = cardLayoutVariant === 'treatment' ? 'list' : 'grid';
@@ -209,8 +212,8 @@ const HomePage: React.FC = () => {
               }}
               onSelectCategory={category => applyCategoryFilter(category.slug)}
               onSelectFacet={facet => applyCategoryFilter(facet.slug)}
-              placeholder="Search by card name, bank, or features..."
-              ariaLabel="Search credit cards by name, bank, or features"
+              placeholder={common.homeSearchPlaceholder}
+              ariaLabel={common.homeSearchAriaLabel}
             />
             <button type="submit">Search</button>
           </form>
@@ -227,19 +230,19 @@ const HomePage: React.FC = () => {
         <div className="stats-container">
           <div className="stat-item">
             <span className="stat-number">{banks.length}</span>
-            <span className="stat-label">Partner Banks</span>
+            <span className="stat-label">{common.homeStatsPartnerBanks}</span>
           </div>
           <div className="stat-item">
             <span className="stat-number">{cards.length}+</span>
-            <span className="stat-label">Credit Cards</span>
+            <span className="stat-label">{common.homeStatsCreditCards}</span>
           </div>
           <div className="stat-item">
             <span className="stat-number">24/7</span>
-            <span className="stat-label">Expert Support</span>
+            <span className="stat-label">{common.homeStatsExpertSupport}</span>
           </div>
           <div className="stat-item">
             <span className="stat-number">100%</span>
-            <span className="stat-label">Free Service</span>
+            <span className="stat-label">{common.homeStatsFreeService}</span>
           </div>
         </div>
       </section>
@@ -255,7 +258,7 @@ const HomePage: React.FC = () => {
 
         <div className="cards-content">
           {isLoading ? (
-            <SkeletonCardGrid label="Loading credit cards..." />
+            <SkeletonCardGrid label={common.homeSkeletonLabel} />
           ) : (
             <>
               <CardList
@@ -294,27 +297,27 @@ const HomePage: React.FC = () => {
       </section>
 
       <section className="benefits-section">
-        <h2>Why Use CreditMate AI?</h2>
+        <h2>{common.homeBenefitsTitle}</h2>
         <div className="benefits-grid">
           <div className="benefit-card">
             <div className="benefit-icon">📊</div>
-            <h3>Clear Comparisons</h3>
-            <p>Side-by-side comparisons of key features, fees, and benefits.</p>
+            <h3>{common.homeBenefitComparison}</h3>
+            <p>{common.homeBenefitComparisonDesc}</p>
           </div>
           <div className="benefit-card">
             <div className="benefit-icon">💰</div>
-            <h3>Find the Best Value</h3>
-            <p>Easily identify cards with the lowest fees and best rewards for your needs.</p>
+            <h3>{common.homeBenefitValue}</h3>
+            <p>{common.homeBenefitValueDesc}</p>
           </div>
           <div className="benefit-card">
             <div className="benefit-icon">🔍</div>
-            <h3>Comprehensive Data</h3>
-            <p>Detailed information from all major banks in Bangladesh.</p>
+            <h3>{common.homeBenefitData}</h3>
+            <p>{common.homeBenefitDataDesc}</p>
           </div>
           <div className="benefit-card">
             <div className="benefit-icon">📱</div>
-            <h3>Mobile Friendly</h3>
-            <p>Research and compare credit cards on any device.</p>
+            <h3>{common.homeBenefitMobile}</h3>
+            <p>{common.homeBenefitMobileDesc}</p>
           </div>
         </div>
       </section>

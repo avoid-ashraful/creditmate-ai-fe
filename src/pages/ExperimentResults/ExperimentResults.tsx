@@ -6,11 +6,14 @@ import {
   isResultsViewEnabled,
   ExperimentViewData,
 } from '../../lib/experiments';
+import { useLanguage, getCommonCopy } from '../../locales';
 import { GradientButton } from '../../styles/StyledComponents';
 import '../../styles/ExperimentResults.css';
 
 const ExperimentResults: React.FC = () => {
   const navigate = useNavigate();
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
 
   // Guard: redirect if not enabled
   useEffect(() => {
@@ -29,10 +32,10 @@ const ExperimentResults: React.FC = () => {
     <div className="experiment-results-page">
       <header className="results-header">
         <div className="header-content">
-          <h1>Experiment Results</h1>
-          <p className="subtitle">Internal A/B Testing Dashboard</p>
+          <h1>{common.experimentResultsTitle}</h1>
+          <p className="subtitle">{common.experimentResultsSubtitle}</p>
           <GradientButton onClick={() => navigate('/')} className="back-button">
-            ← Back to App
+            {common.experimentBackToApp}
           </GradientButton>
         </div>
       </header>
@@ -41,55 +44,43 @@ const ExperimentResults: React.FC = () => {
         {experiments.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📊</div>
-            <h2>No Experiments Running</h2>
-            <p>Experiments will appear here once they receive traffic.</p>
+            <h2>{common.experimentEmptyStateTitle}</h2>
+            <p>{common.experimentEmptyStateDesc}</p>
           </div>
         ) : (
           <div className="experiments-grid">
             {experiments.map(exp => (
-              <ExperimentCard key={exp.experimentKey} data={exp} />
+              <ExperimentCard key={exp.experimentKey} data={exp} common={common} />
             ))}
           </div>
         )}
 
         <div className="legend-section">
-          <h3>Legend & Methodology</h3>
+          <h3>{common.experimentLegendTitle}</h3>
           <div className="legend-grid">
             <div className="legend-item">
-              <h4>Two-Proportion Z-Test</h4>
-              <p>
-                Tests whether the difference in conversion rates between control and treatment is
-                statistically significant.
-              </p>
+              <h4>{common.experimentLegendZTest}</h4>
+              <p>{common.experimentLegendZTestDesc}</p>
             </div>
             <div className="legend-item">
-              <h4>Confidence Level</h4>
-              <p>
-                Default 95% (α = 0.05). The probability that the observed difference is not due to
-                chance.
-              </p>
+              <h4>{common.experimentLegendConfidence}</h4>
+              <p>{common.experimentLegendConfidenceDesc}</p>
             </div>
             <div className="legend-item">
-              <h4>Minimum Sample Size</h4>
-              <p>
-                Both variants must reach this exposure count before significance is evaluated
-                (default: 100).
-              </p>
+              <h4>{common.experimentLegendMinSample}</h4>
+              <p>{common.experimentLegendMinSampleDesc}</p>
             </div>
             <div className="legend-item">
-              <h4>Guardrail (Harm)</h4>
-              <p>
-                If treatment performs significantly worse than control (one-tailed), experiment
-                auto-stops.
-              </p>
+              <h4>{common.experimentLegendGuardrail}</h4>
+              <p>{common.experimentLegendGuardrailDesc}</p>
             </div>
             <div className="legend-item">
-              <h4>Lift</h4>
-              <p>Relative improvement: (treatment_rate - control_rate) / control_rate.</p>
+              <h4>{common.experimentLegendLift}</h4>
+              <p>{common.experimentLegendLiftDesc}</p>
             </div>
             <div className="legend-item">
-              <h4>Auto-Stop</h4>
-              <p>Experiments stop automatically on significance or harm detection.</p>
+              <h4>{common.experimentLegendAutoStop}</h4>
+              <p>{common.experimentLegendAutoStopDesc}</p>
             </div>
           </div>
         </div>
@@ -100,9 +91,10 @@ const ExperimentResults: React.FC = () => {
 
 interface ExperimentCardProps {
   data: ExperimentViewData;
+  common: ReturnType<typeof getCommonCopy>;
 }
 
-const ExperimentCard: React.FC<ExperimentCardProps> = ({ data }) => {
+const ExperimentCard: React.FC<ExperimentCardProps> = ({ data, common }) => {
   const { config, results, significance, autoStop } = data;
   const { control, treatment } = results;
 
@@ -129,16 +121,26 @@ const ExperimentCard: React.FC<ExperimentCardProps> = ({ data }) => {
   const getStatusBadge = () => {
     if (autoStop.shouldStop) {
       if (autoStop.reason === 'harm') {
-        return <span className="status-badge status-harm">⚠️ STOPPED – Harm Detected</span>;
+        return <span className="status-badge status-harm">{common.experimentCardStatusHarm}</span>;
       }
       if (autoStop.reason === 'significance') {
-        return <span className="status-badge status-significant">✅ STOPPED – Significant</span>;
+        return (
+          <span className="status-badge status-significant">
+            {common.experimentCardStatusSignificant}
+          </span>
+        );
       }
     }
     if (significance.minSampleMet) {
-      return <span className="status-badge status-running">🔄 Running (min sample met)</span>;
+      return (
+        <span className="status-badge status-running">{common.experimentCardStatusRunning}</span>
+      );
     }
-    return <span className="status-badge status-collecting">⏳ Collecting Data</span>;
+    return (
+      <span className="status-badge status-collecting">
+        {common.experimentCardStatusCollecting}
+      </span>
+    );
   };
 
   return (
@@ -157,16 +159,16 @@ const ExperimentCard: React.FC<ExperimentCardProps> = ({ data }) => {
           <table>
             <thead>
               <tr>
-                <th>Variant</th>
-                <th>Exposures</th>
-                <th>Conversions</th>
-                <th>Rate</th>
+                <th>{common.experimentCardVariant}</th>
+                <th>{common.experimentCardExposures}</th>
+                <th>{common.experimentCardConversions}</th>
+                <th>{common.experimentCardRate}</th>
               </tr>
             </thead>
             <tbody>
               <tr className="control-row">
                 <td>
-                  <span className="variant-label control">Control</span>
+                  <span className="variant-label control">{common.experimentCardControl}</span>
                 </td>
                 <td>{formatNumber(control.exposures)}</td>
                 <td>{formatNumber(control.conversions)}</td>
@@ -174,7 +176,7 @@ const ExperimentCard: React.FC<ExperimentCardProps> = ({ data }) => {
               </tr>
               <tr className="treatment-row">
                 <td>
-                  <span className="variant-label treatment">Treatment</span>
+                  <span className="variant-label treatment">{common.experimentCardTreatment}</span>
                 </td>
                 <td>{formatNumber(treatment.exposures)}</td>
                 <td>{formatNumber(treatment.conversions)}</td>
@@ -188,60 +190,62 @@ const ExperimentCard: React.FC<ExperimentCardProps> = ({ data }) => {
         <div className="significance-stats">
           <div className="stat-row">
             <div className="stat-item">
-              <span className="stat-label">Lift</span>
+              <span className="stat-label">{common.experimentCardStatLift}</span>
               <span className={`stat-value ${lift > 0 ? 'positive' : lift < 0 ? 'negative' : ''}`}>
                 {lift >= 0 ? '+' : ''}
                 {lift.toFixed(1)}%
               </span>
             </div>
             <div className="stat-item">
-              <span className="stat-label">Z-Score</span>
+              <span className="stat-label">{common.experimentCardStatZScore}</span>
               <span className="stat-value">{significance.zScore.toFixed(3)}</span>
             </div>
             <div className="stat-item">
-              <span className="stat-label">P-Value</span>
+              <span className="stat-label">{common.experimentCardStatPValue}</span>
               <span className={`stat-value ${significance.significant ? 'significant' : ''}`}>
                 {formatPValue(significance.pValue)}
               </span>
             </div>
             <div className="stat-item">
-              <span className="stat-label">Confidence</span>
+              <span className="stat-label">{common.experimentCardStatConfidence}</span>
               <span className="stat-value">{(significance.confidenceLevel * 100).toFixed(0)}%</span>
             </div>
           </div>
 
           <div className="sample-status">
             <span className={significance.minSampleMet ? 'met' : 'not-met'}>
-              {significance.minSampleMet ? '✓' : '✗'} Minimum sample size (
-              {significance.minSampleSize} per variant)
+              {significance.minSampleMet
+                ? common.experimentCardSampleMet
+                : common.experimentCardSampleNotMet}{' '}
+              {common.experimentCardSampleStatus} ({significance.minSampleSize} per variant)
             </span>
             {significance.harmful && (
-              <span className="harm-warning">
-                ⚠️ Guardrail triggered: Treatment significantly worse than control
-              </span>
+              <span className="harm-warning">{common.experimentCardHarmWarning}</span>
             )}
           </div>
         </div>
 
         {/* Config details */}
         <details className="config-details">
-          <summary>Experiment Configuration</summary>
+          <summary>{common.experimentCardConfigTitle}</summary>
           <dl className="config-list">
             <div>
-              <dt>Treatment Allocation</dt>
+              <dt>{common.experimentCardConfigTreatmentAlloc}</dt>
               <dd>{config.treatmentAllocation}%</dd>
             </div>
             <div>
-              <dt>Min Sample Size</dt>
+              <dt>{common.experimentCardConfigMinSample}</dt>
               <dd>{config.minSampleSize}</dd>
             </div>
             <div>
-              <dt>Confidence Level</dt>
+              <dt>{common.experimentCardConfigConfidence}</dt>
               <dd>{(config.confidenceLevel * 100).toFixed(0)}%</dd>
             </div>
             <div>
-              <dt>Enabled</dt>
-              <dd>{config.enabled ? 'Yes' : 'No'}</dd>
+              <dt>{common.experimentCardConfigEnabled}</dt>
+              <dd>
+                {config.enabled ? common.experimentCardConfigYes : common.experimentCardConfigNo}
+              </dd>
             </div>
           </dl>
         </details>

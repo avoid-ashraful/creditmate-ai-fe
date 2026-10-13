@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import React, { useState } from 'react';
 
 import { staggerContainer, usePrefersReducedMotion } from '../animations';
+import { useLanguage, getCommonCopy } from '../locales';
 import { GradientButton } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
 
@@ -27,6 +28,8 @@ const CardList: React.FC<CardListProps> = ({
   onViewCardDetails,
   layout = 'grid',
 }) => {
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
   const [displayLimit, setDisplayLimit] = useState<number>(10);
   const [selectionMessage, setSelectionMessage] = useState<string>('');
   const reduceMotion = usePrefersReducedMotion();
@@ -40,8 +43,8 @@ const CardList: React.FC<CardListProps> = ({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <h3>No credit cards found</h3>
-        <p>Try adjusting your search or filter criteria</p>
+        <h3>{common.categoryNotFoundTitle}</h3>
+        <p>{common.categoryNotFoundDesc}</p>
       </motion.div>
     );
   }
@@ -60,7 +63,7 @@ const CardList: React.FC<CardListProps> = ({
         setSelectionMessage('');
         onCardSelect(card);
       } else {
-        setSelectionMessage(`You can only select up to ${maxSelections} cards for comparison.`);
+        setSelectionMessage(`${common.categorySelectionLimit}`);
       }
     }
   };
@@ -74,11 +77,15 @@ const CardList: React.FC<CardListProps> = ({
   return (
     <div className={`card-list ${layout}`}>
       <div className="list-header">
-        <h2>Credit Cards ({cards.length})</h2>
+        <h2>
+          {common.homeStatsCreditCards} ({cards.length})
+        </h2>
         {showSelectionIndicator && maxSelections > 0 && (
           <div className="selection-indicator">
             <span>
-              Selected: {selectedCardIds.length} of {maxSelections}
+              {common.comparisonSelectedLabel
+                .replace('{count}', selectedCardIds.length.toString())
+                .replace('{max}', maxSelections.toString())}
             </span>
           </div>
         )}
@@ -116,7 +123,7 @@ const CardList: React.FC<CardListProps> = ({
             whileHover={reduceMotion ? undefined : { scale: 1.05 }}
             whileTap={reduceMotion ? undefined : { scale: 0.95 }}
           >
-            Load More ({cards.length - displayLimit} remaining)
+            {common.categoryLoadMore} ({cards.length - displayLimit} remaining)
           </GradientButton>
         </motion.div>
       )}

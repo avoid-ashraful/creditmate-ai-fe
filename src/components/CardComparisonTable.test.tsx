@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
+import { LanguageProvider } from '../locales/LanguageContext';
 import { CreditCard } from '../types';
 
 import CardComparisonTable from './CardComparisonTable';
@@ -25,9 +26,13 @@ const createCard = (id: number): CreditCard => ({
   images: [],
 });
 
+const renderWithLanguage = (ui: React.ReactElement) => {
+  return render(<LanguageProvider initialLang="en">{ui}</LanguageProvider>);
+};
+
 describe('CardComparisonTable', () => {
   it('renders mobile card stacks with collapsible, labeled comparison groups', async () => {
-    render(<CardComparisonTable cards={[createCard(1), createCard(2)]} />);
+    renderWithLanguage(<CardComparisonTable cards={[createCard(1), createCard(2)]} />);
 
     const mobileCards = screen.getAllByRole('article');
     expect(mobileCards).toHaveLength(2);
@@ -40,7 +45,7 @@ describe('CardComparisonTable', () => {
   });
 
   it('keeps the accessible horizontal comparison table for tablet and desktop layouts', () => {
-    render(<CardComparisonTable cards={[createCard(1), createCard(2)]} />);
+    renderWithLanguage(<CardComparisonTable cards={[createCard(1), createCard(2)]} />);
 
     expect(screen.getByRole('region', { name: 'Comparison insight' })).toBeInTheDocument();
     const region = screen.getByRole('region', { name: 'Compare card features' });
@@ -52,7 +57,7 @@ describe('CardComparisonTable', () => {
 
   it('renders five cards without dropping columns or mobile cards', () => {
     const cards = Array.from({ length: 5 }, (_, index) => createCard(index + 1));
-    render(<CardComparisonTable cards={cards} />);
+    renderWithLanguage(<CardComparisonTable cards={cards} />);
 
     expect(screen.getAllByRole('article')).toHaveLength(5);
     expect(screen.getAllByRole('columnheader')).toHaveLength(6);

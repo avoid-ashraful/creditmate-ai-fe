@@ -1,4 +1,5 @@
 import { ENV } from '../config/env';
+import type { Language } from '../locales';
 
 import { authClient, ApiError } from './auth';
 
@@ -86,11 +87,15 @@ export const savedService = {
   },
 };
 
-export const savedErrorMessage = (error: unknown): string => {
+export const savedErrorMessage = (error: unknown, lang: Language = 'en'): string => {
   if (error instanceof ApiError) {
     const detail = Object.values(error.fieldErrors).flat()[0];
     if (detail) return detail;
     if (error.detail) return error.detail;
   }
-  return 'Something went wrong. Please try again.';
+  const fallback: Record<Language, string> = {
+    en: 'Something went wrong. Please try again.',
+    bn: 'কিছু একটা সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
+  };
+  return fallback[lang];
 };

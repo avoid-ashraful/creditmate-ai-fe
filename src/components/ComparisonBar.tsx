@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { usePrefersReducedMotion } from '../animations';
+import { useLanguage, getCommonCopy } from '../locales';
 import { GradientComparisonBar } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
 
@@ -19,6 +20,8 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
   onRemoveCard,
   maxSelections,
 }) => {
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
   const [compareMessage, setCompareMessage] = useState('');
   const reduceMotion = usePrefersReducedMotion();
 
@@ -56,8 +59,8 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
                     className="remove-card"
                     type="button"
                     onClick={() => onRemoveCard(card.id)}
-                    title="Remove from comparison"
-                    aria-label={`Remove ${card.name} from comparison`}
+                    title={common.comparisonRemoveAriaLabel}
+                    aria-label={`${common.comparisonRemoveAriaLabel} ${card.name}`}
                     whileHover={reduceMotion ? undefined : { scale: 1.2 }}
                     whileTap={reduceMotion ? undefined : { scale: 0.9 }}
                   >
@@ -75,7 +78,7 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
                   transition={{ delay: reduceMotion ? 0 : index * 0.1 }}
                   layout
                 >
-                  <span>Add a card</span>
+                  <span>{common.comparisonAddCard}</span>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -93,11 +96,11 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
               onClick={e => {
                 if (selectedCards.length < 2) {
                   e.preventDefault();
-                  setCompareMessage('Please select at least 2 cards to compare');
+                  setCompareMessage(common.comparisonEmptyDesc);
                 }
               }}
             >
-              Compare Cards
+              {common.comparisonFooterShare}
             </Link>
           </motion.div>
           <p className="compare-message" role="status" aria-live="polite">

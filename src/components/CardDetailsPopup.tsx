@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { backdropVariants, modalPanelVariants, usePrefersReducedMotion } from '../animations';
 import { dummyBanks } from '../dummy-data/credit-cards';
+import { useLanguage, getCommonCopy } from '../locales';
 import { CreditCard } from '../types';
 import { trapTabKey } from '../utils/focus';
 import { slugify } from '../utils/slugify';
@@ -21,6 +22,8 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
   onAddToCompare,
   isInCompareList,
 }) => {
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const reduceMotion = usePrefersReducedMotion();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -52,9 +55,9 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
 
   const getBankName = (bankId: number | undefined): string => {
     if (card.bankName) return card.bankName;
-    if (bankId === undefined) return 'Bank: Data not available';
+    if (bankId === undefined) return common.unknown;
     const bank = dummyBanks.find(b => b.id === bankId);
-    return bank?.name || `Bank ID: ${bankId}`;
+    return bank?.name || common.bankIdLabel.replace('{id}', bankId.toString());
   };
 
   // Prevent clicks inside the popup from closing it
@@ -76,14 +79,14 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
 
   // Helper to format annual fee with null handling
   const formatAnnualFee = (fee: number | null): string => {
-    if (fee === null) return 'Data not available';
+    if (fee === null) return common.unknown;
     return `BDT ${fee.toLocaleString()}`;
   };
 
   // Helper to format interest rate with null handling
   const formatInterestRate = (rate: number | null): string => {
-    if (rate === null) return 'Data not available';
-    return `${rate}% APR`;
+    if (rate === null) return common.unknown;
+    return `${rate}${common.aprSuffix}`;
   };
 
   const detailUrl = card.bankName ? `/card/${slugify(card.bankName)}/${slugify(card.name)}` : null;
@@ -115,7 +118,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
           className="close-button"
           onClick={onClose}
           type="button"
-          aria-label="Close card details"
+          aria-label={common.closeCardDetailsAriaLabel}
           ref={closeButtonRef}
         >
           ×
@@ -134,7 +137,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
                   onClick={prevImage}
                   className="nav-button prev"
                   type="button"
-                  aria-label="Previous image"
+                  aria-label={common.prevImageAriaLabel}
                 >
                   {'<'}
                 </button>
@@ -145,7 +148,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
                   onClick={nextImage}
                   className="nav-button next"
                   type="button"
-                  aria-label="Next image"
+                  aria-label={common.nextImageAriaLabel}
                 >
                   {'>'}
                 </button>
@@ -161,67 +164,67 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
 
         <div className="popup-content">
           <div className="detail-section">
-            <h3>Basic Information</h3>
+            <h3>{common.calcFormTitle}</h3>
             <div className="detail-row">
-              <span className="detail-label">Annual Fee:</span>
+              <span className="detail-label">{common.calcResultAnnualFee}:</span>
               <span className="detail-value">{formatAnnualFee(card.annualFee)}</span>
             </div>
             <div className="detail-row">
-              <span className="detail-label">Interest Rate:</span>
+              <span className="detail-label">{common.filterSectionInterestRate}:</span>
               <span className="detail-value">{formatInterestRate(card.interestRateApr)}</span>
             </div>
           </div>
 
           <div className="detail-section">
-            <h3>Lounge Access</h3>
+            <h3>{common.filterSectionLoungeAccess}</h3>
             <div className="detail-row">
-              <span className="detail-label">International:</span>
+              <span className="detail-label">{common.filterLabelHasInternationalLounge}:</span>
               <span className="detail-value">
                 {card.loungeAccessInternational === null
-                  ? 'Data not available'
+                  ? common.unknown
                   : card.loungeAccessInternational === ''
-                  ? 'None'
+                  ? common.calcResultBreakEvenUnknown
                   : card.loungeAccessInternational}
               </span>
             </div>
             <div className="detail-row">
-              <span className="detail-label">Domestic:</span>
+              <span className="detail-label">{common.filterLabelHasDomesticLounge}:</span>
               <span className="detail-value">
                 {card.loungeAccessDomestic === null
-                  ? 'Data not available'
+                  ? common.unknown
                   : card.loungeAccessDomestic === ''
-                  ? 'None'
+                  ? common.calcResultBreakEvenUnknown
                   : card.loungeAccessDomestic}
               </span>
             </div>
           </div>
 
           <div className="detail-section">
-            <h3>Fees</h3>
+            <h3>{common.feesSectionTitle}</h3>
             <div className="detail-row">
-              <span className="detail-label">Cash Advance Fee:</span>
+              <span className="detail-label">{common.cashAdvanceFeeLabel}:</span>
               <span className="detail-value">{card.cashAdvanceFee}</span>
             </div>
             <div className="detail-row">
-              <span className="detail-label">Late Payment Fee:</span>
+              <span className="detail-label">{common.latePaymentFeeLabel}:</span>
               <span className="detail-value">{card.latePaymentFee}</span>
             </div>
           </div>
 
           <div className="detail-section">
-            <h3>Annual Fee Waiver</h3>
+            <h3>{common.annualFeeWaiverSectionTitle}</h3>
             <p>
-              {card.annualFeeWaiverPolicy ? card.annualFeeWaiverPolicy.conditions : 'Not available'}
+              {card.annualFeeWaiverPolicy ? card.annualFeeWaiverPolicy.conditions : common.unknown}
             </p>
           </div>
 
           <div className="detail-section">
-            <h3>Rewards</h3>
+            <h3>{common.cardRewards}</h3>
             <p>{card.rewardPointsPolicy}</p>
           </div>
 
           <div className="detail-section">
-            <h3>Additional Features</h3>
+            <h3>{common.cardAdditionalFeatures}</h3>
             <ul className="feature-list">
               {card.additionalFeatures?.map((feature, index) => (
                 <li key={index}>{feature}</li>
@@ -230,21 +233,21 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
           </div>
 
           <div className="detail-section">
-            <h3>More Information</h3>
+            <h3>{common.cardMoreInfo}</h3>
             <div className="detail-row">
-              <span className="detail-label">Source:</span>
+              <span className="detail-label">{common.cardSource}</span>
               {card.sourceUrl ? (
                 <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer">
-                  Official Website
+                  {common.cardOfficialWebsite}
                 </a>
               ) : (
-                <span className="detail-value">Data not available</span>
+                <span className="detail-value">{common.unknown}</span>
               )}
             </div>
             <div className="detail-row">
-              <span className="detail-label">Last Updated:</span>
+              <span className="detail-label">{common.cardLastUpdated}</span>
               <span className="detail-value">
-                {card.lastUpdated ? card.lastUpdated.toLocaleDateString() : 'Data not available'}
+                {card.lastUpdated ? card.lastUpdated.toLocaleDateString() : common.unknown}
               </span>
             </div>
           </div>
@@ -253,14 +256,14 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
         <div className="popup-footer">
           {detailUrl && (
             <a className="full-details-link" href={detailUrl}>
-              Full card details
+              {common.comparisonFooterShare}
             </a>
           )}
           <button
             className={`add-to-compare-btn ${isInCompareList ? 'in-list' : ''}`}
             onClick={() => onAddToCompare(card)}
           >
-            {isInCompareList ? 'Remove from Compare' : 'Add to Compare'}
+            {isInCompareList ? common.comparisonFooterShare : common.comparisonAddCard}
           </button>
         </div>
       </motion.div>
