@@ -63,6 +63,11 @@ export const AppContent: React.FC = () => {
 
   return (
     <div className="app">
+      {/* Keyboard users can bypass the repeated header navigation. The target
+          is focusable so the browser moves focus into the main content. */}
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <GradientHeader>
         <div className="header-content">
           <div className="logo">
@@ -94,7 +99,7 @@ export const AppContent: React.FC = () => {
         </div>
       </GradientHeader>
 
-      <main className="app-content">
+      <main id="main-content" className="app-content" tabIndex={-1}>
         <AppRoutes />
       </main>
 

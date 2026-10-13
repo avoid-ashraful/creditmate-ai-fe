@@ -61,14 +61,13 @@
   padding: 20px 24px;
   border: none;
   font-size: 1.1rem;
-  outline: none;
   background: transparent;
   color: var(--text-color);
   font-weight: 400;
 }
 
 .search-form input::placeholder {
-  color: #9ca3af;
+  color: #6b7280;
   font-weight: 400;
 }
 
@@ -195,6 +194,17 @@
   background-clip: text;
   font-weight: 600;
   font-size: 1.1rem;
+}
+
+.selection-message {
+  margin: 0 0 var(--spacing-md);
+  color: var(--color-error-hover, #dc2626);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.selection-message:empty {
+  margin: 0;
 }
 
 .compare-button-container {

@@ -16,6 +16,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 }) => {
   const [filters, setFilters] = useState<CardFilterOptions>(initialFilters);
   const [expanded, setExpanded] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Apply initial filters if provided
@@ -115,7 +116,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       validatedFilters.annualFeeRangeString &&
       !validateRangeString(validatedFilters.annualFeeRangeString)
     ) {
-      alert('Invalid annual fee range format. Please use "min,max" format (e.g., "0,200").');
+      setError('Invalid annual fee range format. Please use "min,max" format (e.g., "0,200").');
       return;
     }
 
@@ -123,16 +124,20 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       validatedFilters.interestRateRangeString &&
       !validateRangeString(validatedFilters.interestRateRangeString)
     ) {
-      alert('Invalid interest rate range format. Please use "min,max" format (e.g., "18.0,25.0").');
+      setError(
+        'Invalid interest rate range format. Please use "min,max" format (e.g., "18.0,25.0").'
+      );
       return;
     }
 
+    setError(null);
     onFilterChange(validatedFilters);
   };
 
   const resetFilters = () => {
     const emptyFilters: CardFilterOptions = {};
     setFilters(emptyFilters);
+    setError(null);
     onFilterChange(emptyFilters);
   };
 
@@ -141,14 +146,24 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   return (
-    <div className={`filter-panel ${expanded ? 'expanded' : 'collapsed'}`}>
+    <section
+      className={`filter-panel ${expanded ? 'expanded' : 'collapsed'}`}
+      aria-labelledby="filter-panel-heading"
+    >
       <div className="filter-header" onClick={toggleExpanded}>
-        <h3>Filter Options</h3>
-        <button className="toggle-button">{expanded ? 'Collapse' : 'Expand'}</button>
+        <h3 id="filter-panel-heading">Filter Options</h3>
+        <button
+          className="toggle-button"
+          type="button"
+          aria-expanded={expanded}
+          aria-controls="filter-panel-content"
+        >
+          {expanded ? 'Collapse' : 'Expand'}
+        </button>
       </div>
 
       {expanded && (
-        <div className="filter-content">
+        <div className="filter-content" id="filter-panel-content">
           <div className="filter-section">
             <h4>Banks</h4>
             <div className="bank-options">
@@ -360,6 +375,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 value={filters.featureSearch || ''}
                 onChange={handleInputChange}
                 placeholder="Search in features"
+                aria-label="Search within card features"
               />
             </div>
           </div>
@@ -374,9 +390,16 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 value={filters.searchTerm || ''}
                 onChange={handleInputChange}
                 placeholder="Search by card name or features"
+                aria-label="Search credit cards by name or features"
               />
             </div>
           </div>
+
+          {error && (
+            <p className="filter-error" role="alert">
+              {error}
+            </p>
+          )}
 
           <div className="filter-actions">
             <button className="apply-button" onClick={applyFilters}>
@@ -388,7 +411,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 };
 

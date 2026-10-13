@@ -9,3 +9,19 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+
+/*
+ * Keyboard-only focus indicator (WCAG 2.4.7). Components that intentionally
+ * suppress the browser default must not suppress this: use
+ * `:focus:not(:focus-visible)` for mouse-only styling.
+ */
+:focus-visible {
+  outline: 3px solid var(--color-border-focus, #2563eb);
+  outline-offset: 2px;
+}
+
+/* Placeholder text must remain legible; the UA default is too low contrast. */
+::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}

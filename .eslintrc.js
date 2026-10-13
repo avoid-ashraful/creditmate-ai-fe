@@ -59,6 +59,15 @@ module.exports = {
   },
   overrides: [
     {
+      files: ['**/*.stories.js', '**/*.stories.jsx', '**/*.stories.ts', '**/*.stories.tsx'],
+      rules: {
+        // Story handlers are intentionally inert when rendering controls.
+        '@typescript-eslint/no-empty-function': 'off',
+        // Storybook's CSF contract uses the default export as story metadata.
+        'import/no-anonymous-default-export': 'off',
+      },
+    },
+    {
       files: ['e2e/**/*.ts', 'playwright.config.ts'],
       rules: {
         // These files use Playwright's page locators and per-viewport checks,

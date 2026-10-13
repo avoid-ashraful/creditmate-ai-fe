@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { dummyBanks } from '../dummy-data/credit-cards';
 import { CreditCard } from '../types';
+import { trapTabKey } from '../utils/focus';
 import { slugify } from '../utils/slugify';
 import '../styles/CardDetailsPopup.css';
 
@@ -19,6 +20,32 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
   isInCompareList,
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Move focus into the dialog on open and restore it to the trigger on close,
+  // so keyboard and screen reader users stay oriented (WCAG 2.4.3).
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    closeButtonRef.current?.focus();
+
+    return () => {
+      if (previouslyFocused && document.contains(previouslyFocused)) {
+        previouslyFocused.focus();
+      }
+    };
+  }, []);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      onClose();
+      return;
+    }
+    if (dialogRef.current) {
+      trapTabKey(event, dialogRef.current);
+    }
+  };
 
   const getBankName = (bankId: number | undefined): string => {
     if (card.bankName) return card.bankName;
@@ -60,8 +87,22 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
 
   return (
     <div className="popup-overlay" onClick={onClose} data-testid="popup-overlay">
-      <div className="card-details-popup" onClick={handlePopupClick}>
-        <button className="close-button" onClick={onClose}>
+      <div
+        className="card-details-popup"
+        onClick={handlePopupClick}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="card-details-title"
+        ref={dialogRef}
+        onKeyDown={handleKeyDown}
+      >
+        <button
+          className="close-button"
+          onClick={onClose}
+          type="button"
+          aria-label="Close card details"
+          ref={closeButtonRef}
+        >
           ×
         </button>
 
@@ -69,18 +110,28 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
           <div className="card-image-gallery">
             <img
               src={card.images[currentImageIndex].full}
-              alt={`${card.name} - ${currentImageIndex + 1}`}
+              alt={`${card.name} card ${currentImageIndex + 1} of ${card.images.length}`}
               className="card-full-image"
             />
             {card.images.length > 1 && (
               <div className="image-navigation">
-                <button onClick={prevImage} className="nav-button prev">
+                <button
+                  onClick={prevImage}
+                  className="nav-button prev"
+                  type="button"
+                  aria-label="Previous image"
+                >
                   {'<'}
                 </button>
-                <span className="image-counter">
+                <span className="image-counter" aria-live="polite">
                   {currentImageIndex + 1} / {card.images.length}
                 </span>
-                <button onClick={nextImage} className="nav-button next">
+                <button
+                  onClick={nextImage}
+                  className="nav-button next"
+                  type="button"
+                  aria-label="Next image"
+                >
                   {'>'}
                 </button>
               </div>
@@ -89,7 +140,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
         )}
 
         <div className="popup-header">
-          <h2>{card.name}</h2>
+          <h2 id="card-details-title">{card.name}</h2>
           <span className="bank-name">{getBankName(card.bankId)}</span>
         </div>
 

@@ -66,6 +66,32 @@ button {
   min-height: 100vh;
 }
 
+/* Skip navigation (WCAG 2.4.1): hidden until focused, then pinned top-left. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--secondary-color);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0 0 var(--radius-md) 0;
+  text-decoration: underline;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* Header sits on a light animated gradient, so its focus ring is white. */
+.main-nav a:focus-visible,
+.logo a:focus-visible,
+.lang-switcher-button:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
 /* Header styles */
 .app-header {
   background-color: var(--card-bg);
