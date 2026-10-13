@@ -4,6 +4,7 @@ import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
 import { AppContent, NAV_ITEMS, PageViewTrackerWrapper } from './App';
+import { AuthProvider } from './hooks/AuthProvider';
 import { ThemeProvider } from './hooks/ThemeProvider';
 import { ANALYTICS_EVENTS, analytics } from './lib/analytics';
 import { LanguageProvider } from './locales';
@@ -21,7 +22,9 @@ const renderApp = (entry = '/glossary', initialLang: 'en' | 'bn' = 'en') =>
     <MemoryRouter initialEntries={[entry]}>
       <ThemeProvider>
         <LanguageProvider initialLang={initialLang}>
-          <AppContent />
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>
     </MemoryRouter>
@@ -42,6 +45,27 @@ describe('App routing', () => {
   it('renders the glossary page at /glossary', () => {
     renderApp('/glossary');
     expect(screen.getByRole('heading', { name: 'Financial Terms Glossary' })).toBeInTheDocument();
+  });
+
+  it('renders the login page at /login', () => {
+    renderApp('/login');
+    expect(screen.getByRole('heading', { name: 'Log in' })).toBeInTheDocument();
+  });
+
+  it('sends anonymous visitors from /account to the login page', () => {
+    renderApp('/account');
+    expect(screen.getByRole('heading', { name: 'Log in' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Your account' })).not.toBeInTheDocument();
+  });
+
+  it('offers Log in and Register in the header when signed out', () => {
+    renderApp('/glossary');
+    const nav = headerNav();
+    expect(within(nav).getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
+    expect(within(nav).getByRole('link', { name: 'Register' })).toHaveAttribute(
+      'href',
+      '/register'
+    );
   });
 
   it('renders the About page at /about', () => {

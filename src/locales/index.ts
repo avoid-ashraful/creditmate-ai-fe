@@ -8,6 +8,7 @@
 export * from './types';
 export * from './format';
 export * from './glossary';
+export * from './auth';
 export {
   LanguageProvider,
   LanguageContext,

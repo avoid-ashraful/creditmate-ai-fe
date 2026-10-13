@@ -3,20 +3,28 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 
 import { MotionProvider, pageVariants, usePrefersReducedMotion } from './animations';
+import { AccountMenu } from './components/AccountMenu';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { ThemeToggle } from './components/ThemeToggle';
+import { AuthProvider } from './hooks/AuthProvider';
 import { ThemeProvider } from './hooks/ThemeProvider';
 import { ANALYTICS_EVENTS, analytics, getAnalyticsContextProperties } from './lib/analytics';
 import { isResultsViewEnabled } from './lib/experiments';
 import { LanguageProvider, useLanguage } from './locales';
 import AboutPage from './pages/AboutPage';
+import AccountPage from './pages/AccountPage';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
 import ComparisonPage from './pages/ComparisonPage';
 import ExperimentResults from './pages/ExperimentResults/ExperimentResults';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import GlossaryPage from './pages/GlossaryPage';
 import GuidesPage from './pages/GuidesPage';
 import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
 import RecommendationQuiz from './pages/RecommendationQuiz';
+import RegisterPage from './pages/RegisterPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import RewardCalculatorPage from './pages/RewardCalculatorPage';
 import './styles/App.css';
 import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
@@ -70,6 +78,18 @@ export const AppRoutes: React.FC = () => {
         <Route path="/guides/:slug" element={<GuidesPage />} />
         <Route path="/glossary" element={<GlossaryPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <AccountPage />
+            </ProtectedRoute>
+          }
+        />
         {showResultsView && <Route path="/experiment-results" element={<ExperimentResults />} />}
       </Routes>
     </motion.div>
@@ -138,6 +158,7 @@ export const AppContent: React.FC = () => {
               <li className="lang-switcher-item">
                 <ThemeToggle />
               </li>
+              <AccountMenu />
             </ul>
           </nav>
         </div>
@@ -208,7 +229,9 @@ export default function RootApp({ children }: { children?: React.ReactNode }) {
   return (
     <ThemeProvider>
       <MotionProvider>
-        <LanguageProvider>{children ?? <App />}</LanguageProvider>
+        <LanguageProvider>
+          <AuthProvider>{children ?? <App />}</AuthProvider>
+        </LanguageProvider>
       </MotionProvider>
     </ThemeProvider>
   );

@@ -32,7 +32,7 @@ const reportWebVitals = (onPerfEntry?: ReportHandler) => {
             value: metric.value,
             delta: metric.delta,
             id: metric.id,
-            entries: metric.entries as any,
+            entries: metric.entries,
           });
         }
       },
@@ -44,6 +44,7 @@ const reportWebVitals = (onPerfEntry?: ReportHandler) => {
       if (!result.passed) {
         console.warn('⚠️ Performance budget violations:', result.violations);
       } else {
+        // eslint-disable-next-line no-console
         console.log('✅ Performance budget met');
       }
     });
