@@ -24,6 +24,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "test:e2e": "playwright test",
@@ -31,6 +32,7 @@
     "tokens:build": "style-dictionary build -c style-dictionary.config.mjs",
     "tokens:clean": "style-dictionary clean -c style-dictionary.config.mjs",
     "tokens:check": "node scripts/verify-tokens.mjs",
+    "generate:sitemap": "node scripts/generate-sitemap.mjs",
     "lint": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
     "check-format": "prettier --check \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
