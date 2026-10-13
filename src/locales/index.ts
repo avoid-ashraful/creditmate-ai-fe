@@ -10,6 +10,7 @@ export * from './format';
 export * from './glossary';
 export * from './auth';
 export * from './saved';
+export * from './alerts';
 export {
   LanguageProvider,
   LanguageContext,

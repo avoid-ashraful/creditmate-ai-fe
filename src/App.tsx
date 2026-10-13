@@ -13,6 +13,7 @@ import { isResultsViewEnabled } from './lib/experiments';
 import { LanguageProvider, useLanguage } from './locales';
 import AboutPage from './pages/AboutPage';
 import AccountPage from './pages/AccountPage';
+import AlertsPage from './pages/AlertsPage';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
 import CollectionPage from './pages/CollectionPage';
@@ -29,6 +30,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import RewardCalculatorPage from './pages/RewardCalculatorPage';
 import SavedPage from './pages/SavedPage';
 import SharedPage from './pages/SharedPage';
+import UnsubscribePage from './pages/UnsubscribePage';
 import './styles/App.css';
 import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
 
@@ -102,11 +104,20 @@ export const AppRoutes: React.FC = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/unsubscribe" element={<UnsubscribePage />} />
         <Route
           path="/account"
           element={
             <ProtectedRoute>
               <AccountPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/alerts"
+          element={
+            <ProtectedRoute>
+              <AlertsPage />
             </ProtectedRoute>
           }
         />

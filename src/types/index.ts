@@ -117,3 +117,8 @@ export interface GuideArticle {
   publishedDate: Date;
   lastUpdated?: Date;
 }
+
+/**
+ * Alert types - re-exported from alerts.ts
+ */
+export * from './alerts';

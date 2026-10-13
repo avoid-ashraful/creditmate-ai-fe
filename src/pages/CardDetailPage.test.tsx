@@ -2,7 +2,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
+import { AuthProvider } from '../hooks/AuthProvider';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
+import { LanguageProvider } from '../locales';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 
@@ -63,9 +65,13 @@ const mockSimilarCard: CreditCard = {
 const renderWithRouter = (initialRoute = '/card/eastern-bank-limited/ebl-platinum-card') => {
   return render(
     <MemoryRouter initialEntries={[initialRoute]}>
-      <Routes>
-        <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
-      </Routes>
+      <LanguageProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
+          </Routes>
+        </AuthProvider>
+      </LanguageProvider>
     </MemoryRouter>
   );
 };
