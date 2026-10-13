@@ -1,0 +1,88 @@
+{
+  "description": "Segment cohorts for the funnel breakdowns. Keys are referenced by dashboard.json. Filter shapes are this repo's own notation: translate each one to PostHog cohort filters in the project, then record the PostHog cohort id in cohort_ids.",
+  "cohorts": [
+    {
+      "key": "segment-device-mobile",
+      "name": "Device: mobile",
+      "filters": {
+        "behavioral": {
+          "event": "page_view",
+          "where": [{ "property": "$device_type", "operator": "eq", "value": "Mobile" }],
+          "timeWindowDays": 30,
+          "minCount": 1
+        }
+      }
+    },
+    {
+      "key": "segment-device-desktop",
+      "name": "Device: desktop",
+      "filters": {
+        "behavioral": {
+          "event": "page_view",
+          "where": [{ "property": "$device_type", "operator": "eq", "value": "Desktop" }],
+          "timeWindowDays": 30,
+          "minCount": 1
+        }
+      }
+    },
+    {
+      "key": "segment-device-tablet",
+      "name": "Device: tablet",
+      "filters": {
+        "behavioral": {
+          "event": "page_view",
+          "where": [{ "property": "$device_type", "operator": "eq", "value": "Tablet" }],
+          "timeWindowDays": 30,
+          "minCount": 1
+        }
+      }
+    },
+    {
+      "key": "segment-source-utm-tagged",
+      "name": "Source: UTM-tagged visit",
+      "filters": {
+        "behavioral": {
+          "event": "page_view",
+          "where": [{ "property": "utmSource", "operator": "is_set" }],
+          "timeWindowDays": 30,
+          "minCount": 1
+        }
+      }
+    },
+    {
+      "key": "segment-source-untagged",
+      "name": "Source: no UTM (direct, organic or referral)",
+      "filters": {
+        "behavioral": {
+          "event": "page_view",
+          "where": [{ "property": "utmSource", "operator": "is_not_set" }],
+          "timeWindowDays": 30,
+          "minCount": 1
+        }
+      }
+    },
+    {
+      "key": "segment-new-visitor",
+      "name": "New visitors",
+      "description": "First seen in the last 7 days.",
+      "filters": {
+        "person": { "firstSeenWithinDays": 7 }
+      }
+    },
+    {
+      "key": "segment-returning-visitor",
+      "name": "Returning visitors",
+      "description": "First seen more than 7 days ago and visited in the last 30 days.",
+      "filters": {
+        "person": { "firstSeenOlderThanDays": 7 },
+        "behavioral": {
+          "event": "page_view",
+          "where": [],
+          "timeWindowDays": 30,
+          "minCount": 1
+        }
+      }
+    }
+  ],
+  "cohort_ids": {}
+}

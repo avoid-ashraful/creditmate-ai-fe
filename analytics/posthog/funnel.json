@@ -1,0 +1,39 @@
+{
+  "id": "visit-to-share",
+  "name": "Conversion funnel: Visit → Search → Filter → Select → Compare → Share",
+  "description": "Ordered, per-user funnel over the allowlisted events in src/lib/analytics.ts (task 10.1). Each step must happen after the previous one, within conversionWindowDays of the Visit.",
+  "conversionWindowDays": 7,
+  "steps": [
+    {
+      "label": "Visit",
+      "event": "page_view",
+      "note": "Fired on every route change (App.tsx PageViewTracker), not only the home page."
+    },
+    {
+      "label": "Search",
+      "event": "search",
+      "note": "Fired on every search submit, including empty searches (HomePage handleSearchSubmit)."
+    },
+    {
+      "label": "Filter",
+      "event": "filter_apply",
+      "where": [{ "property": "filterCount", "operator": "gt", "value": 0 }],
+      "note": "A search submit also fires filter_apply with filterCount 0, so only filterCount > 0 counts as a filter."
+    },
+    {
+      "label": "Select",
+      "event": "card_select",
+      "note": "Fired on add and on remove (ComparisonPage, HomePage). Removals cannot be told apart from adds."
+    },
+    {
+      "label": "Compare",
+      "event": "compare_start",
+      "note": "Fired when /compare loads with ids, including from shared links that skipped Select."
+    },
+    {
+      "label": "Share",
+      "event": "compare_share",
+      "note": "Fired for comparison share links and for quiz result share links (RecommendationQuiz)."
+    }
+  ]
+}
