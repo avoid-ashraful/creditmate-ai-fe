@@ -184,6 +184,18 @@ describe('GuidesPage index', () => {
 });
 
 describe('GuidesPage detail', () => {
+  test('renders editorial guide links as working in-app links', () => {
+    renderGuides('/guides/comparing-credit-cards-bn');
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'ক্রেডিট কার্ড কীভাবে তুলনা করবেন' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'সুদ ও এপিআর' })).toHaveAttribute(
+      'href',
+      '/guides/apr-interest-explained-bn'
+    );
+  });
+
   test('navigates from the index into a guide', () => {
     renderGuides('/guides');
 

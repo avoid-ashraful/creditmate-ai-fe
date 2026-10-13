@@ -16,5 +16,7 @@ English scores use the Flesch-Kincaid Grade Level formula over each guide's titl
 | Advanced search filters                 |     5.66 |   389 |        33 |
 | Switch dark mode and language           |     5.86 |   258 |        25 |
 | How CreditMate handles your data        |     7.95 |   475 |        47 |
+| Credit card APR and interest explained  |     4.62 |   282 |        26 |
+| How to compare credit cards             |     4.63 |   206 |        18 |
 
-The Jest editorial test also checks that Bengali guide sentences contain no more than 40 whitespace-separated words and consults the reviewed Bengali glossary labels in `src/locales/bn/glossary.json`.
+The Jest editorial tests check every English guide against the grade 8 limit, require Bengali counterparts for the six consumer topics, resolve guide-to-guide Markdown links, and check Bengali sentence length, reviewed glossary labels, and absence of Arabic, Cyrillic, and replacement characters. FAQ answers restate visible guide copy and are emitted as FAQPage JSON-LD by `GuidesPage`. The sitemap generator consumes the same guide list, including each localized slug.
