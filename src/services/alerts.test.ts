@@ -205,8 +205,7 @@ describe('AlertsClient', () => {
       const response = { detail: 'Unsubscribed successfully' };
 
       server.use(
-        rest.post('*/api/v1/alerts/unsubscribe/', (req, res, ctx) => {
-          expect(req.body).toEqual({ token: 'abc123' });
+        rest.post('*/api/v1/alerts/unsubscribe/abc123/', (_req, res, ctx) => {
           return res(ctx.status(200), ctx.json(response));
         })
       );
@@ -218,7 +217,7 @@ describe('AlertsClient', () => {
 
     it('throws on invalid token', async () => {
       server.use(
-        rest.post('*/api/v1/alerts/unsubscribe/', (_req, res, ctx) =>
+        rest.post('*/api/v1/alerts/unsubscribe/bad-token/', (_req, res, ctx) =>
           res(ctx.status(400), ctx.json({ detail: 'Invalid token' }))
         )
       );

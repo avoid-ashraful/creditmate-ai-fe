@@ -44,11 +44,6 @@ export interface UpdateAlertPreferencesRequest {
   email_enabled?: boolean;
 }
 
-/** Request payload for public unsubscribe endpoint. */
-export interface UnsubscribeRequest {
-  token: string;
-}
-
 /** Response from the unsubscribe endpoint. */
 export interface UnsubscribeResponse {
   detail: string;

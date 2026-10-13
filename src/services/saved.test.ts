@@ -70,13 +70,13 @@ describe('savedService', () => {
       rest.get('*/api/v1/saved/collections/3/', (_req, res, ctx) =>
         res(ctx.json({ id: 3, name: 'Travel', cards: [{ card_id: 1 }] }))
       ),
-      rest.post('*/api/v1/saved/collections/3/add_card/', (req, res, ctx) => {
+      rest.post('*/api/v1/saved/collections/3/cards/', (req, res, ctx) => {
         calls.push(`add:${JSON.stringify(req.body)}`);
         return res(ctx.json({ id: 3 }));
       }),
-      rest.post('*/api/v1/saved/collections/3/remove_card/', (req, res, ctx) => {
-        calls.push(`remove:${JSON.stringify(req.body)}`);
-        return res(ctx.json({ id: 3 }));
+      rest.delete('*/api/v1/saved/collections/3/cards/2/', (_req, res, ctx) => {
+        calls.push('remove');
+        return res(ctx.status(204));
       }),
       rest.get('*/api/v1/saved/shared/token-1/', (_req, res, ctx) =>
         res(ctx.json({ name: 'Public', card_ids: [1] }))
@@ -96,7 +96,7 @@ describe('savedService', () => {
       'create:{"name":"Travel","description":"","is_public":false}',
       'patch:{"name":"Trip"}',
       'add:{"card_id":2,"notes":"Backup"}',
-      'remove:{"card_id":2}',
+      'remove',
       'delete',
     ]);
   });

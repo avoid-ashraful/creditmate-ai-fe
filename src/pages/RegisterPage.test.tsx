@@ -6,7 +6,7 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { expectNoAxeViolations } from '../a11y/axe';
-import { AUTH_USER, authUrl, sessionBody } from '../mocks/auth';
+import { AUTH_USER, authUrl } from '../mocks/auth';
 import { renderWithAuth } from '../mocks/renderAuth';
 import { authClient } from '../services/auth';
 
@@ -29,7 +29,7 @@ afterAll(() => server.close());
 const routes = (
   <Routes>
     <Route path="/register" element={<RegisterPage />} />
-    <Route path="/account" element={<p>account home</p>} />
+    <Route path="/login" element={<p>login page</p>} />
   </Routes>
 );
 
@@ -56,11 +56,11 @@ describe('RegisterPage', () => {
     expect(bodies).toHaveLength(0);
   });
 
-  it('creates the account, sends password_confirm and lands on the account page', async () => {
+  it('creates the account, sends password_confirm and stays anonymous pending verification', async () => {
     server.use(
       rest.post(authUrl('register/'), (req, res, ctx) => {
         bodies.push(req.body);
-        return res(ctx.status(201), ctx.json(sessionBody()));
+        return res(ctx.status(201), ctx.json({ detail: 'Registration successful.' }));
       })
     );
     const user = userEvent.setup();
@@ -68,7 +68,7 @@ describe('RegisterPage', () => {
 
     await fillForm(user, { email: AUTH_USER.email, password: 'pw-12345', confirm: 'pw-12345' });
 
-    expect(await screen.findByText('account home')).toBeInTheDocument();
+    expect(await screen.findByText('login page')).toBeInTheDocument();
     expect(bodies).toEqual([
       { email: AUTH_USER.email, password: 'pw-12345', password_confirm: 'pw-12345' },
     ]);

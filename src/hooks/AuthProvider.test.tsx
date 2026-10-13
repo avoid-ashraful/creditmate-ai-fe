@@ -109,7 +109,7 @@ describe('AuthProvider', () => {
   it('registers and tracks a signup event without properties', async () => {
     server.use(
       rest.post(authUrl('register/'), (_req, res, ctx) =>
-        res(ctx.status(201), ctx.json(sessionBody()))
+        res(ctx.status(201), ctx.json({ detail: 'Registration successful.' }))
       )
     );
     const track = jest.spyOn(analytics, 'track').mockImplementation(() => undefined);
@@ -125,7 +125,7 @@ describe('AuthProvider', () => {
     });
 
     expect(track).toHaveBeenCalledWith(ANALYTICS_EVENTS.signup);
-    expect(screen.getByTestId('state')).toHaveTextContent('authenticated');
+    expect(screen.getByTestId('state')).toHaveTextContent('anonymous');
   });
 
   it('does not track when registration is rejected', async () => {

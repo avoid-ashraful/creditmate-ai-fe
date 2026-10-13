@@ -37,7 +37,14 @@ const SharedPage: React.FC = () => {
         {t.loading}
       </p>
     );
-  const ids = item.card_ids || item.cards?.map(card => card.card_id) || [];
+  const cardId = (card: NonNullable<typeof item.cards>[number]) =>
+    'id' in card ? card.id : card.card?.id;
+  const cardName = (id: number) => {
+    const card = item.cards?.find(candidate => cardId(candidate) === id);
+    return card && 'id' in card ? card.name : card?.card?.name;
+  };
+  const ids =
+    item.card_ids || item.cards?.map(cardId).filter((id): id is number => id !== undefined) || [];
   return (
     <section className="saved-page">
       <h1>{item.name}</h1>
@@ -45,7 +52,7 @@ const SharedPage: React.FC = () => {
       <h2>{t.cards}</h2>
       <ul>
         {ids.map(id => (
-          <li key={id}>{item.cards?.find(card => card.card_id === id)?.card?.name || `#${id}`}</li>
+          <li key={id}>{cardName(id) || `#${id}`}</li>
         ))}
       </ul>
     </section>
