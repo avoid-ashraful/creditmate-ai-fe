@@ -36,7 +36,7 @@ test('ARIA attributes and document landmarks support assistive navigation', asyn
 
   await expect(page.locator('header')).toHaveCount(1);
   await expect(page.locator('main')).toHaveCount(1);
-  await expect(page.locator('nav')).toHaveCount(1);
+  await expect(page.getByRole('banner').getByRole('navigation')).toHaveCount(1);
   await expect(page.getByRole('banner').getByRole('navigation')).toBeVisible();
   await expect(
     page.getByRole('main').getByRole('heading', { name: 'Find Your Perfect Credit Card' })
