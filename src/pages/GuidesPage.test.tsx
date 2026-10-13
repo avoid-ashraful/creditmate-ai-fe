@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import App from '../App';
 import { getGuide, guides } from '../content/guides';
 import { server } from '../mocks/jest.setup';
@@ -433,4 +434,21 @@ describe('Head metadata lifecycle', () => {
     expect(headQuery('script#guides-structured-data')).toBeNull();
     expect(headQuery('script#guides-breadcrumb-data')).toBeNull();
   });
+});
+
+describe('Accessibility', () => {
+  it('guides index has no accessibility violations', async () => {
+    const { container } = renderGuides('/guides');
+    await expectNoAxeViolations(container);
+  }, 15000);
+
+  it('guide detail has no accessibility violations', async () => {
+    const { container } = renderGuides('/guides/choosing-your-first-credit-card');
+    await expectNoAxeViolations(container);
+  }, 15000);
+
+  it('guide not found has no accessibility violations', async () => {
+    const { container } = renderGuides('/guides/does-not-exist');
+    await expectNoAxeViolations(container);
+  }, 15000);
 });

@@ -1,7 +1,7 @@
 import { render, RenderOptions } from '@testing-library/react';
 import React from 'react';
 
-import { LanguageProvider } from '../locales/LanguageContext';
+import { LanguageProvider } from './locales/LanguageContext';
 
 /**
  * Custom render function that wraps the UI with LanguageProvider.

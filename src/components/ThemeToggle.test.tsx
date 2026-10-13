@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import { ThemeProvider } from '../hooks/ThemeProvider';
 
 import { ThemeToggle } from './ThemeToggle';
@@ -103,5 +104,14 @@ describe('ThemeToggle', () => {
     fireEvent.click(button);
 
     expect(localStorage.getItem('creditmate-theme')).toBe('dark');
+  });
+
+  it('has no accessibility violations', async () => {
+    const { container } = render(
+      <ThemeProvider>
+        <ThemeToggle />
+      </ThemeProvider>
+    );
+    await expectNoAxeViolations(container);
   });
 });

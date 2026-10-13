@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
+import { expectNoAxeViolations } from './a11y/axe';
 import { AppContent, NAV_ITEMS, PageViewTrackerWrapper } from './App';
 import { AuthProvider } from './hooks/AuthProvider';
 import { ThemeProvider } from './hooks/ThemeProvider';
@@ -96,7 +97,7 @@ describe('App routing', () => {
 describe('App language switcher', () => {
   it('renders English nav labels by default and Bengali after toggling', async () => {
     const user = userEvent.setup();
-    renderApp('/glossary', 'en');
+    renderApp('/about', 'en');
 
     const nav = headerNav();
     expect(within(nav).getByRole('link', { name: 'Home' })).toBeInTheDocument();
@@ -113,7 +114,7 @@ describe('App language switcher', () => {
 
   it('localizes the footer copyright line', async () => {
     const user = userEvent.setup();
-    renderApp('/glossary', 'en');
+    renderApp('/about', 'en');
 
     expect(screen.getByText(/All rights reserved/)).toBeInTheDocument();
 
@@ -153,4 +154,31 @@ describe('App analytics', () => {
       properties: {},
     });
   });
+});
+
+describe('App accessibility', () => {
+  it('has a skip link that targets main content', () => {
+    renderApp('/about');
+    const skipLink = screen.getByRole('link', { name: 'Skip to main content' });
+    expect(skipLink).toHaveAttribute('href', '#main-content');
+  });
+
+  it('has proper landmark structure', () => {
+    renderApp('/about');
+
+    expect(screen.getByRole('banner')).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBeInTheDocument();
+    expect(screen.getByRole('main')).toBeInTheDocument();
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
+  });
+
+  it('has no accessibility violations on the app shell', async () => {
+    const { container } = renderApp('/about');
+    await expectNoAxeViolations(container);
+  }, 15000);
+
+  it('has no accessibility violations on the login page', async () => {
+    const { container } = renderApp('/login');
+    await expectNoAxeViolations(container);
+  }, 15000);
 });

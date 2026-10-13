@@ -16,7 +16,7 @@ import {
 
 import './RewardCalculatorPage.css';
 
-const CATEGORY_LABELS = [
+const CATEGORY_LABELS: Array<{ key: keyof CategoryAllocation; labelKey: string }> = [
   { key: 'dining', labelKey: 'calcCategoryDining' },
   { key: 'travel', labelKey: 'calcCategoryTravel' },
   { key: 'groceries', labelKey: 'calcCategoryGroceries' },

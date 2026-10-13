@@ -44,7 +44,12 @@ const IconSpan = styled.span`
   font-size: 1.2em;
 `;
 
-export const ThemeToggle: React.FC = () => {
+export interface ThemeToggleProps {
+  /** Custom aria-label for the toggle button (defaults to localized "Toggle dark mode") */
+  ariaLabel?: string;
+}
+
+export const ThemeToggle: React.FC<ThemeToggleProps> = ({ ariaLabel }) => {
   const { isDark, toggleTheme } = useThemeContext();
   const { lang } = useLanguage();
   const common = getCommonCopy(lang);
@@ -52,7 +57,7 @@ export const ThemeToggle: React.FC = () => {
   return (
     <ToggleButton
       onClick={toggleTheme}
-      aria-label={common.themeToggleAriaLabel}
+      aria-label={ariaLabel ?? common.themeToggleAriaLabel}
       aria-pressed={isDark}
       type="button"
     >

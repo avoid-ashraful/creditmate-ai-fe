@@ -1,8 +1,16 @@
-import React, { useEffect, useState } from 'react';
+/**
+ * Card Detail Page with "Watch this card" toggle for alert subscriptions.
+ */
+
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
+import { ReviewsSection } from '../components/ReviewsSection';
+import { useAuth } from '../hooks/AuthProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
+import { useLanguage, getAuthCopy, getAlertsCopy } from '../locales';
+import { alertsClient } from '../services/alerts';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import { getComparisonSummary } from '../utils/narratives';
@@ -20,11 +28,21 @@ const SPEC_VALUE_CLASS = 'spec-value';
 
 const CardDetailPage: React.FC = () => {
   const { bankSlug, cardSlug } = useParams<{ bankSlug: string; cardSlug: string }>();
+  const { status: authStatus } = useAuth();
+  const { lang } = useLanguage();
+  const authCopy = getAuthCopy(lang);
+  const alertsCopy = getAlertsCopy(lang);
+
   const [card, setCard] = useState<CreditCard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [similarCards, setSimilarCards] = useState<CreditCard[]>([]);
   const [ctaClicked, setCtaClicked] = useState(false);
+
+  // Watch this card state
+  const [isWatching, setIsWatching] = useState(false);
+  const [watchLoading, setWatchLoading] = useState(false);
+  const [watchError, setWatchError] = useState<string | null>(null);
 
   const cardPath =
     card?.bankName && card.name ? `/card/${slugify(card.bankName)}/${slugify(card.name)}` : null;
@@ -44,6 +62,23 @@ const CardDetailPage: React.FC = () => {
             : undefined,
         }
       : null
+  );
+
+  // Check if user is already watching this card
+  const checkWatchStatus = useCallback(
+    async (cardId: number) => {
+      if (authStatus !== 'authenticated') return;
+      try {
+        const subsRes = await alertsClient.listSubscriptions();
+        const watching = subsRes.results.some(
+          sub => sub.card === cardId && sub.kind === 'any_change'
+        );
+        setIsWatching(watching);
+      } catch (err) {
+        console.error('Failed to check watch status:', err);
+      }
+    },
+    [authStatus]
   );
 
   useEffect(() => {
@@ -83,6 +118,9 @@ const CardDetailPage: React.FC = () => {
           bank: foundCard.bankName,
         });
 
+        // Check watch status
+        checkWatchStatus(foundCard.id);
+
         // Fetch similar cards (same bank or similar fee range)
         if (foundCard.bankId) {
           const similarResponse = await apiService.getCreditCards({
@@ -112,7 +150,14 @@ const CardDetailPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [bankSlug, cardSlug]);
+  }, [bankSlug, cardSlug, checkWatchStatus]);
+
+  // Re-check watch status when auth status changes
+  useEffect(() => {
+    if (card && authStatus === 'authenticated') {
+      checkWatchStatus(card.id);
+    }
+  }, [authStatus, card, checkWatchStatus]);
 
   const handleApplyNow = () => {
     if (card?.sourceUrl) {
@@ -120,9 +165,41 @@ const CardDetailPage: React.FC = () => {
         cardId: card.id,
       });
       setCtaClicked(true);
-
-      // Open source URL in new tab
       window.open(card.sourceUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleWatchToggle = async () => {
+    if (!card) return;
+
+    if (authStatus !== 'authenticated') {
+      // Show login/register prompt
+      return;
+    }
+
+    setWatchLoading(true);
+    setWatchError(null);
+
+    try {
+      if (isWatching) {
+        // Find the subscription to delete
+        const subsRes = await alertsClient.listSubscriptions();
+        const sub = subsRes.results.find(s => s.card === card.id && s.kind === 'any_change');
+        if (sub) {
+          await alertsClient.deleteSubscription(sub.id);
+          setIsWatching(false);
+        }
+      } else {
+        // Create new subscription for any_change on this card
+        await alertsClient.createSubscription({ card: card.id, kind: 'any_change' });
+        setIsWatching(true);
+      }
+      analytics.track(ANALYTICS_EVENTS.pageView, { referrer: `/card/${bankSlug}/${cardSlug}` });
+    } catch (err) {
+      console.error('Watch toggle failed:', err);
+      setWatchError(alertsCopy.subscriptionCreateError);
+    } finally {
+      setWatchLoading(false);
     }
   };
 
@@ -180,6 +257,45 @@ const CardDetailPage: React.FC = () => {
   const annualWaiverSpend = feeWaiverThreshold
     ? Number(feeWaiverThreshold.replace(/,/g, ''))
     : null;
+
+  // Render watch toggle or login prompt
+  const renderWatchToggle = () => {
+    if (authStatus === 'authenticated') {
+      return (
+        <button
+          className={`btn ${isWatching ? 'btn-secondary' : 'btn-outline'} watch-toggle`}
+          onClick={handleWatchToggle}
+          disabled={watchLoading}
+          aria-pressed={isWatching}
+        >
+          {watchLoading
+            ? 'Updating…'
+            : isWatching
+            ? alertsCopy.watchingThisCard
+            : alertsCopy.watchThisCard}
+        </button>
+      );
+    }
+
+    return (
+      <div className="watch-prompt">
+        <p className="watch-prompt-text">
+          {alertsCopy.watchPromptLogin}
+          <Link to="/login" className="watch-prompt-link">
+            {' '}
+            {authCopy.loginCreateLink}
+          </Link>
+        </p>
+        <p className="watch-prompt-text">
+          {alertsCopy.watchPromptRegister}
+          <Link to="/register" className="watch-prompt-link">
+            {' '}
+            {authCopy.registerLoginLink}
+          </Link>
+        </p>
+      </div>
+    );
+  };
 
   return (
     <div className="card-detail-page">
@@ -246,6 +362,16 @@ const CardDetailPage: React.FC = () => {
                   <span className={LABEL_CLASS}>Domestic Lounge</span>
                   <span className={VALUE_CLASS}>{card.loungeAccessDomestic}</span>
                 </div>
+              )}
+            </div>
+
+            {/* Watch Toggle */}
+            <div className="watch-section">
+              {renderWatchToggle()}
+              {watchError && (
+                <p className="watch-error" role="alert">
+                  {watchError}
+                </p>
               )}
             </div>
 
@@ -503,18 +629,13 @@ const CardDetailPage: React.FC = () => {
       )}
 
       {/* Reviews Section */}
-      <section className="reviews-section">
-        <h2>Customer Reviews</h2>
-        <div className="reviews-placeholder">
-          <p>
-            <strong>Reviews Coming Soon</strong>
-          </p>
-          <p>
-            We&apos;re building our community review system. In the meantime, check back soon to see
-            what other cardholders think about this card!
-          </p>
-        </div>
-      </section>
+      {card && (
+        <ReviewsSection
+          cardId={card.id}
+          cardName={card.name}
+          cardUrl={cardPath || window.location.pathname}
+        />
+      )}
     </div>
   );
 };

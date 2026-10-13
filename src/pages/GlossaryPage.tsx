@@ -99,25 +99,38 @@ const GlossaryPage: React.FC = () => {
             <p>{common.glossaryNoResults}</p>
           </div>
         ) : (
-          <ul className="terms-list">
-            {visibleTerms.map(item => {
-              const showBengaliDate =
-                item.bengaliCalendarDate !== null && isBengali
-                  ? formatBengaliDate(new Date(item.bengaliCalendarDate))
-                  : '';
+          <section aria-labelledby="terms-heading">
+            <h2 id="terms-heading" className="visually-hidden">
+              {isBengali ? 'শব্দের তালিকা' : 'Terms list'}
+            </h2>
+            <dl className="terms-list">
+              {visibleTerms.map(item => {
+                const showBengaliDate =
+                  item.bengaliCalendarDate !== null && isBengali
+                    ? formatBengaliDate(new Date(item.bengaliCalendarDate))
+                    : '';
 
-              return (
-                <li key={item.id} className="glossary-item">
-                  <h3 className="term">{getTermText(item, currentLang)}</h3>
-                  <p className="definition">{getDefinitionText(item, currentLang)}</p>
-                  <span className="category-tag">
-                    {getCategoryLabel(item.category, currentLang)}
-                  </span>
-                  {showBengaliDate && <div className="bengali-calendar-tag">{showBengaliDate}</div>}
-                </li>
-              );
-            })}
-          </ul>
+                return (
+                  <React.Fragment key={item.id}>
+                    <dt className="term" role="term">
+                      {getTermText(item, currentLang)}
+                    </dt>
+                    <dd className="definition" role="definition">
+                      {getDefinitionText(item, currentLang)}
+                    </dd>
+                    <dd className="category-tag" role="definition">
+                      {getCategoryLabel(item.category, currentLang)}
+                    </dd>
+                    {showBengaliDate && (
+                      <dd className="bengali-calendar-tag" role="definition">
+                        {showBengaliDate}
+                      </dd>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </dl>
+          </section>
         )}
       </div>
     </div>

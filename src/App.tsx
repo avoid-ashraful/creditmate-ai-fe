@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 
 import { MotionProvider, pageVariants, usePrefersReducedMotion } from './animations';
 import { AccountMenu } from './components/AccountMenu';
+import ErrorBoundary from './components/ErrorBoundary';
+import NetworkStatus from './components/NetworkStatus';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ThemeToggle } from './components/ThemeToggle';
 import { AuthProvider } from './hooks/AuthProvider';
@@ -13,6 +15,8 @@ import { isResultsViewEnabled } from './lib/experiments';
 import { LanguageProvider, useLanguage } from './locales';
 import AboutPage from './pages/AboutPage';
 import AccountPage from './pages/AccountPage';
+import AdvancedSearchPage from './pages/AdvancedSearchPage';
+import AlertsPage from './pages/AlertsPage';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
 import CollectionPage from './pages/CollectionPage';
@@ -29,6 +33,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import RewardCalculatorPage from './pages/RewardCalculatorPage';
 import SavedPage from './pages/SavedPage';
 import SharedPage from './pages/SharedPage';
+import UnsubscribePage from './pages/UnsubscribePage';
 import './styles/App.css';
 import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
 
@@ -45,6 +50,7 @@ interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', en: 'Home', bn: 'হোম' },
+  { to: '/search', en: 'Advanced Search', bn: 'উন্নত অনুসন্ধান' },
   { to: '/perfect-card-finder', en: 'Quiz', bn: 'কুইজ' },
   { to: '/compare', en: 'Compare Cards', bn: 'কার্ড তুলনা' },
   { to: '/reward-calculator', en: 'Reward Calculator', bn: 'রিওয়ার্ড ক্যালকুলেটর' },
@@ -72,6 +78,7 @@ export const AppRoutes: React.FC = () => {
     >
       <Routes location={location}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/search" element={<AdvancedSearchPage />} />
         <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
         <Route path="/category/:slug" element={<CategoryPage />} />
         <Route path="/compare" element={<ComparisonPage />} />
@@ -102,11 +109,20 @@ export const AppRoutes: React.FC = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/unsubscribe" element={<UnsubscribePage />} />
         <Route
           path="/account"
           element={
             <ProtectedRoute>
               <AccountPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/alerts"
+          element={
+            <ProtectedRoute>
+              <AlertsPage />
             </ProtectedRoute>
           }
         />
@@ -190,16 +206,20 @@ export const AppContent: React.FC = () => {
 
       <GradientFooter>
         <div className="footer-content">
-          <div className="footer-section">
-            <h3>CreditMate AI</h3>
-            <p>
+          <section aria-labelledby="footer-brand-heading">
+            <h2 id="footer-brand-heading" className="visually-hidden">
+              CreditMate AI
+            </h2>
+            <p className="footer-brand">
               {isBengali
                 ? 'বাংলাদেশি গ্রাহকদের জন্য আর্থিক সিদ্ধান্ত সহজ করা।'
                 : 'Making financial decisions simpler for Bangladeshi consumers.'}
             </p>
-          </div>
-          <div className="footer-section">
-            <h3>{isBengali ? 'দ্রুত লিংক' : 'Quick Links'}</h3>
+          </section>
+          <nav aria-labelledby="footer-nav-heading" className="footer-section">
+            <h2 id="footer-nav-heading" className="visually-hidden">
+              {isBengali ? 'দ্রুত লিংক' : 'Quick Links'}
+            </h2>
             <ul>
               {NAV_ITEMS.map(item => (
                 <li key={item.to}>
@@ -209,9 +229,11 @@ export const AppContent: React.FC = () => {
                 </li>
               ))}
             </ul>
-          </div>
-          <div className="footer-section">
-            <h3>{isBengali ? 'আইনগত' : 'Legal'}</h3>
+          </nav>
+          <nav aria-labelledby="footer-legal-heading" className="footer-section">
+            <h2 id="footer-legal-heading" className="visually-hidden">
+              {isBengali ? 'আইনগত' : 'Legal'}
+            </h2>
             <ul>
               <li>
                 <Link to="/terms">{isBengali ? 'সেবার শর্তাবলি' : 'Terms of Service'}</Link>
@@ -220,7 +242,7 @@ export const AppContent: React.FC = () => {
                 <Link to="/privacy">{isBengali ? 'গোপনীয়তা নীতি' : 'Privacy Policy'}</Link>
               </li>
             </ul>
-          </div>
+          </nav>
         </div>
         <div className="copyright">
           <p>
@@ -239,7 +261,10 @@ const App: React.FC = () => {
     <Router>
       <PageViewTrackerWrapper />
       <GradientBackground />
-      <AppContent />
+      <ErrorBoundary>
+        <NetworkStatus />
+        <AppContent />
+      </ErrorBoundary>
     </Router>
   );
 };

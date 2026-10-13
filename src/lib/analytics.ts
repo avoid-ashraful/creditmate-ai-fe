@@ -9,6 +9,7 @@ export const ANALYTICS_EVENTS = {
   quizStart: 'quiz_start',
   quizComplete: 'quiz_complete',
   calculatorUse: 'calculator_use',
+  appError: 'app_error',
   signup: 'signup',
   login: 'login',
   // Experiment events (allowlisted for exposure/conversion tracking)
@@ -33,6 +34,7 @@ export interface AnalyticsProperties {
   // Experiment properties
   experimentKey?: string;
   variant?: 'control' | 'treatment';
+  errorName?: string;
 }
 
 export interface AnalyticsEvent {
@@ -148,6 +150,8 @@ const normalizeProperties = (properties: AnalyticsProperties): AnalyticsProperti
   if (properties.variant === 'control' || properties.variant === 'treatment') {
     normalized.variant = properties.variant;
   }
+  const errorName = safeString(properties.errorName);
+  if (errorName) normalized.errorName = errorName;
 
   return normalized;
 };

@@ -160,3 +160,20 @@ export function formatBengaliDate(date: Date | null): string {
 export function pickLang(lang: Language, english: string, bengali: string): string {
   return lang === 'bn' ? bengali : english;
 }
+
+/**
+ * Simple pluralization helper for English and Bengali.
+ * For English: returns singular if count === 1, otherwise plural.
+ * Bengali does not use the same grammatical number distinction as English.
+ */
+export function pluralize(
+  count: number,
+  singular: string,
+  plural: string,
+  lang: Language = 'en'
+): string {
+  if (lang === 'bn') {
+    return plural; // Bengali typically uses the same form
+  }
+  return count === 1 ? singular : plural;
+}

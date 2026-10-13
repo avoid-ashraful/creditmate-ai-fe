@@ -39,6 +39,7 @@ export function describeApiErrors(
   inputKeys: readonly string[]
 ): FormErrors {
   if (error instanceof ApiError) {
+    if (error.status === 0) return { fields: {}, form: copy.networkError };
     const fields: Record<string, string> = {};
     const formMessages: string[] = [];
 

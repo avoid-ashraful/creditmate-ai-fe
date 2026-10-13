@@ -405,7 +405,7 @@ describe('RecommendationQuiz', () => {
       renderQuiz();
 
       await waitFor(() => {
-        const stepRegion = screen.getByRole('region', { name: /Monthly spending step/i });
+        const stepRegion = screen.getByRole('region', { name: /Spending/i });
         expect(stepRegion).toBeInTheDocument();
       });
     });

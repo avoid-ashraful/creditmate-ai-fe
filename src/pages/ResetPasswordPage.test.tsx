@@ -5,6 +5,7 @@ import { setupServer } from 'msw/node';
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import { authUrl } from '../mocks/auth';
 import { renderWithAuth } from '../mocks/renderAuth';
 import { authClient } from '../services/auth';
@@ -36,8 +37,8 @@ const routes = (
 const SUCCESS = 'Your password has been changed. You can now log in.';
 
 describe('ResetPasswordPage', () => {
-  it('explains an invalid link and offers a new one when the token is missing', () => {
-    renderWithAuth(routes, { route: '/reset-password?uid=MQ' });
+  it('explains an invalid link and offers a new one when the signed uid is missing', () => {
+    renderWithAuth(routes, { route: '/reset-password?token=tok' });
 
     expect(screen.getByRole('alert')).toHaveTextContent(
       'This reset link is invalid or incomplete.'
@@ -79,10 +80,17 @@ describe('ResetPasswordPage', () => {
     await user.click(screen.getByRole('button', { name: 'Set new password' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent(SUCCESS);
-    expect(bodies).toEqual([{ uid: 'MQ', token: 'tok', new_password: 'new-pw-123' }]);
+    expect(bodies).toEqual([
+      {
+        uid: 'MQ',
+        token: 'tok',
+        new_password: 'new-pw-123',
+        new_password_confirm: 'new-pw-123',
+      },
+    ]);
   });
 
-  it('omits uid when the link does not carry one', async () => {
+  it('uses the backend email uid as the required placeholder token when no token is present', async () => {
     server.use(
       rest.post(authUrl('password-reset/confirm/'), (req, res, ctx) => {
         bodies.push(req.body);
@@ -90,14 +98,21 @@ describe('ResetPasswordPage', () => {
       })
     );
     const user = userEvent.setup();
-    renderWithAuth(routes, { route: '/reset-password?token=tok' });
+    renderWithAuth(routes, { route: '/reset-password?uid=MQ' });
 
     await user.type(screen.getByLabelText('New password'), 'new-pw-123');
     await user.type(screen.getByLabelText('Confirm password'), 'new-pw-123');
     await user.click(screen.getByRole('button', { name: 'Set new password' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent(SUCCESS);
-    expect(bodies).toEqual([{ token: 'tok', new_password: 'new-pw-123' }]);
+    expect(bodies).toEqual([
+      {
+        uid: 'MQ',
+        token: 'MQ',
+        new_password: 'new-pw-123',
+        new_password_confirm: 'new-pw-123',
+      },
+    ]);
   });
 
   it('shows a rejected token as a form-level message, since it has no input', async () => {
@@ -125,7 +140,7 @@ describe('ResetPasswordPage', () => {
       )
     );
     const user = userEvent.setup();
-    renderWithAuth(routes, { route: '/reset-password?token=tok' });
+    renderWithAuth(routes, { route: '/reset-password?uid=MQ' });
 
     await user.type(screen.getByLabelText('New password'), 'short');
     await user.type(screen.getByLabelText('Confirm password'), 'short');
@@ -134,5 +149,10 @@ describe('ResetPasswordPage', () => {
     const field = await screen.findByLabelText('New password');
     expect(field).toHaveAccessibleDescription('This password is too short.');
     expect(field).toHaveFocus();
+  });
+
+  it('has no accessibility violations', async () => {
+    const { container } = renderWithAuth(routes, { route: '/reset-password?token=tok&uid=MQ' });
+    await expectNoAxeViolations(container);
   });
 });

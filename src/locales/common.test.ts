@@ -93,7 +93,10 @@ describe('common copy', () => {
     const bnStringKeys = keys.filter(key => typeof COMMON_COPY.bn[key] === 'string');
     bnStringKeys.forEach(key => {
       const value = COMMON_COPY.bn[key] as string;
-      const disallowed = [...value].filter(ch => !allowedCodes.has(ch.codePointAt(0)));
+      const disallowed = Array.from(value).filter(ch => {
+        const cp = ch.codePointAt(0);
+        return cp !== undefined && !allowedCodes.has(cp);
+      });
       expect(disallowed.length).toBe(0);
     });
   });

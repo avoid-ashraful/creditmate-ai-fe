@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { AuthClient, AuthUser, LoginInput, RegisterInput, authClient } from '../services/auth';
+export type { AuthClient } from '../services/auth';
 
 export const AUTH_STATUS = {
   loading: 'loading',
@@ -79,8 +80,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, client = a
 
   const register = useCallback(
     async (input: RegisterInput) => {
-      const session = await client.register(input);
-      setState({ status: AUTH_STATUS.authenticated, user: session.user });
+      await client.register(input);
+      setState(ANONYMOUS);
       analytics.track(ANALYTICS_EVENTS.signup);
     },
     [client]

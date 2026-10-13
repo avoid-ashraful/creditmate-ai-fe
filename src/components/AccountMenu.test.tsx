@@ -5,6 +5,7 @@ import { setupServer } from 'msw/node';
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import { AUTH_USER, authUrl, sessionBody } from '../mocks/auth';
 import { renderWithAuth } from '../mocks/renderAuth';
 import { authClient, REFRESH_TOKEN_STORAGE_KEY } from '../services/auth';
@@ -14,10 +15,12 @@ import { AccountMenu } from './AccountMenu';
 const server = setupServer();
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-afterEach(() => {
-  server.resetHandlers();
+beforeEach(() => {
   authClient.clearLocalSession();
   window.sessionStorage.clear();
+});
+afterEach(() => {
+  server.resetHandlers();
 });
 afterAll(() => server.close());
 
@@ -74,7 +77,9 @@ describe('AccountMenu', () => {
     const user = userEvent.setup();
     renderWithAuth(routes);
 
-    const trigger = await screen.findByRole('button', { name: /Account menu/ });
+    const trigger = await screen.findByRole('button', {
+      name: `Account menu: ${AUTH_USER.email}`,
+    });
     await user.click(trigger);
     await user.keyboard('{Escape}');
 
@@ -104,5 +109,16 @@ describe('AccountMenu', () => {
 
     expect(screen.getByRole('link', { name: 'লগ ইন' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'নিবন্ধন' })).toBeInTheDocument();
+  });
+
+  it('has no accessibility violations (anonymous)', async () => {
+    const { container } = renderWithAuth(routes);
+    await expectNoAxeViolations(container);
+  });
+
+  it('has no accessibility violations (signed in)', async () => {
+    await signIn();
+    const { container } = renderWithAuth(routes);
+    await expectNoAxeViolations(container);
   });
 });

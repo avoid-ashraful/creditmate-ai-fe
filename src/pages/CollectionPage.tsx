@@ -69,12 +69,17 @@ const CollectionPage: React.FC = () => {
           <h2>{t.cards}</h2>
           {item.cards?.length ? (
             <ul className="saved-list">
-              {item.cards.map(card => (
-                <li key={card.card_id}>
-                  <span>{card.card?.name || `#${card.card_id}`}</span>
-                  <button onClick={() => void remove(card.card_id)}>{t.remove}</button>
-                </li>
-              ))}
+              {item.cards.map(card => {
+                const cardId = card.card?.id;
+                return (
+                  <li key={cardId}>
+                    <span>{card.card?.name || `#${cardId}`}</span>
+                    {cardId !== undefined && (
+                      <button onClick={() => void remove(cardId)}>{t.remove}</button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p>{t.empty}</p>

@@ -38,7 +38,7 @@ describe('CardComparisonTable', () => {
     expect(mobileCards).toHaveLength(2);
     expect(within(mobileCards[0]).getByRole('heading', { name: 'Card 1' })).toBeInTheDocument();
 
-    expect(within(mobileCards[0]).getByText('Annual Fee')).toBeInTheDocument();
+    expect(within(mobileCards[0]).getByText('Annual fee')).toBeInTheDocument();
     expect(within(mobileCards[0]).getByText('BDT 1,000')).toBeInTheDocument();
     await userEvent.click(within(mobileCards[0]).getByText('Benefits'));
     expect(within(mobileCards[0]).getByText('1 point per BDT 50')).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe('CardComparisonTable', () => {
     const region = screen.getByRole('region', { name: 'Compare card features' });
     expect(within(region).getByRole('table')).toBeInTheDocument();
     expect(within(region).getAllByRole('columnheader')).toHaveLength(3);
-    expect(within(region).getByRole('rowheader', { name: 'Annual Fee' })).toBeInTheDocument();
+    expect(within(region).getByRole('rowheader', { name: 'Annual fee' })).toBeInTheDocument();
     expect(within(region).getAllByRole('cell').length).toBeGreaterThan(2);
   });
 

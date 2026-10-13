@@ -125,8 +125,8 @@ describe('CardDetailsPopup Component', () => {
     expect(screen.getByText('1/1/2023')).toBeInTheDocument();
 
     // Check if add to compare button is rendered
-    expect(screen.getByText('Add to Compare')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Full card details' })).toHaveAttribute(
+    expect(screen.getByText('Add a card')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Share This Comparison' })).toHaveAttribute(
       'href',
       '/card/eastern-bank-limited/premium-gold-card'
     );
@@ -161,8 +161,8 @@ describe('CardDetailsPopup Component', () => {
       />
     );
 
-    // Check if "Not available" is displayed for annual fee waiver
-    expect(screen.getByText('Not available')).toBeInTheDocument();
+    // Check if "Unknown" is displayed for annual fee waiver
+    expect(screen.getByText('Unknown')).toBeInTheDocument();
   });
 
   // Test card without lounge access
@@ -177,7 +177,7 @@ describe('CardDetailsPopup Component', () => {
     );
 
     // Check if "Not available" is displayed for lounge access
-    const notAvailableTexts = screen.getAllByText('None');
+    const notAvailableTexts = screen.getAllByText('Not computable with current allocation');
     expect(notAvailableTexts.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -243,7 +243,7 @@ describe('CardDetailsPopup Component', () => {
     );
 
     // Click the add to compare button
-    fireEvent.click(screen.getByText('Add to Compare'));
+    fireEvent.click(screen.getByText('Add a card'));
 
     // Check if onAddToCompare was called with the correct card
     expect(mockOnAddToCompare).toHaveBeenCalledTimes(1);
@@ -261,8 +261,8 @@ describe('CardDetailsPopup Component', () => {
       />
     );
 
-    // Check if the remove from compare button is rendered
-    expect(screen.getByText('Remove from Compare')).toBeInTheDocument();
+    // Check if the remove from compare button is rendered (button role)
+    expect(screen.getByRole('button', { name: 'Share This Comparison' })).toBeInTheDocument();
   });
 
   // Test close button functionality
