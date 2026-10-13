@@ -372,6 +372,19 @@ describe('SearchAutocomplete – keyboard navigation', () => {
       );
     });
   });
+
+  it('keeps the suggestion list closed after selecting a card', async () => {
+    renderAutocomplete();
+
+    const input = screen.getByRole('combobox');
+    fireEvent.input(input, { target: { value: 'other' } });
+
+    const cardOption = await screen.findByRole('option', { name: /Other Rewards Card/i });
+    await userEvent.click(cardOption);
+
+    expect(input).toHaveValue('Other Rewards Card');
+    await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument());
+  });
 });
 
 // ---- Integration with HomePage tests ----------------------------------
