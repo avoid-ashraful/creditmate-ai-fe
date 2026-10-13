@@ -8,6 +8,39 @@ import { server } from '../mocks/jest.setup';
 
 import GuidesPage from './GuidesPage';
 
+// Mock experiments to always return control
+jest.mock('../lib/experiments', () => ({
+  getVariant: () => 'control',
+  isTreatment: () => false,
+  isResultsViewEnabled: () => false,
+  EXPERIMENTS: {
+    hero_cta_text: {
+      key: 'hero_cta_text',
+      name: 'Hero CTA Text',
+      treatmentAllocation: 50,
+      enabled: true,
+      minSampleSize: 100,
+      confidenceLevel: 0.95,
+    },
+    quiz_vs_browse_default: {
+      key: 'quiz_vs_browse_default',
+      name: 'Quiz vs Browse Default',
+      treatmentAllocation: 50,
+      enabled: true,
+      minSampleSize: 100,
+      confidenceLevel: 0.95,
+    },
+    card_layout: {
+      key: 'card_layout',
+      name: 'Card Layout',
+      treatmentAllocation: 50,
+      enabled: true,
+      minSampleSize: 100,
+      confidenceLevel: 0.95,
+    },
+  },
+}));
+
 /**
  * <head> metadata lives outside the rendered body, so Testing Library queries
  * cannot reach it. These two helpers are the only direct DOM access in this

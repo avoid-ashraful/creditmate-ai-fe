@@ -4,11 +4,13 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import { ThemeToggle } from './components/ThemeToggle';
 import { ThemeProvider } from './hooks/ThemeProvider';
 import { ANALYTICS_EVENTS, analytics, getAnalyticsContextProperties } from './lib/analytics';
+import { isResultsViewEnabled } from './lib/experiments';
 import { LanguageProvider, useLanguage } from './locales';
 import AboutPage from './pages/AboutPage';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
 import ComparisonPage from './pages/ComparisonPage';
+import ExperimentResults from './pages/ExperimentResults/ExperimentResults';
 import GlossaryPage from './pages/GlossaryPage';
 import GuidesPage from './pages/GuidesPage';
 import HomePage from './pages/HomePage';
@@ -40,6 +42,8 @@ export const NAV_ITEMS: NavItem[] = [
 
 /** Render the page routes. Exported so routing can be tested with MemoryRouter. */
 export const AppRoutes: React.FC = () => {
+  const showResultsView = isResultsViewEnabled();
+
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
@@ -52,6 +56,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/guides/:slug" element={<GuidesPage />} />
       <Route path="/glossary" element={<GlossaryPage />} />
       <Route path="/about" element={<AboutPage />} />
+      {showResultsView && <Route path="/experiment-results" element={<ExperimentResults />} />}
     </Routes>
   );
 };
