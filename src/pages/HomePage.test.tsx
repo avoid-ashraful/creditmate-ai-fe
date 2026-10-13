@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
+import { AuthProvider } from '../hooks/AuthProvider';
+import { LanguageProvider } from '../locales';
 import { testCards } from '../mocks/handlers';
 import { server } from '../mocks/jest.setup';
 
@@ -66,12 +68,16 @@ afterEach(() => {
 
 const renderRoutes = () =>
   render(
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/compare" element={<ComparisonPage />} />
-      </Routes>
-    </BrowserRouter>
+    <LanguageProvider>
+      <AuthProvider>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/compare" element={<ComparisonPage />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </LanguageProvider>
   );
 
 test('renders HomePage with credit card content from the mocked API', async () => {
