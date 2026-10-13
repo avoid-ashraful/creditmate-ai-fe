@@ -17,3 +17,6 @@ yarn-error.log*
 /playwright-report/
 /test-results/
 /blob-report/
+
+# Raw PostHog exports used by the funnel report (may contain user identifiers)
+/analytics/posthog/exports/

@@ -1,0 +1,47 @@
+{
+  "id": "conversion-funnel",
+  "name": "Conversion funnel (task 10.2)",
+  "description": "Visit → Search → Filter → Select → Compare → Share, with drop-off per step and breakdowns by device, source and new vs returning visitors.",
+  "tags": ["analytics", "funnel", "task-10.2"],
+  "dateRange": "-7d",
+  "tiles": [
+    {
+      "id": "funnel-overall",
+      "type": "funnel",
+      "title": "Overall funnel",
+      "funnelId": "visit-to-share"
+    },
+    {
+      "id": "funnel-by-device",
+      "type": "funnel",
+      "title": "Funnel by device",
+      "funnelId": "visit-to-share",
+      "breakdown": { "type": "event", "property": "$device_type" }
+    },
+    {
+      "id": "funnel-by-source",
+      "type": "funnel",
+      "title": "Funnel by source (utm_source on Visit)",
+      "funnelId": "visit-to-share",
+      "breakdown": { "type": "event", "property": "utmSource" }
+    },
+    {
+      "id": "funnel-by-visitor-type",
+      "type": "funnel",
+      "title": "Funnel by new vs returning",
+      "funnelId": "visit-to-share",
+      "breakdown": {
+        "type": "cohort",
+        "cohortKeys": ["segment-new-visitor", "segment-returning-visitor"]
+      }
+    },
+    {
+      "id": "funnel-weekly-trend",
+      "type": "funnel_trend",
+      "title": "Weekly overall conversion (last 12 weeks)",
+      "funnelId": "visit-to-share",
+      "interval": "week",
+      "dateRange": "-12w"
+    }
+  ]
+}
