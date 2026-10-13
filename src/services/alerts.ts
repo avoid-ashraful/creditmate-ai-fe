@@ -15,7 +15,9 @@ import {
   UnsubscribeResponse,
 } from '../types/alerts';
 
+import { ApiError, responseApiError, resilientFetch } from './apiError';
 import { authClient } from './auth';
+export { ApiError } from './apiError';
 
 const HTTP_METHOD = { get: 'GET', post: 'POST', patch: 'PATCH', delete: 'DELETE' } as const;
 type HttpMethod = (typeof HTTP_METHOD)[keyof typeof HTTP_METHOD];
@@ -25,55 +27,8 @@ const BASE_URL = ENV.API_BASE_URL.replace(/\/$/, '');
 /**
  * An error response from the backend. Mirrors ApiError from auth.ts.
  */
-export class AlertsApiError extends Error {
-  readonly status: number;
-  readonly detail: string | null;
-  readonly fieldErrors: Record<string, string[]>;
-
-  constructor(
-    status: number,
-    detail: string | null = null,
-    fieldErrors: Record<string, string[]> = {}
-  ) {
-    super(detail ?? `Request failed with status ${status}`);
-    Object.setPrototypeOf(this, AlertsApiError.prototype);
-    this.name = 'AlertsApiError';
-    this.status = status;
-    this.detail = detail;
-    this.fieldErrors = fieldErrors;
-  }
-}
-
-const readJsonBody = async (response: Response): Promise<Record<string, unknown> | null> => {
-  try {
-    const body: unknown = await response.json();
-    if (body && typeof body === 'object' && !Array.isArray(body)) {
-      return body as Record<string, unknown>;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-};
-
-const toApiError = async (response: Response): Promise<AlertsApiError> => {
-  const body = await readJsonBody(response);
-  if (!body) return new AlertsApiError(response.status);
-
-  const detail = typeof body.detail === 'string' ? body.detail : null;
-  const fieldErrors: Record<string, string[]> = {};
-  Object.keys(body).forEach(key => {
-    if (key === 'detail') return;
-    const value = body[key];
-    if (typeof value === 'string') {
-      fieldErrors[key] = [value];
-    } else if (Array.isArray(value)) {
-      const messages = value.filter((item): item is string => typeof item === 'string');
-      if (messages.length > 0) fieldErrors[key] = messages;
-    }
-  });
-  return new AlertsApiError(response.status, detail, fieldErrors);
-};
+/** @deprecated Use the shared ApiError. Kept as a source-compatible alias. */
+export { ApiError as AlertsApiError };
 
 interface RequestOptions {
   method?: HttpMethod;
@@ -108,7 +63,7 @@ export class AlertsClient {
     }
 
     const token = await this.getAccessToken();
-    if (!token) throw new AlertsApiError(401, 'No active session');
+    if (!token) throw new ApiError(401, 'No active session');
 
     let response = await this.send(path, options, token);
 
@@ -125,7 +80,7 @@ export class AlertsClient {
     if (options.body !== undefined) headers['Content-Type'] = 'application/json';
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    return fetch(`${this.baseUrl}/alerts${path}`, {
+    return resilientFetch(`${this.baseUrl}/alerts${path}`, {
       method: options.method ?? HTTP_METHOD.get,
       headers,
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
@@ -133,7 +88,7 @@ export class AlertsClient {
   }
 
   private async parse<T>(response: Response): Promise<T> {
-    if (!response.ok) throw await toApiError(response);
+    if (!response.ok) throw await responseApiError(response);
     if (response.status === 204) return undefined as T;
     return (await response.json()) as T;
   }

@@ -1,6 +1,9 @@
 import { ENV } from '../config/env';
 import { CreditCard, Bank, CardFilterOptions } from '../types';
 
+import { responseApiError, resilientFetch } from './apiError';
+export { ApiError } from './apiError';
+
 const API_BASE_URL = ENV.API_BASE_URL;
 
 export interface ApiResponse<T> {
@@ -103,14 +106,14 @@ class ApiService {
       : `${API_BASE_URL}${endpoint}`;
 
     try {
-      const response = await fetch(url, {
+      const response = await resilientFetch(url, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        throw await responseApiError(response);
       }
 
       const data = await response.json();

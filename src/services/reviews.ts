@@ -1,6 +1,7 @@
 import { ENV } from '../config/env';
 
 import { ApiResponse } from './api';
+import { responseApiError, resilientFetch } from './apiError';
 
 /**
  * Review API response from the backend.
@@ -119,7 +120,7 @@ class ReviewsService {
     const url = `${ENV.API_BASE_URL}${endpoint}`;
 
     try {
-      const response = await fetch(url, {
+      const response = await resilientFetch(url, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
@@ -128,21 +129,7 @@ class ReviewsService {
       });
 
       if (!response.ok) {
-        const errorData: Record<string, unknown> = await response.json().catch(() => ({}));
-        const fieldMessages = Object.values(errorData).find(value => Array.isArray(value));
-        const firstFieldMessage =
-          Array.isArray(fieldMessages) && typeof fieldMessages[0] === 'string'
-            ? fieldMessages[0]
-            : null;
-        const nonFieldMessage = Array.isArray(errorData.non_field_errors)
-          ? errorData.non_field_errors[0]
-          : null;
-        const message =
-          (typeof errorData.detail === 'string' && errorData.detail) ||
-          (typeof nonFieldMessage === 'string' && nonFieldMessage) ||
-          firstFieldMessage ||
-          `API request failed: ${response.status}`;
-        throw new Error(message);
+        throw await responseApiError(response);
       }
 
       if (response.status === 204) {

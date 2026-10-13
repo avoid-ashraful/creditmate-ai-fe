@@ -9,6 +9,7 @@ export const ANALYTICS_EVENTS = {
   quizStart: 'quiz_start',
   quizComplete: 'quiz_complete',
   calculatorUse: 'calculator_use',
+  appError: 'app_error',
   signup: 'signup',
   login: 'login',
   // Experiment events (allowlisted for exposure/conversion tracking)
@@ -33,6 +34,7 @@ export interface AnalyticsProperties {
   // Experiment properties
   experimentKey?: string;
   variant?: 'control' | 'treatment';
+  errorName?: string;
 }
 
 export interface AnalyticsEvent {
