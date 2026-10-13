@@ -72,4 +72,17 @@ describe('shared API failure handling', () => {
     expect((await request).status).toBe(503);
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
+
+  it('stops a pending backoff when the caller aborts', async () => {
+    jest.useFakeTimers('legacy');
+    const fetchMock = jest
+      .spyOn(global, 'fetch')
+      .mockResolvedValue(new Response('', { status: 503 }));
+    const controller = new AbortController();
+    const request = resilientFetch('/unavailable', { signal: controller.signal });
+    for (let i = 0; i < 10; i += 1) await Promise.resolve();
+    controller.abort();
+    await expect(request).rejects.toMatchObject({ name: 'AbortError' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });
