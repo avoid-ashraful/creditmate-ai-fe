@@ -4,11 +4,13 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 
 import { MotionProvider, pageVariants, usePrefersReducedMotion } from './animations';
 import { AccountMenu } from './components/AccountMenu';
+import ErrorBoundary from './components/ErrorBoundary';
 import {
   LazyPageFallback,
   LazyAuthFallback,
   LazyPageMinimalFallback,
 } from './components/LazyPageFallback';
+import NetworkStatus from './components/NetworkStatus';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ThemeToggle } from './components/ThemeToggle';
 import { AuthProvider } from './hooks/AuthProvider';
@@ -64,6 +66,7 @@ const lazyLoad = (
 // Lazy-loaded pages (non-critical paths) - eager in tests, lazy in production
 const AboutPage = lazyLoad(() => import('./pages/AboutPage'));
 const AccountPage = lazyLoad(() => import('./pages/AccountPage'));
+const AdvancedSearchPage = lazyLoad(() => import('./pages/AdvancedSearchPage'));
 const AlertsPage = lazyLoad(() => import('./pages/AlertsPage'));
 const CollectionPage = lazyLoad(() => import('./pages/CollectionPage'));
 const ExperimentResults = lazyLoad(() => import('./pages/ExperimentResults/ExperimentResults'));
@@ -94,6 +97,7 @@ interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', en: 'Home', bn: 'হোম' },
+  { to: '/search', en: 'Advanced Search', bn: 'উন্নত অনুসন্ধান' },
   { to: '/perfect-card-finder', en: 'Quiz', bn: 'কুইজ' },
   { to: '/compare', en: 'Compare Cards', bn: 'কার্ড তুলনা' },
   { to: '/reward-calculator', en: 'Reward Calculator', bn: 'রিওয়ার্ড ক্যালকুলেটর' },
@@ -121,6 +125,14 @@ export const AppRoutes: React.FC = () => {
     >
       <Routes location={location}>
         <Route path="/" element={<HomePage />} />
+        <Route
+          path="/search"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading search..." />}>
+              <AdvancedSearchPage />
+            </Suspense>
+          }
+        />
         <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
         <Route path="/category/:slug" element={<CategoryPage />} />
         <Route path="/compare" element={<ComparisonPage />} />
@@ -400,7 +412,10 @@ const App: React.FC = () => {
     <Router>
       <PageViewTrackerWrapper />
       <GradientBackground />
-      <AppContent />
+      <ErrorBoundary>
+        <NetworkStatus />
+        <AppContent />
+      </ErrorBoundary>
     </Router>
   );
 };

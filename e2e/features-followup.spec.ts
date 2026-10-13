@@ -8,11 +8,13 @@ const session = { user, access: 'access-e2e', refresh: 'refresh-e2e' };
 async function mockAuth(page: import('@playwright/test').Page) {
   await page.route(`${API_HOST}/auth/**`, async route => {
     const path = new URL(route.request().url()).pathname;
-    if (path.endsWith('/register/') || path.endsWith('/login/')) {
+    if (path.endsWith('/register/')) {
+      await route.fulfill({ status: 201, json: { detail: 'Verification email sent.' } });
+    } else if (path.endsWith('/login/')) {
       await route.fulfill({ json: session });
     } else if (path.endsWith('/logout/')) {
-      await route.fulfill({ status: 205, body: '' });
-    } else if (path.endsWith('/password-reset/request/')) {
+      await route.fulfill({ status: 200, json: { detail: 'Logged out.' } });
+    } else if (path.endsWith('/password-reset/')) {
       await route.fulfill({ status: 200, json: { detail: 'ok' } });
     } else if (path.endsWith('/token/refresh/')) {
       await route.fulfill({ json: { access: 'access-refreshed' } });
@@ -36,6 +38,10 @@ test('register, login, logout and forgot password use mocked auth endpoints', as
   await page.getByLabel('Password', { exact: true }).fill('Strong-pass-123');
   await page.getByLabel(/confirm password/i).fill('Strong-pass-123');
   await page.getByRole('button', { name: /create account|register/i }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  await page.getByLabel('Email').fill(user.email);
+  await page.getByLabel('Password', { exact: true }).fill('Strong-pass-123');
+  await page.getByRole('button', { name: /log in/i }).click();
   await expect(page).toHaveURL(/\/account$/);
   await page.getByRole('button', { name: new RegExp(user.email) }).click();
   await page

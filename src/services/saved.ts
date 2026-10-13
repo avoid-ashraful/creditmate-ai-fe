@@ -1,18 +1,19 @@
-import { ENV } from '../config/env';
-
 import { authClient, ApiError } from './auth';
 
 export interface SavedComparison {
   id: number;
   name: string;
-  card_ids: number[];
+  card_ids?: number[];
+  notes?: string;
+  cards?: Array<{ id: number; name: string; bank_name?: string }>;
   is_public: boolean;
   share_token?: string | null;
 }
 
 export interface SavedCollectionCard {
-  card_id: number;
+  card_id?: number;
   notes?: string;
+  created?: string;
   card?: { id: number; name: string; bank_name?: string };
 }
 
@@ -30,10 +31,12 @@ export interface SharedSavedItem {
   name: string;
   description?: string;
   card_ids?: number[];
-  cards?: SavedCollectionCard[];
+  cards?: Array<SavedCollectionCard | { id: number; name: string; bank_name?: string }>;
 }
 
-const base = `${ENV.API_BASE_URL.replace(/\/$/, '')}/saved/`;
+// AuthClient.requestApi prefixes its configured API base URL, so keep paths
+// relative here (a full URL would be appended to /api/v1 a second time).
+const base = 'saved/';
 const list = <T>(data: T[] | { results: T[] }): T[] => (Array.isArray(data) ? data : data.results);
 const request = <T>(
   path: string,
@@ -73,13 +76,13 @@ export const savedService = {
     return request<void>(`collections/${id}/`, 'DELETE');
   },
   addCard(id: number, card_id: number, notes?: string) {
-    return request<SavedCollection>(`collections/${id}/add_card/`, 'POST', {
+    return request<SavedCollection>(`collections/${id}/cards/`, 'POST', {
       card_id,
       ...(notes ? { notes } : {}),
     });
   },
   removeCard(id: number, card_id: number) {
-    return request<SavedCollection>(`collections/${id}/remove_card/`, 'POST', { card_id });
+    return request<void>(`collections/${id}/cards/${card_id}/`, 'DELETE');
   },
   shared(token: string) {
     return authClient.requestApi<SharedSavedItem>(`${base}shared/${encodeURIComponent(token)}/`);

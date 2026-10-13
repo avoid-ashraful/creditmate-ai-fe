@@ -68,16 +68,16 @@ afterEach(() => {
 
 const renderRoutes = () =>
   render(
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <LanguageProvider>
-        <AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/compare" element={<ComparisonPage />} />
           </Routes>
-        </AuthProvider>
-      </LanguageProvider>
-    </BrowserRouter>
+        </BrowserRouter>
+      </AuthProvider>
+    </LanguageProvider>
   );
 
 test('renders HomePage with credit card content from the mocked API', async () => {

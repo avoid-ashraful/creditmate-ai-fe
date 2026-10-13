@@ -28,19 +28,16 @@ const loggedInClient = async () => {
 };
 
 describe('AuthClient registration and login', () => {
-  it('posts register with password_confirm and stores only the refresh token', async () => {
+  it('posts register with password_confirm and keeps the user anonymous pending verification', async () => {
     let body: unknown;
     server.use(
       rest.post(authUrl('register/'), (req, res, ctx) => {
         body = req.body;
-        return res(ctx.status(201), ctx.json(sessionBody('acc', 'ref')));
+        return res(ctx.status(201), ctx.json({ detail: 'Registration successful.' }));
       })
     );
     const client = createClient();
-    const listener = jest.fn();
-    client.subscribe(listener);
-
-    const session = await client.register({
+    const result = await client.register({
       email: AUTH_USER.email,
       password: 'pw-12345',
       passwordConfirm: 'pw-12345',
@@ -51,11 +48,9 @@ describe('AuthClient registration and login', () => {
       password: 'pw-12345',
       password_confirm: 'pw-12345',
     });
-    expect(session.user).toEqual(AUTH_USER);
-    expect(window.sessionStorage.getItem(REFRESH_TOKEN_STORAGE_KEY)).toBe('ref');
-    // The access token must never be persisted.
-    expect(Object.values({ ...window.sessionStorage }).join(' ')).not.toContain('acc');
-    expect(listener).toHaveBeenCalledWith(true);
+    expect(result.detail).toContain('Registration successful');
+    expect(client.hasSession()).toBe(false);
+    expect(window.sessionStorage.getItem(REFRESH_TOKEN_STORAGE_KEY)).toBeNull();
   });
 
   it('omits password_confirm when it is not supplied', async () => {
@@ -63,7 +58,7 @@ describe('AuthClient registration and login', () => {
     server.use(
       rest.post(authUrl('register/'), (req, res, ctx) => {
         body = req.body as Record<string, unknown>;
-        return res(ctx.status(201), ctx.json(sessionBody()));
+        return res(ctx.status(201), ctx.json({ detail: 'Registration successful.' }));
       })
     );
     await createClient().register({ email: AUTH_USER.email, password: 'pw-12345' });
@@ -362,7 +357,7 @@ describe('AuthClient account and password endpoints', () => {
   it('sends the reset request with only the email', async () => {
     let body: unknown;
     server.use(
-      rest.post(authUrl('password-reset/request/'), (req, res, ctx) => {
+      rest.post(authUrl('password-reset/'), (req, res, ctx) => {
         body = req.body;
         return res(ctx.status(200), ctx.json({ detail: 'sent' }));
       })
@@ -372,7 +367,7 @@ describe('AuthClient account and password endpoints', () => {
     expect(body).toEqual({ email: 'reader@example.com' });
   });
 
-  it('confirms a reset with the token and new password, including uid only when given', async () => {
+  it('confirms a reset with uid, token, and both matching password fields', async () => {
     const bodies: unknown[] = [];
     server.use(
       rest.post(authUrl('password-reset/confirm/'), (req, res, ctx) => {
@@ -383,11 +378,9 @@ describe('AuthClient account and password endpoints', () => {
     const client = createClient();
 
     await client.confirmPasswordReset({ uid: 'MQ', token: 'tok', newPassword: 'new-pw-123' });
-    await client.confirmPasswordReset({ token: 'tok', newPassword: 'new-pw-123' });
 
     expect(bodies).toEqual([
-      { uid: 'MQ', token: 'tok', new_password: 'new-pw-123' },
-      { token: 'tok', new_password: 'new-pw-123' },
+      { uid: 'MQ', token: 'tok', new_password: 'new-pw-123', new_password_confirm: 'new-pw-123' },
     ]);
   });
 
@@ -399,7 +392,7 @@ describe('AuthClient account and password endpoints', () => {
     );
 
     const error = await createClient()
-      .confirmPasswordReset({ token: 'bad', newPassword: 'new-pw-123' })
+      .confirmPasswordReset({ uid: 'bad', token: 'bad', newPassword: 'new-pw-123' })
       .catch((caught: unknown) => caught);
 
     expect((error as ApiError).fieldErrors).toEqual({ token: ['Invalid or expired token.'] });

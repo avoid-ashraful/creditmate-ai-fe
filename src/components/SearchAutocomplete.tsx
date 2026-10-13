@@ -156,6 +156,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   const [activeIndex, setActiveIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
   const requestIdRef = useRef(0);
+  const selectedValueRef = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -164,6 +165,13 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   // Debounced fetch
   useEffect(() => {
     const query = value.trim();
+    if (selectedValueRef.current === query) {
+      requestIdRef.current += 1;
+      setResult(null);
+      setIsOpen(false);
+      setActiveIndex(-1);
+      return;
+    }
     if (query.length < minQueryLength) {
       setResult(null);
       setIsOpen(false);
@@ -241,6 +249,8 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
 
   // Option selection
   const selectOption = (option: FlattenedOption) => {
+    selectedValueRef.current = option.label.trim() === value.trim() ? null : option.label.trim();
+    requestIdRef.current += 1;
     onChange(option.label);
     setIsOpen(false);
     setActiveIndex(-1);
@@ -333,7 +343,11 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         className="search-autocomplete-input"
         placeholder={placeholder}
         value={value}
-        onChange={e => onChange(e.target.value)}
+        onChange={e => {
+          const nextValue = e.target.value;
+          if (nextValue.trim() !== selectedValueRef.current) selectedValueRef.current = null;
+          onChange(nextValue);
+        }}
         onKeyDown={handleKeyDown}
         onFocus={() => {
           const q = value.trim();

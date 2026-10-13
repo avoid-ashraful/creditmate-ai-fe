@@ -24,8 +24,10 @@ const ResetPasswordPage: React.FC = () => {
   const { lang } = useLanguage();
   const copy = getAuthCopy(lang);
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token') ?? '';
-  const uid = searchParams.get('uid') ?? undefined;
+  const uid = searchParams.get('uid') ?? '';
+  // The backend's reset email contains a signed uid only; its confirmation
+  // serializer also requires token, which currently is not validated.
+  const token = searchParams.get('token') ?? uid;
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -73,7 +75,7 @@ const ResetPasswordPage: React.FC = () => {
     }
   };
 
-  if (!token) {
+  if (!uid) {
     return (
       <AuthCard title={copy.resetTitle}>
         <p className="auth-alert" role="alert">

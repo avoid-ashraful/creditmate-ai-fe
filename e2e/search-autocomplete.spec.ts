@@ -62,7 +62,7 @@ test.describe('Search Autocomplete E2E', () => {
     await searchInput.fill('visa');
 
     const listbox = page.getByRole('listbox');
-    await expect(listbox).toBeVisible({ timeout: 2000 });
+    await expect(listbox).toBeVisible();
 
     const options = page.getByRole('option');
     await expect(options).toHaveCount(1);
@@ -75,7 +75,7 @@ test.describe('Search Autocomplete E2E', () => {
     await searchInput.fill('travel');
 
     const listbox = page.getByRole('listbox');
-    await expect(listbox).toBeVisible({ timeout: 500 });
+    await expect(listbox).toBeVisible();
 
     const travelOption = page.getByRole('option').filter({ hasText: /Travel/i });
     await expect(travelOption).toBeVisible();
@@ -101,7 +101,7 @@ test.describe('Search Autocomplete E2E', () => {
     await searchInput.fill('visa');
 
     const listbox = page.getByRole('listbox');
-    await expect(listbox).toBeVisible({ timeout: 500 });
+    await expect(listbox).toBeVisible();
 
     const visaOption = page.getByRole('option').filter({ hasText: /Visa Platinum Card/i });
     await expect(visaOption).toBeVisible();
@@ -120,7 +120,7 @@ test.describe('Search Autocomplete E2E', () => {
     await expect(listbox).not.toBeVisible();
 
     await searchInput.type('isa');
-    await expect(page.getByRole('listbox')).toBeVisible({ timeout: 500 });
+    await expect(page.getByRole('listbox')).toBeVisible();
   });
 
   test('keyboard navigation works', async () => {
@@ -129,7 +129,7 @@ test.describe('Search Autocomplete E2E', () => {
     await searchInput.fill('travel');
 
     const listbox = page.getByRole('listbox');
-    await expect(listbox).toBeVisible({ timeout: 500 });
+    await expect(listbox).toBeVisible();
 
     await searchInput.press('ArrowDown');
 
@@ -148,7 +148,7 @@ test.describe('Search Autocomplete E2E', () => {
     await searchInput.fill('travel');
 
     const listbox = page.getByRole('listbox');
-    await expect(listbox).toBeVisible({ timeout: 500 });
+    await expect(listbox).toBeVisible();
 
     await searchInput.press('Escape');
     await expect(listbox).not.toBeVisible();

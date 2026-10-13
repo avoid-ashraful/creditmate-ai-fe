@@ -87,7 +87,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe('GuidesPage index', () => {
-  test('renders the four required guides', () => {
+  test('renders all guides including the four required ones', () => {
     renderGuides('/guides');
 
     expect(
@@ -110,13 +110,29 @@ describe('GuidesPage index', () => {
     ).toBeTruthy();
   });
 
-  test('lists exactly the four acceptance-criteria slugs', () => {
-    expect(guides.map(guide => guide.slug)).toEqual([
-      'choosing-your-first-credit-card',
-      'understanding-annual-fee-waivers',
-      'maximizing-lounge-access-benefits',
-      'credit-card-vs-debit-card',
-    ]);
+  test('lists the four acceptance-criteria slugs among all guides', () => {
+    const allSlugs = guides.map(guide => guide.slug);
+    expect(allSlugs).toContain('choosing-your-first-credit-card');
+    expect(allSlugs).toContain('understanding-annual-fee-waivers');
+    expect(allSlugs).toContain('maximizing-lounge-access-benefits');
+    expect(allSlugs).toContain('credit-card-vs-debit-card');
+    // New guides added in task 9.1 follow-up (English + Bengali)
+    expect(allSlugs).toContain('create-account-sign-in');
+    expect(allSlugs).toContain('save-share-comparison');
+    expect(allSlugs).toContain('organize-cards-collections');
+    expect(allSlugs).toContain('email-alerts-card-changes');
+    expect(allSlugs).toContain('write-read-community-reviews');
+    expect(allSlugs).toContain('advanced-search-filters');
+    expect(allSlugs).toContain('switch-dark-mode-language');
+    expect(allSlugs).toContain('how-creditmate-handles-your-data');
+    expect(allSlugs).toContain('create-account-sign-in-bn');
+    expect(allSlugs).toContain('save-share-comparison-bn');
+    expect(allSlugs).toContain('organize-cards-collections-bn');
+    expect(allSlugs).toContain('email-alerts-card-changes-bn');
+    expect(allSlugs).toContain('write-read-community-reviews-bn');
+    expect(allSlugs).toContain('advanced-search-filters-bn');
+    expect(allSlugs).toContain('switch-dark-mode-language-bn');
+    expect(allSlugs).toContain('how-creditmate-handles-your-data-bn');
   });
 
   test('sets index metadata and JSON-LD', () => {

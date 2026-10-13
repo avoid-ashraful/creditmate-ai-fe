@@ -1,6 +1,7 @@
 import { ENV } from '../config/env';
 
 import { ApiResponse } from './api';
+import { responseApiError, resilientFetch } from './apiError';
 
 /**
  * Review API response from the backend.
@@ -15,20 +16,19 @@ export interface ReviewApiResponse {
   pros: string;
   cons: string;
   helpful_count: number;
-  display_name: string;
+  reviewer_name: string;
   created: string; // ISO datetime
-  user: number; // user ID
-  status: 'approved' | 'pending' | 'rejected';
-  user_voted_helpful?: boolean; // present when authenticated
+  modified: string;
 }
 
 /**
  * Review summary from the backend.
- * GET /api/v1/reviews/summary/?card=<id>
+ * GET /api/v1/reviews/cards/{card_id}/summary/
  */
 export interface ReviewSummaryResponse {
-  average: number | null; // null when no reviews
-  count: number;
+  card: number;
+  average_rating: number | null;
+  review_count: number;
   distribution: {
     1: number;
     2: number;
@@ -50,11 +50,9 @@ export interface Review {
   pros: string;
   cons: string;
   helpfulCount: number;
-  displayName: string;
+  reviewerName: string;
   created: Date;
-  userId: number;
-  status: 'approved' | 'pending' | 'rejected';
-  userVotedHelpful?: boolean;
+  modified: Date;
 }
 
 /**
@@ -72,7 +70,7 @@ export interface CreateReviewInput {
 
 /**
  * Input for updating an existing review.
- * PATCH /api/v1/reviews/{id}/
+ * PATCH /api/v1/reviews/mine/{id}/
  */
 export interface UpdateReviewInput {
   rating?: number;
@@ -100,11 +98,9 @@ export function transformReview(apiReview: ReviewApiResponse): Review {
     pros: apiReview.pros,
     cons: apiReview.cons,
     helpfulCount: apiReview.helpful_count,
-    displayName: apiReview.display_name,
+    reviewerName: apiReview.reviewer_name,
     created: new Date(apiReview.created),
-    userId: apiReview.user,
-    status: apiReview.status,
-    userVotedHelpful: apiReview.user_voted_helpful,
+    modified: new Date(apiReview.modified),
   };
 }
 
@@ -119,7 +115,7 @@ class ReviewsService {
     const url = `${ENV.API_BASE_URL}${endpoint}`;
 
     try {
-      const response = await fetch(url, {
+      const response = await resilientFetch(url, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
@@ -128,21 +124,7 @@ class ReviewsService {
       });
 
       if (!response.ok) {
-        const errorData: Record<string, unknown> = await response.json().catch(() => ({}));
-        const fieldMessages = Object.values(errorData).find(value => Array.isArray(value));
-        const firstFieldMessage =
-          Array.isArray(fieldMessages) && typeof fieldMessages[0] === 'string'
-            ? fieldMessages[0]
-            : null;
-        const nonFieldMessage = Array.isArray(errorData.non_field_errors)
-          ? errorData.non_field_errors[0]
-          : null;
-        const message =
-          (typeof errorData.detail === 'string' && errorData.detail) ||
-          (typeof nonFieldMessage === 'string' && nonFieldMessage) ||
-          firstFieldMessage ||
-          `API request failed: ${response.status}`;
-        throw new Error(message);
+        throw await responseApiError(response);
       }
 
       if (response.status === 204) {
@@ -172,13 +154,10 @@ class ReviewsService {
 
   /**
    * Get review summary (average, count, distribution) for a card.
-   * GET /api/v1/reviews/summary/?card=<id>
+   * GET /api/v1/reviews/cards/{card_id}/summary/
    */
   async getSummary(cardId: number): Promise<ReviewSummaryResponse> {
-    const params = new URLSearchParams();
-    params.append('card', cardId.toString());
-
-    return this.fetchApi<ReviewSummaryResponse>(`/reviews/summary/?${params.toString()}`);
+    return this.fetchApi<ReviewSummaryResponse>(`/reviews/cards/${cardId}/summary/`);
   }
 
   /**
@@ -199,10 +178,10 @@ class ReviewsService {
 
   /**
    * Update an existing review (requires authentication, own review only).
-   * PATCH /api/v1/reviews/{id}/
+   * PATCH /api/v1/reviews/mine/{id}/
    */
   async updateReview(id: number, input: UpdateReviewInput, accessToken: string): Promise<Review> {
-    const response = await this.fetchApi<ReviewApiResponse>(`${REVIEWS_ENDPOINT}${id}/`, {
+    const response = await this.fetchApi<ReviewApiResponse>(`${REVIEWS_ENDPOINT}mine/${id}/`, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -215,10 +194,10 @@ class ReviewsService {
 
   /**
    * Delete a review (requires authentication, own review only).
-   * DELETE /api/v1/reviews/{id}/
+   * DELETE /api/v1/reviews/mine/{id}/
    */
   async deleteReview(id: number, accessToken: string): Promise<void> {
-    await this.fetchApi<void>(`${REVIEWS_ENDPOINT}${id}/`, {
+    await this.fetchApi<void>(`${REVIEWS_ENDPOINT}mine/${id}/`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -227,14 +206,11 @@ class ReviewsService {
   }
 
   /**
-   * Toggle helpful vote on a review (requires authentication).
+   * Add a helpful vote to a review (requires authentication; votes cannot be toggled).
    * POST /api/v1/reviews/{id}/helpful/
    */
-  async toggleHelpful(
-    id: number,
-    accessToken: string
-  ): Promise<{ helpful_count: number; user_voted_helpful: boolean }> {
-    const response = await this.fetchApi<{ helpful_count: number; user_voted_helpful: boolean }>(
+  async voteHelpful(id: number, accessToken: string): Promise<{ helpful_count: number }> {
+    const response = await this.fetchApi<{ helpful_count: number }>(
       `${REVIEWS_ENDPOINT}${id}/helpful/`,
       {
         method: 'POST',
