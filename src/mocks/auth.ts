@@ -1,6 +1,11 @@
 /** Shared MSW fixtures for the /api/v1/auth/ endpoints. */
 
-export const AUTH_USER = { id: 7, email: 'reader@example.com' };
+export const AUTH_USER = {
+  id: 7,
+  email: 'reader@example.com',
+  first_name: 'John',
+  last_name: 'Doe',
+};
 
 /** Matches any origin and prefix, so the test base URL can change without edits here. */
 export const authUrl = (path: string): string => `*/api/v1/auth/${path}`;

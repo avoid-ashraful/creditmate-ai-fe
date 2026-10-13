@@ -13,21 +13,19 @@ import {
   requiredFieldErrors,
 } from '../utils/authErrors';
 
-const INPUT_KEYS = ['new_password'];
+const INPUT_KEYS = ['new_password', 'new_password_confirm'];
 
 /**
- * Sets a new password from the link in the reset email (`?token=...&uid=...`).
- * The confirmation field is checked here only; the backend receives just the
- * new password.
+ * Sets a new password from the link in the reset email (`?uid=...&token=...`).
+ * The backend requires both uid and token from the URL, and expects
+ * new_password and new_password_confirm in the request body.
  */
 const ResetPasswordPage: React.FC = () => {
   const { lang } = useLanguage();
   const copy = getAuthCopy(lang);
   const [searchParams] = useSearchParams();
   const uid = searchParams.get('uid') ?? '';
-  // The backend's reset email contains a signed uid only; its confirmation
-  // serializer also requires token, which currently is not validated.
-  const token = searchParams.get('token') ?? uid;
+  const token = searchParams.get('token') ?? '';
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -47,11 +45,11 @@ const ResetPasswordPage: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const fields = requiredFieldErrors(
-      { new_password: newPassword, confirm: confirmPassword },
+      { new_password: newPassword, new_password_confirm: confirmPassword },
       copy
     );
-    if (!fields.confirm && newPassword !== confirmPassword) {
-      fields.confirm = copy.passwordsMismatch;
+    if (!fields.new_password_confirm && newPassword !== confirmPassword) {
+      fields.new_password_confirm = copy.passwordsMismatch;
     }
     if (Object.keys(fields).length > 0) {
       setErrors({ fields, form: copy.checkFields });
@@ -62,20 +60,26 @@ const ResetPasswordPage: React.FC = () => {
 
     setSubmitting(true);
     try {
-      await authClient.confirmPasswordReset({ uid, token, newPassword });
+      await authClient.confirmPasswordReset({
+        uid,
+        token,
+        newPassword,
+        newPasswordConfirm: confirmPassword,
+      });
       setErrors(NO_FORM_ERRORS);
       setDone(true);
     } catch (error) {
       const described = describeApiErrors(error, copy, INPUT_KEYS);
       setErrors(described);
       if (described.fields.new_password) passwordRef.current?.focus();
+      else if (described.fields.new_password_confirm) confirmRef.current?.focus();
       else alertRef.current?.focus();
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (!uid) {
+  if (!uid || !token) {
     return (
       <AuthCard title={copy.resetTitle}>
         <p className="auth-alert" role="alert">
@@ -111,11 +115,11 @@ const ResetPasswordPage: React.FC = () => {
             ref={confirmRef}
             label={copy.confirmPasswordLabel}
             type="password"
-            name="confirm_password"
+            name="new_password_confirm"
             autoComplete="new-password"
             value={confirmPassword}
             onChange={event => setConfirmPassword(event.target.value)}
-            error={errors.fields.confirm}
+            error={errors.fields.new_password_confirm}
           />
           <button type="submit" className="primary-button auth-submit" disabled={submitting}>
             {submitting ? copy.submitting : copy.resetSubmit}

@@ -34,6 +34,7 @@ import RewardCalculatorPage from './pages/RewardCalculatorPage';
 import SavedPage from './pages/SavedPage';
 import SharedPage from './pages/SharedPage';
 import UnsubscribePage from './pages/UnsubscribePage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import './styles/App.css';
 import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
 
@@ -109,6 +110,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/unsubscribe" element={<UnsubscribePage />} />
         <Route
           path="/account"

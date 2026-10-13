@@ -186,7 +186,11 @@ describe('AuthClient authenticated requests and silent refresh', () => {
       rest.post(authUrl('token/refresh/'), (req, res, ctx) => {
         refreshCalls += 1;
         expect(req.body).toEqual({ refresh: 'refresh-1' });
-        return res(ctx.delay(20), ctx.status(200), ctx.json({ access: 'access-2' }));
+        return res(
+          ctx.delay(20),
+          ctx.status(200),
+          ctx.json({ access: 'access-2', refresh: 'refresh-2' })
+        );
       })
     );
 
@@ -272,7 +276,7 @@ describe('AuthClient logout and session restore', () => {
       rest.post(authUrl('logout/'), (req, res, ctx) => {
         body = req.body;
         authHeader = req.headers.get('Authorization');
-        return res(ctx.status(205));
+        return res(ctx.status(200));
       })
     );
 
@@ -304,7 +308,7 @@ describe('AuthClient logout and session restore', () => {
     window.sessionStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, 'refresh-1');
     server.use(
       rest.post(authUrl('token/refresh/'), (_req, res, ctx) =>
-        res(ctx.json({ access: 'access-9' }))
+        res(ctx.json({ access: 'access-9', refresh: 'refresh-9' }))
       ),
       rest.get(authUrl('me/'), (req, res, ctx) =>
         req.headers.get('Authorization') === 'Bearer access-9'
@@ -316,6 +320,7 @@ describe('AuthClient logout and session restore', () => {
     expect(client.hasSession()).toBe(true);
 
     await expect(client.restoreSession()).resolves.toEqual(AUTH_USER);
+    expect(window.sessionStorage.getItem(REFRESH_TOKEN_STORAGE_KEY)).toBe('refresh-9');
   });
 
   it('returns null and clears storage when the stored refresh token is no longer valid', async () => {
@@ -377,7 +382,12 @@ describe('AuthClient account and password endpoints', () => {
     );
     const client = createClient();
 
-    await client.confirmPasswordReset({ uid: 'MQ', token: 'tok', newPassword: 'new-pw-123' });
+    await client.confirmPasswordReset({
+      uid: 'MQ',
+      token: 'tok',
+      newPassword: 'new-pw-123',
+      newPasswordConfirm: 'new-pw-123',
+    });
 
     expect(bodies).toEqual([
       { uid: 'MQ', token: 'tok', new_password: 'new-pw-123', new_password_confirm: 'new-pw-123' },
@@ -392,7 +402,12 @@ describe('AuthClient account and password endpoints', () => {
     );
 
     const error = await createClient()
-      .confirmPasswordReset({ uid: 'bad', token: 'bad', newPassword: 'new-pw-123' })
+      .confirmPasswordReset({
+        uid: 'bad',
+        token: 'bad',
+        newPassword: 'new-pw-123',
+        newPasswordConfirm: 'new-pw-123',
+      })
       .catch((caught: unknown) => caught);
 
     expect((error as ApiError).fieldErrors).toEqual({ token: ['Invalid or expired token.'] });
@@ -403,7 +418,7 @@ describe('AuthClient account and password endpoints', () => {
     server.use(
       rest.post(authUrl('verify-email/'), (req, res, ctx) => {
         body = req.body;
-        return res(ctx.status(204));
+        return res(ctx.status(200), ctx.json({ detail: 'Email verified successfully.' }));
       })
     );
 
