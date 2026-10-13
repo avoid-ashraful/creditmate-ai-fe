@@ -3,10 +3,11 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import { AppContent, NAV_ITEMS } from './App';
+import { ThemeProvider } from './hooks/ThemeProvider';
 import { LanguageProvider } from './locales';
 
 /**
- * Renders the app shell with language support and an in-memory router.
+ * Renders the app shell with language support, theme support and an in-memory router.
  *
  * The routes exercised here (glossary, about) are static pages that do not
  * fetch from the API, so the suite stays deterministic without MSW.
@@ -14,9 +15,11 @@ import { LanguageProvider } from './locales';
 const renderApp = (entry = '/glossary', initialLang: 'en' | 'bn' = 'en') =>
   render(
     <MemoryRouter initialEntries={[entry]}>
-      <LanguageProvider initialLang={initialLang}>
-        <AppContent />
-      </LanguageProvider>
+      <ThemeProvider>
+        <LanguageProvider initialLang={initialLang}>
+          <AppContent />
+        </LanguageProvider>
+      </ThemeProvider>
     </MemoryRouter>
   );
 

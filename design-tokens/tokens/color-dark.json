@@ -1,0 +1,285 @@
+{
+  "color": {
+    "dark": {
+      "primary": {
+        "base": {
+          "value": "{color.blue.400}",
+          "comment": "Default brand / interactive color for dark mode.",
+          "type": "color"
+        },
+        "hover": {
+          "value": "{color.blue.300}",
+          "type": "color"
+        },
+        "active": {
+          "value": "{color.blue.200}",
+          "type": "color"
+        },
+        "subtle": {
+          "value": "{color.blue.900}",
+          "comment": "Tinted surface for selected / highlighted rows.",
+          "type": "color"
+        },
+        "border": {
+          "value": "{color.blue.700}",
+          "type": "color"
+        },
+        "contrast": {
+          "value": "{color.slate.900}",
+          "comment": "Text/icon color placed on top of primary.",
+          "type": "color"
+        }
+      },
+      "secondary": {
+        "base": {
+          "value": "{color.slate.100}",
+          "comment": "Light neutral used for header, footer and comparison bar in dark mode.",
+          "type": "color"
+        },
+        "hover": {
+          "value": "{color.slate.200}",
+          "type": "color"
+        },
+        "contrast": {
+          "value": "{color.slate.900}",
+          "type": "color"
+        }
+      },
+      "success": {
+        "base": {
+          "value": "{color.emerald.400}",
+          "type": "color"
+        },
+        "hover": {
+          "value": "{color.emerald.300}",
+          "type": "color"
+        },
+        "subtle": {
+          "value": "{color.emerald.900}",
+          "type": "color"
+        },
+        "border": {
+          "value": "{color.emerald.700}",
+          "type": "color"
+        },
+        "contrast": {
+          "value": "{color.emerald.50}",
+          "type": "color"
+        }
+      },
+      "warning": {
+        "base": {
+          "value": "{color.amber.400}",
+          "type": "color"
+        },
+        "hover": {
+          "value": "{color.amber.300}",
+          "type": "color"
+        },
+        "subtle": {
+          "value": "{color.amber.900}",
+          "type": "color"
+        },
+        "border": {
+          "value": "{color.amber.700}",
+          "type": "color"
+        },
+        "contrast": {
+          "value": "{color.amber.100}",
+          "comment": "Amber needs light text for AA contrast in dark mode.",
+          "type": "color"
+        }
+      },
+      "error": {
+        "base": {
+          "value": "{color.red.400}",
+          "type": "color"
+        },
+        "hover": {
+          "value": "{color.red.300}",
+          "type": "color"
+        },
+        "subtle": {
+          "value": "{color.red.900}",
+          "type": "color"
+        },
+        "border": {
+          "value": "{color.red.700}",
+          "type": "color"
+        },
+        "contrast": {
+          "value": "{color.red.50}",
+          "type": "color"
+        }
+      },
+      "info": {
+        "base": {
+          "value": "{color.sky.400}",
+          "type": "color"
+        },
+        "subtle": {
+          "value": "{color.sky.900}",
+          "type": "color"
+        },
+        "border": {
+          "value": "{color.sky.700}",
+          "type": "color"
+        },
+        "contrast": {
+          "value": "{color.sky.50}",
+          "type": "color"
+        }
+      },
+      "background": {
+        "base": {
+          "value": "#0a0f1a",
+          "comment": "App canvas behind all content in dark mode.",
+          "type": "color"
+        },
+        "surface": {
+          "value": "#1a1f2e",
+          "comment": "Cards, modals, panels in dark mode.",
+          "type": "color"
+        },
+        "elevated": {
+          "value": "#2d3348",
+          "type": "color"
+        },
+        "muted": {
+          "value": "#334155",
+          "comment": "Striped rows, code blocks, disabled areas in dark mode.",
+          "type": "color"
+        },
+        "inverse": {
+          "value": "{color.slate.100}",
+          "comment": "Light strips in dark mode.",
+          "type": "color"
+        },
+        "overlay": {
+          "value": "rgba(10, 15, 26, 0.8)",
+          "type": "color",
+          "comment": "Scrim behind modals and popups in dark mode."
+        }
+      },
+      "text": {
+        "primary": {
+          "value": "{color.slate.100}",
+          "comment": "Body copy and headings in dark mode.",
+          "type": "color"
+        },
+        "secondary": {
+          "value": "{color.slate.400}",
+          "comment": "Supporting copy, captions, meta in dark mode.",
+          "type": "color"
+        },
+        "tertiary": {
+          "value": "{color.slate.500}",
+          "comment": "Placeholders, disabled labels in dark mode.",
+          "type": "color"
+        },
+        "disabled": {
+          "value": "{color.slate.600}",
+          "type": "color"
+        },
+        "inverse": {
+          "value": "{color.slate.900}",
+          "comment": "Text on light surfaces in dark mode.",
+          "type": "color"
+        },
+        "inverseSecondary": {
+          "value": "{color.slate.600}",
+          "type": "color"
+        },
+        "link": {
+          "value": "{color.blue.400}",
+          "type": "color"
+        },
+        "linkHover": {
+          "value": "{color.blue.300}",
+          "type": "color"
+        },
+        "onPrimary": {
+          "value": "{color.dark.primary.contrast}",
+          "type": "color"
+        }
+      },
+      "border": {
+        "base": {
+          "value": "{color.slate.700}",
+          "comment": "Default 1px borders in dark mode.",
+          "type": "color"
+        },
+        "strong": {
+          "value": "{color.slate.600}",
+          "comment": "Emphasised borders and dividers in dark mode.",
+          "type": "color"
+        },
+        "subtle": {
+          "value": "{color.slate.800}",
+          "type": "color"
+        },
+        "focus": {
+          "value": "{color.blue.400}",
+          "comment": "Focus ring color in dark mode.",
+          "type": "color"
+        },
+        "error": {
+          "value": "{color.red.400}",
+          "type": "color"
+        }
+      },
+      "state": {
+        "hoverSurface": {
+          "value": "{color.slate.700}",
+          "comment": "Row / list-item hover background in dark mode.",
+          "type": "color"
+        },
+        "selectedSurface": {
+          "value": "{color.blue.900}",
+          "type": "color"
+        },
+        "disabledSurface": {
+          "value": "{color.slate.800}",
+          "type": "color"
+        },
+        "disabledBorder": {
+          "value": "{color.slate.700}",
+          "type": "color"
+        }
+      },
+      "gradient": {
+        "brand": {
+          "type": "gradient",
+          "value": "linear-gradient(135deg, #5a67d8 0%, #553c9a 100%)",
+          "comment": "Legacy CreditMate brand gradient for dark mode."
+        },
+        "header": {
+          "type": "gradient",
+          "value": "linear-gradient(-45deg, {color.dark.primary.base}, {color.blue.500}, {color.indigo.500}, {color.indigo.600})",
+          "comment": "Animated site header background for dark mode."
+        },
+        "primaryButton": {
+          "type": "gradient",
+          "value": "linear-gradient(90deg, {color.dark.primary.base}, {color.dark.primary.hover})"
+        },
+        "accentButton": {
+          "type": "gradient",
+          "value": "linear-gradient(90deg, {color.dark.success.base}, {color.dark.success.hover})"
+        },
+        "footer": {
+          "type": "gradient",
+          "value": "linear-gradient(to right, {color.dark.secondary.base}, {color.dark.secondary.hover})"
+        },
+        "background": {
+          "type": "gradient",
+          "value": "linear-gradient(135deg, {color.dark.background.base} 0%, #1e3a5f 100%)",
+          "comment": "Page background gradient for dark mode."
+        },
+        "cardAccent": {
+          "type": "gradient",
+          "value": "linear-gradient(90deg, {color.dark.primary.base}, {color.dark.success.base})"
+        }
+      }
+    }
+  }
+}
