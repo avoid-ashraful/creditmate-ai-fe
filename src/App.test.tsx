@@ -1,10 +1,14 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import React from 'react';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
-import { AppContent, NAV_ITEMS } from './App';
+import { AppContent, NAV_ITEMS, PageViewTrackerWrapper } from './App';
 import { ThemeProvider } from './hooks/ThemeProvider';
+import { ANALYTICS_EVENTS, analytics } from './lib/analytics';
 import { LanguageProvider } from './locales';
+
+jest.mock('./services/api');
 
 /**
  * Renders the app shell with language support, theme support and an in-memory router.
@@ -91,5 +95,38 @@ describe('App language switcher', () => {
 
     await user.click(screen.getByRole('button', { name: 'Switch to Bengali' }));
     expect(screen.getByText(/সর্বস্বত্ব সংরক্ষিত/)).toBeInTheDocument();
+  });
+});
+
+describe('App analytics', () => {
+  const provider = jest.fn();
+
+  beforeEach(() => {
+    process.env.REACT_APP_ANALYTICS_KEY = 'test-key';
+    provider.mockClear();
+    analytics.setProvider(provider);
+    analytics.optIn();
+  });
+
+  afterEach(() => {
+    analytics.setProvider(null);
+    analytics.optIn();
+    process.env.REACT_APP_ANALYTICS_KEY = '';
+  });
+
+  it('tracks one page view for the current route', () => {
+    render(
+      <MemoryRouter initialEntries={['/about']}>
+        <Routes>
+          <Route path="/about" element={<PageViewTrackerWrapper />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(provider).toHaveBeenCalledTimes(1);
+    expect(provider).toHaveBeenCalledWith({
+      name: ANALYTICS_EVENTS.pageView,
+      properties: {},
+    });
   });
 });

@@ -21,17 +21,20 @@ A comprehensive credit card comparison platform designed specifically for Bangla
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/your-username/credit-mate-ai.git
 cd credit-mate-ai
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm start
 ```
@@ -98,6 +101,48 @@ src/
 
 ## 🔧 Development
 
+### Analytics
+
+Product analytics is privacy-first and disabled by default. Set
+`REACT_APP_ANALYTICS_KEY` only when your deployment also registers an analytics
+provider callback. No provider is registered in this repository, so builds remain
+safe/no-network and analytics are inactive until deployment integration code calls
+`analytics.setProvider`. The injected callback must not include cookies or persistent
+identifiers, and it should fail silently through the normal callback contract.
+
+### Analytics Events
+
+The registry defines the acceptance event names: `page_view`, `search`,
+`filter_apply`, `card_select`, `compare_start`, `compare_share`,
+`card_detail_view`, `quiz_start`, `quiz_complete`, `calculator_use`, `signup`,
+and `login`. Existing browsing and page-action call sites use the first ten.
+`signup` and `login` remain available for Task 7.1 authentication routes; no
+authentication behavior is invented or sent here.
+
+### Provider Adapter Contract
+
+Deployment integration code should register one callback per concern, using only
+the sanitized payload supplied by `analytics`:
+
+- `setProvider((event) => { ... })` receives `{ name, properties }` for an event.
+- `setUserProvider((properties) => { ... })` receives only `tier`,
+  `savedComparisons`, and `emailOptIn`.
+- `setUserDeletionProvider(() => { ... })` deletes or resets the provider-side user
+  data. `deleteUserData()` invokes this callback before persisting opt-out.
+
+Event properties are limited to allowlisted identifiers, public bank names, filter
+keys/counts, normalized enum values, aggregate spend, counts, strict UTM values,
+and the referrer origin. They never include email, person names, raw search text,
+full referrer URLs, or arbitrary object fields.
+
+`optOut()` and `clearUserData()` immediately stop local event emission and persist
+the opt-out. `clearUserData()` is the local-only stop; `deleteUserData()` additionally
+requests provider-side deletion or reset when a callback is registered. These are
+intentionally distinct operations, even though both end in a persisted opt-out.
+
+The key is a local integration toggle and must not be treated as a secret or used
+to send data to an external network by default.
+
 ### Code Quality
 
 This project maintains high code quality standards through:
@@ -111,6 +156,7 @@ This project maintains high code quality standards through:
 ### Testing
 
 Run tests with:
+
 ```bash
 npm test
 ```
@@ -149,18 +195,21 @@ Please ensure your code follows the existing style guidelines and includes appro
 ## 📋 Roadmap
 
 ### Phase 1 (Current - MVP)
+
 - ✅ Core comparison functionality
 - ✅ Search and filtering
 - ✅ Responsive design
 - ✅ Educational content
 
 ### Phase 2 (Planned)
+
 - User accounts and preferences
 - Save and share comparisons
 - User reviews and ratings
 - Enhanced mobile experience
 
 ### Phase 3 (Future)
+
 - Personalized recommendations
 - Advanced analytics
 - API integrations

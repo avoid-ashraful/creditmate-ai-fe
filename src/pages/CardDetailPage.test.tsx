@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
+import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 
@@ -21,6 +22,7 @@ jest.mock('../services/api', () => {
 const mockApiService = apiService as jest.Mocked<typeof apiService>;
 const APPLY_NOW_BUTTON = 'Apply Now';
 const BUTTON_ROLE = 'button';
+const analyticsProvider = jest.fn();
 
 const mockCard: CreditCard = {
   id: 1,
@@ -71,6 +73,9 @@ const renderWithRouter = (initialRoute = '/card/eastern-bank-limited/ebl-platinu
 describe('CardDetailPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env.REACT_APP_ANALYTICS_KEY = 'test-key';
+    analytics.setProvider(analyticsProvider);
+    analytics.optIn();
     mockApiService.getCreditCards.mockResolvedValue({
       count: 2,
       next: null,
@@ -116,6 +121,12 @@ describe('CardDetailPage', () => {
         },
       ],
     });
+  });
+
+  afterEach(() => {
+    analytics.setProvider(null);
+    analytics.optIn();
+    process.env.REACT_APP_ANALYTICS_KEY = '';
   });
 
   test('renders loading state initially', () => {
@@ -373,9 +384,7 @@ describe('CardDetailPage', () => {
     });
   });
 
-  test('dispatchesEvent on Apply Now click', async () => {
-    const dispatchEventSpy = jest.spyOn(window, 'dispatchEvent');
-
+  test('tracks a privacy-safe Apply Now event', async () => {
     renderWithRouter();
 
     await waitFor(() => {
@@ -387,9 +396,10 @@ describe('CardDetailPage', () => {
     const applyButton = screen.getByRole(BUTTON_ROLE, { name: new RegExp(APPLY_NOW_BUTTON, 'i') });
     applyButton.click();
 
-    expect(dispatchEventSpy).toHaveBeenCalled();
-
-    dispatchEventSpy.mockRestore();
+    expect(analyticsProvider).toHaveBeenCalledWith({
+      name: ANALYTICS_EVENTS.cardSelect,
+      properties: { cardId: mockCard.id },
+    });
   });
 
   test('opens sourceUrl in new tab on Apply Now click', async () => {

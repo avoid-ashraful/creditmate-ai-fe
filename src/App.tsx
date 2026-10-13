@@ -1,8 +1,9 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 
 import { ThemeToggle } from './components/ThemeToggle';
 import { ThemeProvider } from './hooks/ThemeProvider';
+import { ANALYTICS_EVENTS, analytics, getAnalyticsContextProperties } from './lib/analytics';
 import { LanguageProvider, useLanguage } from './locales';
 import AboutPage from './pages/AboutPage';
 import CardDetailPage from './pages/CardDetailPage';
@@ -53,6 +54,24 @@ export const AppRoutes: React.FC = () => {
       <Route path="/about" element={<AboutPage />} />
     </Routes>
   );
+};
+
+interface PageViewTrackerProps {
+  pathname: string;
+}
+
+const PageViewTracker: React.FC<PageViewTrackerProps> = ({ pathname }) => {
+  useEffect(() => {
+    analytics.track(ANALYTICS_EVENTS.pageView, getAnalyticsContextProperties());
+  }, [pathname]);
+
+  return null;
+};
+
+const PageViewTrackerWrapper: React.FC = () => {
+  const location = useLocation();
+
+  return <PageViewTracker pathname={location.pathname} />;
 };
 
 /**
@@ -157,6 +176,7 @@ export const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <Router>
+      <PageViewTrackerWrapper />
       <GradientBackground />
       <AppContent />
     </Router>
@@ -173,3 +193,5 @@ export default function RootApp({ children }: { children?: React.ReactNode }) {
 }
 
 RootApp.displayName = 'RootApp';
+
+export { PageViewTrackerWrapper };

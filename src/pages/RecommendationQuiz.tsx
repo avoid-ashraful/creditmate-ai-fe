@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import CardListItem from '../components/CardListItem';
 import ComparisonBar from '../components/ComparisonBar';
+import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import { rankCards, encodeQuizResult, decodeQuizResult } from '../utils/quizScoringAlgorithm';
@@ -98,28 +99,36 @@ const RecommendationQuiz: React.FC = () => {
           setRecommendedCards(results);
           setSelectedCardIds(results.map(r => r.card.id));
           setCurrentStep(STEPS.results);
+          analytics.track(ANALYTICS_EVENTS.quizComplete, {
+            cardIds: validCardIds,
+          });
         }
       }
     }
   }, [searchParams, allCards]);
 
   const handleSpendChange = (spend: number) => {
+    analytics.track(ANALYTICS_EVENTS.quizStart);
     setQuizState(prev => ({ ...prev, monthlySpend: spend }));
   };
 
   const handlePrimaryUseChange = (use: QuizState['primaryUse']) => {
+    analytics.track(ANALYTICS_EVENTS.quizStart);
     setQuizState(prev => ({ ...prev, primaryUse: use }));
   };
 
   const handleTravelFrequencyChange = (freq: QuizState['travelFrequency']) => {
+    analytics.track(ANALYTICS_EVENTS.quizStart);
     setQuizState(prev => ({ ...prev, travelFrequency: freq }));
   };
 
   const handleFeeToleranceChange = (tolerance: QuizState['feeTolerance']) => {
+    analytics.track(ANALYTICS_EVENTS.quizStart);
     setQuizState(prev => ({ ...prev, feeTolerance: tolerance }));
   };
 
   const handleCardTierChange = (tier: QuizState['cardTier']) => {
+    analytics.track(ANALYTICS_EVENTS.quizStart);
     setQuizState(prev => ({ ...prev, cardTier: tier }));
   };
 
@@ -135,6 +144,9 @@ const RecommendationQuiz: React.FC = () => {
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
       const nextStep = steps[currentIndex + 1];
+      if (currentStep === STEPS.spend) {
+        analytics.track(ANALYTICS_EVENTS.quizStart);
+      }
       setCurrentStep(nextStep);
 
       if (nextStep === STEPS.results) {
@@ -157,6 +169,9 @@ const RecommendationQuiz: React.FC = () => {
     );
     setRecommendedCards(results);
     setSelectedCardIds(results.map(r => r.card.id));
+    analytics.track(ANALYTICS_EVENTS.quizComplete, {
+      cardIds: results.map(result => result.card.id),
+    });
   };
 
   const handlePrevious = () => {
@@ -196,6 +211,9 @@ const RecommendationQuiz: React.FC = () => {
       },
     };
     const encoded = encodeQuizResult(result);
+    analytics.track(ANALYTICS_EVENTS.compareShare, {
+      cardIds: selectedCardIds,
+    });
     const shareUrl = `${window.location.origin}/perfect-card-finder?quiz_result=${encoded}`;
     const copyPromise = navigator.clipboard?.writeText(shareUrl);
     if (copyPromise && typeof copyPromise.then === 'function') {

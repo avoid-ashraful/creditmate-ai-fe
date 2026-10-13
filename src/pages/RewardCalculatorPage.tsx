@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import {
@@ -94,10 +95,15 @@ const RewardCalculatorPage: React.FC = () => {
     }
 
     setSubmitted(true);
-    setRanked(rankCards(cards, allocation, 5));
+    const rankedCards = rankCards(cards, allocation, 5);
+    setRanked(rankedCards);
+    analytics.track(ANALYTICS_EVENTS.calculatorUse);
   };
 
   const handleExportToComparison = (card: CreditCard) => {
+    analytics.track(ANALYTICS_EVENTS.cardSelect, {
+      cardId: card.id,
+    });
     // Reuse the app's existing compare mechanism: the comparison page reads
     // selected card ids from the `ids` query parameter (same as ComparisonBar).
     navigate(`/compare?ids=${card.id}`);

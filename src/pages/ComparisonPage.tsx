@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 
 import CardComparisonTable from '../components/CardComparisonTable';
+import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import '../styles/ComparisonPage.css';
@@ -35,6 +36,9 @@ const ComparisonPage: React.FC = () => {
             apiService.transformCreditCard(card)
           );
           setSelectedCards(transformedCards);
+          analytics.track(ANALYTICS_EVENTS.compareStart, {
+            cardIds: transformedCards.map(card => card.id),
+          });
         } catch (error) {
           console.error('Failed to fetch comparison cards:', error);
           setSelectedCards([]);
@@ -50,6 +54,9 @@ const ComparisonPage: React.FC = () => {
   }, [location.search]);
 
   const handleRemoveCard = (cardId: number) => {
+    analytics.track(ANALYTICS_EVENTS.cardSelect, {
+      cardId,
+    });
     setSelectedCards(prev => prev.filter(card => card.id !== cardId));
 
     const remainingIds = selectedCards
@@ -67,6 +74,9 @@ const ComparisonPage: React.FC = () => {
   const generateShareableLink = () => {
     const cardIds = selectedCards.map(card => card.id).join(',');
     const currentId = comparisonId || Math.random().toString(36).substring(2, 10);
+    analytics.track(ANALYTICS_EVENTS.compareShare, {
+      cardIds: selectedCards.map(card => card.id),
+    });
     const shareableUrl = `${window.location.origin}/compare?ids=${cardIds}&cid=${currentId}`;
 
     navigator.clipboard
