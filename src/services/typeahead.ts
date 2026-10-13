@@ -251,15 +251,21 @@ export const parseTypeaheadResponse = (raw: unknown, query: string): TypeaheadRe
     [] as TypeaheadCategorySuggestion[]
   ).slice(0, MAX_SUGGESTIONS_PER_GROUP);
 
-  // If backend flat-shape and no categories parsed from structured shape, use empty fallback
+  // If backend flat-shape and no categories parsed from structured shape, parse from flat array
   const categoriesFromBackend =
     suggestionsArray
       ?.filter(s => s.type === 'category')
-      .map(s => ({
-        slug: '',
-        name: s.label,
-        count: undefined,
-      })) ?? [];
+      .map(s => {
+        // Extract slug from backend (required) and name/count (optional)
+        const slug = asString((s as Record<string, unknown>).slug);
+        const name = asString((s as Record<string, unknown>).name) ?? asString(s.label);
+        const count = asNumberSafe((s as Record<string, unknown>).count);
+
+        // Only emit valid categories with slug
+        if (!slug || !name) return null;
+        return { slug, name, count: count ?? undefined } as TypeaheadCategorySuggestion;
+      })
+      .filter((c): c is TypeaheadCategorySuggestion => c !== null) ?? [];
 
   const facets = maybe(
     asArray<unknown>(root.facets ?? suggestionsObject.facets)

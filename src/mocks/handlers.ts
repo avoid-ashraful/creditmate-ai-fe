@@ -151,7 +151,7 @@ export const handlers = [
     }));
 
     // Categories – static set derived from the CATEGORIES config
-    const categories = [
+    const categorySet = [
       { slug: 'travel', name: 'Travel', count: 0 },
       { slug: 'cashback', name: 'Cashback', count: 0 },
       { slug: 'premium', name: 'Premium', count: 0 },
@@ -162,8 +162,28 @@ export const handlers = [
       .filter(c => c.name.toLowerCase().includes(q) || c.slug.includes(q))
       .slice(0, 5);
 
+    // Flat suggestions array (backend canonical shape)
+    const suggestionsList = [
+      ...cards.map(c => ({
+        type: 'card' as const,
+        id: c.id,
+        label: c.name,
+        detail: c.bank_name,
+      })),
+      ...banks.map(b => ({
+        type: 'bank' as const,
+        id: b.id,
+        label: b.name,
+      })),
+      ...categorySet.map(c => ({
+        type: 'category' as const,
+        slug: c.slug,
+        label: c.name,
+      })),
+    ];
+
     // Facets – static per‑category counts for the query
-    const facets = categories.map(c => ({
+    const facets = categorySet.map(c => ({
       slug: c.slug,
       label: c.name,
       count: c.count,
@@ -175,7 +195,7 @@ export const handlers = [
     return res(
       ctx.status(200),
       ctx.json({
-        suggestions: { cards, banks, categories },
+        suggestions: suggestionsList,
         facets,
         didYouMean,
       })
