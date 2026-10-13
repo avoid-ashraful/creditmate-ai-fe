@@ -464,3 +464,20 @@ describe('design tokens — parity with the legacy App.css :root block', () => {
     expect(spacing.md).toBe('16px');
   });
 });
+
+describe('design tokens — dark mode', () => {
+  it('includes dark mode tokens in CSS output', () => {
+    const cssOutput = readOutput(cssOutputPath);
+    expect(cssOutput).toContain('@media (prefers-color-scheme: dark)');
+    expect(cssOutput).toContain(':root.dark');
+  });
+
+  it('has dark mode color overrides', () => {
+    const cssOutput = readOutput(cssOutputPath);
+    // Dark mode should override semantic colors
+    expect(cssOutput).toContain('--color-background-base:');
+    expect(cssOutput).toMatch(
+      /@media \(prefers-color-scheme: dark\)[\s\S]*--color-background-base:/
+    );
+  });
+});

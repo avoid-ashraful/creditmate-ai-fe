@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
+import { ThemeToggle } from './components/ThemeToggle';
+import { ThemeProvider } from './hooks/ThemeProvider';
 import { LanguageProvider, useLanguage } from './locales';
 import AboutPage from './pages/AboutPage';
 import CardDetailPage from './pages/CardDetailPage';
@@ -94,6 +96,9 @@ export const AppContent: React.FC = () => {
                   {isBengali ? 'EN' : 'BN'}
                 </button>
               </li>
+              <li className="lang-switcher-item">
+                <ThemeToggle />
+              </li>
             </ul>
           </nav>
         </div>
@@ -158,9 +163,13 @@ const App: React.FC = () => {
   );
 };
 
-/** Root entry: provides the language context around the routed app. */
+/** Root entry: provides the language and theme context around the routed app. */
 export default function RootApp({ children }: { children?: React.ReactNode }) {
-  return <LanguageProvider>{children ?? <App />}</LanguageProvider>;
+  return (
+    <ThemeProvider>
+      <LanguageProvider>{children ?? <App />}</LanguageProvider>
+    </ThemeProvider>
+  );
 }
 
 RootApp.displayName = 'RootApp';
