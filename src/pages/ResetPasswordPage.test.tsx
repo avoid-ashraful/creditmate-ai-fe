@@ -5,6 +5,7 @@ import { setupServer } from 'msw/node';
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import { authUrl } from '../mocks/auth';
 import { renderWithAuth } from '../mocks/renderAuth';
 import { authClient } from '../services/auth';
@@ -134,5 +135,10 @@ describe('ResetPasswordPage', () => {
     const field = await screen.findByLabelText('New password');
     expect(field).toHaveAccessibleDescription('This password is too short.');
     expect(field).toHaveFocus();
+  });
+
+  it('has no accessibility violations', async () => {
+    const { container } = renderWithAuth(routes, { route: '/reset-password?token=tok&uid=MQ' });
+    await expectNoAxeViolations(container);
   });
 });

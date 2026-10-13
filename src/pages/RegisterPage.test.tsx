@@ -5,6 +5,7 @@ import { setupServer } from 'msw/node';
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import { AUTH_USER, authUrl, sessionBody } from '../mocks/auth';
 import { renderWithAuth } from '../mocks/renderAuth';
 import { authClient } from '../services/auth';
@@ -17,11 +18,11 @@ const bodies: unknown[] = [];
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 beforeEach(() => {
   bodies.length = 0;
+  authClient.clearLocalSession();
+  window.sessionStorage.clear();
 });
 afterEach(() => {
   server.resetHandlers();
-  authClient.clearLocalSession();
-  window.sessionStorage.clear();
 });
 afterAll(() => server.close());
 
@@ -127,5 +128,10 @@ describe('RegisterPage', () => {
   it('links to the login page', () => {
     renderWithAuth(routes, { route: '/register' });
     expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
+  });
+
+  it('has no accessibility violations', async () => {
+    const { container } = renderWithAuth(routes, { route: '/register' });
+    await expectNoAxeViolations(container);
   });
 });

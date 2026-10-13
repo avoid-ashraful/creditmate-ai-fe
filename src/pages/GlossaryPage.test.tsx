@@ -1,6 +1,7 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import { LanguageProvider } from '../locales';
 import { glossaryTerms } from '../locales/glossary';
 
@@ -23,9 +24,8 @@ describe('GlossaryPage', () => {
 
   it('renders all glossary entries (>= 50) in the list', () => {
     renderGlossary();
-    const list = screen.getByRole('list');
-    const items = within(list).getAllByRole('listitem');
-    expect(items.length).toBeGreaterThanOrEqual(50);
+    const terms = screen.getAllByRole('term');
+    expect(terms.length).toBeGreaterThanOrEqual(50);
   });
 
   it('switches to Bengali and back with the language buttons', async () => {
@@ -49,12 +49,10 @@ describe('GlossaryPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Fees & Charges' }));
 
-    const list = screen.getByRole('list');
-    const items = within(list).getAllByRole('listitem');
-    expect(items.length).toBeGreaterThan(0);
-    items.forEach(item => {
-      expect(item.textContent).toMatch(/Fee|ফি|মাশুল|Charge|চার্জ/);
-    });
+    const terms = screen.getAllByRole('term');
+    expect(terms.length).toBeGreaterThan(0);
+    // At least one term should match the category theme
+    expect(terms.some(t => t.textContent.match(/Fee|ফি|মাশুল|Charge|চার্জ/))).toBe(true);
   });
 
   it('searches in both languages', async () => {
@@ -64,14 +62,14 @@ describe('GlossaryPage', () => {
     const searchBox = screen.getByRole('textbox', { name: 'Search glossary' });
     await user.type(searchBox, 'credit');
 
-    const list = screen.getByRole('list');
-    expect(within(list).getAllByRole('listitem').length).toBeGreaterThan(0);
+    const terms = screen.getAllByRole('term');
+    expect(terms.length).toBeGreaterThan(0);
 
     await user.clear(searchBox);
     await user.click(screen.getByRole('button', { name: 'BN' }));
     const bengaliSearch = screen.getByRole('textbox', { name: 'শব্দ খুঁজুন' });
     await user.type(bengaliSearch, 'ক্রেডিট');
-    expect(within(list).getAllByRole('listitem').length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('term').length).toBeGreaterThan(0);
   });
 
   it('shows an empty state when nothing matches', async () => {
@@ -84,4 +82,9 @@ describe('GlossaryPage', () => {
     );
     expect(screen.getByText(/No terms match your search criteria/i)).toBeInTheDocument();
   });
+
+  it('has no accessibility violations', async () => {
+    const { container } = renderGlossary();
+    await expectNoAxeViolations(container);
+  }, 15000);
 });

@@ -201,16 +201,20 @@ export const AppContent: React.FC = () => {
 
       <GradientFooter>
         <div className="footer-content">
-          <div className="footer-section">
-            <h3>CreditMate AI</h3>
-            <p>
+          <section aria-labelledby="footer-brand-heading">
+            <h2 id="footer-brand-heading" className="visually-hidden">
+              CreditMate AI
+            </h2>
+            <p className="footer-brand">
               {isBengali
                 ? 'বাংলাদেশি গ্রাহকদের জন্য আর্থিক সিদ্ধান্ত সহজ করা।'
                 : 'Making financial decisions simpler for Bangladeshi consumers.'}
             </p>
-          </div>
-          <div className="footer-section">
-            <h3>{isBengali ? 'দ্রুত লিংক' : 'Quick Links'}</h3>
+          </section>
+          <nav aria-labelledby="footer-nav-heading" className="footer-section">
+            <h2 id="footer-nav-heading" className="visually-hidden">
+              {isBengali ? 'দ্রুত লিংক' : 'Quick Links'}
+            </h2>
             <ul>
               {NAV_ITEMS.map(item => (
                 <li key={item.to}>
@@ -220,9 +224,11 @@ export const AppContent: React.FC = () => {
                 </li>
               ))}
             </ul>
-          </div>
-          <div className="footer-section">
-            <h3>{isBengali ? 'আইনগত' : 'Legal'}</h3>
+          </nav>
+          <nav aria-labelledby="footer-legal-heading" className="footer-section">
+            <h2 id="footer-legal-heading" className="visually-hidden">
+              {isBengali ? 'আইনগত' : 'Legal'}
+            </h2>
             <ul>
               <li>
                 <Link to="/terms">{isBengali ? 'সেবার শর্তাবলি' : 'Terms of Service'}</Link>
@@ -231,7 +237,7 @@ export const AppContent: React.FC = () => {
                 <Link to="/privacy">{isBengali ? 'গোপনীয়তা নীতি' : 'Privacy Policy'}</Link>
               </li>
             </ul>
-          </div>
+          </nav>
         </div>
         <div className="copyright">
           <p>

@@ -1,9 +1,26 @@
 import { render, screen, within } from '@testing-library/react';
 import React from 'react';
 
+import { expectNoAxeViolations } from '../a11y/axe';
+
 import { Skeleton, SkeletonCardGrid } from './Skeleton';
 
 const TRUE_ATTR = 'true';
+
+describe('Skeleton', () => {
+  it('applies the requested size and is hidden from assistive technology', () => {
+    render(<Skeleton width="70%" height="1rem" />);
+
+    const block = screen.getByTestId('skeleton');
+    expect(block).toHaveAttribute('aria-hidden', TRUE_ATTR);
+    expect(block).toHaveStyle({ width: '70%', height: '1rem' });
+  });
+
+  it('has no accessibility violations', async () => {
+    const { container } = render(<Skeleton width="50%" height="1rem" />);
+    await expectNoAxeViolations(container);
+  });
+});
 
 describe('SkeletonCardGrid', () => {
   it('announces its label as a busy status region', () => {
@@ -27,14 +44,9 @@ describe('SkeletonCardGrid', () => {
     expect(placeholders.length).toBeGreaterThan(0);
     placeholders.forEach(block => expect(block).toHaveAttribute('aria-hidden', TRUE_ATTR));
   });
-});
 
-describe('Skeleton', () => {
-  it('applies the requested size and is hidden from assistive technology', () => {
-    render(<Skeleton width="70%" height="1rem" />);
-
-    const block = screen.getByTestId('skeleton');
-    expect(block).toHaveAttribute('aria-hidden', TRUE_ATTR);
-    expect(block).toHaveStyle({ width: '70%', height: '1rem' });
+  it('has no accessibility violations', async () => {
+    const { container } = render(<SkeletonCardGrid label="Loading cards..." count={3} />);
+    await expectNoAxeViolations(container);
   });
 });

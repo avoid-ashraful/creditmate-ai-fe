@@ -5,6 +5,7 @@ import { setupServer } from 'msw/node';
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import { authUrl } from '../mocks/auth';
 import { renderWithAuth } from '../mocks/renderAuth';
 import { authClient } from '../services/auth';
@@ -101,4 +102,9 @@ describe('ForgotPasswordPage', () => {
     renderWithAuth(routes, { route: '/forgot-password' });
     expect(screen.getByRole('link', { name: 'Back to log in' })).toHaveAttribute('href', '/login');
   });
+
+  it('has no accessibility violations', async () => {
+    const { container } = renderWithAuth(routes, { route: '/forgot-password' });
+    await expectNoAxeViolations(container);
+  }, 15000);
 });
