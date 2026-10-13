@@ -59,6 +59,13 @@ module.exports = {
   },
   overrides: [
     {
+      files: ['**/*.stories.js', '**/*.stories.jsx', '**/*.stories.ts', '**/*.stories.tsx'],
+      rules: {
+        // Story handlers are intentionally inert when rendering controls.
+        '@typescript-eslint/no-empty-function': 'off',
+      },
+    },
+    {
       files: ['e2e/**/*.ts', 'playwright.config.ts'],
       rules: {
         // These files use Playwright's page locators and per-viewport checks,
