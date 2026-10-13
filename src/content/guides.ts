@@ -1199,7 +1199,7 @@ export const guides: Guide[] = [
       {
         question: 'What happens when I opt out?',
         answer:
-          'The opt-out flag is saved in localStorage. The analytics client stops sending events immediately. If a provider deletion callback is registered, it is called. Your past events already sent to the provider are governed by their policy.',
+          'The opt-out flag is saved in localStorage. Analytics stops at once. If the provider has a deletion tool, we call it. The provider policy covers past events.',
       },
       {
         question: 'Do you sell my data?',
