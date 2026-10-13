@@ -220,6 +220,16 @@ export class AuthClient {
     }
   }
 
+  /** Return a usable access token for an authenticated API request. */
+  async getAccessToken(): Promise<string | null> {
+    if (!this.hasSession()) return null;
+    try {
+      return this.accessToken ?? (await this.refreshAccessToken());
+    } catch {
+      return null;
+    }
+  }
+
   /**
    * Exchange the refresh token for a new access token. Concurrent callers share
    * one in-flight request, so a burst of 401s causes a single refresh call.

@@ -52,7 +52,7 @@ describe('GlossaryPage', () => {
     const terms = screen.getAllByRole('term');
     expect(terms.length).toBeGreaterThan(0);
     // At least one term should match the category theme
-    expect(terms.some(t => t.textContent.match(/Fee|ফি|মাশুল|Charge|চার্জ/))).toBe(true);
+    expect(terms.some(t => (t.textContent ?? '').match(/Fee|ফি|মাশুল|Charge|চার্জ/))).toBe(true);
   });
 
   it('searches in both languages', async () => {

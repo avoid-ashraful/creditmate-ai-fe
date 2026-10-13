@@ -9,7 +9,7 @@ import axe from 'axe-core';
 const JSDOM_UNSUPPORTED_RULES = ['color-contrast', 'color-contrast-enhanced'];
 
 // Mutex to prevent concurrent axe runs (axe-core doesn't support parallel execution)
-let axeMutex = Promise.resolve();
+let axeMutex: Promise<unknown> = Promise.resolve();
 
 export interface AxeViolationSummary {
   id: string;
@@ -37,8 +37,9 @@ export async function axeViolations(container: HTMLElement): Promise<AxeViolatio
     }));
   };
 
-  axeMutex = axeMutex.then(run, run);
-  return axeMutex;
+  const next = axeMutex.then(run, run);
+  axeMutex = next;
+  return next;
 }
 
 /** Assert that a rendered container has no axe-core violations. */

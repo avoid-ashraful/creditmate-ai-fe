@@ -122,3 +122,51 @@ export interface GuideArticle {
  * Alert types - re-exported from alerts.ts
  */
 export * from './alerts';
+
+/**
+ * Review types for community reviews feature
+ */
+export interface Review {
+  id: number;
+  cardId: number;
+  rating: number; // 1-5
+  title: string;
+  body: string;
+  pros: string;
+  cons: string;
+  helpfulCount: number;
+  displayName: string;
+  created: Date;
+  userId: number;
+  status: 'approved' | 'pending' | 'rejected';
+  userVotedHelpful?: boolean;
+}
+
+export interface ReviewSummary {
+  average: number | null;
+  count: number;
+  distribution: {
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+    5: number;
+  };
+}
+
+export interface CreateReviewInput {
+  card: number;
+  rating: number;
+  title: string;
+  body: string;
+  pros?: string;
+  cons?: string;
+}
+
+export interface UpdateReviewInput {
+  rating?: number;
+  title?: string;
+  body?: string;
+  pros?: string;
+  cons?: string;
+}

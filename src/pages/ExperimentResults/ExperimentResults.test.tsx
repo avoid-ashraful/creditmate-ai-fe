@@ -52,8 +52,8 @@ const renderWithRouter = () =>
 describe('ExperimentResults', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    isResultsViewEnabled.mockReturnValue(true);
-    getAllExperimentViewData.mockReturnValue([
+    (isResultsViewEnabled as jest.Mock).mockReturnValue(true);
+    (getAllExperimentViewData as jest.Mock).mockReturnValue([
       {
         experimentKey: 'hero_cta_text',
         config: {
@@ -90,8 +90,8 @@ describe('ExperimentResults', () => {
   });
 
   it('renders empty state when no experiments', async () => {
-    getAllExperimentViewData.mockReturnValue([]);
-    isResultsViewEnabled.mockReturnValue(true);
+    (getAllExperimentViewData as jest.Mock).mockReturnValue([]);
+    (isResultsViewEnabled as jest.Mock).mockReturnValue(true);
     renderWithRouter();
 
     await waitFor(() => {
