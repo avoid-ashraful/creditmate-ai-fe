@@ -214,13 +214,14 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
     const totalCards = result?.cards?.length ?? 0;
     const totalBanks = result?.banks?.length ?? 0;
     const totalCategories = result?.categories?.length ?? 0;
-    const total = totalCards + totalBanks + totalCategories || 1;
+    const total = totalCards + totalBanks + totalCategories;
+    if (total === 0) return;
 
     let nextIndex: number;
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      nextIndex = (activeIndex + 1) % (total + 1);
+      nextIndex = (activeIndex + 1) % total;
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       nextIndex = activeIndex <= 0 ? total - 1 : activeIndex - 1;

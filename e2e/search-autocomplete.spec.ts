@@ -15,8 +15,8 @@ test.describe('Search Autocomplete E2E', () => {
         { type: 'card', id: 1, label: 'Visa Platinum Card', detail: 'Visa' },
         { type: 'card', id: 2, label: 'Other Rewards Card', detail: 'Chase' },
         { type: 'bank', id: 100, label: 'Chase Bank' },
-        { type: 'category', slug: 'travel', label: 'Travel Rewards' },
-        { type: 'category', slug: 'cashback', label: 'Cashback Cards' },
+        { type: 'category', slug: 'travel', label: 'Travel' },
+        { type: 'category', slug: 'cashback', label: 'Cashback' },
       ].filter(
         item =>
           (item.type === 'card' && item.label.toLowerCase().includes(q)) ||
@@ -39,6 +39,16 @@ test.describe('Search Autocomplete E2E', () => {
       });
     });
 
+    await page.route(
+      url => url.pathname.endsWith('/api/v1/credit-cards/'),
+      route =>
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ count: 0, next: null, previous: null, results: [] }),
+        })
+    );
+
     await page.goto('/');
   });
 
@@ -47,7 +57,7 @@ test.describe('Search Autocomplete E2E', () => {
   });
 
   test('can type and see autocomplete suggestions', async () => {
-    const searchInput = page.getByPlaceholderText(/Search by card name/i);
+    const searchInput = page.getByPlaceholder(/Search by card name/i);
     await searchInput.click();
     await searchInput.fill('visa');
 
@@ -59,24 +69,34 @@ test.describe('Search Autocomplete E2E', () => {
     await expect(options.first()).toContainText('Visa Platinum Card');
   });
 
-  test('can select a category suggestion with slug preserved', async () => {
-    const searchInput = page.getByPlaceholderText(/Search by card name/i);
+  test('can select a category suggestion and apply its slug filters', async () => {
+    const searchInput = page.getByPlaceholder(/Search by card name/i);
     await searchInput.click();
     await searchInput.fill('travel');
 
     const listbox = page.getByRole('listbox');
     await expect(listbox).toBeVisible({ timeout: 500 });
 
-    const travelOption = page.getByRole('option').filter({ hasText: /Travel Rewards/i });
+    const travelOption = page.getByRole('option').filter({ hasText: /Travel/i });
     await expect(travelOption).toBeVisible();
+    const filteredCardsRequest = page.waitForRequest(request => {
+      const requestUrl = new URL(request.url());
+      return (
+        requestUrl.pathname.endsWith('/api/v1/credit-cards/') &&
+        requestUrl.searchParams.get('has_lounge_access') === 'true'
+      );
+    });
     await travelOption.click();
 
-    await expect(searchInput).toHaveValue('Travel Rewards');
+    const request = await filteredCardsRequest;
+    const requestUrl = new URL(request.url());
+    expect(requestUrl.searchParams.get('has_lounge_access')).toBe('true');
+    expect(requestUrl.searchParams.get('ordering')).toBe('-lounge_access_international');
     await expect(listbox).not.toBeVisible();
   });
 
   test('can select a card suggestion', async () => {
-    const searchInput = page.getByPlaceholderText(/Search by card name/i);
+    const searchInput = page.getByPlaceholder(/Search by card name/i);
     await searchInput.click();
     await searchInput.fill('visa');
 
@@ -92,11 +112,11 @@ test.describe('Search Autocomplete E2E', () => {
   });
 
   test('respects debounce timing', async () => {
-    const searchInput = page.getByPlaceholderText(/Search by card name/i);
+    const searchInput = page.getByPlaceholder(/Search by card name/i);
     await searchInput.click();
     await searchInput.type('v');
 
-    const listbox = page.queryByRole('listbox');
+    const listbox = page.getByRole('listbox');
     await expect(listbox).not.toBeVisible();
 
     await searchInput.type('isa');
@@ -104,7 +124,7 @@ test.describe('Search Autocomplete E2E', () => {
   });
 
   test('keyboard navigation works', async () => {
-    const searchInput = page.getByPlaceholderText(/Search by card name/i);
+    const searchInput = page.getByPlaceholder(/Search by card name/i);
     await searchInput.click();
     await searchInput.fill('travel');
 
@@ -123,7 +143,7 @@ test.describe('Search Autocomplete E2E', () => {
   });
 
   test('Escape key closes suggestions', async () => {
-    const searchInput = page.getByPlaceholderText(/Search by card name/i);
+    const searchInput = page.getByPlaceholder(/Search by card name/i);
     await searchInput.click();
     await searchInput.fill('travel');
 

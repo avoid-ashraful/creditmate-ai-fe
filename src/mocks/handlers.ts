@@ -75,6 +75,7 @@ export const handlers = [
     const bankName = req.url.searchParams.get('bank_name');
     const bank = req.url.searchParams.get('bank');
     const bankIds = req.url.searchParams.get('bank_ids')?.split(',').map(Number) || [];
+    const hasLoungeAccess = req.url.searchParams.get('has_lounge_access');
 
     let cards = testCards;
     if (ids) {
@@ -101,6 +102,10 @@ export const handlers = [
       cards = cards.filter(card =>
         bankIds.some(bankId => testBanks.some(b => b.id === bankId && b.name === card.bank_name))
       );
+    }
+    if (hasLoungeAccess !== null) {
+      const loungeAccessValue = hasLoungeAccess === 'true';
+      cards = cards.filter(card => card.has_lounge_access === loungeAccessValue);
     }
 
     return res(ctx.status(200), ctx.json(paginated(cards)));

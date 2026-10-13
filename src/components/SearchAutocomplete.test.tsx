@@ -201,7 +201,7 @@ describe('SearchAutocomplete – rendering', () => {
   it('highlights the matched query as <mark> text nodes', async () => {
     renderAutocomplete();
 
-    const QUERY = 'visa';
+    const QUERY = 'test';
     const input = screen.getByRole('combobox');
     fireEvent.input(input, { target: { value: QUERY } });
 
@@ -215,14 +215,14 @@ describe('SearchAutocomplete – rendering', () => {
     const options = screen.getAllByRole('option');
     expect(options.length).toBeGreaterThan(0);
 
-    const visaOption = Array.from(options).find(opt =>
+    const testOption = Array.from(options).find(opt =>
       opt.textContent?.toLowerCase().includes(QUERY)
     );
-    expect(visaOption).toBeDefined();
+    expect(testOption).toBeDefined();
     // eslint-disable-next-line testing-library/no-node-access
-    const mark = visaOption?.querySelector('mark');
+    const mark = testOption?.querySelector('mark');
     expect(mark).toBeInTheDocument();
-    expect(mark?.textContent?.toLowerCase()).toBe(QUERY);
+    expect(mark?.textContent).toBe('Test');
   });
 
   it('renders a "did you mean" suggestion when the query is a known typo', async () => {
@@ -240,17 +240,17 @@ describe('SearchAutocomplete – rendering', () => {
     renderAutocomplete();
 
     const input = screen.getByRole('combobox');
-    fireEvent.input(input, { target: { value: 'te' } });
+    fireEvent.input(input, { target: { value: 'tra' } });
 
     const facetButtons = await waitFor(
       () => {
         const buttons = screen.getAllByRole('button');
-        return buttons.filter(btn => btn.textContent?.includes('('));
+        return buttons.filter(btn => btn.textContent?.includes('Travel'));
       },
       { timeout: 1500 }
     );
     expect(facetButtons.length).toBeGreaterThan(0);
-    expect(facetButtons[0].textContent).toMatch(/\(\d+\)/);
+    expect(facetButtons[0].textContent).toMatch(/Travel \(\d+\)/);
   });
 });
 
@@ -358,14 +358,19 @@ describe('SearchAutocomplete – keyboard navigation', () => {
     );
     expect(travelOption).toBeDefined();
 
-    fireEvent.click(travelOption as HTMLElement);
+    if (!travelOption) {
+      throw new Error('Travel option not found');
+    }
 
-    expect(onSelectCategory).toHaveBeenCalledWith(
-      expect.objectContaining({
-        slug: 'travel',
-        name: 'Travel',
-      })
-    );
+    await userEvent.click(travelOption);
+    await waitFor(() => {
+      expect(onSelectCategory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          slug: 'travel',
+          name: 'Travel',
+        })
+      );
+    });
   });
 });
 
@@ -376,11 +381,11 @@ describe('SearchAutocomplete – HomePage integration', () => {
   afterEach(() => server.resetHandlers());
   afterAll(() => server.close());
 
-  it('typing "signature" into the hero search triggers typeahead and filters results on Enter', async () => {
+  it('typing "other" into the hero search triggers typeahead and filters results on Enter', async () => {
     renderHomePage();
 
     const searchInput = screen.getByPlaceholderText(/Search by card name/i);
-    await userEvent.type(searchInput, 'signature');
+    await userEvent.type(searchInput, 'other');
 
     await waitFor(() => {
       expect(screen.getByRole('listbox')).toBeInTheDocument();
@@ -390,8 +395,10 @@ describe('SearchAutocomplete – HomePage integration', () => {
     await userEvent.click(searchBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/Signature/i)).toBeInTheDocument();
+      expect(screen.getByText(/Other Rewards Card/i)).toBeInTheDocument();
     });
+
+    expect(screen.queryByText(/Test Credit Card/i)).not.toBeInTheDocument();
   });
 
   it('selecting a category suggestion from autocomplete applies the category filter', async () => {
@@ -408,13 +415,15 @@ describe('SearchAutocomplete – HomePage integration', () => {
     const travelOption = travelOptions.find(opt => opt.textContent?.includes('Travel'));
     expect(travelOption).toBeDefined();
 
-    if (travelOption) {
-      await userEvent.click(travelOption);
+    if (!travelOption) {
+      throw new Error('Travel option not found');
     }
 
-    const input = screen.getByRole('combobox') as HTMLInputElement;
+    await userEvent.click(travelOption);
+
     await waitFor(() => {
-      expect(input.value).toBe('Travel');
+      expect(screen.getByText(/Test Credit Card/i)).toBeInTheDocument();
     });
+    expect(screen.queryByText(/Other Rewards Card/i)).not.toBeInTheDocument();
   });
 });
