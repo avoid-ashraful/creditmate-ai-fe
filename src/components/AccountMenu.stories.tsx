@@ -1,7 +1,7 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
-import { AuthProvider, AUTH_STATUS } from '../hooks/AuthProvider';
+import { AuthProvider } from '../hooks/AuthProvider';
 import { LanguageProvider } from '../locales';
 
 import { AccountMenu } from './AccountMenu';

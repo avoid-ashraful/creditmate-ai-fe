@@ -194,7 +194,6 @@ export const Interactive = () => {
     mockCards[1],
   ]);
   const [lastRemoved, setLastRemoved] = React.useState<string>('(none)');
-  const [compareMessage, setCompareMessage] = React.useState<string>('');
 
   const handleRemove = (cardId: number) => {
     const card = selectedCards.find(c => c.id === cardId);
@@ -223,7 +222,6 @@ export const Interactive = () => {
         <p>
           <strong>Compare enabled:</strong> {selectedCards.length >= 2 ? 'Yes' : 'No'}
         </p>
-        {compareMessage && <p style={{ color: 'var(--color-error)' }}>{compareMessage}</p>}
       </div>
     </div>
   );
