@@ -109,6 +109,29 @@ button {
   background-color: rgba(37, 99, 235, 0.05);
 }
 
+.lang-switcher-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.lang-switcher-button {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.lang-switcher-button:hover,
+.lang-switcher-button.active {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
 /* Content area */
 .app-content {
   flex: 1;
