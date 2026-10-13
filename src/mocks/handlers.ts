@@ -127,4 +127,58 @@ export const handlers = [
       })
     );
   }),
+
+  // GET /api/v1/credit-cards/typeahead/?q=...
+  rest.get('*/api/v1/credit-cards/typeahead/', (req, res, ctx) => {
+    const q = (req.url.searchParams.get('q') || '').trim().toLowerCase();
+
+    // Cards – filter by name or bank_name
+    const filteredCards = testCards.filter(
+      c => c.name.toLowerCase().includes(q) || c.bank_name.toLowerCase().includes(q)
+    );
+    const cards = filteredCards.slice(0, 5).map(c => ({
+      id: c.id,
+      name: c.name,
+      bank_name: c.bank_name,
+    }));
+
+    // Banks – filter by name
+    const filteredBanks = testBanks.filter(b => b.name.toLowerCase().includes(q));
+    const banks = filteredBanks.slice(0, 5).map(b => ({
+      id: b.id,
+      name: b.name,
+      credit_card_count: b.credit_card_count,
+    }));
+
+    // Categories – static set derived from the CATEGORIES config
+    const categories = [
+      { slug: 'travel', name: 'Travel', count: 0 },
+      { slug: 'cashback', name: 'Cashback', count: 0 },
+      { slug: 'premium', name: 'Premium', count: 0 },
+      { slug: 'student', name: 'Student', count: 0 },
+      { slug: 'business', name: 'Business', count: 0 },
+      { slug: 'no-annual-fee', name: 'No Annual Fee', count: 1 },
+    ]
+      .filter(c => c.name.toLowerCase().includes(q) || c.slug.includes(q))
+      .slice(0, 5);
+
+    // Facets – static per‑category counts for the query
+    const facets = categories.map(c => ({
+      slug: c.slug,
+      label: c.name,
+      count: c.count,
+    }));
+
+    // "Did you mean" – correct a common typo
+    const didYouMean = q === 'viza' ? 'visa' : null;
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        suggestions: { cards, banks, categories },
+        facets,
+        didYouMean,
+      })
+    );
+  }),
 ];

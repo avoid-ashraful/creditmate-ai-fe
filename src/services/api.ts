@@ -280,6 +280,13 @@ class ApiService {
     return this.fetchApi('/credit-cards/search-suggestions/');
   }
 
+  /** Call the typeahead endpoint: GET /api/v1/credit-cards/typeahead/?q=<query> */
+  async getTypeaheadSuggestions(query: string): Promise<unknown> {
+    const params = new URLSearchParams();
+    params.append('q', query);
+    return this.fetchApi<unknown>('/credit-cards/typeahead/', params);
+  }
+
   // Transform API response to match frontend types
   transformCreditCard(apiCard: CreditCardApiResponse): CreditCard {
     return {

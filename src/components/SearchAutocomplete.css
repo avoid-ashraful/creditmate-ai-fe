@@ -1,0 +1,148 @@
+/* SearchAutocomplete component styles */
+
+/* The wrapper receives position:relative from the parent form so the
+   dropdown can position absolutely below the input without clipping. */
+.search-autocomplete {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* The input inherits the existing .search-form input styles (padding,
+   font, colours). We only add non‑breaking tweaks here. */
+.search-autocomplete-input {
+  /* Ensure the input always has enough right-padding for the search button
+     that sits absolutely inside the parent .search-form. */
+  padding-right: 24px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+/* The absolutely‑positioned dropdown appears below the input and extends
+   the full width of the form container. */
+.search-autocomplete-listbox {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  max-height: 400px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
+  width: 100%;
+  text-align: left;
+}
+
+/* Group header inside the listbox */
+.search-autocomplete-group {
+  border-bottom: 1px solid #e2e8f0;
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+}
+
+/* Group label – the text inside the group header */
+.search-autocomplete-group-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 8px;
+}
+
+/* Individual suggestion option */
+.search-autocomplete-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #1a202c;
+}
+
+.search-autocomplete-option:hover,
+.search-autocomplete-option.highlighted {
+  background: #f1f5f9;
+}
+
+/* The mark element for matched substrings */
+.search-autocomplete-option mark {
+  background-color: #ebf8ff;
+  color: #0c4a6e;
+  padding: 0 0.1em;
+  border-radius: 2px;
+}
+
+/* Status / empty items inside the listbox */
+.search-autocomplete-status {
+  padding: 8px 12px;
+  color: #718096;
+  font-size: 0.75rem;
+}
+
+/* Facet buttons – displayed under the listbox */
+.search-autocomplete-facets {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+}
+
+.search-autocomplete-facet {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.search-autocomplete-facet:hover {
+  background: #edf2f7;
+}
+
+/* "Did you mean" correction line */
+.search-autocomplete-did-you-mean {
+  margin-top: 6px;
+  padding: 6px 0;
+  font-size: 0.875rem;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+}
+
+.search-autocomplete-did-you-mean span:first-child {
+  margin-right: 6px;
+  color: #718096;
+}
+
+.search-autocomplete-did-you-mean-button {
+  background: transparent;
+  border: none;
+  color: #3182ce;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.search-autocomplete-did-you-mean-button:focus {
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+/* Visually-hidden utility for a11y text that must be read but not seen */
+.visually-hidden {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1point);
+  white-space: nowrap;
+}
