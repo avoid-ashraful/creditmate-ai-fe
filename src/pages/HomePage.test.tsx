@@ -108,6 +108,15 @@ test('searches cards through the mocked API', async () => {
   expect(screen.queryByText(/Test Credit Card/i)).not.toBeInTheDocument();
 });
 
+test('prefills the search box and filters from the ?search= URL parameter', async () => {
+  window.history.replaceState({}, '', '/?search=other');
+  renderRoutes();
+
+  await screen.findByText(/Other Rewards Card/i);
+  expect(screen.queryByText(/Test Credit Card/i)).not.toBeInTheDocument();
+  expect(screen.getByPlaceholderText(/Search by card name/i)).toHaveValue('other');
+});
+
 test('selects cards and exposes compare navigation', async () => {
   renderRoutes();
 

@@ -38,6 +38,15 @@ export interface GuideSection {
   comparison?: GuideComparisonRow[];
 }
 
+export interface GuideFaq {
+  question: string;
+  /**
+   * Must restate something the guide body already says. FAQPage markup has to
+   * match visible text.
+   */
+  answer: string;
+}
+
 export interface Guide {
   slug: string;
   title: string;
@@ -46,6 +55,7 @@ export interface Guide {
   readingTime: string;
   updated: string;
   sections: GuideSection[];
+  faqs: GuideFaq[];
   sources: GuideSource[];
   disclaimer: string;
 }
@@ -156,6 +166,23 @@ export const guides: Guide[] = [
         ],
       },
     ],
+    faqs: [
+      {
+        question: 'How old do I need to be to get a credit card in Bangladesh?',
+        answer:
+          'You must be 18 years old or older on the day you apply. A student aged 16 can get a second card, but the student must be directly dependent on the main cardholder.',
+      },
+      {
+        question: 'What is the most yearly interest a bank can charge?',
+        answer:
+          'Bangladesh Bank caps the yearly interest at 25 percent. The bank charges that rate only on the money you still owe, not on the full bill.',
+      },
+      {
+        question: 'What happens if I owe nothing and ask to close my card?',
+        answer:
+          'If you owe nothing, the bank must close the card within seven working days. Any credit left then goes back to your bank account.',
+      },
+    ],
     sources: [
       BB_CARD_RULES,
       BB_SCHEDULE_OF_CHARGES,
@@ -249,6 +276,23 @@ export const guides: Guide[] = [
         ],
       },
     ],
+    faqs: [
+      {
+        question: 'What is an annual fee?',
+        answer:
+          'An annual fee is the price of holding a card. Your bank charges it once a year. Bangladesh Bank calls it a non-transactional fee.',
+      },
+      {
+        question: 'Can my bank charge the annual fee before my card is active?',
+        answer:
+          'No. Your bank cannot charge that fee before your card works. A card you never activated must not cost you.',
+      },
+      {
+        question: 'Can paying only the annual fee make me late?',
+        answer:
+          'No. Paying only that fee cannot make you late. The bank may add normal interest on the fee, but it must not mark you as a bad payer for the fee.',
+      },
+    ],
     sources: [
       BB_CARD_RULES,
       BB_SCHEDULE_OF_CHARGES,
@@ -340,6 +384,23 @@ export const guides: Guide[] = [
           'Ask the lounge desk for the reason in writing. Ask your bank the same question. Take a photo of the screen or the note.',
           'Ask your bank for a complaint number. Your bank must name a dispute officer on its website. You can also call Bangladesh Bank at 16236. Write to bb.cipc@bb.org.bd if the case drags on.',
         ],
+      },
+    ],
+    faqs: [
+      {
+        question: 'Are airport lounge perks set by law?',
+        answer:
+          'No. Card perks are set by the bank, not by law. Read the card terms to see what you get, and check the count for your own card.',
+      },
+      {
+        question: 'What should I do if a lounge refuses my card?',
+        answer:
+          'Ask the lounge desk for the reason in writing, and ask your bank the same question. Take a photo of the screen or the note. Ask your bank for a complaint number.',
+      },
+      {
+        question: 'Who can I contact about a refused lounge visit?',
+        answer:
+          'Your bank must name a dispute officer on its website. You can also call Bangladesh Bank at 16236, or write to bb.cipc@bb.org.bd if the case drags on.',
       },
     ],
     sources: [
@@ -445,6 +506,23 @@ export const guides: Guide[] = [
         paragraphs: [
           'Read our first credit card guide. It walks you through the steps. Then open our home page. The filters there can show only cards with a fee waiver or a lounge plan. Pick two or three, then press Compare Cards.',
         ],
+      },
+    ],
+    faqs: [
+      {
+        question: 'Where does the money come from on each card?',
+        answer:
+          'A debit card spends your own cash from your account. A credit card is a loan from your bank, and you pay the bank back later.',
+      },
+      {
+        question: 'Can a debit card take me past my balance?',
+        answer:
+          'No. Your debit card cannot take you past your own cash. That is a hard stop, and it is a good guard.',
+      },
+      {
+        question: 'How much interest can a credit card charge?',
+        answer:
+          'Bangladesh Bank caps the yearly interest on a credit card at 25 percent, and only on what you owe. If you pay the full bill on time, you get an interest free period.',
       },
     ],
     sources: [

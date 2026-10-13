@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
+import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import { getComparisonSummary } from '../utils/narratives';
-import { setSeoMeta, resetSeoMeta } from '../utils/seo';
 import { slugify } from '../utils/slugify';
+import { breadcrumbJsonLd } from '../utils/structuredData';
 import '../styles/CardDetailPage.css';
 
 const NA = 'N/A';
@@ -24,6 +25,26 @@ const CardDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [similarCards, setSimilarCards] = useState<CreditCard[]>([]);
   const [ctaClicked, setCtaClicked] = useState(false);
+
+  const cardPath =
+    card?.bankName && card.name ? `/card/${slugify(card.bankName)}/${slugify(card.name)}` : null;
+  useSeoMeta(
+    card
+      ? {
+          title: `${card.name} from ${card.bankName ?? 'a Bangladeshi bank'} | CreditMate AI`,
+          description: `${card.name} from ${card.bankName ?? 'a Bangladeshi bank'}. Annual fee: ${
+            card.annualFee === null ? NA : `BDT ${card.annualFee}`
+          }. APR: ${card.interestRateApr === null ? NA : `${card.interestRateApr}%`}`,
+          canonicalPath: cardPath ?? undefined,
+          jsonLd: cardPath
+            ? breadcrumbJsonLd(window.location.origin, [
+                { name: 'Home', path: '/' },
+                { name: card.name, path: cardPath },
+              ])
+            : undefined,
+        }
+      : null
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -77,16 +98,6 @@ const CardDetailPage: React.FC = () => {
         } else {
           setSimilarCards([]);
         }
-
-        setSeoMeta({
-          title: `${foundCard.name} - CreditMate AI`,
-          description: `Detailed comparison and information about ${foundCard.name} from ${
-            foundCard.bankName
-          }. Annual fee: ${
-            foundCard.annualFee === null ? 'N/A' : `BDT ${foundCard.annualFee}`
-          }. APR: ${foundCard.interestRateApr === null ? 'N/A' : `${foundCard.interestRateApr}%`}`,
-          canonicalPath: `/card/${bankSlug}/${cardSlug}`,
-        });
       } catch (err) {
         if (cancelled) return;
         console.error('Failed to fetch card details:', err);
@@ -100,7 +111,6 @@ const CardDetailPage: React.FC = () => {
 
     return () => {
       cancelled = true;
-      resetSeoMeta();
     };
   }, [bankSlug, cardSlug]);
 

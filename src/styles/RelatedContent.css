@@ -1,0 +1,27 @@
+.related-content {
+  margin-top: var(--spacing-xl);
+}
+
+.related-content-heading {
+  font-size: 1.25rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.related-content-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.related-content-item a {
+  font-weight: 600;
+}
+
+.related-content-description {
+  margin: var(--spacing-xs) 0 0;
+  font-size: 0.95rem;
+  color: var(--text-light);
+}

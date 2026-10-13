@@ -5,16 +5,31 @@ import { Link, useParams } from 'react-router-dom';
 import CardDetailsPopup from '../components/CardDetailsPopup';
 import CardList from '../components/CardList';
 import ComparisonBar from '../components/ComparisonBar';
+import RelatedContent, { RelatedLink } from '../components/RelatedContent';
 import { SkeletonCardGrid } from '../components/Skeleton';
 import Toast from '../components/Toast';
-import { getCategoryBySlug } from '../config/categories';
+import { CATEGORIES, Category, getCategoryBySlug } from '../config/categories';
+import { getGuide } from '../content/guides';
 import { apiService, CreditCardApiResponse } from '../services/api';
 import { CreditCard } from '../types';
 import { resetSeoMeta, setSeoMeta } from '../utils/seo';
+import { breadcrumbJsonLd } from '../utils/structuredData';
 import '../styles/HomePage.css';
 import '../styles/CategoryPage.css';
 
 const PAGE_SIZE = 100;
+
+const guideLinksFor = (category: Category): RelatedLink[] =>
+  category.relatedGuideSlugs.flatMap(slug => {
+    const guide = getGuide(slug);
+    return guide ? [{ to: `/guides/${guide.slug}`, label: guide.title }] : [];
+  });
+
+const otherCategoryLinksFor = (category: Category): RelatedLink[] =>
+  CATEGORIES.filter(other => other.slug !== category.slug).map(other => ({
+    to: `/category/${other.slug}`,
+    label: other.name,
+  }));
 
 interface CategoryResponse {
   count: number;
@@ -66,6 +81,10 @@ const CategoryPage: React.FC = () => {
         title: category.metaTitle,
         description: category.metaDescription,
         canonicalPath: `/category/${category.slug}`,
+        jsonLd: breadcrumbJsonLd(window.location.origin, [
+          { name: 'Home', path: '/' },
+          { name: category.name, path: `/category/${category.slug}` },
+        ]),
       });
     }
     return () => {
@@ -310,6 +329,9 @@ const CategoryPage: React.FC = () => {
           <Toast className="selection-message" message={selectionMessage} />
         </>
       )}
+
+      <RelatedContent heading="Learn before you apply" links={guideLinksFor(category)} />
+      <RelatedContent heading="Other categories" links={otherCategoryLinksFor(category)} />
     </div>
   );
 };

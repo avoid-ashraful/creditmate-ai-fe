@@ -3,12 +3,20 @@ import { useLocation, Link } from 'react-router-dom';
 
 import CardComparisonTable from '../components/CardComparisonTable';
 import Toast from '../components/Toast';
+import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import '../styles/ComparisonPage.css';
 
 const ComparisonPage: React.FC = () => {
+  useSeoMeta({
+    title: 'Compare credit cards side by side | CreditMate AI',
+    description:
+      'Compare up to four credit cards side by side on annual fee, interest rate, lounge access and rewards.',
+    canonicalPath: '/compare',
+  });
+
   const location = useLocation();
   const [selectedCards, setSelectedCards] = useState<CreditCard[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
