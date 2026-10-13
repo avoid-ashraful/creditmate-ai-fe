@@ -1,5 +1,4 @@
 import {
-  advancedSearchService,
   uiStateToParams,
   paramsToSearchParams,
   searchParamsToUIState,

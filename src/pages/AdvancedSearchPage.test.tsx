@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
@@ -29,15 +29,6 @@ const renderAdvancedSearch = (initialUrl = '/search') => {
         </LanguageProvider>
       </ThemeProvider>
     </MemoryRouter>
-  );
-};
-
-const waitForContentLoad = async () => {
-  await waitFor(
-    () => {
-      expect(screen.queryByText(/Loading search results/i)).not.toBeInTheDocument();
-    },
-    { timeout: 14000 }
   );
 };
 
