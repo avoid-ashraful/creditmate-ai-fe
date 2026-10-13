@@ -5,6 +5,7 @@ import CardListItem from '../components/CardListItem';
 import ComparisonBar from '../components/ComparisonBar';
 import Toast from '../components/Toast';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
+import { isTreatment } from '../lib/experiments';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import { rankCards, encodeQuizResult, decodeQuizResult } from '../utils/quizScoringAlgorithm';
@@ -51,6 +52,10 @@ const RecommendationQuiz: React.FC = () => {
   const [apiError, setApiError] = useState<string | null>(null);
   const [shareMessage, setShareMessage] = useState<string>('');
 
+  // Experiment: quiz vs browse default
+  // Treatment: redirect to browse (home page) instead of showing quiz
+  const showQuiz = !isTreatment('quiz_vs_browse_default');
+
   useEffect(() => {
     setSeoMeta({
       title: 'Smart Credit Card Finder Quiz',
@@ -62,6 +67,13 @@ const RecommendationQuiz: React.FC = () => {
       resetSeoMeta();
     };
   }, []);
+
+  // If experiment says redirect to browse, do so immediately
+  useEffect(() => {
+    if (!showQuiz) {
+      navigate('/', { replace: true });
+    }
+  }, [showQuiz, navigate]);
 
   // Fetch all active credit cards on mount
   useEffect(() => {
@@ -280,6 +292,11 @@ const RecommendationQuiz: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  // If experiment redirects to browse, don't render quiz
+  if (!showQuiz) {
+    return null;
   }
 
   return (

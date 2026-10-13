@@ -8,6 +8,11 @@ import * as quizAlgorithm from '../utils/quizScoringAlgorithm';
 
 import RecommendationQuiz from './RecommendationQuiz';
 
+// Mock experiments to always return control (show quiz)
+jest.mock('../lib/experiments', () => ({
+  isTreatment: () => false,
+}));
+
 jest.mock('../services/api');
 jest.mock('../utils/seo');
 

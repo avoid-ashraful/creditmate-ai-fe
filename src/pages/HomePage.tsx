@@ -13,6 +13,7 @@ import Toast from '../components/Toast';
 import { CATEGORIES } from '../config/categories';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
+import { getVariant } from '../lib/experiments';
 import { apiService } from '../services/api';
 import { CreditCard, Bank, CardFilterOptions } from '../types';
 import { organizationJsonLd, websiteJsonLd } from '../utils/structuredData';
@@ -39,6 +40,10 @@ const HomePage: React.FC = () => {
     canonicalPath: '/',
     jsonLd: [organizationJsonLd(window.location.origin), websiteJsonLd(window.location.origin)],
   });
+
+  // Experiment variants
+  const heroCtaVariant = getVariant('hero_cta_text');
+  const cardLayoutVariant = getVariant('card_layout');
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -170,14 +175,24 @@ const HomePage: React.FC = () => {
     }
   };
 
+  // Hero CTA text variants
+  const heroCtaText =
+    heroCtaVariant === 'treatment' ? 'Start Your Card Search' : 'Find Your Perfect Credit Card';
+
+  const heroSubtext =
+    heroCtaVariant === 'treatment'
+      ? "Compare top credit cards from Bangladesh's leading banks in seconds"
+      : 'Compare credit cards from top banks in Bangladesh and make informed financial decisions';
+
+  // Card layout variant: 'grid' (control) or 'list' (treatment)
+  const cardLayout = cardLayoutVariant === 'treatment' ? 'list' : 'grid';
+
   return (
     <div className="home-page">
       <section className="hero-section">
         <div className="hero-content">
-          <h1>Find Your Perfect Credit Card</h1>
-          <p>
-            Compare credit cards from top banks in Bangladesh and make informed financial decisions
-          </p>
+          <h1>{heroCtaText}</h1>
+          <p>{heroSubtext}</p>
 
           <form className="search-form" onSubmit={handleSearchSubmit} role="search">
             <SearchAutocomplete
@@ -249,6 +264,7 @@ const HomePage: React.FC = () => {
                 selectedCardIds={selectedCardIds}
                 maxSelections={4}
                 onViewCardDetails={handleViewCardDetails}
+                layout={cardLayout}
               />
 
               {/* Card Details Popup */}

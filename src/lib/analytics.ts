@@ -11,6 +11,9 @@ export const ANALYTICS_EVENTS = {
   calculatorUse: 'calculator_use',
   signup: 'signup',
   login: 'login',
+  // Experiment events (allowlisted for exposure/conversion tracking)
+  experimentExposure: 'experiment_exposure',
+  experimentConversion: 'experiment_conversion',
 } as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENTS];
@@ -27,6 +30,9 @@ export interface AnalyticsProperties {
   utmCampaign?: string;
   utmTerm?: string;
   utmContent?: string;
+  // Experiment properties
+  experimentKey?: string;
+  variant?: 'control' | 'treatment';
 }
 
 export interface AnalyticsEvent {
@@ -133,6 +139,15 @@ const normalizeProperties = (properties: AnalyticsProperties): AnalyticsProperti
 
   const referrer = safeOrigin(properties.referrer);
   if (referrer) normalized.referrer = referrer;
+
+  // Experiment properties: allow experimentKey and variant through
+  if (typeof properties.experimentKey === 'string') {
+    const safeExpKey = safeString(properties.experimentKey);
+    if (safeExpKey) normalized.experimentKey = safeExpKey;
+  }
+  if (properties.variant === 'control' || properties.variant === 'treatment') {
+    normalized.variant = properties.variant;
+  }
 
   return normalized;
 };

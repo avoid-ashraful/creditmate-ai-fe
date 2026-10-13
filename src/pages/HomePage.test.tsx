@@ -9,6 +9,38 @@ import { server } from '../mocks/jest.setup';
 import ComparisonPage from './ComparisonPage';
 import HomePage from './HomePage';
 
+// Mock experiments to always return control (original text)
+jest.mock('../lib/experiments', () => ({
+  getVariant: () => 'control',
+  isTreatment: () => false,
+  EXPERIMENTS: {
+    hero_cta_text: {
+      key: 'hero_cta_text',
+      name: 'Hero CTA Text',
+      treatmentAllocation: 50,
+      enabled: true,
+      minSampleSize: 100,
+      confidenceLevel: 0.95,
+    },
+    quiz_vs_browse_default: {
+      key: 'quiz_vs_browse_default',
+      name: 'Quiz vs Browse Default',
+      treatmentAllocation: 50,
+      enabled: true,
+      minSampleSize: 100,
+      confidenceLevel: 0.95,
+    },
+    card_layout: {
+      key: 'card_layout',
+      name: 'Card Layout',
+      treatmentAllocation: 50,
+      enabled: true,
+      minSampleSize: 100,
+      confidenceLevel: 0.95,
+    },
+  },
+}));
+
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());

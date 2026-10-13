@@ -15,6 +15,7 @@ interface CardListProps {
   maxSelections?: number;
   showSelectionIndicator?: boolean;
   onViewCardDetails?: (card: CreditCard) => void;
+  layout?: 'grid' | 'list';
 }
 
 const CardList: React.FC<CardListProps> = ({
@@ -24,6 +25,7 @@ const CardList: React.FC<CardListProps> = ({
   maxSelections = 4,
   showSelectionIndicator = true,
   onViewCardDetails,
+  layout = 'grid',
 }) => {
   const [displayLimit, setDisplayLimit] = useState<number>(10);
   const [selectionMessage, setSelectionMessage] = useState<string>('');
@@ -70,7 +72,7 @@ const CardList: React.FC<CardListProps> = ({
   const displayedCards = cards.slice(0, displayLimit);
 
   return (
-    <div className="card-list">
+    <div className={`card-list ${layout}`}>
       <div className="list-header">
         <h2>Credit Cards ({cards.length})</h2>
         {showSelectionIndicator && maxSelections > 0 && (
@@ -85,7 +87,7 @@ const CardList: React.FC<CardListProps> = ({
       <Toast className="selection-message" message={selectionMessage} />
 
       <motion.div
-        className="cards-container"
+        className={`cards-container ${layout}`}
         variants={staggerContainer}
         initial={reduceMotion ? false : 'hidden'}
         animate="visible"
