@@ -48,6 +48,7 @@ const CategoryPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
   const [viewedCard, setViewedCard] = useState<CreditCard | null>(null);
+  const [selectionMessage, setSelectionMessage] = useState<string>('');
   const [queryStreams, setQueryStreams] = useState<QueryStreams>({
     primary: { page: 1, exhausted: false },
     alternate: { page: 1, exhausted: false },
@@ -228,16 +229,17 @@ const CategoryPage: React.FC = () => {
   }
 
   const handleCardSelect = (card: CreditCard) => {
-    setSelectedCardIds(prev => {
-      if (prev.includes(card.id)) {
-        return prev.filter(id => id !== card.id);
-      }
-      if (prev.length >= 4) {
-        alert('You can only select up to 4 cards for comparison');
-        return prev;
-      }
-      return [...prev, card.id];
-    });
+    if (selectedCardIds.includes(card.id)) {
+      setSelectionMessage('');
+      setSelectedCardIds(prev => prev.filter(id => id !== card.id));
+      return;
+    }
+    if (selectedCardIds.length >= 4) {
+      setSelectionMessage('You can only select up to 4 cards for comparison.');
+      return;
+    }
+    setSelectionMessage('');
+    setSelectedCardIds(prev => [...prev, card.id]);
   };
 
   return (
@@ -256,9 +258,13 @@ const CategoryPage: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="loading-state">Loading {category.name} credit cards...</div>
+        <div className="loading-state" role="status" aria-live="polite">
+          Loading {category.name} credit cards...
+        </div>
       ) : error ? (
-        <div className="error-state">{error}</div>
+        <div className="error-state" role="alert">
+          {error}
+        </div>
       ) : (
         <>
           <CardList
@@ -296,6 +302,10 @@ const CategoryPage: React.FC = () => {
             onRemoveCard={cardId => setSelectedCardIds(prev => prev.filter(id => id !== cardId))}
             maxSelections={4}
           />
+
+          <p className="selection-message" role="status" aria-live="polite">
+            {selectionMessage}
+          </p>
         </>
       )}
     </div>

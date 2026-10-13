@@ -140,8 +140,8 @@ const CardDetailPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className={CARD_DETAIL_PAGE}>
-        <div className="loading-state">
-          <div className="spinner"></div>
+        <div className="loading-state" role="status" aria-live="polite">
+          <div className="spinner" aria-hidden="true"></div>
           <p>Loading card details...</p>
         </div>
       </div>
@@ -187,13 +187,15 @@ const CardDetailPage: React.FC = () => {
           url: card.sourceUrl || window.location.href,
         })}
       </script>
-      <div className="breadcrumb">
+      <nav aria-label="Breadcrumb" className="breadcrumb">
         <Link to="/">Home</Link>
-        <span> / </span>
+        <span aria-hidden="true"> / </span>
         <span className="breadcrumb-item">{card.bankName}</span>
-        <span> / </span>
-        <span className="breadcrumb-item">{card.name}</span>
-      </div>
+        <span aria-hidden="true"> / </span>
+        <span className="breadcrumb-item" aria-current="page">
+          {card.name}
+        </span>
+      </nav>
 
       <div className="card-detail-container">
         {/* Left section: Card image and key details */}
@@ -301,19 +303,27 @@ const CardDetailPage: React.FC = () => {
             <table className="specs-table">
               <tbody>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Card Name</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Card Name
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>{card.name}</td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Bank</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Bank
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>{card.bankName || NA}</td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Annual Fee</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Annual Fee
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>{formatAnnualFee(card.annualFee)}</td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Interest Rate (APR)</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Interest Rate (APR)
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.interestRateApr === null
                       ? 'Data not available'
@@ -321,31 +331,43 @@ const CardDetailPage: React.FC = () => {
                   </td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>International Lounge Access</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    International Lounge Access
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.loungeAccessInternational || 'Not available'}
                   </td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Domestic Lounge Access</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Domestic Lounge Access
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.loungeAccessDomestic || 'Not available'}
                   </td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Cash Advance Fee</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Cash Advance Fee
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>{card.cashAdvanceFee || NA}</td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Late Payment Fee</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Late Payment Fee
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>{card.latePaymentFee || NA}</td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Rewards Policy</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Rewards Policy
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>{card.rewardPointsPolicy || NA}</td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Annual Fee Waiver Policy</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Annual Fee Waiver Policy
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.annualFeeWaiverPolicy
                       ? (card.annualFeeWaiverPolicy.conditions as string) ||
@@ -354,7 +376,9 @@ const CardDetailPage: React.FC = () => {
                   </td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Additional Features</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Additional Features
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.additionalFeatures.length
                       ? card.additionalFeatures
@@ -366,17 +390,23 @@ const CardDetailPage: React.FC = () => {
                   </td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Card Status</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Card Status
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>{card.isActive ? 'Active' : 'Inactive'}</td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Last Updated</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Last Updated
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.lastUpdated ? new Date(card.lastUpdated).toLocaleDateString() : 'Unknown'}
                   </td>
                 </tr>
                 <tr>
-                  <td className={SPEC_KEY_CLASS}>Official Source</td>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    Official Source
+                  </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.sourceUrl ? (
                       <a href={card.sourceUrl} target="_blank" rel="noreferrer">
@@ -454,6 +484,7 @@ const CardDetailPage: React.FC = () => {
                 <Link
                   to={`/card/${bankSlug}/${similarCard.name.toLowerCase().replace(/\s+/g, '-')}`}
                   className="btn btn-outline"
+                  aria-label={`View details for ${similarCard.name}`}
                 >
                   View Details
                 </Link>

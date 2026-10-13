@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import { CreditCard } from '../types';
 
 import CardDetailsPopup from './CardDetailsPopup';
@@ -60,6 +61,19 @@ const mockCreditCardNoLounge: CreditCard = {
 };
 
 describe('CardDetailsPopup Component', () => {
+  test('provides an accessible dialog with no axe violations', async () => {
+    const { container } = render(
+      <CardDetailsPopup
+        card={mockCreditCard}
+        onClose={jest.fn()}
+        onAddToCompare={jest.fn()}
+        isInCompareList={false}
+      />
+    );
+
+    await expectNoAxeViolations(container);
+  });
+
   // Test basic rendering
   test('renders card details correctly', () => {
     render(

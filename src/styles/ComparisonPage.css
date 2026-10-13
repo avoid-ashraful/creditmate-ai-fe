@@ -41,6 +41,20 @@
   letter-spacing: -0.02em;
 }
 
+.share-status {
+  max-width: 1400px;
+  margin: 12px auto 0;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
+
+.share-status:empty {
+  margin: 0;
+}
+
 .comparison-page .comparison-actions {
   display: flex;
   gap: 20px;

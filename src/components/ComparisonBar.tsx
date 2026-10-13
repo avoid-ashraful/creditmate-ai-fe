@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { GradientComparisonBar } from '../styles/StyledComponents';
@@ -18,6 +18,8 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
   onRemoveCard,
   maxSelections,
 }) => {
+  const [compareMessage, setCompareMessage] = useState('');
+
   if (selectedCards.length === 0) {
     return null;
   }
@@ -50,8 +52,10 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
                   <span className="card-name">{card.name}</span>
                   <motion.button
                     className="remove-card"
+                    type="button"
                     onClick={() => onRemoveCard(card.id)}
                     title="Remove from comparison"
+                    aria-label={`Remove ${card.name} from comparison`}
                     whileHover={{ scale: 1.2 }}
                     whileTap={{ scale: 0.9 }}
                   >
@@ -65,7 +69,7 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
                   key={`empty-${index}`}
                   className="card-chip empty"
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.6 }}
+                  animate={{ opacity: 1 }}
                   transition={{ delay: index * 0.1 }}
                   layout
                 >
@@ -81,16 +85,20 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
             <Link
               to={`/compare?ids=${selectedCards.map(card => card.id).join(',')}`}
               className={`compare-button ${selectedCards.length < 2 ? 'disabled' : ''}`}
+              aria-disabled={selectedCards.length < 2}
               onClick={e => {
                 if (selectedCards.length < 2) {
                   e.preventDefault();
-                  alert('Please select at least 2 cards to compare');
+                  setCompareMessage('Please select at least 2 cards to compare');
                 }
               }}
             >
               Compare Cards
             </Link>
           </motion.div>
+          <p className="compare-message" role="status" aria-live="polite">
+            {compareMessage}
+          </p>
         </div>
       </motion.div>
     </GradientComparisonBar>

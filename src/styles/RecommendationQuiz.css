@@ -78,7 +78,6 @@
   height: 6px;
   border-radius: 3px;
   background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  outline: none;
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;

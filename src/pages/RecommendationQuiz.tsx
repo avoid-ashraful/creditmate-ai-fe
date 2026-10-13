@@ -47,6 +47,7 @@ const RecommendationQuiz: React.FC = () => {
   const [allCards, setAllCards] = useState<CreditCard[]>([]);
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [apiError, setApiError] = useState<string | null>(null);
+  const [shareMessage, setShareMessage] = useState<string>('');
 
   useEffect(() => {
     setSeoMeta({
@@ -196,8 +197,18 @@ const RecommendationQuiz: React.FC = () => {
     };
     const encoded = encodeQuizResult(result);
     const shareUrl = `${window.location.origin}/perfect-card-finder?quiz_result=${encoded}`;
-    navigator.clipboard.writeText(shareUrl);
-    alert('Results link copied to clipboard!');
+    const copyPromise = navigator.clipboard?.writeText(shareUrl);
+    if (copyPromise && typeof copyPromise.then === 'function') {
+      copyPromise
+        .then(() => setShareMessage('Results link copied to clipboard!'))
+        .catch(() =>
+          setShareMessage(
+            'Unable to copy the link automatically. Please copy it from the address bar.'
+          )
+        );
+    } else {
+      setShareMessage('Results link copied to clipboard!');
+    }
   };
 
   const progressSteps = ['Spending', 'Use', 'Travel', 'Fees', 'Tier'];
@@ -311,7 +322,12 @@ const RecommendationQuiz: React.FC = () => {
         )}
 
         {currentStep === STEPS.use && (
-          <div className="quiz-step" role="region" aria-live="polite">
+          <div
+            className="quiz-step"
+            role="region"
+            aria-live="polite"
+            aria-label="Primary usage step"
+          >
             <h2>What will you use the card for most?</h2>
             <div className="step-content options-grid">
               {(['travel', 'dining', 'shopping', 'cashback', 'premium'] as const).map(use => (
@@ -329,7 +345,12 @@ const RecommendationQuiz: React.FC = () => {
         )}
 
         {currentStep === STEPS.travel && (
-          <div className="quiz-step" role="region" aria-live="polite">
+          <div
+            className="quiz-step"
+            role="region"
+            aria-live="polite"
+            aria-label="Travel frequency step"
+          >
             <h2>How often do you travel?</h2>
             <div className="step-content options-grid">
               {(['frequent', 'occasional', 'never'] as const).map(freq => (
@@ -347,7 +368,12 @@ const RecommendationQuiz: React.FC = () => {
         )}
 
         {currentStep === STEPS.fee && (
-          <div className="quiz-step" role="region" aria-live="polite">
+          <div
+            className="quiz-step"
+            role="region"
+            aria-live="polite"
+            aria-label="Annual fee tolerance step"
+          >
             <h2>What&apos;s your annual fee tolerance?</h2>
             <div className="step-content options-grid">
               {(['none', 'low', 'moderate', 'high'] as const).map(tolerance => (
@@ -367,7 +393,7 @@ const RecommendationQuiz: React.FC = () => {
         )}
 
         {currentStep === STEPS.tier && (
-          <div className="quiz-step" role="region" aria-live="polite">
+          <div className="quiz-step" role="region" aria-live="polite" aria-label="Card tier step">
             <h2>What card tier interests you?</h2>
             <div className="step-content options-grid">
               {(['basic', 'standard', 'premium'] as const).map(tier => (

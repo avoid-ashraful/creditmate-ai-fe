@@ -18,6 +18,7 @@ const HomePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [viewedCard, setViewedCard] = useState<CreditCard | null>(null);
+  const [selectionMessage, setSelectionMessage] = useState<string>('');
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -50,18 +51,17 @@ const HomePage: React.FC = () => {
   }, []);
 
   const handleCardSelect = (card: CreditCard) => {
-    setSelectedCardIds(prev => {
-      if (prev.includes(card.id)) {
-        return prev.filter(id => id !== card.id);
-      } else {
-        // Check if we've reached the maximum number of selections
-        if (prev.length >= 4) {
-          alert('You can only select up to 4 cards for comparison');
-          return prev;
-        }
-        return [...prev, card.id];
-      }
-    });
+    if (selectedCardIds.includes(card.id)) {
+      setSelectionMessage('');
+      setSelectedCardIds(prev => prev.filter(id => id !== card.id));
+      return;
+    }
+    if (selectedCardIds.length >= 4) {
+      setSelectionMessage('You can only select up to 4 cards for comparison.');
+      return;
+    }
+    setSelectionMessage('');
+    setSelectedCardIds(prev => [...prev, card.id]);
   };
 
   const handleViewCardDetails = (card: CreditCard) => {
@@ -116,9 +116,10 @@ const HomePage: React.FC = () => {
             Compare credit cards from top banks in Bangladesh and make informed financial decisions
           </p>
 
-          <form className="search-form" onSubmit={handleSearchSubmit}>
+          <form className="search-form" onSubmit={handleSearchSubmit} role="search">
             <input
               type="text"
+              aria-label="Search credit cards by name, bank, or features"
               placeholder="Search by card name, bank, or features..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
@@ -166,7 +167,9 @@ const HomePage: React.FC = () => {
 
         <div className="cards-content">
           {isLoading ? (
-            <div className="loading-state">Loading credit cards...</div>
+            <div className="loading-state" role="status" aria-live="polite">
+              Loading credit cards...
+            </div>
           ) : (
             <>
               <CardList
@@ -193,6 +196,10 @@ const HomePage: React.FC = () => {
                 onRemoveCard={handleRemoveFromCompare}
                 maxSelections={4}
               />
+
+              <p className="selection-message" role="status" aria-live="polite">
+                {selectionMessage}
+              </p>
             </>
           )}
         </div>

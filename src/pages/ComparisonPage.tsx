@@ -11,6 +11,7 @@ const ComparisonPage: React.FC = () => {
   const [selectedCards, setSelectedCards] = useState<CreditCard[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [comparisonId, setComparisonId] = useState<string>('');
+  const [shareMessage, setShareMessage] = useState<string>('');
 
   useEffect(() => {
     const fetchComparisonData = async () => {
@@ -71,10 +72,11 @@ const ComparisonPage: React.FC = () => {
     navigator.clipboard
       .writeText(shareableUrl)
       .then(() => {
-        alert('Comparison link copied to clipboard!');
+        setShareMessage('Comparison link copied to clipboard!');
       })
       .catch(err => {
         console.error('Failed to copy link: ', err);
+        setShareMessage('Could not copy the link. Please copy it from the address bar.');
       });
 
     return shareableUrl;
@@ -96,11 +98,16 @@ const ComparisonPage: React.FC = () => {
             )}
           </div>
         </div>
+        <p className="share-status" role="status" aria-live="polite">
+          {shareMessage}
+        </p>
       </div>
 
       <div className="comparison-content">
         {isLoading ? (
-          <div className="loading-state">Loading comparison data...</div>
+          <div className="loading-state" role="status" aria-live="polite">
+            Loading comparison data...
+          </div>
         ) : selectedCards.length === 0 ? (
           <div className="empty-state">
             <h2>No Cards Selected</h2>

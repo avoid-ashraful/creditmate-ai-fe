@@ -24,11 +24,13 @@ const CardList: React.FC<CardListProps> = ({
   onViewCardDetails,
 }) => {
   const [displayLimit, setDisplayLimit] = useState<number>(10);
+  const [selectionMessage, setSelectionMessage] = useState<string>('');
 
   if (!cards || cards.length === 0) {
     return (
       <motion.div
         className="no-results"
+        role="status"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -43,15 +45,17 @@ const CardList: React.FC<CardListProps> = ({
     if (onCardSelect) {
       // If card is already selected, allow deselection
       if (selectedCardIds.includes(card.id)) {
+        setSelectionMessage('');
         onCardSelect(card);
         return;
       }
 
       // Otherwise, check if max selections reached
       if (selectedCardIds.length < maxSelections) {
+        setSelectionMessage('');
         onCardSelect(card);
       } else {
-        alert(`You can only select up to ${maxSelections} cards for comparison`);
+        setSelectionMessage(`You can only select up to ${maxSelections} cards for comparison.`);
       }
     }
   };
@@ -74,6 +78,10 @@ const CardList: React.FC<CardListProps> = ({
           </div>
         )}
       </div>
+
+      <p className="selection-message" role="status" aria-live="polite">
+        {selectionMessage}
+      </p>
 
       <motion.div
         className="cards-container"
