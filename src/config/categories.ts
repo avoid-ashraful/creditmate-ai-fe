@@ -38,7 +38,12 @@ export const CATEGORIES: Category[] = [
     metaDescription:
       'Compare travel credit cards in Bangladesh with airport lounge access, travel rewards and perks from top banks.',
     icon: '✈️',
-    relatedGuideSlugs: ['maximizing-lounge-access-benefits'],
+    relatedGuideSlugs: [
+      'maximizing-lounge-access-benefits',
+      'email-alerts-card-changes',
+      'write-read-community-reviews',
+      'advanced-search-filters',
+    ],
     filters: { hasLoungeAccess: true, ordering: '-lounge_access_international' },
   },
   {
@@ -51,7 +56,14 @@ export const CATEGORIES: Category[] = [
     metaDescription:
       'Find cashback credit cards in Bangladesh and earn rewards on everyday spending from leading banks.',
     icon: '💸',
-    relatedGuideSlugs: ['credit-card-vs-debit-card', 'understanding-annual-fee-waivers'],
+    relatedGuideSlugs: [
+      'credit-card-vs-debit-card',
+      'understanding-annual-fee-waivers',
+      'save-share-comparison',
+      'organize-cards-collections',
+      'email-alerts-card-changes',
+      'advanced-search-filters',
+    ],
     filters: { searchTerm: 'cash back', fallbackSearchTerm: 'cashback', ordering: 'annual_fee' },
   },
   {
@@ -64,7 +76,13 @@ export const CATEGORIES: Category[] = [
     metaDescription:
       'Explore premium credit cards in Bangladesh with annual fees of BDT 3,000 or more from top banks.',
     icon: '💎',
-    relatedGuideSlugs: ['understanding-annual-fee-waivers'],
+    relatedGuideSlugs: [
+      'understanding-annual-fee-waivers',
+      'save-share-comparison',
+      'organize-cards-collections',
+      'email-alerts-card-changes',
+      'advanced-search-filters',
+    ],
     filters: { annualFeeRange: { min: 3000 }, ordering: '-annual_fee' },
   },
   {
@@ -77,7 +95,15 @@ export const CATEGORIES: Category[] = [
     metaDescription:
       'Browse credit cards in Bangladesh that mention students; check banks for eligibility and fees.',
     icon: '🎓',
-    relatedGuideSlugs: ['choosing-your-first-credit-card'],
+    relatedGuideSlugs: [
+      'choosing-your-first-credit-card',
+      'create-account-sign-in',
+      'save-share-comparison',
+      'organize-cards-collections',
+      'advanced-search-filters',
+      'switch-dark-mode-language',
+      'how-creditmate-handles-your-data',
+    ],
     filters: { searchTerm: 'student', ordering: 'annual_fee' },
   },
   {
@@ -90,7 +116,14 @@ export const CATEGORIES: Category[] = [
     metaDescription:
       'Find business and corporate credit cards in Bangladesh for company expenses, based on card naming.',
     icon: '💼',
-    relatedGuideSlugs: ['credit-card-vs-debit-card'],
+    relatedGuideSlugs: [
+      'credit-card-vs-debit-card',
+      'create-account-sign-in',
+      'save-share-comparison',
+      'organize-cards-collections',
+      'email-alerts-card-changes',
+      'advanced-search-filters',
+    ],
     filters: { searchTerm: 'business', fallbackSearchTerm: 'corporate', ordering: 'annual_fee' },
   },
   {
@@ -103,7 +136,16 @@ export const CATEGORIES: Category[] = [
     metaDescription:
       'Compare credit cards with no annual fee in Bangladesh and save on yearly charges while earning rewards.',
     icon: '🆓',
-    relatedGuideSlugs: ['understanding-annual-fee-waivers', 'choosing-your-first-credit-card'],
+    relatedGuideSlugs: [
+      'understanding-annual-fee-waivers',
+      'choosing-your-first-credit-card',
+      'create-account-sign-in',
+      'save-share-comparison',
+      'organize-cards-collections',
+      'advanced-search-filters',
+      'switch-dark-mode-language',
+      'how-creditmate-handles-your-data',
+    ],
     filters: { hasAnnualFee: false, ordering: 'annual_fee' },
   },
 ];
