@@ -14,6 +14,16 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL,
+    reducedMotion: 'reduce',
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: baseURL,
+          localStorage: [{ name: 'creditmate.experiments.anonymousId', value: 'e2e-control-10' }],
+        },
+      ],
+    },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
