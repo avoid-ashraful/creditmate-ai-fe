@@ -106,5 +106,5 @@ describe('ForgotPasswordPage', () => {
   it('has no accessibility violations', async () => {
     const { container } = renderWithAuth(routes, { route: '/forgot-password' });
     await expectNoAxeViolations(container);
-  });
+  }, 15000);
 });

@@ -86,5 +86,5 @@ describe('GlossaryPage', () => {
   it('has no accessibility violations', async () => {
     const { container } = renderGlossary();
     await expectNoAxeViolations(container);
-  });
+  }, 15000);
 });

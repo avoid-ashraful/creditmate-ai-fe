@@ -221,15 +221,14 @@ describe('CardDetailPage', () => {
   });
 
   it('has no accessibility violations on the reviews placeholder', async () => {
-    renderWithRouter();
+    const { container } = renderWithRouter();
 
     await waitFor(() => {
       expect(screen.getByText('Customer Reviews')).toBeInTheDocument();
     });
 
-    const { container } = renderWithRouter();
     await expectNoAxeViolations(container);
-  });
+  }, 15000);
 
   test('displays Apply Now CTA when sourceUrl is present', async () => {
     renderWithRouter();

@@ -77,7 +77,9 @@ describe('AccountMenu', () => {
     const user = userEvent.setup();
     renderWithAuth(routes);
 
-    const trigger = await screen.findByRole('button', { name: /Account menu/ });
+    const trigger = await screen.findByRole('button', {
+      name: `Account menu: ${AUTH_USER.email}`,
+    });
     await user.click(trigger);
     await user.keyboard('{Escape}');
 
