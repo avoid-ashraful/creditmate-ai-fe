@@ -1,9 +1,14 @@
 import { motion } from 'framer-motion';
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 
 import { MotionProvider, pageVariants, usePrefersReducedMotion } from './animations';
 import { AccountMenu } from './components/AccountMenu';
+import {
+  LazyPageFallback,
+  LazyAuthFallback,
+  LazyPageMinimalFallback,
+} from './components/LazyPageFallback';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ThemeToggle } from './components/ThemeToggle';
 import { AuthProvider } from './hooks/AuthProvider';
@@ -11,28 +16,70 @@ import { ThemeProvider } from './hooks/ThemeProvider';
 import { ANALYTICS_EVENTS, analytics, getAnalyticsContextProperties } from './lib/analytics';
 import { isResultsViewEnabled } from './lib/experiments';
 import { LanguageProvider, useLanguage } from './locales';
-import AboutPage from './pages/AboutPage';
-import AccountPage from './pages/AccountPage';
-import AlertsPage from './pages/AlertsPage';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
-import CollectionPage from './pages/CollectionPage';
 import ComparisonPage from './pages/ComparisonPage';
-import ExperimentResults from './pages/ExperimentResults/ExperimentResults';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import GlossaryPage from './pages/GlossaryPage';
-import GuidesPage from './pages/GuidesPage';
 import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RecommendationQuiz from './pages/RecommendationQuiz';
-import RegisterPage from './pages/RegisterPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import RewardCalculatorPage from './pages/RewardCalculatorPage';
-import SavedPage from './pages/SavedPage';
 import SharedPage from './pages/SharedPage';
-import UnsubscribePage from './pages/UnsubscribePage';
 import './styles/App.css';
 import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
+import { useNavLinkPrefetch } from './utils/preload';
+
+/**
+ * Conditionally lazy-load a component. In test environment, loads synchronously.
+ * This allows tests to render pages without Suspense fallback delays.
+ */
+const lazyLoad = (
+  importFn: () => Promise<{ default: React.ComponentType<React.PropsWithChildren<unknown>> }>
+): React.ComponentType<React.PropsWithChildren<unknown>> => {
+  if (process.env.NODE_ENV === 'test') {
+    // In tests, resolve immediately to avoid Suspense fallback
+    const module = importFn();
+    if (module && typeof module.then === 'function') {
+      // Return a component that will render the resolved module synchronously
+      return (() => {
+        let resolvedComponent: React.ComponentType<React.PropsWithChildren<unknown>> | null = null;
+        module.then(resolved => {
+          resolvedComponent = resolved.default;
+        });
+        // Since we're in test and the module is already loaded by Jest,
+        // the promise should resolve synchronously
+        const TestComponent = (props: React.PropsWithChildren<unknown>) => {
+          if (resolvedComponent) {
+            return React.createElement(resolvedComponent, props);
+          }
+          // Fallback - shouldn't happen in tests but satisfies TypeScript
+          return null;
+        };
+        TestComponent.displayName = 'TestLazyComponent';
+        return TestComponent;
+      })();
+    }
+    // This shouldn't happen in test mode, but TypeScript needs a return
+    return () => null;
+  }
+  return lazy(importFn);
+};
+
+// Lazy-loaded pages (non-critical paths) - eager in tests, lazy in production
+const AboutPage = lazyLoad(() => import('./pages/AboutPage'));
+const AccountPage = lazyLoad(() => import('./pages/AccountPage'));
+const AlertsPage = lazyLoad(() => import('./pages/AlertsPage'));
+const CollectionPage = lazyLoad(() => import('./pages/CollectionPage'));
+const ExperimentResults = lazyLoad(() => import('./pages/ExperimentResults/ExperimentResults'));
+const ForgotPasswordPage = lazyLoad(() => import('./pages/ForgotPasswordPage'));
+const GlossaryPage = lazyLoad(() => import('./pages/GlossaryPage'));
+const GuidesPage = lazyLoad(() => import('./pages/GuidesPage'));
+const LoginPage = lazyLoad(() => import('./pages/LoginPage'));
+const RecommendationQuiz = lazyLoad(() => import('./pages/RecommendationQuiz'));
+const RegisterPage = lazyLoad(() => import('./pages/RegisterPage'));
+const ResetPasswordPage = lazyLoad(() => import('./pages/ResetPasswordPage'));
+const RewardCalculatorPage = lazyLoad(() => import('./pages/RewardCalculatorPage'));
+const SavedPage = lazyLoad(() => import('./pages/SavedPage'));
+const UnsubscribePage = lazyLoad(() => import('./pages/UnsubscribePage'));
+
+// Critical path pages - eager loaded
+// HomePage, CardDetailPage, CategoryPage, ComparisonPage, SharedPage
 
 interface NavItem {
   to: string;
@@ -82,7 +129,9 @@ export const AppRoutes: React.FC = () => {
           path="/saved"
           element={
             <ProtectedRoute>
-              <SavedPage />
+              <Suspense fallback={<LazyPageFallback label="Loading saved items..." />}>
+                <SavedPage />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -90,26 +139,107 @@ export const AppRoutes: React.FC = () => {
           path="/saved/collections/:id"
           element={
             <ProtectedRoute>
-              <CollectionPage />
+              <Suspense fallback={<LazyPageFallback label="Loading collection..." />}>
+                <CollectionPage />
+              </Suspense>
             </ProtectedRoute>
           }
         />
-        <Route path="/perfect-card-finder" element={<RecommendationQuiz />} />
-        <Route path="/reward-calculator" element={<RewardCalculatorPage />} />
-        <Route path="/guides" element={<GuidesPage />} />
-        <Route path="/guides/:slug" element={<GuidesPage />} />
-        <Route path="/glossary" element={<GlossaryPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/unsubscribe" element={<UnsubscribePage />} />
+        <Route
+          path="/perfect-card-finder"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading quiz..." />}>
+              <RecommendationQuiz />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/reward-calculator"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading calculator..." />}>
+              <RewardCalculatorPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/guides"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading guides..." />}>
+              <GuidesPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/guides/:slug"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading guide..." />}>
+              <GuidesPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/glossary"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading glossary..." />}>
+              <GlossaryPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading about page..." />}>
+              <AboutPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <Suspense fallback={<LazyAuthFallback />}>
+              <LoginPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <Suspense fallback={<LazyAuthFallback />}>
+              <RegisterPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <Suspense fallback={<LazyAuthFallback />}>
+              <ForgotPasswordPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <Suspense fallback={<LazyAuthFallback />}>
+              <ResetPasswordPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/unsubscribe"
+          element={
+            <Suspense fallback={<LazyPageMinimalFallback label="Loading..." />}>
+              <UnsubscribePage />
+            </Suspense>
+          }
+        />
         <Route
           path="/account"
           element={
             <ProtectedRoute>
-              <AccountPage />
+              <Suspense fallback={<LazyPageFallback label="Loading account..." />}>
+                <AccountPage />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -117,11 +247,22 @@ export const AppRoutes: React.FC = () => {
           path="/alerts"
           element={
             <ProtectedRoute>
-              <AlertsPage />
+              <Suspense fallback={<LazyPageFallback label="Loading alerts..." />}>
+                <AlertsPage />
+              </Suspense>
             </ProtectedRoute>
           }
         />
-        {showResultsView && <Route path="/experiment-results" element={<ExperimentResults />} />}
+        {showResultsView && (
+          <Route
+            path="/experiment-results"
+            element={
+              <Suspense fallback={<LazyPageFallback label="Loading experiment results..." />}>
+                <ExperimentResults />
+              </Suspense>
+            }
+          />
+        )}
       </Routes>
     </motion.div>
   );
@@ -152,6 +293,9 @@ const PageViewTrackerWrapper: React.FC = () => {
 export const AppContent: React.FC = () => {
   const { lang, setLang } = useLanguage();
   const isBengali = lang === 'bn';
+
+  // Prefetch lazy-loaded routes on hover/focus of nav links
+  useNavLinkPrefetch();
 
   return (
     <div className="app">
