@@ -13,6 +13,7 @@ import { isResultsViewEnabled } from './lib/experiments';
 import { LanguageProvider, useLanguage } from './locales';
 import AboutPage from './pages/AboutPage';
 import AccountPage from './pages/AccountPage';
+import AdvancedSearchPage from './pages/AdvancedSearchPage';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
 import ComparisonPage from './pages/ComparisonPage';
@@ -42,6 +43,7 @@ interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', en: 'Home', bn: 'হোম' },
+  { to: '/search', en: 'Advanced Search', bn: 'উন্নত অনুসন্ধান' },
   { to: '/perfect-card-finder', en: 'Quiz', bn: 'কুইজ' },
   { to: '/compare', en: 'Compare Cards', bn: 'কার্ড তুলনা' },
   { to: '/reward-calculator', en: 'Reward Calculator', bn: 'রিওয়ার্ড ক্যালকুলেটর' },
@@ -69,6 +71,7 @@ export const AppRoutes: React.FC = () => {
     >
       <Routes location={location}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/search" element={<AdvancedSearchPage />} />
         <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
         <Route path="/category/:slug" element={<CategoryPage />} />
         <Route path="/compare" element={<ComparisonPage />} />
