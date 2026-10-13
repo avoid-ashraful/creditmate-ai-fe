@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
+import { expectNoAxeViolations } from '../a11y/axe';
+
 import Toast from './Toast';
 
 const FIRST_MESSAGE = 'First';
@@ -30,5 +32,10 @@ describe('Toast', () => {
     expect(screen.getByText(SECOND_MESSAGE)).toBeInTheDocument();
     // The old message stays mounted until its exit animation finishes.
     await waitFor(() => expect(screen.queryByText(FIRST_MESSAGE)).not.toBeInTheDocument());
+  });
+
+  it('has no accessibility violations', async () => {
+    const { container } = render(<Toast message="Test message" />);
+    await expectNoAxeViolations(container);
   });
 });

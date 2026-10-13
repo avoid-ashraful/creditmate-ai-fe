@@ -8,6 +8,9 @@ import axe from 'axe-core';
  */
 const JSDOM_UNSUPPORTED_RULES = ['color-contrast', 'color-contrast-enhanced'];
 
+// Mutex to prevent concurrent axe runs (axe-core doesn't support parallel execution)
+let axeMutex = Promise.resolve();
+
 export interface AxeViolationSummary {
   id: string;
   impact: string | null;
@@ -18,18 +21,24 @@ export interface AxeViolationSummary {
 
 /** Run axe-core against a container and return a compact violation summary. */
 export async function axeViolations(container: HTMLElement): Promise<AxeViolationSummary[]> {
-  const results = await axe.run(container, {
-    resultTypes: ['violations'],
-    rules: Object.fromEntries(JSDOM_UNSUPPORTED_RULES.map(rule => [rule, { enabled: false }])),
-  });
+  // Serialize axe runs to avoid "Axe is already running" errors
+  const run = async () => {
+    const results = await axe.run(container, {
+      resultTypes: ['violations'],
+      rules: Object.fromEntries(JSDOM_UNSUPPORTED_RULES.map(rule => [rule, { enabled: false }])),
+    });
 
-  return results.violations.map(violation => ({
-    id: violation.id,
-    impact: violation.impact ?? null,
-    help: violation.help,
-    nodes: violation.nodes.length,
-    targets: violation.nodes.map(node => node.target.join(' ')),
-  }));
+    return results.violations.map(violation => ({
+      id: violation.id,
+      impact: violation.impact ?? null,
+      help: violation.help,
+      nodes: violation.nodes.length,
+      targets: violation.nodes.map(node => node.target.join(' ')),
+    }));
+  };
+
+  axeMutex = axeMutex.then(run, run);
+  return axeMutex;
 }
 
 /** Assert that a rendered container has no axe-core violations. */

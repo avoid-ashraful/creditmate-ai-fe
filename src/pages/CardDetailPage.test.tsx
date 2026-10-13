@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
@@ -217,6 +218,17 @@ describe('CardDetailPage', () => {
 
     expect(screen.getByText('Reviews Coming Soon')).toBeInTheDocument();
     expect(screen.getByText(/We're building our community review system/)).toBeInTheDocument();
+  });
+
+  it('has no accessibility violations on the reviews placeholder', async () => {
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText('Customer Reviews')).toBeInTheDocument();
+    });
+
+    const { container } = renderWithRouter();
+    await expectNoAxeViolations(container);
   });
 
   test('displays Apply Now CTA when sourceUrl is present', async () => {
