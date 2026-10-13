@@ -1,5 +1,8 @@
 import { ENV } from '../config/env';
 
+import { ApiError, resilientFetch, noteNetworkFailure, responseApiError } from './apiError';
+export { ApiError } from './apiError';
+
 /**
  * Typed client for the `/api/v1/auth/` endpoints.
  *
@@ -73,57 +76,6 @@ export type AuthSessionListener = (active: boolean) => void;
  * `{field: [messages]}` shape (including `non_field_errors`); `detail` holds
  * DRF's `{detail: "..."}` shape. Either or both may be empty.
  */
-export class ApiError extends Error {
-  readonly status: number;
-  readonly detail: string | null;
-  readonly fieldErrors: Record<string, string[]>;
-
-  constructor(
-    status: number,
-    detail: string | null = null,
-    fieldErrors: Record<string, string[]> = {}
-  ) {
-    super(detail ?? `Request failed with status ${status}`);
-    // Keep instanceof working when compiled to ES5.
-    Object.setPrototypeOf(this, ApiError.prototype);
-    this.name = 'ApiError';
-    this.status = status;
-    this.detail = detail;
-    this.fieldErrors = fieldErrors;
-  }
-}
-
-const readJsonBody = async (response: Response): Promise<Record<string, unknown> | null> => {
-  try {
-    const body: unknown = await response.json();
-    if (body && typeof body === 'object' && !Array.isArray(body)) {
-      return body as Record<string, unknown>;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-};
-
-const toApiError = async (response: Response): Promise<ApiError> => {
-  const body = await readJsonBody(response);
-  if (!body) return new ApiError(response.status);
-
-  const detail = typeof body.detail === 'string' ? body.detail : null;
-  const fieldErrors: Record<string, string[]> = {};
-  Object.keys(body).forEach(key => {
-    if (key === 'detail') return;
-    const value = body[key];
-    if (typeof value === 'string') {
-      fieldErrors[key] = [value];
-    } else if (Array.isArray(value)) {
-      const messages = value.filter((item): item is string => typeof item === 'string');
-      if (messages.length > 0) fieldErrors[key] = messages;
-    }
-  });
-  return new ApiError(response.status, detail, fieldErrors);
-};
-
 const getSessionStorage = (): StorageLike | null => {
   try {
     return typeof window === 'undefined' ? null : window.sessionStorage;
@@ -313,7 +265,7 @@ export class AuthClient {
     if (!response.ok) {
       // An explicit rejection ends the session. Other failures keep the token.
       if (response.status === 400 || response.status === 401) this.clearLocalSession();
-      throw await toApiError(response);
+      throw await responseApiError(response);
     }
 
     const data = (await response.json()) as TokenRefreshResponse;
@@ -353,15 +305,19 @@ export class AuthClient {
     if (options.body !== undefined) headers['Content-Type'] = 'application/json';
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    return fetch(`${this.baseUrl}/${path.replace(/^\//, '')}`, {
+    return resilientFetch(`${this.baseUrl}/${path.replace(/^\//, '')}`, {
       method: options.method ?? HTTP_METHOD.get,
       headers,
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    }).catch(error => {
+      if (!(error instanceof ApiError) && (error as Error).name !== 'AbortError')
+        noteNetworkFailure();
+      throw error;
     });
   }
 
   private async parse<T>(response: Response): Promise<T> {
-    if (!response.ok) throw await toApiError(response);
+    if (!response.ok) throw await responseApiError(response);
     if (response.status === 204) return undefined as T;
     return (await response.json()) as T;
   }

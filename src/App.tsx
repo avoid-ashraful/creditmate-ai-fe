@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 
 import { MotionProvider, pageVariants, usePrefersReducedMotion } from './animations';
 import { AccountMenu } from './components/AccountMenu';
+import ErrorBoundary from './components/ErrorBoundary';
+import NetworkStatus from './components/NetworkStatus';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ThemeToggle } from './components/ThemeToggle';
 import { AuthProvider } from './hooks/AuthProvider';
@@ -259,7 +261,10 @@ const App: React.FC = () => {
     <Router>
       <PageViewTrackerWrapper />
       <GradientBackground />
-      <AppContent />
+      <ErrorBoundary>
+        <NetworkStatus />
+        <AppContent />
+      </ErrorBoundary>
     </Router>
   );
 };
