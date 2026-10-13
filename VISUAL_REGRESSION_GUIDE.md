@@ -1,176 +1,153 @@
 # Visual Regression Testing Guide
 
-This document describes the visual regression testing setup for CreditMate AI.
-
 ## Overview
 
-Visual regression tests capture screenshots of key pages across desktop, tablet, and mobile viewports and compare them against committed baseline images. Tests run with deterministic fixtures (mocked API, frozen animations/time) to ensure reproducibility.
+This guide documents how to run visual regression tests for the CreditMate AI frontend using Playwright against a production build served statically.
+
+## Prerequisites
+
+- Node.js with npm
+- Playwright installed (`npx playwright install`)
+- Production build created (`npm run build`)
+
+## Commands
+
+### 1. Build Production Bundle
+
+```bash
+CI=true npm run build
+```
+
+This creates an optimized production build in the `build/` directory.
+
+### 2. Start Static Server
+
+```bash
+REACT_APP_API_BASE_URL=http://e2e.invalid/api/v1 REACT_APP_ENABLE_API_LOGGING=false npx serve -s build -l <PORT> --single
+```
+
+Replace `<PORT>` with a free port between 4000-4999 (e.g., 4567).
+
+The server will be available at `http://127.0.0.1:<PORT>`.
+
+**Important:** Do NOT use `npm start` (dev server) for visual regression tests. The dev server is too slow and causes flaky tests. Always use a production build served statically.
+
+### 3. Run Visual Regression Tests
+
+```bash
+E2E_BASE_URL=http://127.0.0.1:<PORT> npx playwright test e2e/visual-regression.spec.ts
+```
+
+### 4. Update Baselines (Snapshots)
+
+When intentional visual changes are made, update the baseline snapshots:
+
+```bash
+E2E_BASE_URL=http://127.0.0.1:<PORT> npx playwright test e2e/visual-regression.spec.ts --update-snapshots
+```
+
+**After updating snapshots, commit the new snapshot files.**
+
+### 5. Run Tests Three Times Consecutively
+
+To verify stability, run the test suite three times back-to-back:
+
+```bash
+for i in 1 2 3; do
+  echo "=== Run $i ==="
+  E2E_BASE_URL=http://127.0.0.1:<PORT> npx playwright test e2e/visual-regression.spec.ts
+done
+```
+
+All three runs must pass with 0 failures.
 
 ## Test Structure
 
-```
-e2e/
-├── visual-regression.spec.ts    # Main visual regression test file
-├── fixtures/
-│   └── cards.ts                 # Shared test fixtures (reused from e2e)
-└── helpers/
-    ├── api.ts                   # API mocking (reused from e2e)
-    └── navigation.ts            # Navigation helpers (reused from e2e)
-```
+The visual regression suite (`e2e/visual-regression.spec.ts`) contains tests for:
 
-## Running Visual Tests
+- **Homepage** (desktop, tablet, mobile)
+- **Homepage with search results** (desktop)
+- **Homepage with filters expanded** (desktop)
+- **Card Detail** (desktop, tablet, mobile)
+- **Comparison Page** (desktop, tablet, mobile)
+- **Category Page** (desktop, tablet, mobile)
+- **Recommendation Quiz** (desktop, tablet, mobile)
+- **Reward Calculator** (desktop, tablet, mobile)
+- **Card Detail Popup** (desktop, tablet, mobile)
 
-### Run tests (compare against baselines)
+Each test runs only in its matching viewport project (desktop-chromium, tablet-chromium, mobile-chromium) using `test.skip()` for non-matching projects.
 
-```bash
-npm run test:e2e:visual
-```
+## Configuration
 
-### Update baselines (when intentional UI changes are made)
+### Playwright Config (`playwright.config.ts`)
 
-```bash
-npm run test:e2e:visual:update
-```
+Key settings for visual regression:
 
-### Run with specific project (viewport)
+- `fullyParallel: false` - Run sequentially to avoid resource contention
+- `workers: 1` - Single worker
+- `webServer` - Uses static serve when `E2E_BASE_URL` is not set
+- Timeout: 120s per test, 15s for expectations
+- Animations frozen via `page.addStyleTag()` in `beforeEach`
+- Time frozen via `page.addInitScript()` in `beforeEach`
 
-```bash
-npx playwright test e2e/visual-regression.spec.ts --project=desktop-chromium
-npx playwright test e2e/visual-regression.spec.ts --project=tablet-chromium
-npx playwright test e2e/visual-regression.spec.ts --project=mobile-chromium
-```
+### API Mocking
 
-## Baseline Images
+Tests use the shared `mockApi()` fixture from `e2e/helpers/api.ts` which:
 
-Baseline screenshots are stored in:
+- Mocks `/api/v1/banks/`
+- Mocks `/api/v1/credit-cards/` with search, filter, and pagination
+- Mocks `/api/v1/credit-cards/search-suggestions/`
+- Uses deterministic fixture data from `e2e/fixtures/cards.ts`
 
-```
-e2e/visual-regression-snapshots/
-├── homepage-desktop.png
-├── homepage-tablet.png
-├── homepage-mobile.png
-├── homepage-search-desktop.png
-├── homepage-filters-desktop.png
-├── card-detail-desktop.png
-├── card-detail-tablet.png
-├── card-detail-mobile.png
-├── comparison-desktop.png
-├── comparison-tablet.png
-├── comparison-mobile.png
-├── category-desktop.png
-├── category-tablet.png
-├── category-mobile.png
-├── quiz-start-desktop.png
-├── quiz-start-tablet.png
-├── quiz-start-mobile.png
-├── calculator-desktop.png
-├── calculator-tablet.png
-├── calculator-mobile.png
-├── card-popup-desktop.png
-├── card-popup-tablet.png
-└── card-popup-mobile.png
-```
+### Navigation Helpers
 
-**Important**: Commit these baseline images to git! They are the source of truth for visual comparison.
+Tests use shared helpers from `e2e/helpers/navigation.ts`:
 
-## Deterministic Fixtures
+- `openHome(page)` - Navigate to home and wait for hero heading
+- `waitForCards(page)` - Wait for "Credit Cards (N)" heading and 4 card items
 
-Tests use the following deterministic fixtures to ensure reproducible screenshots:
+## Screenshot Tolerances
 
-1. **Mocked API**: Uses `mockApi()` from `e2e/helpers/api.ts` with synthetic card data
-2. **Frozen Time**: All `Date.now()` calls return `2025-01-15T10:00:00.000Z`
-3. **Disabled Animations**: All CSS animations and transitions are set to 0ms
-4. **Hidden Cursor**: Mouse cursor is hidden to avoid flakiness
-5. **Fixed Viewports**: Desktop (1280x720), Tablet (834x1112), Mobile (Pixel 7)
+Default: `maxDiffPixels: 100, threshold: 0.2`
 
-## Threshold Configuration
+Higher tolerances for specific tests:
 
-Visual comparison uses:
-
-- `threshold: 0.2` (0.2% pixel difference allowed)
-- `maxDiffPixels: 100` (or 150 for comparison page with more content)
-
-Adjust these in `visual-regression.spec.ts` if needed for specific components.
-
-## Adding New Visual Tests
-
-1. Add a new test case in `visual-regression.spec.ts`
-2. Follow the existing pattern:
-   ```typescript
-   test('description @viewport', async ({ page }) => {
-     await navigateToPage(page);
-     await expect(page).toHaveScreenshot('descriptive-name-viewport.png', {
-       maxDiffPixels: 100,
-       threshold: 0.2,
-     });
-   });
-   ```
-3. Run `npm run test:e2e:visual:update` to generate baseline
-4. Commit the new baseline image(s)
-
-## Updating Baselines After Intentional Changes
-
-When you make intentional UI changes:
-
-1. Make your code changes
-2. Run `npm run test:e2e:visual:update` to regenerate all baselines
-3. Review the updated images in `e2e/visual-regression-snapshots/`
-4. Commit the updated baselines with a descriptive message:
-   ```bash
-   git add e2e/visual-regression-snapshots/
-   git commit -m "Update visual baselines: [describe what changed]"
-   ```
-
-## CI Integration
-
-**Note**: Per project requirements, CI integration is NOT enabled. These tests run locally only.
-
-To run in CI manually:
-
-```bash
-# In CI environment
-npm ci
-npm run build
-npm run test:e2e:visual
-```
+- Card Detail Popup: `maxDiffPixels: 20000` (font rendering differences)
+- Category Page (tablet): `maxDiffPixels: 50000` (dynamic card loading)
+- Comparison Page: `maxDiffPixels: 150`
 
 ## Troubleshooting
 
-### Tests fail due to minor pixel differences
+### "ERR_CONNECTION_REFUSED" errors
 
-- Increase `maxDiffPixels` for that specific test
-- Ensure animations are fully disabled
-- Check for non-deterministic content (dates, random IDs)
+- Ensure the static server is running on the correct port
+- Verify `E2E_BASE_URL` matches the server URL
+- The server must be started BEFORE running Playwright tests
 
-### Baseline images not found
+### Tests fail due to element not found
 
-- Run `npm run test:e2e:visual:update` to generate them
-- Ensure you're committing the `visual-regression-snapshots/` directory
+- Ensure API mocking is working (`mockApi(page)` in `beforeEach`)
+- Wait for content using `waitForCards()` or explicit `expect().toBeVisible()`
+- The dev server may be slow - always use production build
 
-### Flaky tests on specific viewports
+### Snapshot mismatches
 
-- Check that viewport dimensions match `playwright.config.ts` projects
-- Ensure responsive breakpoints in CSS match test expectations
+- Run with `--update-snapshots` to regenerate baselines
+- Check for animation/time non-determinism (animations and time are frozen in `beforeEach`)
+- Verify correct viewport (tests skip in non-matching projects)
 
-## Covered Pages
+## CI Integration
 
-| Page                      | Desktop | Tablet | Mobile |
-| ------------------------- | ------- | ------ | ------ |
-| Homepage                  | ✅      | ✅     | ✅     |
-| Homepage (search results) | ✅      | -      | -      |
-| Homepage (filters open)   | ✅      | -      | -      |
-| Card Detail               | ✅      | ✅     | ✅     |
-| Comparison (3 cards)      | ✅      | ✅     | ✅     |
-| Category (Travel)         | ✅      | ✅     | ✅     |
-| Recommendation Quiz       | ✅      | ✅     | ✅     |
-| Reward Calculator         | ✅      | ✅     | ✅     |
-| Card Detail Popup         | ✅      | ✅     | ✅     |
+For CI environments, set `E2E_BASE_URL` to the deployed preview URL and run:
 
-## Performance Budgets
+```bash
+CI=true E2E_BASE_URL=https://preview-url npx playwright test e2e/visual-regression.spec.ts
+```
 
-Visual regression tests are complemented by:
+The `webServer` config is automatically disabled when `E2E_BASE_URL` is set.
 
-- **Bundle size budget**: `npm run bundle:budget` (200KB gzipped JS)
-- **Lighthouse CI**: `npm run lighthouse` (LCP < 2.5s, TBT < 200ms, CLS < 0.1)
+## Notes
 
-See `PERFORMANCE_BUDGETS.md` for details.
+- Never commit `build/`, `node_modules/`, `test-results/`, or `playwright-report/` directories
+- Fix lint errors rather than bypassing with `--no-verify`
+- Unit tests, check-types, check-lint, and check-format must all pass
