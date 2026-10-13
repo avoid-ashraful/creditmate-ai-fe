@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { AuthClient, AuthUser, LoginInput, RegisterInput, authClient } from '../services/auth';
+export type { AuthClient } from '../services/auth';
 
 export const AUTH_STATUS = {
   loading: 'loading',
