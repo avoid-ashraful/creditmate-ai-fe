@@ -47,4 +47,29 @@ describe('shared API failure handling', () => {
     expect((await resilientFetch('/test', { method: 'POST' })).status).toBe(500);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it('does not retry rate limits and preserves Retry-After for the UI', async () => {
+    const fetchMock = jest
+      .spyOn(global, 'fetch')
+      .mockResolvedValue(new Response('', { status: 429, headers: { 'Retry-After': '4' } }));
+    const response = await resilientFetch('/limited');
+    const error = await responseApiError(response);
+    expect(error).toMatchObject({ status: 429, retryAfter: 4 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the final 5xx after two GET retries', async () => {
+    jest.useFakeTimers('legacy');
+    const fetchMock = jest
+      .spyOn(global, 'fetch')
+      .mockResolvedValue(new Response('', { status: 503 }));
+    const request = resilientFetch('/unavailable');
+    for (let i = 0; i < 10; i += 1) await Promise.resolve();
+    jest.advanceTimersByTime(250);
+    for (let i = 0; i < 10; i += 1) await Promise.resolve();
+    jest.advanceTimersByTime(500);
+    for (let i = 0; i < 10; i += 1) await Promise.resolve();
+    expect((await request).status).toBe(503);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
 });

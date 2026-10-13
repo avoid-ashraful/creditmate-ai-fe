@@ -150,6 +150,8 @@ const normalizeProperties = (properties: AnalyticsProperties): AnalyticsProperti
   if (properties.variant === 'control' || properties.variant === 'treatment') {
     normalized.variant = properties.variant;
   }
+  const errorName = safeString(properties.errorName);
+  if (errorName) normalized.errorName = errorName;
 
   return normalized;
 };
