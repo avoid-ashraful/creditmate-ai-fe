@@ -27,12 +27,22 @@ type HttpMethod = (typeof HTTP_METHOD)[keyof typeof HTTP_METHOD];
 export interface AuthUser {
   id?: number;
   email: string;
+  first_name?: string;
+  last_name?: string;
+  profile?: {
+    email_verified?: boolean;
+    email_opt_in?: boolean;
+    preferences?: Record<string, unknown>;
+  };
 }
 
 export interface RegisterInput {
   email: string;
   password: string;
   passwordConfirm?: string;
+  first_name?: string;
+  last_name?: string;
+  email_opt_in?: boolean;
 }
 
 export interface RegisterResponse {
@@ -45,10 +55,10 @@ export interface LoginInput {
 }
 
 export interface ConfirmPasswordResetInput {
-  /** Backend reset links contain a signed uid. */
   uid: string;
   token: string;
   newPassword: string;
+  newPasswordConfirm: string;
 }
 
 export interface AuthSessionResponse {
@@ -59,7 +69,7 @@ export interface AuthSessionResponse {
 
 interface TokenRefreshResponse {
   access: string;
-  /** Present only when the backend rotates refresh tokens. */
+  /** Present when the backend rotates refresh tokens (ROTATE_REFRESH_TOKENS = True). */
   refresh?: string;
 }
 
@@ -120,8 +130,14 @@ export class AuthClient {
   }
 
   async register(input: RegisterInput): Promise<RegisterResponse> {
-    const body: Record<string, string> = { email: input.email, password: input.password };
+    const body: Record<string, string> = {
+      email: input.email,
+      password: input.password,
+    };
     if (input.passwordConfirm !== undefined) body.password_confirm = input.passwordConfirm;
+    if (input.first_name) body.first_name = input.first_name;
+    if (input.last_name) body.last_name = input.last_name;
+    if (input.email_opt_in !== undefined) body.email_opt_in = String(input.email_opt_in);
     return this.request<RegisterResponse>('register/', {
       method: HTTP_METHOD.post,
       body,
@@ -187,6 +203,8 @@ export class AuthClient {
   /**
    * Exchange the refresh token for a new access token. Concurrent callers share
    * one in-flight request, so a burst of 401s causes a single refresh call.
+   * On success, stores the new refresh token if the backend rotates it.
+   * If the refresh token is rejected (400/401), clears the local session.
    */
   refreshAccessToken(): Promise<string> {
     if (!this.refreshInFlight) {
@@ -236,7 +254,7 @@ export class AuthClient {
       uid: input.uid,
       token: input.token,
       new_password: input.newPassword,
-      new_password_confirm: input.newPassword,
+      new_password_confirm: input.newPasswordConfirm,
     };
     await this.request<unknown>('password-reset/confirm/', { method: HTTP_METHOD.post, body });
   }
@@ -263,13 +281,14 @@ export class AuthClient {
       null
     );
     if (!response.ok) {
-      // An explicit rejection ends the session. Other failures keep the token.
+      // An explicit rejection (400/401) ends the session. Other failures keep the token.
       if (response.status === 400 || response.status === 401) this.clearLocalSession();
       throw await responseApiError(response);
     }
 
     const data = (await response.json()) as TokenRefreshResponse;
     this.accessToken = data.access;
+    // Store the rotated refresh token if the backend returns one
     if (data.refresh) {
       this.refreshToken = data.refresh;
       this.writeStoredRefreshToken(data.refresh);

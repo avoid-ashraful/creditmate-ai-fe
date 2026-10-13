@@ -1,6 +1,7 @@
 import { rest } from 'msw';
 
 const apiUrl = (path: string) => `*/api/v1/${path}`;
+const authUrl = (path: string) => `*/api/v1/auth/${path}`;
 
 export const testBanks = [
   {
@@ -84,6 +85,30 @@ const paginated = <T>(results: T[]) => ({
   previous: null,
   results,
 });
+
+const AUTH_USER = { id: 7, email: 'reader@example.com', first_name: 'John', last_name: 'Doe' };
+let storedRefreshToken = 'refresh-1';
+let storedAccessToken = 'access-1';
+
+interface ResetConfirmBody {
+  uid?: string;
+  token?: string;
+  new_password?: string;
+  new_password_confirm?: string;
+}
+
+interface VerifyEmailBody {
+  token?: string;
+}
+
+interface MePatchBody {
+  first_name?: string;
+  last_name?: string;
+  profile?: {
+    email_opt_in?: boolean;
+    preferences?: Record<string, unknown>;
+  };
+}
 
 export const handlers = [
   // GET/POST /reviews/ (public approved list; authenticated submissions are pending)
@@ -758,5 +783,185 @@ export const handlers = [
         canonical_string: canonicalString,
       })
     );
+  }),
+
+  // Auth endpoints
+  // POST /auth/register/
+  rest.post(authUrl('register/'), async (req, res, ctx) => {
+    const body = (await req.json()) as Record<string, unknown>;
+    // Basic validation
+    if (!body.email || !body.password) {
+      return res(ctx.status(400), ctx.json({ email: ['This field is required.'] }));
+    }
+    if (body.password !== body.password_confirm) {
+      return res(ctx.status(400), ctx.json({ password_confirm: ['Passwords do not match.'] }));
+    }
+    return res(
+      ctx.status(201),
+      ctx.json({
+        detail: 'Registration successful. Please check your email to verify your account.',
+      })
+    );
+  }),
+
+  // POST /auth/login/
+  rest.post(authUrl('login/'), async (req, res, ctx) => {
+    const body = (await req.json()) as Record<string, unknown>;
+    if (body.email === 'reader@example.com' && body.password === 'pw-12345') {
+      return res(
+        ctx.status(200),
+        ctx.json({
+          access: storedAccessToken,
+          refresh: storedRefreshToken,
+          user: {
+            id: 7,
+            username: 'reader@example.com',
+            email: 'reader@example.com',
+            first_name: 'John',
+            last_name: 'Doe',
+            profile: {
+              email_verified: true,
+              email_opt_in: false,
+              preferences: {},
+            },
+          },
+        })
+      );
+    }
+    return res(
+      ctx.status(401),
+      ctx.json({ detail: 'No active account found with the given credentials' })
+    );
+  }),
+
+  // POST /auth/logout/
+  rest.post(authUrl('logout/'), async (req, res, ctx) => {
+    const body = (await req.json()) as Record<string, unknown>;
+    if (body.refresh === storedRefreshToken) {
+      return res(ctx.status(200), ctx.json({ detail: 'Successfully logged out.' }));
+    }
+    return res(ctx.status(400), ctx.json({ detail: 'Invalid refresh token.' }));
+  }),
+
+  // POST /auth/token/refresh/
+  rest.post(authUrl('token/refresh/'), async (req, res, ctx) => {
+    const body = (await req.json()) as Record<string, unknown>;
+    if (body.refresh === storedRefreshToken) {
+      // Rotate the refresh token
+      storedRefreshToken = 'refresh-' + Date.now();
+      storedAccessToken = 'access-' + Date.now();
+      return res(
+        ctx.status(200),
+        ctx.json({
+          access: storedAccessToken,
+          refresh: storedRefreshToken,
+        })
+      );
+    }
+    return res(ctx.status(400), ctx.json({ refresh: ['Token is invalid or expired'] }));
+  }),
+
+  // POST /auth/password-reset/
+  rest.post(authUrl('password-reset/'), async (req, res, ctx) => {
+    const body = (await req.json()) as Record<string, unknown>;
+    if (!body.email) {
+      return res(ctx.status(400), ctx.json({ email: ['Enter a valid email address.'] }));
+    }
+    return res(
+      ctx.status(200),
+      ctx.json({ detail: 'If an account exists, a password reset email has been sent.' })
+    );
+  }),
+
+  // POST /auth/password-reset/confirm/
+  rest.post(authUrl('password-reset/confirm/'), async (req, res, ctx) => {
+    const body = (await req.json()) as ResetConfirmBody;
+    if (!body.uid || !body.token) {
+      return res(ctx.status(400), ctx.json({ token: ['Invalid or expired token.'] }));
+    }
+    if (body.new_password !== body.new_password_confirm) {
+      return res(ctx.status(400), ctx.json({ new_password_confirm: ['Passwords do not match.'] }));
+    }
+    if (body.new_password && body.new_password.length < 8) {
+      return res(ctx.status(400), ctx.json({ new_password: ['This password is too short.'] }));
+    }
+    return res(ctx.status(200), ctx.json({ detail: 'Password has been reset successfully.' }));
+  }),
+
+  // POST /auth/verify-email/
+  rest.post(authUrl('verify-email/'), async (req, res, ctx) => {
+    const body = (await req.json()) as VerifyEmailBody;
+    if (!body.token) {
+      return res(ctx.status(400), ctx.json({ token: ['Invalid verification link.'] }));
+    }
+    return res(ctx.status(200), ctx.json({ detail: 'Email verified successfully.' }));
+  }),
+
+  // GET /auth/me/
+  rest.get(authUrl('me/'), (req, res, ctx) => {
+    const auth = req.headers.get('authorization');
+    if (
+      auth === 'Bearer access-1' ||
+      auth === 'Bearer access-2' ||
+      auth?.startsWith('Bearer access-')
+    ) {
+      return res(
+        ctx.status(200),
+        ctx.json({
+          id: 7,
+          username: 'reader@example.com',
+          email: 'reader@example.com',
+          first_name: 'John',
+          last_name: 'Doe',
+          profile: {
+            email_verified: true,
+            email_opt_in: false,
+            preferences: {},
+          },
+        })
+      );
+    }
+    return res(ctx.status(401), ctx.json({ detail: 'Given token not valid' }));
+  }),
+
+  // PATCH /auth/me/
+  rest.patch(authUrl('me/'), async (req, res, ctx) => {
+    const auth = req.headers.get('authorization');
+    if (
+      auth === 'Bearer access-1' ||
+      auth === 'Bearer access-2' ||
+      auth?.startsWith('Bearer access-')
+    ) {
+      const body = (await req.json()) as MePatchBody;
+      return res(
+        ctx.status(200),
+        ctx.json({
+          id: 7,
+          username: 'reader@example.com',
+          email: 'reader@example.com',
+          first_name: body.first_name ?? 'John',
+          last_name: body.last_name ?? 'Doe',
+          profile: {
+            email_verified: true,
+            email_opt_in: body.profile?.email_opt_in ?? false,
+            preferences: body.profile?.preferences ?? {},
+          },
+        })
+      );
+    }
+    return res(ctx.status(401), ctx.json({ detail: 'Given token not valid' }));
+  }),
+
+  // POST /auth/change-password/
+  rest.post(authUrl('change-password/'), async (req, res, ctx) => {
+    const auth = req.headers.get('authorization');
+    if (
+      auth === 'Bearer access-1' ||
+      auth === 'Bearer access-2' ||
+      auth?.startsWith('Bearer access-')
+    ) {
+      return res(ctx.status(200), ctx.json({ detail: 'Password changed successfully.' }));
+    }
+    return res(ctx.status(401), ctx.json({ detail: 'Given token not valid' }));
   }),
 ];

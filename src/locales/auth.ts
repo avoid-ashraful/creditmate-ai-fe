@@ -1,7 +1,8 @@
 /**
- * UI copy for authentication: header menu, login, register, password reset and
- * the account page. Bengali strings are drafted and need review by a native
- * speaker before release, like the glossary (see LOCALIZATION_GUIDE.md).
+ * UI copy for authentication: header menu, login, register, password reset,
+ * email verification and the account page. Bengali strings are drafted and need
+ * review by a native speaker before release, like the glossary (see
+ * LOCALIZATION_GUIDE.md).
  */
 
 import type { Language } from './types';
@@ -48,6 +49,11 @@ export interface AuthCopy {
   resetSuccess: string;
   resetInvalidLink: string;
   resetRequestNewLink: string;
+
+  verifyTitle: string;
+  verifySuccess: string;
+  verifyInvalidLink: string;
+  verifyLoading: string;
 
   accountTitle: string;
   accountEmailLabel: string;
@@ -99,6 +105,11 @@ export const AUTH_COPY: Record<Language, AuthCopy> = {
     resetInvalidLink: 'This reset link is invalid or incomplete.',
     resetRequestNewLink: 'Request a new reset link',
 
+    verifyTitle: 'Verify your email',
+    verifySuccess: 'Email verified successfully. You can now log in.',
+    verifyInvalidLink: 'This verification link is invalid or has expired.',
+    verifyLoading: 'Verifying your email…',
+
     accountTitle: 'Your account',
     accountEmailLabel: 'Signed in as',
     accountLoginPrompt: 'Log in to view your account.',
@@ -146,6 +157,11 @@ export const AUTH_COPY: Record<Language, AuthCopy> = {
     resetSuccess: 'আপনার পাসওয়ার্ড পরিবর্তন হয়েছে। এখন লগ ইন করতে পারবেন।',
     resetInvalidLink: 'এই রিসেট লিংকটি অবৈধ বা অসম্পূর্ণ।',
     resetRequestNewLink: 'নতুন রিসেট লিংকের অনুরোধ করুন',
+
+    verifyTitle: 'আপনার ইমেইল যাচাই করুন',
+    verifySuccess: 'ইমেইল সফলভাবে যাচাই হয়েছে। এখন লগ ইন করতে পারবেন।',
+    verifyInvalidLink: 'এই যাচাই লিংকটি অবৈধ বা মেয়াদোত্তীর্ণ।',
+    verifyLoading: 'আপনার ইমেইল যাচাই করা হচ্ছে…',
 
     accountTitle: 'আপনার অ্যাকাউন্ট',
     accountEmailLabel: 'বর্তমানে লগ ইন আছেন',

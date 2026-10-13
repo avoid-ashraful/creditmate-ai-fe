@@ -80,6 +80,7 @@ const ResetPasswordPage = lazyLoad(() => import('./pages/ResetPasswordPage'));
 const RewardCalculatorPage = lazyLoad(() => import('./pages/RewardCalculatorPage'));
 const SavedPage = lazyLoad(() => import('./pages/SavedPage'));
 const UnsubscribePage = lazyLoad(() => import('./pages/UnsubscribePage'));
+const VerifyEmailPage = lazyLoad(() => import('./pages/VerifyEmailPage'));
 
 // Critical path pages - eager loaded
 // HomePage, CardDetailPage, CategoryPage, ComparisonPage, SharedPage
@@ -242,6 +243,14 @@ export const AppRoutes: React.FC = () => {
           element={
             <Suspense fallback={<LazyPageMinimalFallback label="Loading..." />}>
               <UnsubscribePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/verify-email"
+          element={
+            <Suspense fallback={<LazyAuthFallback />}>
+              <VerifyEmailPage />
             </Suspense>
           }
         />
