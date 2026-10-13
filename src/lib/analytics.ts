@@ -18,23 +18,9 @@ export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTIC
 export interface AnalyticsProperties {
   cardId?: number;
   cardIds?: number[];
-  cardTier?: string;
-  emailOptIn?: boolean;
-  feeTolerance?: string;
   filterCount?: number;
   filterKeys?: string[];
-  fromStep?: string;
-  monthlySpend?: number;
-  primaryUse?: string;
   referrer?: string;
-  resultCount?: number;
-  savedComparisons?: number;
-  searchLength?: number;
-  selectedCount?: number;
-  shareId?: string;
-  tier?: string;
-  toStep?: string;
-  travelFrequency?: string;
   bank?: string;
   utmSource?: string;
   utmMedium?: string;
@@ -104,49 +90,12 @@ const safeOrigin = (value: unknown): string | undefined => {
   return new URL(trimmed).origin;
 };
 
-type NumberProperty =
-  | 'cardId'
-  | 'filterCount'
-  | 'monthlySpend'
-  | 'resultCount'
-  | 'savedComparisons'
-  | 'searchLength'
-  | 'selectedCount';
-type StringProperty =
-  | 'bank'
-  | 'cardTier'
-  | 'feeTolerance'
-  | 'fromStep'
-  | 'primaryUse'
-  | 'shareId'
-  | 'tier'
-  | 'toStep'
-  | 'travelFrequency'
-  | 'utmSource'
-  | 'utmMedium'
-  | 'utmCampaign'
-  | 'utmTerm'
-  | 'utmContent';
+type NumberProperty = 'cardId' | 'filterCount';
+type StringProperty = 'bank' | 'utmSource' | 'utmMedium' | 'utmCampaign' | 'utmTerm' | 'utmContent';
 
-const numberKeys: NumberProperty[] = [
-  'cardId',
-  'filterCount',
-  'monthlySpend',
-  'resultCount',
-  'savedComparisons',
-  'searchLength',
-  'selectedCount',
-];
+const numberKeys: NumberProperty[] = ['cardId', 'filterCount'];
 const stringKeys: StringProperty[] = [
   'bank',
-  'cardTier',
-  'feeTolerance',
-  'fromStep',
-  'primaryUse',
-  'shareId',
-  'tier',
-  'toStep',
-  'travelFrequency',
   'utmSource',
   'utmMedium',
   'utmCampaign',
@@ -161,10 +110,6 @@ const normalizeProperties = (properties: AnalyticsProperties): AnalyticsProperti
     const value = properties[key];
     if (typeof value === 'number' && Number.isFinite(value)) normalized[key] = value;
   });
-
-  if (typeof properties.emailOptIn === 'boolean') {
-    normalized.emailOptIn = properties.emailOptIn;
-  }
 
   const cardIds = properties.cardIds;
   if (Array.isArray(cardIds)) {

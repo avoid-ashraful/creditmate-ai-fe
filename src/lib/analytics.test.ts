@@ -77,16 +77,16 @@ describe('analytics', () => {
   });
 
   it('sends only normalized allowlisted event properties', () => {
-    analytics.track(ANALYTICS_EVENTS.search, {
+    const payload = {
       bank: 'Eastern_Bank_Limited',
       cardId: Number.NaN,
       cardIds: [2, Number.NaN, ...new Array(20).fill(3)],
       filterKeys: ['bankId', '', 'bad key', 'valid_key'],
       searchLength: 8,
       primaryUse: 'travel',
-      // @ts-expect-error prove that unknown fields are discarded
       email: 'person@example.com',
-    });
+    } as any;
+    analytics.track(ANALYTICS_EVENTS.search, payload);
 
     expect(provider).toHaveBeenCalledWith({
       name: ANALYTICS_EVENTS.search,
@@ -94,9 +94,56 @@ describe('analytics', () => {
         bank: 'Eastern_Bank_Limited',
         cardIds: [2, ...new Array(15).fill(3)],
         filterKeys: ['bankId', 'valid_key'],
-        searchLength: 8,
-        primaryUse: 'travel',
       },
+    });
+  });
+
+  it('drops forbidden quiz answer properties (monthlySpend, primaryUse, etc.)', () => {
+    const payload = {
+      monthlySpend: 50000,
+      primaryUse: 'travel',
+      travelFrequency: 'frequent',
+      feeTolerance: 'moderate',
+      cardTier: 'premium',
+      fromStep: 'spend',
+      toStep: 'results',
+    } as any;
+    analytics.track(ANALYTICS_EVENTS.quizStart, payload);
+
+    expect(provider).toHaveBeenCalledWith({
+      name: ANALYTICS_EVENTS.quizStart,
+      properties: {},
+    });
+  });
+
+  it('drops all non-allowlisted calculator properties', () => {
+    const payload = {
+      resultCount: 5,
+      monthlySpend: 100000,
+    } as any;
+    analytics.track(ANALYTICS_EVENTS.calculatorUse, payload);
+
+    expect(provider).toHaveBeenCalledWith({
+      name: ANALYTICS_EVENTS.calculatorUse,
+      properties: {},
+    });
+  });
+
+  it('drops non-allowlisted event properties (resultCount, selectedCount, shareId, tier, etc.)', () => {
+    const payload = {
+      cardId: 42,
+      resultCount: 5,
+      selectedCount: 3,
+      shareId: 'abc123',
+      tier: 'premium',
+      emailOptIn: true,
+      savedComparisons: 10,
+    } as any;
+    analytics.track(ANALYTICS_EVENTS.cardSelect, payload);
+
+    expect(provider).toHaveBeenCalledWith({
+      name: ANALYTICS_EVENTS.cardSelect,
+      properties: { cardId: 42 },
     });
   });
 
@@ -129,7 +176,7 @@ describe('analytics', () => {
   it('does not send events without an analytics key', () => {
     process.env.REACT_APP_ANALYTICS_KEY = '';
 
-    analytics.track(ANALYTICS_EVENTS.compareShare, { shareId: 'test' });
+    analytics.track(ANALYTICS_EVENTS.filterApply, { filterCount: 2 });
 
     expect(provider).not.toHaveBeenCalled();
   });

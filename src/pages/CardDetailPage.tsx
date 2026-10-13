@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
+import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import { setSeoMeta, resetSeoMeta } from '../utils/seo';
@@ -55,6 +56,10 @@ const CardDetailPage: React.FC = () => {
         }
 
         setCard(foundCard);
+        analytics.track(ANALYTICS_EVENTS.cardDetailView, {
+          cardId: foundCard.id,
+          bank: foundCard.bankName,
+        });
 
         // Fetch similar cards (same bank or similar fee range)
         if (foundCard.bankId) {
@@ -100,16 +105,9 @@ const CardDetailPage: React.FC = () => {
 
   const handleApplyNow = () => {
     if (card?.sourceUrl) {
-      // Track click locally with a small hook (no external data sent)
-      const event = new CustomEvent('cardDetailCta', {
-        detail: {
-          cardId: card.id,
-          cardName: card.name,
-          bankName: card.bankName,
-          timestamp: new Date().toISOString(),
-        },
+      analytics.track(ANALYTICS_EVENTS.cardSelect, {
+        cardId: card.id,
       });
-      window.dispatchEvent(event);
       setCtaClicked(true);
 
       // Open source URL in new tab

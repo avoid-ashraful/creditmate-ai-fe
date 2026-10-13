@@ -88,7 +88,6 @@ const HomePage: React.FC = () => {
   const handleRemoveFromCompare = (cardId: number) => {
     analytics.track(ANALYTICS_EVENTS.cardSelect, {
       cardId,
-      selectedCount: selectedCardIds.length,
     });
     setSelectedCardIds(prev => prev.filter(id => id !== cardId));
   };
@@ -101,7 +100,6 @@ const HomePage: React.FC = () => {
     analytics.track(ANALYTICS_EVENTS.filterApply, {
       filterCount: filterKeys.length,
       filterKeys,
-      resultCount: filteredCards.length,
     });
 
     try {
@@ -126,9 +124,7 @@ const HomePage: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    analytics.track(ANALYTICS_EVENTS.search, {
-      searchLength: searchTerm.length,
-    });
+    analytics.track(ANALYTICS_EVENTS.search);
     handleFilterChange({ searchTerm });
   };
 
