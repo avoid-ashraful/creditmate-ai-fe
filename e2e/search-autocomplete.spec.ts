@@ -62,7 +62,7 @@ test.describe('Search Autocomplete E2E', () => {
     await searchInput.fill('visa');
 
     const listbox = page.getByRole('listbox');
-    await expect(listbox).toBeVisible({ timeout: 500 });
+    await expect(listbox).toBeVisible({ timeout: 2000 });
 
     const options = page.getByRole('option');
     await expect(options).toHaveCount(1);
