@@ -32,14 +32,18 @@ export interface RegisterInput {
   passwordConfirm?: string;
 }
 
+export interface RegisterResponse {
+  detail: string;
+}
+
 export interface LoginInput {
   email: string;
   password: string;
 }
 
 export interface ConfirmPasswordResetInput {
-  /** Optional: only sent when the reset link carries a uid. */
-  uid?: string;
+  /** Backend reset links contain a signed uid. */
+  uid: string;
   token: string;
   newPassword: string;
 }
@@ -163,15 +167,13 @@ export class AuthClient {
     };
   }
 
-  async register(input: RegisterInput): Promise<AuthSessionResponse> {
+  async register(input: RegisterInput): Promise<RegisterResponse> {
     const body: Record<string, string> = { email: input.email, password: input.password };
     if (input.passwordConfirm !== undefined) body.password_confirm = input.passwordConfirm;
-    const session = await this.request<AuthSessionResponse>('register/', {
+    return this.request<RegisterResponse>('register/', {
       method: HTTP_METHOD.post,
       body,
     });
-    this.storeSession(session.access, session.refresh);
-    return session;
   }
 
   async login(input: LoginInput): Promise<AuthSessionResponse> {
@@ -261,15 +263,19 @@ export class AuthClient {
   }
 
   async requestPasswordReset(email: string): Promise<void> {
-    await this.request<unknown>('password-reset/request/', {
+    await this.request<unknown>('password-reset/', {
       method: HTTP_METHOD.post,
       body: { email },
     });
   }
 
   async confirmPasswordReset(input: ConfirmPasswordResetInput): Promise<void> {
-    const body: Record<string, string> = { token: input.token, new_password: input.newPassword };
-    if (input.uid) body.uid = input.uid;
+    const body: Record<string, string> = {
+      uid: input.uid,
+      token: input.token,
+      new_password: input.newPassword,
+      new_password_confirm: input.newPassword,
+    };
     await this.request<unknown>('password-reset/confirm/', { method: HTTP_METHOD.post, body });
   }
 

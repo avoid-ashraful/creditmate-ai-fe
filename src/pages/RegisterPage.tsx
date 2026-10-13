@@ -55,7 +55,7 @@ const RegisterPage: React.FC = () => {
         password,
         passwordConfirm,
       });
-      navigate('/account', { replace: true });
+      navigate('/login', { replace: true });
     } catch (error) {
       const described = describeApiErrors(error, copy, INPUT_KEYS);
       setErrors(described);

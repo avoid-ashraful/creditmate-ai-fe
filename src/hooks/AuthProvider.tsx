@@ -79,8 +79,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, client = a
 
   const register = useCallback(
     async (input: RegisterInput) => {
-      const session = await client.register(input);
-      setState({ status: AUTH_STATUS.authenticated, user: session.user });
+      await client.register(input);
+      setState(ANONYMOUS);
       analytics.track(ANALYTICS_EVENTS.signup);
     },
     [client]

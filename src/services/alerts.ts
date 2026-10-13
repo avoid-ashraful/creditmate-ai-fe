@@ -12,7 +12,6 @@ import {
   AlertPreferences,
   UpdateAlertPreferencesRequest,
   CreateAlertSubscriptionRequest,
-  UnsubscribeRequest,
   UnsubscribeResponse,
 } from '../types/alerts';
 
@@ -186,9 +185,8 @@ export class AlertsClient {
    * Used by the /unsubscribe?token= page.
    */
   async unsubscribe(token: string): Promise<UnsubscribeResponse> {
-    return this.request<UnsubscribeResponse>('/unsubscribe/', {
+    return this.request<UnsubscribeResponse>(`/unsubscribe/${encodeURIComponent(token)}/`, {
       method: HTTP_METHOD.post,
-      body: { token } as UnsubscribeRequest,
       authenticated: false,
     });
   }

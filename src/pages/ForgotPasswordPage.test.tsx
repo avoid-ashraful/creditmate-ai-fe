@@ -48,7 +48,7 @@ describe('ForgotPasswordPage', () => {
 
   it('shows the same confirmation whatever the outcome, and removes the form', async () => {
     server.use(
-      rest.post(authUrl('password-reset/request/'), (req, res, ctx) => {
+      rest.post(authUrl('password-reset/'), (req, res, ctx) => {
         bodies.push(req.body);
         return res(ctx.status(200), ctx.json({ detail: 'ok' }));
       })
@@ -68,7 +68,7 @@ describe('ForgotPasswordPage', () => {
 
   it('shows a server email error on the field', async () => {
     server.use(
-      rest.post(authUrl('password-reset/request/'), (_req, res, ctx) =>
+      rest.post(authUrl('password-reset/'), (_req, res, ctx) =>
         res(ctx.status(400), ctx.json({ email: ['Enter a valid email address.'] }))
       )
     );
@@ -84,7 +84,7 @@ describe('ForgotPasswordPage', () => {
   });
 
   it('shows the generic alert when the request fails', async () => {
-    server.use(rest.post(authUrl('password-reset/request/'), (_req, res) => res.networkError('x')));
+    server.use(rest.post(authUrl('password-reset/'), (_req, res) => res.networkError('x')));
     const user = userEvent.setup();
     renderWithAuth(routes, { route: '/forgot-password' });
 

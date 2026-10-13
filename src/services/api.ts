@@ -280,6 +280,31 @@ class ApiService {
     return this.fetchApi('/credit-cards/search-suggestions/');
   }
 
+  async getAdvancedSearch(
+    params: Record<string, string | number | boolean | undefined>
+  ): Promise<unknown> {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) query.set(key, String(value));
+    });
+    return this.fetchApi('/credit-cards/advanced-search/', query);
+  }
+
+  async getAdvancedSearchCategories(): Promise<unknown> {
+    return this.fetchApi('/credit-cards/advanced-search/categories/');
+  }
+
+  async getAdvancedSearchSortOptions(): Promise<unknown> {
+    return this.fetchApi('/credit-cards/advanced-search/sort-options/');
+  }
+
+  async normalizeAdvancedSearch(query: string): Promise<unknown> {
+    return this.fetchApi(
+      '/credit-cards/advanced-search/normalize/',
+      new URLSearchParams({ search: query })
+    );
+  }
+
   /** Call the typeahead endpoint: GET /api/v1/credit-cards/typeahead/?q=<query> */
   async getTypeaheadSuggestions(query: string): Promise<unknown> {
     const params = new URLSearchParams();

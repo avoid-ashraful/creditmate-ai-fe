@@ -123,7 +123,7 @@ const SavedPage: React.FC = () => {
           {comparisons.map(item => (
             <li key={item.id}>
               <strong>{item.name}</strong>
-              <span>{item.card_ids.join(', ')}</span>
+              <span>{(item.cards ?? []).map(card => card.id).join(', ')}</span>
               <button onClick={() => void renameComparison(item)}>{t.rename}</button>
               <button onClick={() => void deleteComparison(item)}>{t.delete}</button>
               <button onClick={() => void copyComparisonLink(item)}>{t.share}</button>
