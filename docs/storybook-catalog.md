@@ -52,7 +52,7 @@ This document catalogs all Storybook stories in the CreditMate AI project, organ
 ### Skeleton
 
 **File:** `src/components/Skeleton.stories.tsx`  
-**Stories:** 10
+**Stories:** 11
 
 | Story                 | Description                                  |
 | --------------------- | -------------------------------------------- |
@@ -114,7 +114,7 @@ This document catalogs all Storybook stories in the CreditMate AI project, organ
 ### AuthFormField
 
 **File:** `src/components/AuthFormField.stories.tsx`  
-**Stories:** 10
+**Stories:** 11
 
 | Story              | Description                         |
 | ------------------ | ----------------------------------- |
@@ -156,7 +156,7 @@ This document catalogs all Storybook stories in the CreditMate AI project, organ
 ### SearchAutocomplete
 
 **File:** `src/components/SearchAutocomplete.stories.tsx`  
-**Stories:** 9
+**Stories:** 10
 
 | Story               | Description                        |
 | ------------------- | ---------------------------------- |
@@ -177,35 +177,59 @@ This document catalogs all Storybook stories in the CreditMate AI project, organ
 
 ### FilterPanel
 
-**File:** `src/components/FilterPanel.stories.js` (existing)  
-**Stories:** 6
+**File:** `src/components/FilterPanel.stories.tsx` (converted from .js with enhanced controls)  
+**Stories:** 15
 
-| Story            | Description                            |
-| ---------------- | -------------------------------------- |
-| `Expanded`       | Fully expanded panel with bank filters |
-| `ByAnnualFee`    | Pre-filtered by annual fee range       |
-| `ByInterestRate` | Pre-filtered by interest rate range    |
-| `ByLoungeAccess` | Lounge access filter active            |
-| `ByFeatures`     | Features filter active                 |
-| `FullPanel`      | All filters populated                  |
+| Story                         | Description                                    |
+| ----------------------------- | ---------------------------------------------- |
+| `Expanded`                    | Fully expanded panel with bank filters         |
+| `Collapsed`                   | Collapsed panel (default state)                |
+| `ByAnnualFee`                 | Pre-filtered by annual fee range               |
+| `ByInterestRate`              | Pre-filtered by interest rate range            |
+| `ByLoungeAccess`              | Lounge access filter active                    |
+| `ByFeatures`                  | Features filter active                         |
+| `FullPanel`                   | All filters populated                          |
+| `Interactive`                 | Live demo with filter change logging           |
+| `Bengali`                     | Bengali language with localized bank names     |
+| `WithValidationError`         | Demonstrates invalid range format validation   |
+| `WithStringRange`             | Annual fee using string range format (min,max) |
+| `WithInterestRateStringRange` | Interest rate using string range format        |
+| `Mobile`                      | Mobile viewport (375px)                        |
+| `Desktop`                     | Desktop viewport (1200px)                      |
+| `DarkMode`                    | Dark theme variant                             |
 
-**Accessibility:** Section with `aria-labelledby`, collapsible with `aria-expanded`/`aria-controls`, proper label/input associations, error `role="alert"`
+**Accessibility:** Section with `aria-labelledby`, collapsible with `aria-expanded`/`aria-controls`, proper label/input associations, error `role="alert"`, keyboard-navigable inputs
+
+**Controls:** `banks` (object), `onFilterChange` (action), `initialFilters` (object) with full CardFilterOptions support
 
 ---
 
 ### ComparisonBar
 
-**File:** `src/components/ComparisonBar.stories.js` (existing)  
-**Stories:** 4
+**File:** `src/components/ComparisonBar.stories.tsx` (converted from .js with enhanced controls)  
+**Stories:** 15
 
-| Story       | Description                      |
-| ----------- | -------------------------------- |
-| `Empty`     | No cards selected (renders null) |
-| `OneCard`   | Single card, compare disabled    |
-| `TwoCards`  | Two cards, compare enabled       |
-| `FourCards` | Maximum cards selected           |
+| Story                        | Description                                 |
+| ---------------------------- | ------------------------------------------- |
+| `Empty`                      | No cards selected (renders null)            |
+| `OneCard`                    | Single card, compare disabled               |
+| `TwoCards`                   | Two cards, compare enabled                  |
+| `ThreeCards`                 | Three cards selected                        |
+| `FourCards`                  | Maximum cards (4) selected                  |
+| `FiveCardsMaxFive`           | Five cards with maxSelections=5             |
+| `Interactive`                | Live demo with removal logging              |
+| `WithNullValues`             | Cards with null fee/APR values              |
+| `LongCardName`               | Tests card name truncation                  |
+| `Mobile`                     | Mobile viewport (375px)                     |
+| `DarkMode`                   | Dark theme variant                          |
+| `ReducedMotionNote`          | Documents reduced-motion support            |
+| `CustomMaxSelections`        | Custom maxSelections=3                      |
+| `RemoveInteraction`          | Tests card removal with log                 |
+| `CompareDisabledInteraction` | Tests compare click with insufficient cards |
 
-**Accessibility:** `aria-label` on remove buttons, `aria-disabled` on compare link, live region for messages, reduced-motion support
+**Accessibility:** `aria-label` on remove buttons, `aria-disabled` on compare link, live region for messages, reduced-motion support via `usePrefersReducedMotion`
+
+**Controls:** `selectedCards` (array), `onRemoveCard` (action), `maxSelections` (number 1-5)
 
 ---
 
@@ -347,7 +371,7 @@ This document catalogs all Storybook stories in the CreditMate AI project, organ
 ### ExperimentResults
 
 **File:** `src/pages/ExperimentResults/ExperimentResults.stories.tsx`  
-**Stories:** 10
+**Stories:** 9
 
 | Story                   | Description                                        |
 | ----------------------- | -------------------------------------------------- |
@@ -416,14 +440,14 @@ npm run build-storybook -- -o /tmp/storybook-build-$(date +%s)
 
 ## Story Count Summary
 
-| Category              | Files  | Stories |
-| --------------------- | ------ | ------- |
-| Components (existing) | 7      | 27      |
-| Components (new)      | 6      | 47      |
-| Pages (new)           | 3      | 26      |
-| **Total**             | **16** | **100** |
+| Category                 | Files  | Stories |
+| ------------------------ | ------ | ------- |
+| Components (existing)    | 7      | 27      |
+| Components (new/updated) | 9      | 81      |
+| Pages (new)              | 3      | 25      |
+| **Total**                | **19** | **133** |
 
-**New stories added in this round:** 73+ (well exceeding the 30+ target)
+**New/updated stories in this round:** 106+ (well exceeding the 30+ target)
 
 ---
 
@@ -434,3 +458,5 @@ npm run build-storybook -- -o /tmp/storybook-build-$(date +%s)
 - Mock providers (`AuthProvider`, `LanguageProvider`, `ThemeProvider`) used for page-level stories
 - No new dependencies installed; all stories use existing project infrastructure
 - Stories follow CSF3 (Component Story Format 3) with `export default` meta and named exports
+- FilterPanel and ComparisonBar converted from JavaScript to TypeScript with enhanced argTypes and controls
+- Light/dark theme decorator and reduced-motion notes included for all new stories

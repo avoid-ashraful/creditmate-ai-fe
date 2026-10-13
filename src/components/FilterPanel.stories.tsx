@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Bank } from '../types';
+import { Bank, CardFilterOptions } from '../types';
 
 import FilterPanel from './FilterPanel';
 
@@ -116,7 +116,7 @@ export const FullPanel = {
 
 /* State: interactive demo with mocked onFilterChange logging */
 export const Interactive = () => {
-  const [lastFilters, setLastFilters] = React.useState<Record<string, unknown>>({});
+  const [lastFilters, setLastFilters] = React.useState<CardFilterOptions>({});
 
   return (
     <div style={{ maxWidth: '400px' }}>
