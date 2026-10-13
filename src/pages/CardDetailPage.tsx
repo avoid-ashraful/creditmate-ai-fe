@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
+import { getComparisonSummary } from '../utils/narratives';
 import { setSeoMeta, resetSeoMeta } from '../utils/seo';
 import { slugify } from '../utils/slugify';
 import '../styles/CardDetailPage.css';
@@ -167,6 +168,7 @@ const CardDetailPage: React.FC = () => {
   }
 
   const feeWaiverThreshold = calculateFeeWaiverThreshold();
+  const cardInsight = getComparisonSummary([card]);
   const annualWaiverSpend = feeWaiverThreshold
     ? Number(feeWaiverThreshold.replace(/,/g, ''))
     : null;
@@ -205,6 +207,10 @@ const CardDetailPage: React.FC = () => {
           <div className="card-key-details">
             <h1>{card.name}</h1>
             <p className="bank-name">{card.bankName}</p>
+            <section className="card-insight" aria-label="Card insight">
+              <h2>Card insight</h2>
+              <p>{cardInsight}</p>
+            </section>
 
             <div className="key-metrics">
               <div className={METRIC_CLASS}>
