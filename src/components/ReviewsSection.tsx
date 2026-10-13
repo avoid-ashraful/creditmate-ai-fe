@@ -101,7 +101,9 @@ const ReviewSummaryCard: React.FC<{
   copy: ReturnType<typeof getReviewsCopy>;
   lang: Language;
 }> = ({ summary, copy, lang }) => {
-  const { average, count, distribution } = summary;
+  const average = summary.average_rating;
+  const count = summary.review_count;
+  const { distribution } = summary;
   const hasReviews = count > 0;
 
   if (!hasReviews) {
@@ -162,33 +164,17 @@ const ReviewSummaryCard: React.FC<{
 interface ReviewItemProps {
   review: Review;
   copy: ReturnType<typeof getReviewsCopy>;
-  currentUserId?: number | null;
   onHelpfulClick: (id: number) => void;
-  onEdit?: (review: Review) => void;
-  onDelete?: (id: number) => void;
 }
 
-const ReviewItem: React.FC<ReviewItemProps> = ({
-  review,
-  copy,
-  currentUserId,
-  onHelpfulClick,
-  onEdit,
-  onDelete,
-}) => {
-  const isOwn = currentUserId !== undefined && currentUserId === review.userId;
-  const isPending = review.status === 'pending';
+const ReviewItem: React.FC<ReviewItemProps> = ({ review, copy, onHelpfulClick }) => {
   const date = review.created ? formatGregorianDate(review.created) : '';
 
   return (
-    <article className={`review-item ${isPending ? 'pending' : ''}`}>
+    <article className="review-item">
       <header className="review-header">
         <div className="review-author">
-          <span className="display-name">{review.displayName}</span>
-          {isPending && <span className="status-badge pending">{copy.pendingModeration}</span>}
-          {review.status === 'approved' && (
-            <span className="status-badge verified">{copy.verifiedPurchase}</span>
-          )}
+          <span className="display-name">{review.reviewerName}</span>
         </div>
         <div className="review-meta">
           <StarRating
@@ -227,38 +213,16 @@ const ReviewItem: React.FC<ReviewItemProps> = ({
       <footer className="review-footer">
         <button
           type="button"
-          className={`helpful-button ${review.userVotedHelpful ? 'voted' : ''}`}
+          className="helpful-button"
           onClick={() => onHelpfulClick(review.id)}
-          aria-pressed={review.userVotedHelpful}
-          aria-label={review.userVotedHelpful ? copy.votedHelpful : copy.voteHelpful}
+          aria-label={copy.voteHelpful}
         >
           <span className="helpful-icon" aria-hidden="true">
             👍
           </span>
-          <span className="helpful-text">
-            {review.userVotedHelpful ? copy.votedHelpful : copy.voteHelpful}
-          </span>
+          <span className="helpful-text">{copy.voteHelpful}</span>
           <span className="helpful-count">({review.helpfulCount})</span>
         </button>
-
-        {isOwn && (
-          <div className="review-actions">
-            {onEdit && (
-              <button type="button" className="action-button edit" onClick={() => onEdit(review)}>
-                {copy.edit}
-              </button>
-            )}
-            {onDelete && (
-              <button
-                type="button"
-                className="action-button delete"
-                onClick={() => onDelete(review.id)}
-              >
-                {copy.delete}
-              </button>
-            )}
-          </div>
-        )}
       </footer>
     </article>
   );
@@ -299,9 +263,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
     Partial<Record<'rating' | 'title' | 'body' | 'pros' | 'cons', string>>
   >({});
 
-  const MAX_TITLE_LENGTH = 100;
+  const MAX_TITLE_LENGTH = 120;
   const MAX_BODY_LENGTH = 5000;
-  const MAX_PROS_CONS_LENGTH = 500;
+  const MAX_PROS_CONS_LENGTH = 1000;
 
   const validate = useCallback(() => {
     const newErrors: typeof errors = {};
@@ -583,12 +547,11 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const pageSize = 10;
+  const pageSize = 20;
   const [isLoadingSummary, setIsLoadingSummary] = useState(true);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
@@ -606,7 +569,12 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
     try {
       setIsLoadingSummary(true);
       const data = await reviewsService.getSummary(cardId);
-      setSummary(data);
+      setSummary({
+        card: data.card,
+        average_rating: data.average_rating,
+        review_count: data.review_count,
+        distribution: data.distribution,
+      });
     } catch (err) {
       console.error('Failed to fetch review summary:', err);
     } finally {
@@ -638,10 +606,10 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
   }, [fetchSummary, fetchReviews]);
 
   useEffect(() => {
-    if (summary && summary.count > 0) {
+    if (summary && summary.review_count > 0) {
       const jsonLd = aggregateRatingJsonLd({
-        ratingValue: summary.average ?? 0,
-        reviewCount: summary.count,
+        ratingValue: summary.average_rating ?? 0,
+        reviewCount: summary.review_count,
       });
       if (jsonLd) {
         const script = document.createElement('script');
@@ -666,21 +634,20 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
     }
 
     try {
-      const result = await reviewsService.toggleHelpful(reviewId, accessToken);
+      const result = await reviewsService.voteHelpful(reviewId, accessToken);
       setReviews(prev =>
         prev.map(r =>
           r.id === reviewId
             ? {
                 ...r,
                 helpfulCount: result.helpful_count,
-                userVotedHelpful: result.user_voted_helpful,
               }
             : r
         )
       );
     } catch (err) {
-      console.error('Failed to toggle helpful:', err);
-      setFormError(copy.genericError);
+      console.error('Failed to vote helpful:', err);
+      setFormError(err instanceof Error ? err.message : copy.genericError);
     }
   };
 
@@ -689,38 +656,9 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
       // The LoginPrompt will handle this
       return;
     }
-    setEditingReview(null);
     setShowForm(true);
     setFormError(null);
     setSubmissionMessage(null);
-  };
-
-  const handleEditReview = (review: Review) => {
-    setEditingReview(review);
-    setShowForm(true);
-    setFormError(null);
-  };
-
-  const handleDeleteReview = async (reviewId: number) => {
-    if (!window.confirm(copy.deleteConfirmation)) return;
-    const accessToken = await getAccessToken();
-    if (!accessToken) {
-      setFormError(copy.unauthorizedError);
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      await reviewsService.deleteReview(reviewId, accessToken);
-      setReviews(prev => prev.filter(r => r.id !== reviewId));
-      setActionMessage(copy.reviewDeleted);
-      fetchSummary();
-    } catch (err) {
-      console.error('Failed to delete review:', err);
-      setFormError(copy.genericError);
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleFormSubmit = async (data: {
@@ -740,16 +678,10 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
       setIsSubmitting(true);
       setFormError(null);
 
-      if (editingReview) {
-        await reviewsService.updateReview(editingReview.id, data, accessToken);
-        setSubmissionMessage(copy.reviewUpdated);
-      } else {
-        await reviewsService.createReview({ ...data, card: cardId }, accessToken);
-        setSubmissionMessage(copy.reviewSubmitted);
-      }
+      await reviewsService.createReview({ ...data, card: cardId }, accessToken);
+      setSubmissionMessage(copy.reviewSubmitted);
 
       setShowForm(false);
-      setEditingReview(null);
       fetchSummary();
       fetchReviews(currentPage);
     } catch (err) {
@@ -766,7 +698,6 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
 
   const handleCancelForm = () => {
     setShowForm(false);
-    setEditingReview(null);
     setFormError(null);
     setSubmissionMessage(null);
   };
@@ -788,8 +719,9 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
           <ReviewSummaryCard
             summary={
               summary || {
-                average: null,
-                count: 0,
+                card: cardId,
+                average_rating: null,
+                review_count: 0,
                 distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
               }
             }
@@ -803,12 +735,12 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
       <div className="reviews-actions">
         {showForm ? (
           <ReviewForm
-            initialData={editingReview || undefined}
+            initialData={undefined}
             onSubmit={handleFormSubmit}
             onCancel={handleCancelForm}
             submitting={isSubmitting}
             copy={copy}
-            isEditing={!!editingReview}
+            isEditing={false}
           />
         ) : user ? (
           <button type="button" className="btn btn-primary" onClick={handleWriteReview}>
@@ -876,16 +808,13 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
                 key={review.id}
                 review={review}
                 copy={copy}
-                currentUserId={user?.id || null}
                 onHelpfulClick={handleHelpfulClick}
-                onEdit={handleEditReview}
-                onDelete={handleDeleteReview}
               />
             ))}
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              totalCount={summary?.count || 0}
+              totalCount={summary?.review_count || 0}
               onPageChange={page => {
                 setCurrentPage(page);
                 fetchReviews(page);

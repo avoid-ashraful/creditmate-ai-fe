@@ -135,16 +135,15 @@ export interface Review {
   pros: string;
   cons: string;
   helpfulCount: number;
-  displayName: string;
+  reviewerName: string;
   created: Date;
-  userId: number;
-  status: 'approved' | 'pending' | 'rejected';
-  userVotedHelpful?: boolean;
+  modified: Date;
 }
 
 export interface ReviewSummary {
-  average: number | null;
-  count: number;
+  card: number;
+  average_rating: number | null;
+  review_count: number;
   distribution: {
     1: number;
     2: number;
