@@ -55,6 +55,29 @@ export const testCards = [
   },
 ];
 
+export const testReviews = [
+  {
+    id: 1,
+    card: 1,
+    rating: 5,
+    title: 'Useful travel benefits',
+    body: 'The lounge access is useful on longer trips.',
+    pros: 'Travel benefits',
+    cons: 'Annual fee',
+    reviewer_name: 'Community member',
+    helpful_count: 2,
+    created: '2025-01-15T10:00:00Z',
+    modified: '2025-01-15T10:00:00Z',
+  },
+];
+
+const testOwnedReview = {
+  ...testReviews[0],
+  id: 2,
+  title: 'My review',
+};
+const testReviewVotes = new Set<string>();
+
 const paginated = <T>(results: T[]) => ({
   count: results.length,
   next: null,
@@ -63,6 +86,83 @@ const paginated = <T>(results: T[]) => ({
 });
 
 export const handlers = [
+  // GET/POST /reviews/ (public approved list; authenticated submissions are pending)
+  rest.get(apiUrl('reviews/'), (req, res, ctx) => {
+    const card = req.url.searchParams.get('card');
+    const reviews = testReviews.filter(review => !card || String(review.card) === card);
+    return res(ctx.status(200), ctx.json(paginated(reviews)));
+  }),
+  rest.post(apiUrl('reviews/'), async (req, res, ctx) => {
+    const body = (await req.json()) as Record<string, unknown>;
+    const now = new Date().toISOString();
+    return res(
+      ctx.status(201),
+      ctx.json({
+        id: 2,
+        card: body.card,
+        rating: body.rating,
+        title: body.title,
+        body: body.body,
+        pros: body.pros || '',
+        cons: body.cons || '',
+        reviewer_name: 'Community member',
+        helpful_count: 0,
+        created: now,
+        modified: now,
+      })
+    );
+  }),
+  // Authenticated own-review detail and modifications.
+  rest.get('*/api/v1/reviews/mine/:reviewId/', (req, res, ctx) => {
+    return Number(req.params.reviewId) === testOwnedReview.id
+      ? res(ctx.status(200), ctx.json(testOwnedReview))
+      : res(ctx.status(404), ctx.json({ detail: 'Not found.' }));
+  }),
+  rest.patch('*/api/v1/reviews/mine/:reviewId/', async (req, res, ctx) => {
+    if (Number(req.params.reviewId) !== testOwnedReview.id) {
+      return res(ctx.status(404), ctx.json({ detail: 'Not found.' }));
+    }
+    Object.assign(testOwnedReview, await req.json());
+    return res(ctx.status(200), ctx.json(testOwnedReview));
+  }),
+  rest.delete('*/api/v1/reviews/mine/:reviewId/', (req, res, ctx) => {
+    return Number(req.params.reviewId) === testOwnedReview.id
+      ? res(ctx.status(204))
+      : res(ctx.status(404), ctx.json({ detail: 'Not found.' }));
+  }),
+  // GET /reviews/cards/{card_id}/summary/
+  rest.get('*/api/v1/reviews/cards/:cardId/summary/', (req, res, ctx) => {
+    const cardId = Number(req.params.cardId);
+    const reviews = testReviews.filter(review => review.card === cardId);
+    const counts = [1, 2, 3, 4, 5].map(
+      rating => reviews.filter(review => review.rating === rating).length
+    );
+    const total = reviews.length;
+    return res(
+      ctx.status(200),
+      ctx.json({
+        card: cardId,
+        average_rating: total
+          ? reviews.reduce((sum, review) => sum + review.rating, 0) / total
+          : null,
+        review_count: total,
+        distribution: Object.fromEntries(counts.map((count, index) => [index + 1, count])),
+      })
+    );
+  }),
+  // POST /reviews/{review_id}/helpful/ (one-way vote)
+  rest.post('*/api/v1/reviews/:reviewId/helpful/', (req, res, ctx) => {
+    const review = testReviews.find(item => item.id === Number(req.params.reviewId));
+    if (!review) return res(ctx.status(404), ctx.json({ detail: 'Not found.' }));
+    const token = req.headers.get('authorization') || 'anonymous';
+    const voteKey = `${token}:${review.id}`;
+    const created = !testReviewVotes.has(voteKey);
+    testReviewVotes.add(voteKey);
+    return res(
+      ctx.status(created ? 201 : 200),
+      ctx.json({ helpful_count: review.helpful_count + 1 })
+    );
+  }),
   // GET /banks/
   rest.get(apiUrl('banks/'), (_req, res, ctx) => {
     return res(ctx.status(200), ctx.json(paginated(testBanks)));

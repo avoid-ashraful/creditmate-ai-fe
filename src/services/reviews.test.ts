@@ -26,11 +26,9 @@ describe('reviewsService', () => {
         pros: 'Good rewards',
         cons: 'High fee',
         helpful_count: 10,
-        display_name: 'Test User',
+        reviewer_name: 'Test User',
         created: '2025-01-15T10:30:00Z',
-        user: 100,
-        status: 'approved',
-        user_voted_helpful: true,
+        modified: '2025-01-16T10:30:00Z',
       };
 
       const review = transformReview(apiReview);
@@ -44,11 +42,9 @@ describe('reviewsService', () => {
         pros: 'Good rewards',
         cons: 'High fee',
         helpfulCount: 10,
-        displayName: 'Test User',
+        reviewerName: 'Test User',
         created: new Date('2025-01-15T10:30:00Z'),
-        userId: 100,
-        status: 'approved',
-        userVotedHelpful: true,
+        modified: new Date('2025-01-16T10:30:00Z'),
       });
     });
 
@@ -62,15 +58,14 @@ describe('reviewsService', () => {
         pros: '',
         cons: '',
         helpful_count: 0,
-        display_name: 'Another User',
+        reviewer_name: 'Another User',
         created: '2025-02-20T14:00:00Z',
-        user: 101,
-        status: 'pending',
+        modified: '2025-02-20T14:00:00Z',
       };
 
       const review = transformReview(apiReview);
 
-      expect(review.userVotedHelpful).toBeUndefined();
+      expect(review.reviewerName).toBe('Another User');
       expect(review.pros).toBe('');
       expect(review.cons).toBe('');
     });
@@ -79,8 +74,9 @@ describe('reviewsService', () => {
   describe('getSummary', () => {
     test('fetches summary with correct parameters', async () => {
       const mockResponse = {
-        average: 4.5,
-        count: 10,
+        card: 123,
+        average_rating: 4.5,
+        review_count: 10,
         distribution: { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4 },
       };
 
@@ -92,7 +88,7 @@ describe('reviewsService', () => {
       const result = await reviewsService.getSummary(123);
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8000/api/v1/reviews/summary/?card=123',
+        'http://localhost:8000/api/v1/reviews/cards/123/summary/',
         expect.objectContaining({
           headers: { 'Content-Type': 'application/json' },
         })
@@ -127,10 +123,9 @@ describe('reviewsService', () => {
             pros: '',
             cons: '',
             helpful_count: 5,
-            display_name: 'User 1',
+            reviewer_name: 'User 1',
             created: '2025-01-01T00:00:00Z',
-            user: 1,
-            status: 'approved',
+            modified: '2025-01-01T00:00:00Z',
           },
         ],
       };
@@ -184,10 +179,9 @@ describe('reviewsService', () => {
         pros: 'Everything',
         cons: 'Nothing',
         helpful_count: 0,
-        display_name: 'Current User',
+        reviewer_name: 'Current User',
         created: '2025-06-15T12:00:00Z',
-        user: 1,
-        status: 'pending',
+        modified: '2025-06-15T12:00:00Z',
       };
 
       (global.fetch as jest.Mock).mockResolvedValue({
@@ -210,7 +204,7 @@ describe('reviewsService', () => {
         })
       );
       expect(result.id).toBe(10);
-      expect(result.status).toBe('pending');
+      expect(result.reviewerName).toBe('Current User');
     });
 
     test('handles optional pros/cons', async () => {
@@ -234,10 +228,9 @@ describe('reviewsService', () => {
             pros: '',
             cons: '',
             helpful_count: 0,
-            display_name: 'Current User',
+            reviewer_name: 'Current User',
             created: '2025-06-15T12:00:00Z',
-            user: 1,
-            status: 'pending',
+            modified: '2025-06-15T12:00:00Z',
           }),
       });
 
@@ -263,17 +256,16 @@ describe('reviewsService', () => {
             pros: 'Everything',
             cons: 'Nothing',
             helpful_count: 0,
-            display_name: 'Current User',
+            reviewer_name: 'Current User',
             created: '2025-06-15T12:00:00Z',
-            user: 1,
-            status: 'pending',
+            modified: '2025-06-15T12:00:00Z',
           }),
       });
 
       const result = await reviewsService.updateReview(10, input, 'test-token');
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8000/api/v1/reviews/10/',
+        'http://localhost:8000/api/v1/reviews/mine/10/',
         expect.objectContaining({
           method: 'PATCH',
           headers: {
@@ -298,7 +290,7 @@ describe('reviewsService', () => {
       await reviewsService.deleteReview(10, 'test-token');
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:8000/api/v1/reviews/10/',
+        'http://localhost:8000/api/v1/reviews/mine/10/',
         expect.objectContaining({
           method: 'DELETE',
           headers: {
@@ -310,16 +302,16 @@ describe('reviewsService', () => {
     });
   });
 
-  describe('toggleHelpful', () => {
-    test('toggles helpful vote', async () => {
-      const mockResponse = { helpful_count: 6, user_voted_helpful: true };
+  describe('voteHelpful', () => {
+    test('adds a helpful vote', async () => {
+      const mockResponse = { helpful_count: 6 };
 
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockResponse),
       });
 
-      const result = await reviewsService.toggleHelpful(10, 'test-token');
+      const result = await reviewsService.voteHelpful(10, 'test-token');
 
       expect(global.fetch).toHaveBeenCalledWith(
         'http://localhost:8000/api/v1/reviews/10/helpful/',
@@ -350,6 +342,26 @@ describe('reviewsService', () => {
       });
 
       await expect(reviewsService.getSummary(1)).rejects.toThrow('Invalid rating value');
+    });
+
+    test('preserves the backend throttling message for HTTP 429 responses', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 429,
+        json: () => Promise.resolve({ detail: 'Request was throttled. Try again later.' }),
+      });
+
+      await expect(
+        reviewsService.createReview(
+          {
+            card: 1,
+            rating: 5,
+            title: 'Review',
+            body: 'Review text',
+          },
+          'test-token'
+        )
+      ).rejects.toThrow('Request was throttled. Try again later.');
     });
 
     test('throws on API error with field errors', async () => {

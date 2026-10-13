@@ -43,6 +43,13 @@ const operations: Array<[string, HttpVerb]> = [
   ['/api/v1/credit-cards/advanced-search/categories/', 'get'],
   ['/api/v1/credit-cards/advanced-search/sort-options/', 'get'],
   ['/api/v1/credit-cards/advanced-search/normalize/', 'get'],
+  ['/api/v1/reviews/', 'get'],
+  ['/api/v1/reviews/', 'post'],
+  ['/api/v1/reviews/mine/{id}/', 'get'],
+  ['/api/v1/reviews/mine/{id}/', 'patch'],
+  ['/api/v1/reviews/mine/{id}/', 'delete'],
+  ['/api/v1/reviews/{review_id}/helpful/', 'post'],
+  ['/api/v1/reviews/cards/{card_id}/summary/', 'get'],
 ];
 
 describe('backend OpenAPI contract snapshot', () => {

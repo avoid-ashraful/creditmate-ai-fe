@@ -36,7 +36,7 @@ jest.mock('../services/reviews', () => {
       createReview: jest.fn(),
       updateReview: jest.fn(),
       deleteReview: jest.fn(),
-      toggleHelpful: jest.fn(),
+      voteHelpful: jest.fn(),
     },
   };
 });
@@ -84,8 +84,9 @@ const mockSimilarCard: CreditCard = {
 };
 
 const mockReviewSummary = {
-  average: 4.2,
-  count: 5,
+  card: 1,
+  average_rating: 4.2,
+  review_count: 5,
   distribution: { 1: 0, 2: 1, 3: 1, 4: 1, 5: 2 },
 };
 
@@ -99,11 +100,9 @@ const mockReviews: ReviewApiResponse[] = [
     pros: 'Good rewards',
     cons: 'High annual fee',
     helpful_count: 3,
-    display_name: 'John D.',
+    reviewer_name: 'John D.',
     created: '2025-01-15T10:00:00Z',
-    user: 101,
-    status: 'approved',
-    user_voted_helpful: false,
+    modified: '2025-06-15T12:00:00Z',
   },
   {
     id: 2,
@@ -114,11 +113,9 @@ const mockReviews: ReviewApiResponse[] = [
     pros: 'Travel perks',
     cons: '',
     helpful_count: 1,
-    display_name: 'Jane S.',
+    reviewer_name: 'Jane S.',
     created: '2025-02-20T14:00:00Z',
-    user: 102,
-    status: 'approved',
-    user_voted_helpful: true,
+    modified: '2025-06-15T12:00:00Z',
   },
 ];
 
@@ -203,11 +200,9 @@ describe('CardDetailPage', () => {
       pros: r.pros,
       cons: r.cons,
       helpfulCount: r.helpful_count,
-      displayName: r.display_name,
+      reviewerName: r.reviewer_name,
       created: new Date(r.created),
-      userId: r.user,
-      status: r.status,
-      userVotedHelpful: r.user_voted_helpful,
+      modified: new Date(r.modified),
     }));
   });
 
@@ -327,7 +322,7 @@ describe('CardDetailPage', () => {
       expect(screen.getByText('Excellent card!')).toBeInTheDocument();
       expect(screen.getByText('Great rewards and lounge access.')).toBeInTheDocument();
       expect(screen.getByText('John D.')).toBeInTheDocument();
-      expect(screen.getAllByText('Verified cardholder')).toHaveLength(2);
+      expect(screen.queryByText('Verified cardholder')).not.toBeInTheDocument();
     });
   });
 

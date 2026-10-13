@@ -25,7 +25,7 @@ jest.mock('../services/reviews', () => {
       createReview: jest.fn(),
       updateReview: jest.fn(),
       deleteReview: jest.fn(),
-      toggleHelpful: jest.fn(),
+      voteHelpful: jest.fn(),
       transformReview: jest.fn(r => r),
     },
   };
@@ -44,8 +44,9 @@ const mockReviewsService = reviewsService as jest.Mocked<typeof reviewsService>;
 const mockUseAuth = useAuth as jest.Mock;
 
 const mockSummary = {
-  average: 4.2,
-  count: 5,
+  card: 1,
+  average_rating: 4.2,
+  review_count: 5,
   distribution: { 1: 0, 2: 1, 3: 1, 4: 1, 5: 2 },
 };
 
@@ -59,11 +60,9 @@ const mockApiReviews: ReviewApiResponse[] = [
     pros: 'Good rewards',
     cons: 'High annual fee',
     helpful_count: 3,
-    display_name: 'John D.',
+    reviewer_name: 'John D.',
     created: '2025-01-15T10:00:00Z',
-    user: 101,
-    status: 'approved' as const,
-    user_voted_helpful: false,
+    modified: '2025-01-15T10:00:00Z',
   },
   {
     id: 2,
@@ -74,26 +73,9 @@ const mockApiReviews: ReviewApiResponse[] = [
     pros: 'Travel perks',
     cons: '',
     helpful_count: 1,
-    display_name: 'Jane S.',
+    reviewer_name: 'Jane S.',
     created: '2025-02-20T14:00:00Z',
-    user: 102,
-    status: 'approved' as const,
-    user_voted_helpful: true,
-  },
-  {
-    id: 3,
-    card: 1,
-    rating: 3,
-    title: 'Okay card',
-    body: 'Average experience overall.',
-    pros: 'Decent support',
-    cons: 'Limited rewards',
-    helpful_count: 0,
-    display_name: 'Bob W.',
-    created: '2025-03-10T12:00:00Z',
-    user: 103,
-    status: 'pending' as const,
-    user_voted_helpful: false,
+    modified: '2025-06-15T12:00:00Z',
   },
 ];
 
@@ -101,10 +83,9 @@ const mockReviews = mockApiReviews.map(r => ({
   ...r,
   cardId: r.card,
   helpfulCount: r.helpful_count,
-  displayName: r.display_name,
+  reviewerName: r.reviewer_name,
   created: new Date(r.created),
-  userId: r.user,
-  userVotedHelpful: r.user_voted_helpful,
+  modified: new Date(r.modified),
 }));
 
 const renderWithProviders = (
@@ -160,10 +141,9 @@ describe('ReviewsSection', () => {
       ...r,
       cardId: r.card,
       helpfulCount: r.helpful_count,
-      displayName: r.display_name,
+      reviewerName: r.reviewer_name,
       created: new Date(r.created),
-      userId: r.user,
-      userVotedHelpful: r.user_voted_helpful,
+      modified: new Date(r.modified),
     }));
   });
 
@@ -225,8 +205,9 @@ describe('ReviewsSection', () => {
 
     test('shows empty state when no reviews', async () => {
       mockReviewsService.getSummary.mockResolvedValue({
-        average: null,
-        count: 0,
+        card: 1,
+        average_rating: null,
+        review_count: 0,
         distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
       });
       mockReviewsService.getReviews.mockResolvedValue({
@@ -258,36 +239,12 @@ describe('ReviewsSection', () => {
       });
     });
 
-    test('shows pending moderation badge for pending reviews', async () => {
-      renderWithProviders();
-
-      await waitFor(() => {
-        expect(screen.getByText('Pending moderation')).toBeInTheDocument();
-      });
-    });
-
-    test('shows verified badge for approved reviews', async () => {
-      renderWithProviders();
-
-      await waitFor(() => {
-        expect(screen.getAllByText('Verified cardholder')).toHaveLength(2);
-      });
-    });
-
     test('displays helpful vote button with count', async () => {
       renderWithProviders();
 
       await waitFor(() => {
         expect(screen.getAllByRole('button', { name: /Mark as helpful/ })).toHaveLength(2);
         expect(screen.getByText('(3)')).toBeInTheDocument(); // helpful count for first review
-      });
-    });
-
-    test('shows voted state when user has voted', async () => {
-      renderWithProviders();
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Marked helpful/ })).toBeInTheDocument();
       });
     });
   });
@@ -342,7 +299,7 @@ describe('ReviewsSection', () => {
       fireEvent.click(await screen.findByRole('button', { name: /Write a Review/ }));
 
       await waitFor(() => {
-        expect(screen.getByText('0/100 characters')).toBeInTheDocument();
+        expect(screen.getByText('0/120 characters')).toBeInTheDocument();
         expect(screen.getByText('0/5000 characters')).toBeInTheDocument();
       });
 
@@ -350,7 +307,7 @@ describe('ReviewsSection', () => {
       fireEvent.change(titleInput, { target: { value: 'Test title' } });
 
       await waitFor(() => {
-        expect(screen.getByText('10/100 characters')).toBeInTheDocument();
+        expect(screen.getByText('10/120 characters')).toBeInTheDocument();
       });
     });
 
@@ -396,7 +353,6 @@ describe('ReviewsSection', () => {
       mockReviewsService.createReview.mockResolvedValue({
         ...mockReviews[0],
         id: 4,
-        status: 'pending',
       });
 
       renderWithProviders({ user: { id: 101, email: 'test@example.com' } });
@@ -455,63 +411,6 @@ describe('ReviewsSection', () => {
     });
   });
 
-  describe('Edit review flow', () => {
-    test('allows editing own review', async () => {
-      renderWithProviders({ user: { id: 101, email: 'test@example.com' } });
-
-      await waitFor(() => {
-        expect(screen.getByText('Excellent card!')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByRole('button', { name: /Edit/ }));
-
-      await waitFor(() => {
-        expect(screen.getByText('Edit your review')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('Excellent card!')).toBeInTheDocument();
-      });
-    });
-
-    test('does not show edit button for other users reviews', async () => {
-      renderWithProviders({ user: { id: 999, email: 'other@example.com' } });
-
-      await waitFor(() => {
-        expect(screen.queryByRole('button', { name: /Edit/ })).not.toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Delete review flow', () => {
-    test('allows deleting own review with confirmation', async () => {
-      mockReviewsService.deleteReview.mockResolvedValue(undefined);
-
-      renderWithProviders({ user: { id: 101, email: 'test@example.com' } });
-
-      await waitFor(() => {
-        expect(screen.getByText('Excellent card!')).toBeInTheDocument();
-      });
-
-      // Mock window.confirm
-      const originalConfirm = window.confirm;
-      window.confirm = jest.fn(() => true);
-
-      fireEvent.click(screen.getByRole('button', { name: /Delete/ }));
-
-      await waitFor(() => {
-        expect(mockReviewsService.deleteReview).toHaveBeenCalledWith(1, 'mock-access-token');
-      });
-
-      window.confirm = originalConfirm;
-    });
-
-    test('does not show delete button for other users reviews', async () => {
-      renderWithProviders({ user: { id: 999, email: 'other@example.com' } });
-
-      await waitFor(() => {
-        expect(screen.queryByRole('button', { name: /Delete/ })).not.toBeInTheDocument();
-      });
-    });
-  });
-
   describe('Helpful vote', () => {
     test('prompts login for anonymous user', async () => {
       renderWithProviders();
@@ -520,13 +419,12 @@ describe('ReviewsSection', () => {
       fireEvent.click(helpfulBtn[0]);
 
       // The anonymous action should not call the authenticated vote endpoint.
-      expect(mockReviewsService.toggleHelpful).not.toHaveBeenCalled();
+      expect(mockReviewsService.voteHelpful).not.toHaveBeenCalled();
     });
 
-    test('toggles helpful vote for authenticated user', async () => {
-      mockReviewsService.toggleHelpful.mockResolvedValue({
+    test('adds a helpful vote for authenticated user', async () => {
+      mockReviewsService.voteHelpful.mockResolvedValue({
         helpful_count: 4,
-        user_voted_helpful: true,
       });
 
       renderWithProviders({ user: { id: 101, email: 'test@example.com' } });
@@ -535,7 +433,7 @@ describe('ReviewsSection', () => {
       fireEvent.click(helpfulBtn[0]);
 
       await waitFor(() => {
-        expect(mockReviewsService.toggleHelpful).toHaveBeenCalledWith(1, 'mock-access-token');
+        expect(mockReviewsService.voteHelpful).toHaveBeenCalledWith(1, 'mock-access-token');
       });
     });
   });
@@ -543,10 +441,10 @@ describe('ReviewsSection', () => {
   describe('Pagination', () => {
     test('shows pagination when multiple pages', async () => {
       mockReviewsService.getReviews.mockResolvedValue({
-        count: 25,
+        count: 45,
         next: null,
         previous: null,
-        results: Array.from({ length: 10 }, (_, i) => ({ ...mockApiReviews[0], id: i + 1 })),
+        results: Array.from({ length: 20 }, (_, i) => ({ ...mockApiReviews[0], id: i + 1 })),
       });
 
       renderWithProviders();
@@ -560,16 +458,16 @@ describe('ReviewsSection', () => {
     test('navigates to next page', async () => {
       mockReviewsService.getReviews
         .mockResolvedValueOnce({
-          count: 25,
+          count: 45,
           next: null,
           previous: null,
-          results: Array.from({ length: 10 }, (_, i) => ({ ...mockApiReviews[0], id: i + 1 })),
+          results: Array.from({ length: 20 }, (_, i) => ({ ...mockApiReviews[0], id: i + 1 })),
         })
         .mockResolvedValueOnce({
-          count: 25,
+          count: 45,
           next: null,
           previous: null,
-          results: Array.from({ length: 10 }, (_, i) => ({ ...mockApiReviews[0], id: i + 11 })),
+          results: Array.from({ length: 20 }, (_, i) => ({ ...mockApiReviews[0], id: i + 11 })),
         });
 
       renderWithProviders();
@@ -588,15 +486,15 @@ describe('ReviewsSection', () => {
 
     test('keeps page count based on the first page size on a short final page', async () => {
       const page = (start: number, length: number) => ({
-        count: 25,
+        count: 45,
         next: null,
         previous: null,
         results: Array.from({ length }, (_, i) => ({ ...mockApiReviews[0], id: start + i })),
       });
       mockReviewsService.getReviews
-        .mockResolvedValueOnce(page(1, 10))
-        .mockResolvedValueOnce(page(11, 10))
-        .mockResolvedValueOnce(page(21, 5));
+        .mockResolvedValueOnce(page(1, 20))
+        .mockResolvedValueOnce(page(21, 20))
+        .mockResolvedValueOnce(page(41, 5));
 
       renderWithProviders();
       fireEvent.click(await screen.findByRole('button', { name: /Next page/ }));
@@ -626,8 +524,9 @@ describe('ReviewsSection', () => {
 
     test('does not add JSON-LD when no reviews', async () => {
       mockReviewsService.getSummary.mockResolvedValue({
-        average: null,
-        count: 0,
+        card: 1,
+        average_rating: null,
+        review_count: 0,
         distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
       });
       mockReviewsService.getReviews.mockResolvedValue({
