@@ -1,0 +1,481 @@
+{
+  "glossary": [
+    {
+      "id": 1,
+      "term_en": "Annual Fee",
+      "term_bn": "বার্ষিক ফি",
+      "category": "fees",
+      "definition_en": "A yearly charge for holding a credit card, usually billed on the card anniversary date. Some cards waive it when you meet a spending requirement.",
+      "definition_bn": "ক্রেডিট কার্ড ধরে রাখার জন্য বছরে একবার যে ফি বা মাশুল নেওয়া হয়, সাধারণত কার্ডের বার্ষিকী তারিখে তা বিল করা হয়। নির্দিষ্ট খরচের শর্ত পূরণ করলে কিছু কার্ড এই ফি মওকুফ করে দেয়।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 2,
+      "term_en": "APR (Annual Percentage Rate)",
+      "term_bn": "বার্ষিক শতকরা হার",
+      "category": "interest",
+      "definition_en": "The yearly interest rate charged on an outstanding credit card balance, applied when you carry a balance from month to month.",
+      "definition_bn": "বকেয়া ক্রেডিট কার্ড ব্যালেন্সের উপর বছরে যে সুদের হার ধার্য হয়, মাস থেকে মাসে ব্যালেন্স বহন করলে এটি প্রযোজ্য হয়।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 3,
+      "term_en": "Cash Advance",
+      "term_bn": "নগদ অগ্রিম",
+      "category": "transactions",
+      "definition_en": "Withdrawing cash with your credit card from an ATM or bank, usually at a higher interest rate and without a grace period.",
+      "definition_bn": "এটিএম বা ব্যাংক থেকে ক্রেডিট কার্ড দিয়ে নগদ টাকা তোলা, সাধারণত বেশি সুদের হারে এবং গ্রেস পিরিয়ড ছাড়াই।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 4,
+      "term_en": "Credit Limit",
+      "term_bn": "ক্রেডিট সীমা",
+      "category": "basics",
+      "definition_en": "The maximum amount you can borrow on your credit card, set by the issuing bank based on your creditworthiness and income.",
+      "definition_bn": "আপনার ক্রেডিট কার্ডে যত টাকা পর্যন্ত ঋণ নেওয়া যায় সেই সর্বোচ্চ পরিমাণ, যা আপনার ঋণযোগ্যতা ও আয়ের ভিত্তিতে ইস্যুকারী ব্যাংক নির্ধারণ করে।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 5,
+      "term_en": "Grace Period",
+      "term_bn": "গ্রেস পিরিয়ড",
+      "category": "interest",
+      "definition_en": "The interest-free window between the end of a billing cycle and the payment due date.",
+      "definition_bn": "বিলিং চক্র শেষ হওয়া থেকে পেমেন্টের শেষ তারিখ পর্যন্ত সুদমুক্ত সময়কাল।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 6,
+      "term_en": "Late Payment Fee",
+      "term_bn": "বিলম্ব পেমেন্ট ফি",
+      "category": "fees",
+      "definition_en": "A penalty charged when you fail to make at least the minimum payment by the due date.",
+      "definition_bn": "নির্ধারিত তারিখের মধ্যে অন্তত ন্যূনতম পেমেন্ট না করলে যে জরিমানা ফি নেওয়া হয়।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 7,
+      "term_en": "Minimum Payment",
+      "term_bn": "ন্যূনতম পেমেন্ট",
+      "category": "basics",
+      "definition_en": "The smallest amount you must pay by the due date to keep the account in good standing.",
+      "definition_bn": "অ্যাকাউন্ট সচল রাখতে এবং বিলম্ব ফি এড়াতে শেষ তারিখের মধ্যে যে সর্বনিম্ন পরিমাণ পরিশোধ করতে হয়।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 8,
+      "term_en": "Rewards Points",
+      "term_bn": "রিওয়ার্ড পয়েন্ট",
+      "category": "rewards",
+      "definition_en": "Points earned from card spending that can be redeemed for cashback, travel or gifts.",
+      "definition_bn": "কার্ডে খরচ করার মাধ্যমে অর্জিত পয়েন্ট, যা ক্যাশব্যাক, ভ্রমণ বা উপহারে ভাঙানো যায়।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 9,
+      "term_en": "Balance Transfer",
+      "term_bn": "ব্যালেন্স ট্রান্সফার",
+      "category": "transactions",
+      "definition_en": "Moving debt from one credit card to another, often to take advantage of a lower interest rate.",
+      "definition_bn": "এক ক্রেডিট কার্ডের ঋণ অন্য কার্ডে স্থানান্তর করা, প্রায়ই কম সুদের হারের সুবিধা নেওয়ার জন্য।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 10,
+      "term_en": "Credit Utilization Ratio",
+      "term_bn": "ক্রেডিট ব্যবহারের অনুপাত",
+      "category": "basics",
+      "definition_en": "The percentage of your available credit that you are currently using.",
+      "definition_bn": "আপনার মোট ক্রেডিট সীমার যত শতাংশ আপনি বর্তমানে ব্যবহার করছেন।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 11,
+      "term_en": "Foreign Transaction Fee",
+      "term_bn": "বৈদেশিক লেনদেন ফি",
+      "category": "fees",
+      "definition_en": "A fee for purchases made in a foreign currency or processed abroad.",
+      "definition_bn": "বিদেশি মুদ্রায় কেনাকাটা বা বিদেশে লেনদেন প্রক্রিয়াকরণের জন্য নেওয়া ফি।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 12,
+      "term_en": "Introductory APR",
+      "term_bn": "প্রারম্ভিক এপিআর",
+      "category": "interest",
+      "definition_en": "A promotional lower interest rate offered for a limited time when you first open the account.",
+      "definition_bn": "অ্যাকাউন্ট খোলার শুরুর দিকে সীমিত সময়ের জন্য দেওয়া প্রচারমূলক কম সুদের হার।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 13,
+      "term_en": "Over-limit Fee",
+      "term_bn": "সীমা অতিক্রম ফি",
+      "category": "fees",
+      "definition_en": "A charge applied when you spend beyond your approved credit limit.",
+      "definition_bn": "অনুমোদিত ক্রেডিট সীমার বেশি খরচ করলে যে ফি আরোপ করা হয়।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 14,
+      "term_en": "Statement Cycle",
+      "term_bn": "স্টেটমেন্ট চক্র",
+      "category": "basics",
+      "definition_en": "The recurring period covered by a billing statement, usually about 30 days.",
+      "definition_bn": "বিলিং স্টেটমেন্টে যে নির্দিষ্ট সময়ের লেনদেন দেখানো হয়, সাধারণত প্রায় ৩০ দিন।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 15,
+      "term_en": "Cashback",
+      "term_bn": "ক্যাশব্যাক",
+      "category": "rewards",
+      "definition_en": "A reward where a percentage of your spending is returned as cash or a statement credit.",
+      "definition_bn": "খরচের একটি শতাংশ নগদ বা স্টেটমেন্ট ক্রেডিট হিসেবে ফেরত পাওয়ার সুবিধা।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 16,
+      "term_en": "Annual Percentage Yield",
+      "term_bn": "বার্ষিক শতকরা ফলন",
+      "category": "interest",
+      "definition_en": "The effective yearly return that takes compounding into account.",
+      "definition_bn": "চক্রবৃদ্ধি হিসাব ধরে কার্যকর বার্ষিক রিটার্নের হার।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 17,
+      "term_en": "Debt-to-Income Ratio",
+      "term_bn": "ঋণ-আয় অনুপাত",
+      "category": "basics",
+      "definition_en": "Your total monthly debt payments divided by your gross monthly income.",
+      "definition_bn": "মাসিক মোট ঋণ পরিশোধকে মোট মাসিক আয় দিয়ে ভাগ করে পাওয়া অনুপাত।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 18,
+      "term_en": "Secured Credit Card",
+      "term_bn": "জামানতযুক্ত ক্রেডিট কার্ড",
+      "category": "basics",
+      "definition_en": "A card backed by a cash deposit that usually equals the credit limit.",
+      "definition_bn": "নগদ আমানতের জামানত দিয়ে ইস্যু করা কার্ড, যা সাধারণত ক্রেডিট সীমার সমান।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 19,
+      "term_en": "Unsecured Credit Card",
+      "term_bn": "জামানতবিহীন ক্রেডিট কার্ড",
+      "category": "basics",
+      "definition_en": "A card not backed by collateral, approved mainly on creditworthiness.",
+      "definition_bn": "কোনো জামানত ছাড়া মূলত ঋণযোগ্যতার ভিত্তিতে অনুমোদিত কার্ড।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 20,
+      "term_en": "Prime Rate",
+      "term_bn": "প্রাইম রেট",
+      "category": "interest",
+      "definition_en": "The benchmark interest rate banks charge their most creditworthy customers.",
+      "definition_bn": "ব্যাংক তাদের সবচেয়ে বিশ্বস্ত গ্রাহকদের যে ভিত্তি সুদের হার ধার্য করে।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 21,
+      "term_en": "Fixed APR",
+      "term_bn": "স্থির এপিআর",
+      "category": "interest",
+      "definition_en": "An APR that stays the same for the life of the account.",
+      "definition_bn": "অ্যাকাউন্টের পুরো মেয়াদে অপরিবর্তিত থাকা সুদের হার।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 22,
+      "term_en": "Variable APR",
+      "term_bn": "পরিবর্তনশীল এপিআর",
+      "category": "interest",
+      "definition_en": "An APR that can change over time along with an index rate.",
+      "definition_bn": "কোনো সূচক হারের সাথে সময়ের পরিবর্তনে যে সুদের হার বদলাতে পারে।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 23,
+      "term_en": "Penalty APR",
+      "term_bn": "জরিমানা এপিআর",
+      "category": "interest",
+      "definition_en": "A higher APR applied after late payments or a breach of terms.",
+      "definition_bn": "বিলম্বে পরিশোধ বা শর্ত ভঙ্গের পর আরোপিত উচ্চতর সুদের হার।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 24,
+      "term_en": "Rewards Rate",
+      "term_bn": "রিওয়ার্ড হার",
+      "category": "rewards",
+      "definition_en": "The rate at which you earn points or cashback on spending.",
+      "definition_bn": "খরচের উপর পয়েন্ট বা ক্যাশব্যাক অর্জনের হার।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 25,
+      "term_en": "Credit Inquiry",
+      "term_bn": "ক্রেডিট অনুসন্ধান",
+      "category": "basics",
+      "definition_en": "A request by a lender to view your credit report.",
+      "definition_bn": "ঋণদাতার আপনার ক্রেডিট রিপোর্ট দেখার অনুরোধ।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 26,
+      "term_en": "Hard Credit Inquiry",
+      "term_bn": "হার্ড ক্রেডিট অনুসন্ধান",
+      "category": "basics",
+      "definition_en": "An inquiry made when you apply for credit, which may affect your score.",
+      "definition_bn": "নতুন ঋণের আবেদন করলে ঋণদাতার করা অনুসন্ধান, যা ক্রেডিট স্কোরকে প্রভাবিত করতে পারে।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 27,
+      "term_en": "Soft Credit Inquiry",
+      "term_bn": "সফট ক্রেডিট অনুসন্ধান",
+      "category": "basics",
+      "definition_en": "An inquiry that does not affect your credit score, such as checking your own report.",
+      "definition_bn": "নিজের রিপোর্ট দেখা ইত্যাদি অনুসন্ধান, যা ক্রেডিট স্কোরকে প্রভাবিত করে না।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 28,
+      "term_en": "Credit Freeze",
+      "term_bn": "ক্রেডিট ফ্রিজ",
+      "category": "basics",
+      "definition_en": "A block that stops lenders from accessing your credit report without your consent.",
+      "definition_bn": "আপনার সম্মতি ছাড়া ঋণদাতাকে ক্রেডিট রিপোর্ট দেখতে বাধা দেওয়ার ব্যবস্থা।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 29,
+      "term_en": "Credit Report",
+      "term_bn": "ক্রেডিট রিপোর্ট",
+      "category": "basics",
+      "definition_en": "A detailed record of your credit history compiled by a credit bureau.",
+      "definition_bn": "ক্রেডিট ব্যুরো কর্তৃক সংকলিত আপনার ঋণ ইতিহাসের বিস্তারিত বিবরণ।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 30,
+      "term_en": "Bankruptcy",
+      "term_bn": "দেউলিয়া হওয়া",
+      "category": "basics",
+      "definition_en": "A legal process for people who cannot repay their outstanding debts.",
+      "definition_bn": "যারা বকেয়া ঋণ পরিশোধ করতে পারে না তাদের জন্য আইনি প্রক্রিয়া।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 31,
+      "term_en": "Debt Consolidation",
+      "term_bn": "ঋণ একত্রীকরণ",
+      "category": "basics",
+      "definition_en": "Combining several debts into one, often at a lower interest rate.",
+      "definition_bn": "একাধিক ঋণকে প্রায়ই কম সুদে একটি ঋণে মিলিয়ে নেওয়া।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 32,
+      "term_en": "Overdraft",
+      "term_bn": "ওভারড্রাফট",
+      "category": "basics",
+      "definition_en": "Withdrawing more than your account balance, up to an approved limit.",
+      "definition_bn": "অনুমোদিত সীমা পর্যন্ত অ্যাকাউন্টের ব্যালেন্সের চেয়ে বেশি টাকা তোলার সুবিধা।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 33,
+      "term_en": "Deposit Insurance",
+      "term_bn": "আমানত বীমা",
+      "category": "basics",
+      "definition_en": "Protection that repays depositors if an insured bank fails.",
+      "definition_bn": "বীমাকৃত ব্যাংক বন্ধ হয়ে গেলে আমানতকারীদের টাকা ফেরত দেওয়ার সুরক্ষা।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 34,
+      "term_en": "Effective Annual Rate",
+      "term_bn": "কার্যকর বার্ষিক হার",
+      "category": "interest",
+      "definition_en": "The real yearly cost of borrowing after compounding is included.",
+      "definition_bn": "চক্রবৃদ্ধি ধরে হিসাব করা ঋণের প্রকৃত বার্ষিক খরচ।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 35,
+      "term_en": "Minimum Finance Charge",
+      "term_bn": "ন্যূনতম ফিন্যান্স চার্জ",
+      "category": "fees",
+      "definition_en": "The least interest charge applied in a billing cycle when a balance remains.",
+      "definition_bn": "ব্যালেন্স থাকলে বিলিং চক্রে ধার্য ন্যূনতম সুদ চার্জ।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 36,
+      "term_en": "Authorized User",
+      "term_bn": "অনুমোদিত ব্যবহারকারী",
+      "category": "basics",
+      "definition_en": "A person allowed to use someone else's card, while the primary holder stays responsible.",
+      "definition_bn": "অন্যের কার্ড ব্যবহারের অনুমতি পাওয়া ব্যক্তি, তবে মূল কার্ডধারীই দায়ী থাকেন।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 37,
+      "term_en": "Joint Credit Card",
+      "term_bn": "যৌথ ক্রেডিট কার্ড",
+      "category": "basics",
+      "definition_en": "An account shared by two people who are both responsible for payments.",
+      "definition_bn": "দুই ব্যক্তি যৌথভাবে চালান এবং উভয়েই পরিশোধের জন্য দায়ী এমন অ্যাকাউন্ট।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 38,
+      "term_en": "Credit Monitoring",
+      "term_bn": "ক্রেডিট মনিটরিং",
+      "category": "basics",
+      "definition_en": "Regularly watching your credit report for changes or suspicious activity.",
+      "definition_bn": "ক্রেডিট রিপোর্টে পরিবর্তন বা সন্দেহজনক কার্যক্রম নিয়মিত নজরে রাখা।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 39,
+      "term_en": "Billing Date",
+      "term_bn": "বিলিং তারিখ",
+      "category": "basics",
+      "definition_en": "The date a new billing cycle begins each month.",
+      "definition_bn": "প্রতি মাসে নতুন বিলিং চক্র শুরু হওয়ার তারিখ।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 40,
+      "term_en": "Payment Due Date",
+      "term_bn": "পেমেন্টের শেষ তারিখ",
+      "category": "basics",
+      "definition_en": "The date by which at least the minimum payment must be made.",
+      "definition_bn": "যে তারিখের মধ্যে অন্তত ন্যূনতম পেমেন্ট করতে হয়।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 41,
+      "term_en": "Credit Score",
+      "term_bn": "ক্রেডিট স্কোর",
+      "category": "basics",
+      "definition_en": "A number that shows your creditworthiness to lenders.",
+      "definition_bn": "ঋণদাতাদের কাছে আপনার ঋণযোগ্যতা বোঝানো একটি সংখ্যা।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 42,
+      "term_en": "Utilization Rate",
+      "term_bn": "ব্যবহারের হার",
+      "category": "basics",
+      "definition_en": "The share of available credit currently in use.",
+      "definition_bn": "বর্তমানে ব্যবহৃত ক্রেডিটের অনুপাত।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 43,
+      "term_en": "Billing Cycle",
+      "term_bn": "বিলিং চক্র",
+      "category": "basics",
+      "definition_en": "The recurring period between two billing statements.",
+      "definition_bn": "দুই বিলিং স্টেটমেন্টের মধ্যবর্তী নির্দিষ্ট সময়কাল।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 44,
+      "term_en": "Minimum Due",
+      "term_bn": "ন্যূনতম প্রদেয়",
+      "category": "basics",
+      "definition_en": "The minimum amount that must be paid by the due date.",
+      "definition_bn": "শেষ তারিখের মধ্যে পরিশোধযোগ্য সর্বনিম্ন পরিমাণ।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 45,
+      "term_en": "Payment Grace",
+      "term_bn": "পেমেন্ট গ্রেস",
+      "category": "interest",
+      "definition_en": "The interest-free period before the payment due date.",
+      "definition_bn": "পেমেন্টের শেষ তারিখের আগে সুদমুক্ত সময়।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 46,
+      "term_en": "Sign-up Bonus",
+      "term_bn": "সাইন-আপ বোনাস",
+      "category": "rewards",
+      "definition_en": "A one-time reward for opening a card and meeting a spending target.",
+      "definition_bn": "কার্ড খুলে নির্দিষ্ট খরচের লক্ষ্য পূরণ করলে দেওয়া এককালীন পুরস্কার।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 47,
+      "term_en": "Currency Conversion",
+      "term_bn": "মুদ্রা রূপান্তর",
+      "category": "fees",
+      "definition_en": "Converting a foreign purchase amount into your home currency, often with a markup.",
+      "definition_bn": "বিদেশি কেনাকাটার টাকাকে নিজ দেশের মুদ্রায় রূপান্তর, প্রায়ই অতিরিক্ত চার্জসহ।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 48,
+      "term_en": "Charge-off",
+      "term_bn": "চার্জ-অফ",
+      "category": "basics",
+      "definition_en": "When a creditor writes off a debt as unlikely to be collected.",
+      "definition_bn": "ঋণ আদায়ের সম্ভাবনা না থাকলে ঋণদাতা সেই ঋণ খেলাপি হিসেবে লিখে ফেলে।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 49,
+      "term_en": "Credit Limit Increase",
+      "term_bn": "ক্রেডিট সীমা বৃদ্ধি",
+      "category": "basics",
+      "definition_en": "A rise in your credit limit based on better credit or income.",
+      "definition_bn": "উন্নত ঋণযোগ্যতা বা আয়ের ভিত্তিতে ক্রেডিট সীমা বেড়ে যাওয়া।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 50,
+      "term_en": "Annual Fee Waiver",
+      "term_bn": "বার্ষিক ফি মওকুফ",
+      "category": "fees",
+      "definition_en": "A policy that removes the annual fee when certain conditions are met.",
+      "definition_bn": "নির্দিষ্ট শর্ত পূরণ হলে বার্ষিক ফি মওকুফ করার নীতি।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 51,
+      "term_en": "Compound Interest",
+      "term_bn": "চক্রবৃদ্ধি সুদ",
+      "category": "interest",
+      "definition_en": "Interest calculated on both the principal and the accumulated interest.",
+      "definition_bn": "মূলধন এবং জমে থাকা সুদ উভয়ের উপর হিসাব করা সুদ।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 52,
+      "term_en": "Principal",
+      "term_bn": "মূলধন",
+      "category": "basics",
+      "definition_en": "The original amount borrowed, excluding interest.",
+      "definition_bn": "সুদ বাদ দিয়ে প্রকৃত যে পরিমাণ ঋণ নেওয়া হয়েছে।",
+      "bengaliCalendarDate": null
+    },
+    {
+      "id": 53,
+      "term_en": "Lounge Access",
+      "term_bn": "লাউঞ্জ অ্যাক্সেস",
+      "category": "rewards",
+      "definition_en": "Complimentary use of airport lounges offered with some credit cards.",
+      "definition_bn": "কিছু ক্রেডিট কার্ডে দেওয়া বিমানবন্দরের লাউঞ্জ বিনামূল্যে ব্যবহারের সুবিধা।",
+      "bengaliCalendarDate": null
+    }
+  ]
+}

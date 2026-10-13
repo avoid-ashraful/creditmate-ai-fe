@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
+import { LanguageProvider, useLanguage } from './locales';
 import AboutPage from './pages/AboutPage';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
@@ -13,107 +14,148 @@ import RewardCalculatorPage from './pages/RewardCalculatorPage';
 import './styles/App.css';
 import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
 
+interface NavItem {
+  to: string;
+  en: string;
+  bn: string;
+}
+
+/**
+ * Primary navigation labels. These are the small set of key translations the
+ * app ships today; they translate navigation chrome only, not the full content
+ * of each page (see LOCALIZATION_GUIDE.md, "Limitations").
+ */
+export const NAV_ITEMS: NavItem[] = [
+  { to: '/', en: 'Home', bn: 'হোম' },
+  { to: '/perfect-card-finder', en: 'Quiz', bn: 'কুইজ' },
+  { to: '/compare', en: 'Compare Cards', bn: 'কার্ড তুলনা' },
+  { to: '/reward-calculator', en: 'Reward Calculator', bn: 'রিওয়ার্ড ক্যালকুলেটর' },
+  { to: '/guides', en: 'Guides', bn: 'গাইড' },
+  { to: '/glossary', en: 'Glossary', bn: 'শব্দকোষ' },
+  { to: '/about', en: 'About', bn: 'আমাদের সম্পর্কে' },
+];
+
+/** Render the page routes. Exported so routing can be tested with MemoryRouter. */
+export const AppRoutes: React.FC = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
+      <Route path="/category/:slug" element={<CategoryPage />} />
+      <Route path="/compare" element={<ComparisonPage />} />
+      <Route path="/perfect-card-finder" element={<RecommendationQuiz />} />
+      <Route path="/reward-calculator" element={<RewardCalculatorPage />} />
+      <Route path="/guides" element={<GuidesPage />} />
+      <Route path="/guides/:slug" element={<GuidesPage />} />
+      <Route path="/glossary" element={<GlossaryPage />} />
+      <Route path="/about" element={<AboutPage />} />
+    </Routes>
+  );
+};
+
+/**
+ * The full application shell: header, routed content and footer. Expects to be
+ * rendered inside a router and a LanguageProvider.
+ */
+export const AppContent: React.FC = () => {
+  const { lang, setLang } = useLanguage();
+  const isBengali = lang === 'bn';
+
+  return (
+    <div className="app">
+      <GradientHeader>
+        <div className="header-content">
+          <div className="logo">
+            <Link to="/" lang={isBengali ? 'bn' : 'en'}>
+              CreditMate AI
+            </Link>
+          </div>
+          <nav className="main-nav" aria-label="Main navigation">
+            <ul>
+              {NAV_ITEMS.map(item => (
+                <li key={item.to}>
+                  <Link to={item.to} lang={isBengali ? 'bn' : 'en'}>
+                    {isBengali ? item.bn : item.en}
+                  </Link>
+                </li>
+              ))}
+              <li className="lang-switcher-item">
+                <button
+                  type="button"
+                  className={`lang-switcher-button ${isBengali ? 'active' : ''}`}
+                  onClick={() => setLang(isBengali ? 'en' : 'bn')}
+                  aria-label={isBengali ? 'Switch to English' : 'Switch to Bengali'}
+                >
+                  {isBengali ? 'EN' : 'BN'}
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </GradientHeader>
+
+      <main className="app-content">
+        <AppRoutes />
+      </main>
+
+      <GradientFooter>
+        <div className="footer-content">
+          <div className="footer-section">
+            <h3>CreditMate AI</h3>
+            <p>
+              {isBengali
+                ? 'বাংলাদেশি গ্রাহকদের জন্য আর্থিক সিদ্ধান্ত সহজ করা।'
+                : 'Making financial decisions simpler for Bangladeshi consumers.'}
+            </p>
+          </div>
+          <div className="footer-section">
+            <h3>{isBengali ? 'দ্রুত লিংক' : 'Quick Links'}</h3>
+            <ul>
+              {NAV_ITEMS.map(item => (
+                <li key={item.to}>
+                  <Link to={item.to} lang={isBengali ? 'bn' : 'en'}>
+                    {isBengali ? item.bn : item.en}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="footer-section">
+            <h3>{isBengali ? 'আইনগত' : 'Legal'}</h3>
+            <ul>
+              <li>
+                <Link to="/terms">{isBengali ? 'সেবার শর্তাবলি' : 'Terms of Service'}</Link>
+              </li>
+              <li>
+                <Link to="/privacy">{isBengali ? 'গোপনীয়তা নীতি' : 'Privacy Policy'}</Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div className="copyright">
+          <p>
+            &copy; {new Date().getFullYear()} CreditMate AI.{' '}
+            {isBengali ? 'সর্বস্বত্ব সংরক্ষিত।' : 'All rights reserved.'}
+          </p>
+        </div>
+      </GradientFooter>
+    </div>
+  );
+};
+
+/** Router-bound application. Uses a browser router for the SPA. */
 const App: React.FC = () => {
   return (
     <Router>
       <GradientBackground />
-      <div className="app">
-        <GradientHeader>
-          <div className="header-content">
-            <div className="logo">
-              <Link to="/">CreditMate AI</Link>
-            </div>
-            <nav className="main-nav">
-              <ul>
-                <li>
-                  <Link to="/">Home</Link>
-                </li>
-                <li>
-                  <Link to="/perfect-card-finder">Quiz</Link>
-                </li>
-                <li>
-                  <Link to="/compare">Compare Cards</Link>
-                </li>
-                <li>
-                  <Link to="/reward-calculator">Reward Calculator</Link>
-                </li>
-                <li>
-                  <Link to="/guides">Guides</Link>
-                </li>
-                <li>
-                  <Link to="/glossary">Glossary</Link>
-                </li>
-                <li>
-                  <Link to="/about">About</Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </GradientHeader>
-
-        <main className="app-content">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
-            <Route path="/category/:slug" element={<CategoryPage />} />
-            <Route path="/compare" element={<ComparisonPage />} />
-            <Route path="/perfect-card-finder" element={<RecommendationQuiz />} />
-            <Route path="/reward-calculator" element={<RewardCalculatorPage />} />
-            <Route path="/guides" element={<GuidesPage />} />
-            <Route path="/guides/:slug" element={<GuidesPage />} />
-            <Route path="/glossary" element={<GlossaryPage />} />
-            <Route path="/about" element={<AboutPage />} />
-          </Routes>
-        </main>
-
-        <GradientFooter>
-          <div className="footer-content">
-            <div className="footer-section">
-              <h3>CreditMate AI</h3>
-              <p>Making financial decisions simpler for Bangladeshi consumers.</p>
-            </div>
-            <div className="footer-section">
-              <h3>Quick Links</h3>
-              <ul>
-                <li>
-                  <Link to="/">Home</Link>
-                </li>
-                <li>
-                  <Link to="/perfect-card-finder">Quiz</Link>
-                </li>
-                <li>
-                  <Link to="/compare">Compare Cards</Link>
-                </li>
-                <li>
-                  <Link to="/guides">Guides</Link>
-                </li>
-                <li>
-                  <Link to="/glossary">Glossary</Link>
-                </li>
-                <li>
-                  <Link to="/about">About</Link>
-                </li>
-              </ul>
-            </div>
-            <div className="footer-section">
-              <h3>Legal</h3>
-              <ul>
-                <li>
-                  <Link to="/terms">Terms of Service</Link>
-                </li>
-                <li>
-                  <Link to="/privacy">Privacy Policy</Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="copyright">
-            <p>&copy; {new Date().getFullYear()} CreditMate AI. All rights reserved.</p>
-          </div>
-        </GradientFooter>
-      </div>
+      <AppContent />
     </Router>
   );
 };
 
-export default App;
+/** Root entry: provides the language context around the routed app. */
+export default function RootApp({ children }: { children?: React.ReactNode }) {
+  return <LanguageProvider>{children ?? <App />}</LanguageProvider>;
+}
+
+RootApp.displayName = 'RootApp';
