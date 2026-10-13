@@ -327,7 +327,7 @@ export const handlers = [
     const paginatedCards = cards.slice(start, start + pageSize);
 
     // Build facets based on what was requested
-    const facetData: Record<string, any> = {};
+    const facetData: Record<string, unknown> = {};
 
     if (facets.includes('category')) {
       facetData.category = {
