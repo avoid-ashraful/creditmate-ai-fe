@@ -75,6 +75,7 @@ export const handlers = [
     const bankName = req.url.searchParams.get('bank_name');
     const bank = req.url.searchParams.get('bank');
     const bankIds = req.url.searchParams.get('bank_ids')?.split(',').map(Number) || [];
+    const hasLoungeAccess = req.url.searchParams.get('has_lounge_access');
 
     let cards = testCards;
     if (ids) {
@@ -102,6 +103,10 @@ export const handlers = [
         bankIds.some(bankId => testBanks.some(b => b.id === bankId && b.name === card.bank_name))
       );
     }
+    if (hasLoungeAccess !== null) {
+      const loungeAccessValue = hasLoungeAccess === 'true';
+      cards = cards.filter(card => card.has_lounge_access === loungeAccessValue);
+    }
 
     return res(ctx.status(200), ctx.json(paginated(cards)));
   }),
@@ -124,6 +129,80 @@ export const handlers = [
           { label: 'Fee Waiver Available', filter: 'has_fee_waiver=true' },
         ],
         popular_banks: ['Test Bank'],
+      })
+    );
+  }),
+
+  // GET /api/v1/credit-cards/typeahead/?q=...
+  rest.get('*/api/v1/credit-cards/typeahead/', (req, res, ctx) => {
+    const q = (req.url.searchParams.get('q') || '').trim().toLowerCase();
+
+    // Cards – filter by name or bank_name
+    const filteredCards = testCards.filter(
+      c => c.name.toLowerCase().includes(q) || c.bank_name.toLowerCase().includes(q)
+    );
+    const cards = filteredCards.slice(0, 5).map(c => ({
+      id: c.id,
+      name: c.name,
+      bank_name: c.bank_name,
+    }));
+
+    // Banks – filter by name
+    const filteredBanks = testBanks.filter(b => b.name.toLowerCase().includes(q));
+    const banks = filteredBanks.slice(0, 5).map(b => ({
+      id: b.id,
+      name: b.name,
+      credit_card_count: b.credit_card_count,
+    }));
+
+    // Categories – static set derived from the CATEGORIES config
+    const categorySet = [
+      { slug: 'travel', name: 'Travel', count: 0 },
+      { slug: 'cashback', name: 'Cashback', count: 0 },
+      { slug: 'premium', name: 'Premium', count: 0 },
+      { slug: 'student', name: 'Student', count: 0 },
+      { slug: 'business', name: 'Business', count: 0 },
+      { slug: 'no-annual-fee', name: 'No Annual Fee', count: 1 },
+    ]
+      .filter(c => c.name.toLowerCase().includes(q) || c.slug.includes(q))
+      .slice(0, 5);
+
+    // Flat suggestions array (backend canonical shape)
+    const suggestionsList = [
+      ...cards.map(c => ({
+        type: 'card' as const,
+        id: c.id,
+        label: c.name,
+        detail: c.bank_name,
+      })),
+      ...banks.map(b => ({
+        type: 'bank' as const,
+        id: b.id,
+        label: b.name,
+      })),
+      ...categorySet.map(c => ({
+        type: 'category' as const,
+        slug: c.slug,
+        label: c.name,
+      })),
+    ];
+
+    // Facets – static per‑category counts for the query
+    const facets = categorySet.map(c => ({
+      slug: c.slug,
+      label: c.name,
+      count: c.count,
+    }));
+
+    // "Did you mean" – correct a common typo
+    const didYouMean = q === 'viza' ? 'visa' : null;
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        suggestions: suggestionsList,
+        facets,
+        didYouMean,
       })
     );
   }),

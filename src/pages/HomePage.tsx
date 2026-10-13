@@ -5,6 +5,7 @@ import CardList from '../components/CardList';
 import CategoryCard from '../components/CategoryCard';
 import ComparisonBar from '../components/ComparisonBar';
 import FilterPanel from '../components/FilterPanel';
+import SearchAutocomplete from '../components/SearchAutocomplete';
 import { CATEGORIES } from '../config/categories';
 import { apiService } from '../services/api';
 import { CreditCard, Bank, CardFilterOptions } from '../types';
@@ -107,6 +108,20 @@ const HomePage: React.FC = () => {
     handleFilterChange({ searchTerm });
   };
 
+  // Map a category facet slug to the appropriate filter options; falls back to
+  // setting the search term so the existing filter logic picks it up.
+  const applyCategoryFilter = (slug: string) => {
+    const category = CATEGORIES.find(c => c.slug === slug);
+    if (category) {
+      setSearchTerm(category.filters.searchTerm ?? '');
+      handleFilterChange({ ...category.filters });
+    } else {
+      // Unknown slug – treat as a plain text search
+      setSearchTerm('');
+      handleFilterChange({ searchTerm: '' });
+    }
+  };
+
   return (
     <div className="home-page">
       <section className="hero-section">
@@ -117,12 +132,22 @@ const HomePage: React.FC = () => {
           </p>
 
           <form className="search-form" onSubmit={handleSearchSubmit} role="search">
-            <input
-              type="text"
-              aria-label="Search credit cards by name, bank, or features"
-              placeholder="Search by card name, bank, or features..."
+            <SearchAutocomplete
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={setSearchTerm}
+              onSearch={query => handleFilterChange({ searchTerm: query })}
+              onSelectCard={card => {
+                setSearchTerm(card.name);
+                handleFilterChange({ searchTerm: card.name });
+              }}
+              onSelectBank={bank => {
+                setSearchTerm(bank.name);
+                handleFilterChange({ searchTerm: bank.name });
+              }}
+              onSelectCategory={category => applyCategoryFilter(category.slug)}
+              onSelectFacet={facet => applyCategoryFilter(facet.slug)}
+              placeholder="Search by card name, bank, or features..."
+              ariaLabel="Search credit cards by name, bank, or features"
             />
             <button type="submit">Search</button>
           </form>
