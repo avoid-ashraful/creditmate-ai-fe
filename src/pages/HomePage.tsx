@@ -6,6 +6,7 @@ import CategoryCard from '../components/CategoryCard';
 import ComparisonBar from '../components/ComparisonBar';
 import FilterPanel from '../components/FilterPanel';
 import { CATEGORIES } from '../config/categories';
+import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard, Bank, CardFilterOptions } from '../types';
 import '../styles/HomePage.css';
@@ -50,21 +51,28 @@ const HomePage: React.FC = () => {
   }, []);
 
   const handleCardSelect = (card: CreditCard) => {
+    const isRemoving = selectedCardIds.includes(card.id);
+    const hasCapacity = selectedCardIds.length < 4;
+
     setSelectedCardIds(prev => {
       if (prev.includes(card.id)) {
         return prev.filter(id => id !== card.id);
       } else {
-        // Check if we've reached the maximum number of selections
-        if (prev.length >= 4) {
+        if (!hasCapacity) {
           alert('You can only select up to 4 cards for comparison');
           return prev;
         }
         return [...prev, card.id];
       }
     });
+
+    if (isRemoving || hasCapacity) {
+      analytics.track(ANALYTICS_EVENTS.cardSelect, { cardId: card.id });
+    }
   };
 
   const handleViewCardDetails = (card: CreditCard) => {
+    analytics.track(ANALYTICS_EVENTS.cardDetailView, { cardId: card.id, bank: card.bankName });
     setViewedCard(card);
   };
 
@@ -78,10 +86,24 @@ const HomePage: React.FC = () => {
   };
 
   const handleRemoveFromCompare = (cardId: number) => {
+    analytics.track(ANALYTICS_EVENTS.cardSelect, {
+      cardId,
+      selectedCount: selectedCardIds.length,
+    });
     setSelectedCardIds(prev => prev.filter(id => id !== cardId));
   };
 
   const handleFilterChange = async (filters: CardFilterOptions) => {
+    const filterKeys = Object.keys(filters).filter(
+      key => key !== 'searchTerm' && filters[key as keyof CardFilterOptions] !== undefined
+    );
+
+    analytics.track(ANALYTICS_EVENTS.filterApply, {
+      filterCount: filterKeys.length,
+      filterKeys,
+      resultCount: filteredCards.length,
+    });
+
     try {
       setIsLoading(true);
 
@@ -104,6 +126,9 @@ const HomePage: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    analytics.track(ANALYTICS_EVENTS.search, {
+      searchLength: searchTerm.length,
+    });
     handleFilterChange({ searchTerm });
   };
 

@@ -1,6 +1,7 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 
+import { ANALYTICS_EVENTS, analytics, getAnalyticsContextProperties } from './lib/analytics';
 import AboutPage from './pages/AboutPage';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
@@ -13,9 +14,22 @@ import RewardCalculatorPage from './pages/RewardCalculatorPage';
 import './styles/App.css';
 import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
 
+interface PageViewTrackerProps {
+  pathname: string;
+}
+
+const PageViewTracker: React.FC<PageViewTrackerProps> = ({ pathname }) => {
+  useEffect(() => {
+    analytics.track(ANALYTICS_EVENTS.pageView, getAnalyticsContextProperties());
+  }, [pathname]);
+
+  return null;
+};
+
 const App: React.FC = () => {
   return (
     <Router>
+      <PageViewTrackerWrapper />
       <GradientBackground />
       <div className="app">
         <GradientHeader>
@@ -115,5 +129,13 @@ const App: React.FC = () => {
     </Router>
   );
 };
+
+const PageViewTrackerWrapper: React.FC = () => {
+  const location = useLocation();
+
+  return <PageViewTracker pathname={location.pathname} />;
+};
+
+export { PageViewTrackerWrapper };
 
 export default App;
