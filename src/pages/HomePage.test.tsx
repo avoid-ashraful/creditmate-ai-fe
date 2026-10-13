@@ -176,7 +176,9 @@ test('selects cards and exposes compare navigation', async () => {
   );
   expect(comparisonBarLink).toBeInTheDocument();
   expect(comparisonBarLink).toHaveAttribute('href', '/compare?ids=1,2');
-  await userEvent.click(comparisonBarLink!);
+  if (comparisonBarLink) {
+    await userEvent.click(comparisonBarLink);
+  }
 
   expect(await screen.findByText(/Credit Card Comparison/i)).toBeInTheDocument();
   await screen.findAllByText(/Test Credit Card/i);

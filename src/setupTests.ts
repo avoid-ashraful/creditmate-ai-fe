@@ -16,9 +16,12 @@ import React from 'react';
   const module = importFn();
   if (module && typeof module.then === 'function') {
     // It's a promise, return a component that renders the resolved module
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const TestComponent = (props: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const [Component, setComponent] = React.useState<React.ComponentType<any> | null>(null);
       React.useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         module.then((resolved: { default: React.ComponentType<any> }) => {
           setComponent(() => resolved.default);
         });

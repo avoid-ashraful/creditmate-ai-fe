@@ -162,7 +162,7 @@ const CategoryPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [category]);
+  }, [category, common]);
 
   const loadMoreCards = async (): Promise<void> => {
     if (!category || !hasMorePages || isLoadingMore) return;
