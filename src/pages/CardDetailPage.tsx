@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
+import { ReviewsSection } from '../components/ReviewsSection';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
@@ -503,18 +504,13 @@ const CardDetailPage: React.FC = () => {
       )}
 
       {/* Reviews Section */}
-      <section className="reviews-section">
-        <h2>Customer Reviews</h2>
-        <div className="reviews-placeholder">
-          <p>
-            <strong>Reviews Coming Soon</strong>
-          </p>
-          <p>
-            We&apos;re building our community review system. In the meantime, check back soon to see
-            what other cardholders think about this card!
-          </p>
-        </div>
-      </section>
+      {card && (
+        <ReviewsSection
+          cardId={card.id}
+          cardName={card.name}
+          cardUrl={cardPath || window.location.pathname}
+        />
+      )}
     </div>
   );
 };

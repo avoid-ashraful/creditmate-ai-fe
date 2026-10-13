@@ -347,6 +347,15 @@ describe('AuthClient logout and session restore', () => {
     // onUnhandledRequest is 'error', so any request here would fail the test.
     await expect(createClient().restoreSession()).resolves.toBeNull();
   });
+
+  it('provides a current access token to authenticated feature services', async () => {
+    const client = await loggedInClient();
+    await expect(client.getAccessToken()).resolves.toBe('access-1');
+  });
+
+  it('returns null when no authenticated session exists', async () => {
+    await expect(createClient().getAccessToken()).resolves.toBeNull();
+  });
 });
 
 describe('AuthClient account and password endpoints', () => {

@@ -1,6 +1,7 @@
 import { SITE_NAME } from '../content/guides';
 
 import {
+  aggregateRatingJsonLd,
   breadcrumbJsonLd,
   faqPageJsonLd,
   organizationJsonLd,
@@ -82,5 +83,55 @@ describe('faqPageJsonLd', () => {
 
   test('returns an empty mainEntity for a guide without questions', () => {
     expect(faqPageJsonLd([]).mainEntity).toEqual([]);
+  });
+});
+
+describe('aggregateRatingJsonLd', () => {
+  test('returns AggregateRating with ratingValue, reviewCount, bestRating, worstRating', () => {
+    const data = aggregateRatingJsonLd({ ratingValue: 4.2, reviewCount: 15 });
+
+    expect(data).toEqual({
+      '@context': 'https://schema.org',
+      '@type': 'AggregateRating',
+      ratingValue: 4.2,
+      reviewCount: 15,
+      bestRating: 5,
+      worstRating: 1,
+    });
+  });
+
+  test('rounds ratingValue to one decimal place', () => {
+    const data = aggregateRatingJsonLd({ ratingValue: 4.25, reviewCount: 10 });
+    expect(data?.ratingValue).toBe(4.3);
+  });
+
+  test('allows custom bestRating and worstRating', () => {
+    const data = aggregateRatingJsonLd({
+      ratingValue: 8,
+      reviewCount: 5,
+      bestRating: 10,
+      worstRating: 1,
+    });
+    expect(data).toMatchObject({ bestRating: 10, worstRating: 1 });
+  });
+
+  test('returns null when count is 0', () => {
+    expect(aggregateRatingJsonLd({ ratingValue: 4.5, reviewCount: 0 })).toBeNull();
+  });
+
+  test('returns null when ratingValue is null', () => {
+    expect(
+      aggregateRatingJsonLd({ ratingValue: null as unknown as number, reviewCount: 10 })
+    ).toBeNull();
+  });
+
+  test('returns null when ratingValue is undefined', () => {
+    expect(
+      aggregateRatingJsonLd({ ratingValue: undefined as unknown as number, reviewCount: 10 })
+    ).toBeNull();
+  });
+
+  test('returns null when data is null', () => {
+    expect(aggregateRatingJsonLd(null)).toBeNull();
   });
 });

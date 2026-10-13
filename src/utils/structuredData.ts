@@ -18,6 +18,17 @@ export interface FaqItem {
   answer: string;
 }
 
+/**
+ * AggregateRating for JSON-LD structured data.
+ * Only output when review count > 0.
+ */
+export interface AggregateRatingData {
+  ratingValue: number;
+  reviewCount: number;
+  bestRating?: number;
+  worstRating?: number;
+}
+
 const CONTEXT = 'https://schema.org';
 
 export const organizationJsonLd = (origin: string) => ({
@@ -58,6 +69,31 @@ export const breadcrumbJsonLd = (origin: string, crumbs: BreadcrumbCrumb[]) => (
     item: `${origin}${crumb.path}`,
   })),
 });
+
+/**
+ * AggregateRating JSON-LD for reviews.
+ * Returns null when count is 0 or ratingValue is null/undefined.
+ */
+export const aggregateRatingJsonLd = (
+  data: AggregateRatingData | null
+): Record<string, unknown> | null => {
+  if (
+    !data ||
+    data.reviewCount === 0 ||
+    data.ratingValue === null ||
+    data.ratingValue === undefined
+  ) {
+    return null;
+  }
+  return {
+    '@context': CONTEXT,
+    '@type': 'AggregateRating',
+    ratingValue: Number(data.ratingValue.toFixed(1)),
+    reviewCount: data.reviewCount,
+    bestRating: data.bestRating ?? 5,
+    worstRating: data.worstRating ?? 1,
+  };
+};
 
 /**
  * FAQPage markup. Only use it for questions and answers that are also visible
