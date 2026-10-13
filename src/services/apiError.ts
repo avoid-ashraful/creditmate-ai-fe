@@ -62,13 +62,19 @@ export async function responseApiError(response: Response): Promise<ApiError> {
       ? Math.max(0, seconds)
       : Math.max(0, (Date.parse(retryHeader) - Date.now()) / 1000);
   }
-  return new ApiError({
+  const error = new ApiError({
     status: response.status,
     code: typeof body.code === 'string' ? body.code : null,
     detail: typeof body.detail === 'string' ? body.detail : null,
     fieldErrors,
     retryAfter,
   });
+  if (error.status === 429 || error.status >= 500) {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('api-http-failure', { detail: error }));
+    }
+  }
+  return error;
 }
 
 export function noteNetworkFailure(): void {
