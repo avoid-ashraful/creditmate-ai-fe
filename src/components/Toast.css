@@ -1,0 +1,4 @@
+/* Inner animated text of a status message. The outer element keeps its page layout. */
+.toast-message {
+  display: block;
+}

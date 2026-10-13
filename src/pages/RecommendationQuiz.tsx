@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import CardListItem from '../components/CardListItem';
 import ComparisonBar from '../components/ComparisonBar';
+import Toast from '../components/Toast';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import { rankCards, encodeQuizResult, decodeQuizResult } from '../utils/quizScoringAlgorithm';
@@ -440,9 +441,7 @@ const RecommendationQuiz: React.FC = () => {
               >
                 📤 Share Results
               </button>
-              <p className="share-message" role="status" aria-live="polite">
-                {shareMessage}
-              </p>
+              <Toast className="share-message" message={shareMessage} />
               <button
                 onClick={handleSeeAllCards}
                 className="action-btn see-all-btn"

@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
 import React, { useState } from 'react';
 
-import { staggerContainer, GradientButton } from '../styles/StyledComponents';
+import { staggerContainer, usePrefersReducedMotion } from '../animations';
+import { GradientButton } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
 
 import CardListItem from './CardListItem';
+import Toast from './Toast';
 
 interface CardListProps {
   cards: CreditCard[];
@@ -25,13 +27,14 @@ const CardList: React.FC<CardListProps> = ({
 }) => {
   const [displayLimit, setDisplayLimit] = useState<number>(10);
   const [selectionMessage, setSelectionMessage] = useState<string>('');
+  const reduceMotion = usePrefersReducedMotion();
 
   if (!cards || cards.length === 0) {
     return (
       <motion.div
         className="no-results"
         role="status"
-        initial={{ opacity: 0 }}
+        initial={{ opacity: reduceMotion ? 1 : 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
@@ -79,14 +82,12 @@ const CardList: React.FC<CardListProps> = ({
         )}
       </div>
 
-      <p className="selection-message" role="status" aria-live="polite">
-        {selectionMessage}
-      </p>
+      <Toast className="selection-message" message={selectionMessage} />
 
       <motion.div
         className="cards-container"
         variants={staggerContainer}
-        initial="hidden"
+        initial={reduceMotion ? false : 'hidden'}
         animate="visible"
       >
         {displayedCards.map(card => (
@@ -104,14 +105,14 @@ const CardList: React.FC<CardListProps> = ({
       {displayLimit < cards.length && (
         <motion.div
           className="load-more"
-          initial={{ opacity: 0, y: 20 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
           <GradientButton
             onClick={loadMore}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={reduceMotion ? undefined : { scale: 1.05 }}
+            whileTap={reduceMotion ? undefined : { scale: 0.95 }}
           >
             Load More ({cards.length - displayLimit} remaining)
           </GradientButton>

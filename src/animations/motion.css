@@ -1,0 +1,37 @@
+/*
+ * Shared motion for CSS-driven effects. Durations and easings use the
+ * --transition-* tokens. Keyframes are kept here so every infinite animation
+ * is covered by the reduced-motion block below.
+ */
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/*
+ * Reduced motion (WCAG 2.3.3). Animations and transitions are cut to a
+ * near-instant change and loop once, so state still settles but nothing
+ * moves or repeats. The !important flags are needed because styled-components
+ * rules are more specific than a bare `*` selector.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Card hover lift is a transform, which the duration override does not stop. */
+  .card-list-item:hover,
+  .card-list-item:focus-within {
+    transform: none !important;
+  }
+}

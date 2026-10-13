@@ -1,6 +1,8 @@
+import { motion } from 'framer-motion';
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 
+import { MotionProvider, pageVariants, usePrefersReducedMotion } from './animations';
 import { ThemeToggle } from './components/ThemeToggle';
 import { ThemeProvider } from './hooks/ThemeProvider';
 import { LanguageProvider, useLanguage } from './locales';
@@ -37,21 +39,35 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/about', en: 'About', bn: 'আমাদের সম্পর্কে' },
 ];
 
-/** Render the page routes. Exported so routing can be tested with MemoryRouter. */
+/**
+ * Render the page routes. Exported so routing can be tested with MemoryRouter.
+ * Keyed on the pathname so each navigation replays the page fade-and-slide.
+ */
 export const AppRoutes: React.FC = () => {
+  const location = useLocation();
+  const reduceMotion = usePrefersReducedMotion();
+
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
-      <Route path="/category/:slug" element={<CategoryPage />} />
-      <Route path="/compare" element={<ComparisonPage />} />
-      <Route path="/perfect-card-finder" element={<RecommendationQuiz />} />
-      <Route path="/reward-calculator" element={<RewardCalculatorPage />} />
-      <Route path="/guides" element={<GuidesPage />} />
-      <Route path="/guides/:slug" element={<GuidesPage />} />
-      <Route path="/glossary" element={<GlossaryPage />} />
-      <Route path="/about" element={<AboutPage />} />
-    </Routes>
+    <motion.div
+      key={location.pathname}
+      className="page-transition"
+      variants={pageVariants}
+      initial={reduceMotion ? false : 'hidden'}
+      animate="visible"
+    >
+      <Routes location={location}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
+        <Route path="/category/:slug" element={<CategoryPage />} />
+        <Route path="/compare" element={<ComparisonPage />} />
+        <Route path="/perfect-card-finder" element={<RecommendationQuiz />} />
+        <Route path="/reward-calculator" element={<RewardCalculatorPage />} />
+        <Route path="/guides" element={<GuidesPage />} />
+        <Route path="/guides/:slug" element={<GuidesPage />} />
+        <Route path="/glossary" element={<GlossaryPage />} />
+        <Route path="/about" element={<AboutPage />} />
+      </Routes>
+    </motion.div>
   );
 };
 
@@ -167,7 +183,9 @@ const App: React.FC = () => {
 export default function RootApp({ children }: { children?: React.ReactNode }) {
   return (
     <ThemeProvider>
-      <LanguageProvider>{children ?? <App />}</LanguageProvider>
+      <MotionProvider>
+        <LanguageProvider>{children ?? <App />}</LanguageProvider>
+      </MotionProvider>
     </ThemeProvider>
   );
 }
