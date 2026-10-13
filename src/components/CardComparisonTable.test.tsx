@@ -42,10 +42,12 @@ describe('CardComparisonTable', () => {
   it('keeps the accessible horizontal comparison table for tablet and desktop layouts', () => {
     render(<CardComparisonTable cards={[createCard(1), createCard(2)]} />);
 
+    expect(screen.getByRole('region', { name: 'Comparison insight' })).toBeInTheDocument();
     const region = screen.getByRole('region', { name: 'Compare card features' });
     expect(within(region).getByRole('table')).toBeInTheDocument();
     expect(within(region).getAllByRole('columnheader')).toHaveLength(3);
     expect(within(region).getByRole('rowheader', { name: 'Annual Fee' })).toBeInTheDocument();
+    expect(within(region).getAllByRole('cell').length).toBeGreaterThan(2);
   });
 
   it('renders five cards without dropping columns or mobile cards', () => {

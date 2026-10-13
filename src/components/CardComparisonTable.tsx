@@ -2,6 +2,7 @@ import React from 'react';
 
 import { dummyBanks } from '../dummy-data/credit-cards';
 import { CreditCard } from '../types';
+import { getComparisonSummary } from '../utils/narratives';
 
 interface CardComparisonTableProps {
   cards: CreditCard[];
@@ -133,9 +134,16 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
   };
 
   const groups = Array.from(new Set(features.map(feature => feature.group)));
+  const comparisonSummary = cards.length > 1 ? getComparisonSummary(cards) : null;
 
   return (
     <div className="comparison-table-container">
+      {comparisonSummary && (
+        <section className="comparison-insight" aria-label="Comparison insight">
+          <h2>Comparison insight</h2>
+          <p>{comparisonSummary}</p>
+        </section>
+      )}
       <div className="comparison-mobile-cards" aria-label="Card comparison details">
         {cards.map(card => (
           <article className="comparison-mobile-card" key={card.id}>

@@ -133,6 +133,7 @@ describe('CardDetailPage', () => {
     });
 
     expect(screen.getAllByText('Eastern Bank Limited').length).toBeGreaterThan(0);
+    expect(await screen.findByRole('region', { name: 'Card insight' })).toBeInTheDocument();
     expect(screen.getAllByText(/BDT 5,000/).length).toBeGreaterThan(0);
     expect(screen.getAllByText('24.5% APR').length).toBeGreaterThan(0);
     const structuredData = screen.getByTestId('card-json-ld');
