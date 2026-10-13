@@ -46,6 +46,8 @@
     "prepare": "husky install",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "storybook:build": "storybook build --output-dir storybook-static",
+    "chromatic": "chromatic --config chromatic.config.json",
     "check:all": "npm run check-types && npm run check-lint && npm run check-format && npm test -- --watchAll=false --passWithNoTests && npm run build && npm run bundle:budget"
   },
   "lint-staged": {
@@ -92,6 +94,7 @@
     "lint-staged": "^15.2.0",
     "msw": "^1.3.5",
     "prettier": "^2.8.8",
+    "chromatic": "^11.25.2",
     "storybook": "^8.6.19",
     "style-dictionary": "^4.4.0",
     "ts-loader": "^9.6.2"
