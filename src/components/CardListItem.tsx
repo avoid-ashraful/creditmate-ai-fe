@@ -1,7 +1,8 @@
 import React from 'react';
 
+import { cardHover, cardTap, fadeInUp, usePrefersReducedMotion } from '../animations';
 import { dummyBanks } from '../dummy-data/credit-cards';
-import { AnimatedCard, GradientButton, fadeInUp } from '../styles/StyledComponents';
+import { AnimatedCard, GradientButton } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
 import { slugify } from '../utils/slugify';
 
@@ -20,6 +21,8 @@ const CardListItem: React.FC<CardListItemProps> = ({
   selectable = false,
   onViewDetails,
 }) => {
+  const reduceMotion = usePrefersReducedMotion();
+
   const getBankName = (bankId: number | undefined): string => {
     if (card.bankName) return card.bankName;
     if (bankId !== undefined) {
@@ -59,9 +62,10 @@ const CardListItem: React.FC<CardListItemProps> = ({
       className={`card-list-item ${isSelected ? 'selected' : ''}`}
       onClick={handleClick}
       variants={fadeInUp}
-      initial="hidden"
+      initial={reduceMotion ? false : 'hidden'}
       animate="visible"
-      whileHover={{ y: -5 }}
+      whileHover={reduceMotion ? undefined : cardHover}
+      whileTap={reduceMotion ? undefined : cardTap}
     >
       {card.images && card.images.length > 0 && (
         <div className="card-image">

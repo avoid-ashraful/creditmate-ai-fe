@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 
 import CardComparisonTable from '../components/CardComparisonTable';
+import Toast from '../components/Toast';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
@@ -108,9 +109,7 @@ const ComparisonPage: React.FC = () => {
             )}
           </div>
         </div>
-        <p className="share-status" role="status" aria-live="polite">
-          {shareMessage}
-        </p>
+        <Toast className="share-status" message={shareMessage} />
       </div>
 
       <div className="comparison-content">

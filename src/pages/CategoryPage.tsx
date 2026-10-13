@@ -1,9 +1,12 @@
+import { AnimatePresence } from 'framer-motion';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import CardDetailsPopup from '../components/CardDetailsPopup';
 import CardList from '../components/CardList';
 import ComparisonBar from '../components/ComparisonBar';
+import { SkeletonCardGrid } from '../components/Skeleton';
+import Toast from '../components/Toast';
 import { getCategoryBySlug } from '../config/categories';
 import { apiService, CreditCardApiResponse } from '../services/api';
 import { CreditCard } from '../types';
@@ -258,9 +261,7 @@ const CategoryPage: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="loading-state" role="status" aria-live="polite">
-          Loading {category.name} credit cards...
-        </div>
+        <SkeletonCardGrid label={`Loading ${category.name} credit cards...`} />
       ) : error ? (
         <div className="error-state" role="alert">
           {error}
@@ -275,14 +276,17 @@ const CategoryPage: React.FC = () => {
             onViewCardDetails={setViewedCard}
           />
 
-          {viewedCard && (
-            <CardDetailsPopup
-              card={viewedCard}
-              onClose={() => setViewedCard(null)}
-              onAddToCompare={handleCardSelect}
-              isInCompareList={selectedCardIds.includes(viewedCard.id)}
-            />
-          )}
+          <AnimatePresence>
+            {viewedCard && (
+              <CardDetailsPopup
+                key={viewedCard.id}
+                card={viewedCard}
+                onClose={() => setViewedCard(null)}
+                onAddToCompare={handleCardSelect}
+                isInCompareList={selectedCardIds.includes(viewedCard.id)}
+              />
+            )}
+          </AnimatePresence>
 
           {hasMorePages && (
             <div className="load-more-container">
@@ -303,9 +307,7 @@ const CategoryPage: React.FC = () => {
             maxSelections={4}
           />
 
-          <p className="selection-message" role="status" aria-live="polite">
-            {selectionMessage}
-          </p>
+          <Toast className="selection-message" message={selectionMessage} />
         </>
       )}
     </div>

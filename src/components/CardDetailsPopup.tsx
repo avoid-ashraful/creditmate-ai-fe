@@ -1,5 +1,7 @@
+import { motion } from 'framer-motion';
 import React, { useEffect, useRef, useState } from 'react';
 
+import { backdropVariants, modalPanelVariants, usePrefersReducedMotion } from '../animations';
 import { dummyBanks } from '../dummy-data/credit-cards';
 import { CreditCard } from '../types';
 import { trapTabKey } from '../utils/focus';
@@ -20,6 +22,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
   isInCompareList,
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const reduceMotion = usePrefersReducedMotion();
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -86,8 +89,16 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
   const detailUrl = card.bankName ? `/card/${slugify(card.bankName)}/${slugify(card.name)}` : null;
 
   return (
-    <div className="popup-overlay" onClick={onClose} data-testid="popup-overlay">
-      <div
+    <motion.div
+      className="popup-overlay"
+      onClick={onClose}
+      data-testid="popup-overlay"
+      variants={backdropVariants}
+      initial={reduceMotion ? false : 'hidden'}
+      animate="visible"
+      exit="exit"
+    >
+      <motion.div
         className="card-details-popup"
         onClick={handlePopupClick}
         role="dialog"
@@ -95,6 +106,10 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
         aria-labelledby="card-details-title"
         ref={dialogRef}
         onKeyDown={handleKeyDown}
+        variants={modalPanelVariants}
+        initial={reduceMotion ? false : 'hidden'}
+        animate="visible"
+        exit="exit"
       >
         <button
           className="close-button"
@@ -248,8 +263,8 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
             {isInCompareList ? 'Remove from Compare' : 'Add to Compare'}
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

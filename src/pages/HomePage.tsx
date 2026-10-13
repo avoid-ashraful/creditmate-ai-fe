@@ -1,3 +1,4 @@
+import { AnimatePresence } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
 
 import CardDetailsPopup from '../components/CardDetailsPopup';
@@ -6,6 +7,8 @@ import CategoryCard from '../components/CategoryCard';
 import ComparisonBar from '../components/ComparisonBar';
 import FilterPanel from '../components/FilterPanel';
 import SearchAutocomplete from '../components/SearchAutocomplete';
+import { SkeletonCardGrid } from '../components/Skeleton';
+import Toast from '../components/Toast';
 import { CATEGORIES } from '../config/categories';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
@@ -215,9 +218,7 @@ const HomePage: React.FC = () => {
 
         <div className="cards-content">
           {isLoading ? (
-            <div className="loading-state" role="status" aria-live="polite">
-              Loading credit cards...
-            </div>
+            <SkeletonCardGrid label="Loading credit cards..." />
           ) : (
             <>
               <CardList
@@ -229,14 +230,17 @@ const HomePage: React.FC = () => {
               />
 
               {/* Card Details Popup */}
-              {viewedCard && (
-                <CardDetailsPopup
-                  card={viewedCard}
-                  onClose={handleCloseCardDetails}
-                  onAddToCompare={handleAddToCompare}
-                  isInCompareList={selectedCardIds.includes(viewedCard.id)}
-                />
-              )}
+              <AnimatePresence>
+                {viewedCard && (
+                  <CardDetailsPopup
+                    key={viewedCard.id}
+                    card={viewedCard}
+                    onClose={handleCloseCardDetails}
+                    onAddToCompare={handleAddToCompare}
+                    isInCompareList={selectedCardIds.includes(viewedCard.id)}
+                  />
+                )}
+              </AnimatePresence>
 
               {/* Comparison Bar */}
               <ComparisonBar
@@ -245,9 +249,7 @@ const HomePage: React.FC = () => {
                 maxSelections={4}
               />
 
-              <p className="selection-message" role="status" aria-live="polite">
-                {selectionMessage}
-              </p>
+              <Toast className="selection-message" message={selectionMessage} />
             </>
           )}
         </div>

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { usePrefersReducedMotion } from '../animations';
 import { GradientComparisonBar } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
 
@@ -19,6 +20,7 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
   maxSelections,
 }) => {
   const [compareMessage, setCompareMessage] = useState('');
+  const reduceMotion = usePrefersReducedMotion();
 
   if (selectedCards.length === 0) {
     return null;
@@ -28,7 +30,7 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
     <GradientComparisonBar>
       <motion.div
         className="comparison-bar-content"
-        initial={{ y: 50, opacity: 0 }}
+        initial={reduceMotion ? false : { y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
@@ -43,9 +45,9 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
                 <motion.div
                   key={card.id}
                   className="card-chip"
-                  initial={{ opacity: 0, scale: 0.8 }}
+                  initial={reduceMotion ? false : { opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
+                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.8 }}
                   transition={{ duration: 0.2 }}
                   layout
                 >
@@ -56,8 +58,8 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
                     onClick={() => onRemoveCard(card.id)}
                     title="Remove from comparison"
                     aria-label={`Remove ${card.name} from comparison`}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
+                    whileHover={reduceMotion ? undefined : { scale: 1.2 }}
+                    whileTap={reduceMotion ? undefined : { scale: 0.9 }}
                   >
                     ×
                   </motion.button>
@@ -68,9 +70,9 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
                 <motion.div
                   key={`empty-${index}`}
                   className="card-chip empty"
-                  initial={{ opacity: 0 }}
+                  initial={reduceMotion ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: reduceMotion ? 0 : index * 0.1 }}
                   layout
                 >
                   <span>Add a card</span>
@@ -81,7 +83,9 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
         </div>
 
         <div className="comparison-actions">
-          <motion.div whileHover={{ scale: selectedCards.length >= 2 ? 1.05 : 1 }}>
+          <motion.div
+            whileHover={reduceMotion ? undefined : { scale: selectedCards.length >= 2 ? 1.05 : 1 }}
+          >
             <Link
               to={`/compare?ids=${selectedCards.map(card => card.id).join(',')}`}
               className={`compare-button ${selectedCards.length < 2 ? 'disabled' : ''}`}
