@@ -1,5 +1,3 @@
-import { ENV } from '../config/env';
-
 import { authClient, ApiError } from './auth';
 
 export interface SavedComparison {
@@ -36,7 +34,9 @@ export interface SharedSavedItem {
   cards?: Array<SavedCollectionCard | { id: number; name: string; bank_name?: string }>;
 }
 
-const base = `${ENV.API_BASE_URL.replace(/\/$/, '')}/saved/`;
+// AuthClient.requestApi prefixes its configured API base URL, so keep paths
+// relative here (a full URL would be appended to /api/v1 a second time).
+const base = 'saved/';
 const list = <T>(data: T[] | { results: T[] }): T[] => (Array.isArray(data) ? data : data.results);
 const request = <T>(
   path: string,

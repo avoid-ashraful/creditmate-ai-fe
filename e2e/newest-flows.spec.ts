@@ -107,31 +107,40 @@ test('add and remove a card from a collection', async ({ page }) => {
     is_public: false,
     cards: collectionCards,
   });
-  await page.route(/e2e\.invalid\/api\/v1\/saved\/collections\/9\//, async route => {
-    const url = new URL(route.request().url());
-    const request = route.request();
-    if (url.pathname === '/api/v1/saved/collections/9/cards/' && request.method() === 'POST') {
-      const cardId = request.postDataJSON().card_id;
-      const card = savedCards.find(savedCard => savedCard.id === cardId);
-      if (!card) throw new Error(`Unexpected mocked collection card id: ${cardId}`);
-      collectionCards = [
-        {
-          card,
-          notes: '',
-          created: '2025-01-01T00:00:00Z',
-        },
-      ];
-      await route.fulfill({ status: 201, json: collection() });
-    } else if (url.pathname === '/api/v1/saved/collections/9/cards/1/') {
-      collectionCards = [];
-      await route.fulfill({ status: 204, body: '' });
-    } else {
-      await route.fulfill({ json: collection() });
+  await page.route(
+    url =>
+      url.origin === 'http://e2e.invalid' &&
+      url.pathname.startsWith('/api/v1/saved/collections/9/'),
+    async route => {
+      const url = new URL(route.request().url());
+      const request = route.request();
+      if (url.pathname === '/api/v1/saved/collections/9/cards/' && request.method() === 'POST') {
+        expect(request.postDataJSON()).toEqual({ card_id: 1 });
+        const cardId = request.postDataJSON().card_id;
+        const card = savedCards.find(savedCard => savedCard.id === cardId);
+        if (!card) throw new Error(`Unexpected mocked collection card id: ${cardId}`);
+        collectionCards = [
+          {
+            card,
+            notes: '',
+            created: '2025-01-01T00:00:00Z',
+          },
+        ];
+        await route.fulfill({ status: 201, json: collection() });
+      } else if (
+        url.pathname === '/api/v1/saved/collections/9/cards/1/' &&
+        request.method() === 'DELETE'
+      ) {
+        collectionCards = [];
+        await route.fulfill({ status: 204, body: '' });
+      } else {
+        await route.fulfill({ json: collection() });
+      }
     }
-  });
+  );
   await page.goto('/saved/collections/9');
   await page.getByLabel(/add card/i).fill('1');
-  await page.getByRole('button', { name: /create/i }).click();
+  await page.getByRole('button', { name: 'Create' }).click();
   await expect(page.getByText('Synthetic Visa Classic')).toBeVisible();
   await page.getByRole('button', { name: /remove/i }).click();
   await expect(page.getByText('Nothing saved yet.')).toBeVisible();
@@ -144,18 +153,41 @@ test('watch a card, manage alert frequency, and unsubscribe through the public t
   await mockLogin(page);
   let subscriptions: Array<Record<string, unknown>> = [];
   let frequency = 'weekly';
-  await page.route(`${API_HOST}/alerts/subscriptions/`, async route => {
-    if (route.request().method() === 'POST') {
-      subscriptions = [{ id: 6, card: 1, kind: 'any_change', created: '2025-01-01T00:00:00Z' }];
-      await route.fulfill({ status: 201, json: subscriptions[0] });
-    } else {
-      await route.fulfill({ json: { count: subscriptions.length, results: subscriptions } });
+  await page.route(
+    url => url.origin === 'http://e2e.invalid' && url.pathname === '/api/v1/alerts/subscriptions/',
+    async route => {
+      if (route.request().method() === 'POST') {
+        expect(route.request().postDataJSON()).toEqual({ card: 1, kind: 'any_change' });
+        subscriptions = [{ id: 6, card: 1, kind: 'any_change', created: '2025-01-01T00:00:00Z' }];
+        await route.fulfill({ status: 201, json: subscriptions[0] });
+      } else {
+        await route.fulfill({ json: { count: subscriptions.length, results: subscriptions } });
+      }
     }
-  });
-  await page.route(`${API_HOST}/alerts/subscriptions/6/`, async route => {
-    subscriptions = [];
-    await route.fulfill({ status: 204, body: '' });
-  });
+  );
+  await page.route(`${API_HOST}/reviews/summary/**`, route =>
+    route.fulfill({
+      json: { average: 0, count: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
+    })
+  );
+  await page.route(
+    url => url.origin === 'http://e2e.invalid' && url.pathname === '/api/v1/reviews/',
+    route =>
+      route.fulfill({
+        json: { count: 0, next: null, previous: null, results: [] },
+      })
+  );
+  await page.route(
+    url =>
+      url.origin === 'http://e2e.invalid' &&
+      url.pathname === '/api/v1/alerts/subscriptions/6/' &&
+      url.search === '',
+    async route => {
+      expect(route.request().method()).toBe('DELETE');
+      subscriptions = [];
+      await route.fulfill({ status: 204, body: '' });
+    }
+  );
   await page.route(`${API_HOST}/alerts/preferences/`, async route => {
     if (route.request().method() === 'PATCH') frequency = route.request().postDataJSON().frequency;
     await route.fulfill({ json: { frequency, email_enabled: true } });
@@ -166,10 +198,14 @@ test('watch a card, manage alert frequency, and unsubscribe through the public t
   });
 
   await page.goto('/card/synthetic-bank-1/synthetic-visa-classic');
-  const watchButton = page.getByRole('button', { name: /watch this card/i });
+  await expect(page.getByRole('heading', { name: 'Synthetic Visa Classic' })).toBeVisible();
+  // The accessible label changes to "Watching this card" after the optimistic
+  // state update, so keep the locator anchored to the stable control class.
+  const watchButton = page.locator('button.watch-toggle');
+  await expect(watchButton).toBeVisible();
   await expect(watchButton).toHaveAttribute('aria-pressed', 'false');
-  await watchButton.click({ force: true });
-  await expect(page.getByRole('button', { name: /watching this card/i })).toBeVisible();
+  await watchButton.click();
+  await expect(watchButton).toHaveAttribute('aria-pressed', 'true');
   await page.goto('/alerts');
   await expect(page.getByRole('heading', { name: /alert/i })).toBeVisible();
   await page.getByLabel(/frequency/i).selectOption('daily');
@@ -299,14 +335,67 @@ test('anonymous review actions prompt login', async ({ page }) => {
   await expect(page.getByRole('status')).toContainText(/log in to vote/i);
 });
 
-test('initialize home search from URL and expose card filters', async ({ page }) => {
+test('advanced search filters, sorting, and URL state', async ({ page }) => {
   await mockApi(page);
-  await page.goto('/?search=Synthetic%20Visa');
-  await expect(page.getByRole('heading', { name: 'Find Your Perfect Credit Card' })).toBeVisible();
-  await expect(page.getByText('Synthetic Visa Classic')).toBeVisible();
-  await expect(page.getByRole('combobox', { name: /search credit cards/i })).toHaveValue(
-    'Synthetic Visa'
+  const requested: URL[] = [];
+  await page.route(
+    url =>
+      url.origin === 'http://e2e.invalid' &&
+      url.pathname.startsWith('/api/v1/credit-cards/advanced-search/'),
+    async route => {
+      const url = new URL(route.request().url());
+      if (url.pathname.endsWith('/sort-options/')) {
+        await route.fulfill({
+          json: {
+            sort_options: [
+              { key: 'relevance', label: 'Relevance', description: 'Best match' },
+              { key: 'annual_fee', label: 'Annual Fee (Low to High)', description: 'Ascending' },
+            ],
+          },
+        });
+      } else if (url.pathname.endsWith('/categories/')) {
+        await route.fulfill({ json: { categories: [{ slug: 'travel', name: 'Travel' }] } });
+      } else {
+        requested.push(url);
+        const feeMin = Number(url.searchParams.get('annual_fee_min') || 0);
+        const feeMax = Number(url.searchParams.get('annual_fee_max') || Infinity);
+        const results = cards.filter(
+          card => Number(card.annual_fee) >= feeMin && Number(card.annual_fee) <= feeMax
+        );
+        await route.fulfill({
+          json: {
+            query: '',
+            total: results.length,
+            page: 1,
+            page_size: 20,
+            results,
+            facets: {},
+            took: 1,
+            source: 'database',
+            sort_options: [],
+            categories: [],
+            normalized_query: {},
+          },
+        });
+      }
+    }
   );
-  await page.getByRole('button', { name: /expand/i }).click();
-  await expect(page.getByRole('heading', { name: 'Filter Options' })).toBeVisible();
+  await page.goto('/search?search=Synthetic');
+  await expect(page.getByRole('heading', { name: 'Advanced Search' })).toBeVisible();
+  await expect(page.getByText('Synthetic Visa Classic')).toBeVisible();
+  await page.getByLabel('Min', { exact: true }).first().fill('1');
+  await page.getByLabel('Max', { exact: true }).first().fill('1000');
+  await expect(page).toHaveURL(/annual_fee_min=1/);
+  await expect(page).toHaveURL(/annual_fee_max=1000/);
+  await page.getByLabel('Sort results by').selectOption('annual_fee');
+  await expect(page).toHaveURL(/ordering=annual_fee/);
+  await expect
+    .poll(() =>
+      requested.some(
+        url =>
+          url.searchParams.get('ordering') === 'annual_fee' &&
+          url.searchParams.get('annual_fee_min') === '1'
+      )
+    )
+    .toBeTruthy();
 });
