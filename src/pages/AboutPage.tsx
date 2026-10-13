@@ -1,8 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+
 import '../styles/AboutPage.css';
+import { useSeoMeta } from '../hooks/useSeoMeta';
 
 const AboutPage: React.FC = () => {
+  useSeoMeta({
+    title: 'About | CreditMate AI',
+    description:
+      'CreditMate AI simplifies credit card decisions in Bangladesh with clear, unbiased and easily comparable card information.',
+    canonicalPath: '/about',
+  });
+
   return (
     <div className="about-page">
       <div className="about-header">

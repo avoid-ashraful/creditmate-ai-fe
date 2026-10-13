@@ -3,7 +3,7 @@ import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import App from '../App';
-import { guides } from '../content/guides';
+import { getGuide, guides } from '../content/guides';
 import { server } from '../mocks/jest.setup';
 
 import GuidesPage from './GuidesPage';
@@ -233,6 +233,34 @@ describe('GuidesPage detail', () => {
     expect(within(table).getByText(/up to 25 percent on what you owe/i)).toBeInTheDocument();
   });
 
+  test('shows each FAQ on the page and in matching FAQPage markup', () => {
+    renderGuides('/guides/understanding-annual-fee-waivers');
+
+    const guide = getGuide('understanding-annual-fee-waivers');
+    expect(guide).toBeDefined();
+    guide?.faqs.forEach(faq => {
+      expect(screen.getByRole('heading', { level: 3, name: faq.question })).toBeInTheDocument();
+      expect(screen.getByText(faq.answer)).toBeInTheDocument();
+    });
+
+    const faqData = readJsonLd('guides-faq-data');
+    expect(faqData?.['@type']).toBe('FAQPage');
+    expect(faqData?.mainEntity).toEqual(
+      guide?.faqs.map(faq => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+      }))
+    );
+  });
+
+  test('links each guide to the categories it relates to', () => {
+    renderGuides('/guides/maximizing-lounge-access-benefits');
+
+    const categoryLink = screen.getByRole('link', { name: 'Travel' });
+    expect(categoryLink).toHaveAttribute('href', '/category/travel');
+  });
+
   test('shows a friendly not-found state for an unknown slug', () => {
     renderGuides('/guides/does-not-exist');
 
@@ -283,8 +311,8 @@ describe('App route integration', () => {
     expect(readMeta('meta[name="description"]')).not.toBe('Home page description');
     expect(readJsonLd('guides-structured-data')?.['@type']).toBe('Article');
 
-    // ...but HomePage has no metadata of its own, so leaving the guide must
-    // roll back everything the guides page wrote.
+    // HomePage now writes its own metadata, so leaving the guide must remove
+    // everything the guides page wrote and replace it with Home's values.
     fireEvent.click(screen.getAllByRole('link', { name: 'Home' })[0]);
     expect(
       await screen.findByRole('heading', { level: 1, name: /find your perfect credit card/i })
@@ -292,17 +320,18 @@ describe('App route integration', () => {
     // Let HomePage's mocked API fetch settle inside act.
     expect(await screen.findByText(/Test Credit Card/i)).toBeInTheDocument();
 
-    expect(document.title).toBe('CreditMate AI');
-    // Pre-existing tags are restored to their prior values.
-    expect(readMeta('meta[name="description"]')).toBe('Home page description');
+    expect(document.title).toBe('Compare credit cards in Bangladesh | CreditMate AI');
+    expect(readMeta('meta[name="description"]')).toMatch(/^Compare credit cards in Bangladesh/);
     expect(headQuery('link[rel="canonical"]')?.getAttribute('href')).toBe('http://localhost/');
     // Tags the guides page created are removed.
     expect(headQuery('script#guides-structured-data')).toBeNull();
     expect(headQuery('script#guides-breadcrumb-data')).toBeNull();
-    expect(headQuery('meta[property="og:type"]')).toBeNull();
-    expect(headQuery('meta[property="og:url"]')).toBeNull();
+    expect(headQuery('script#guides-faq-data')).toBeNull();
+    expect(readMeta('meta[property="og:type"]')).toBe('website');
+    expect(readMeta('meta[property="og:url"]')).toBe('http://localhost/');
     expect(readMeta('meta[name="robots"]')).toBeNull();
-    expect(readMeta('meta[name="twitter:card"]')).toBeNull();
+    // The JSON-LD now comes from HomePage, not from the guide.
+    expect(headQuery('script[data-seo-json-ld]')?.textContent).toContain('"WebSite"');
   });
 });
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
@@ -33,6 +34,13 @@ const EMPTY_ALLOCATION: CategoryAllocation = {
 const formatBdt = (value: number): string => `BDT ${Math.round(value).toLocaleString()}`;
 
 const RewardCalculatorPage: React.FC = () => {
+  useSeoMeta({
+    title: 'Annual fee vs rewards calculator | CreditMate AI',
+    description:
+      'Enter your monthly spend by category to see which credit cards in our data give the best net annual value after their annual fee.',
+    canonicalPath: '/reward-calculator',
+  });
+
   const navigate = useNavigate();
 
   const [cards, setCards] = useState<CreditCard[]>([]);

@@ -1,5 +1,6 @@
 import { AnimatePresence } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import CardDetailsPopup from '../components/CardDetailsPopup';
 import CardList from '../components/CardList';
@@ -10,29 +11,46 @@ import SearchAutocomplete from '../components/SearchAutocomplete';
 import { SkeletonCardGrid } from '../components/Skeleton';
 import Toast from '../components/Toast';
 import { CATEGORIES } from '../config/categories';
+import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { apiService } from '../services/api';
 import { CreditCard, Bank, CardFilterOptions } from '../types';
+import { organizationJsonLd, websiteJsonLd } from '../utils/structuredData';
 import '../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  // `?search=` comes from the WebSite SearchAction in structured data. It is read
+  // once on mount so the initial load and the search box agree.
+  const [initialSearch] = useState<string>(() => searchParams.get('search')?.trim() ?? '');
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [banks, setBanks] = useState<Bank[]>([]);
   const [filteredCards, setFilteredCards] = useState<CreditCard[]>([]);
   const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>(initialSearch);
   const [viewedCard, setViewedCard] = useState<CreditCard | null>(null);
   const [selectionMessage, setSelectionMessage] = useState<string>('');
+
+  useSeoMeta({
+    title: 'Compare credit cards in Bangladesh | CreditMate AI',
+    description:
+      'Compare credit cards in Bangladesh by annual fee, interest rate, lounge access and rewards. Filter the list, pick up to four cards and compare them side by side.',
+    canonicalPath: '/',
+    jsonLd: [organizationJsonLd(window.location.origin), websiteJsonLd(window.location.origin)],
+  });
 
   useEffect(() => {
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
-        // Fetch banks and credit cards in parallel
-        const [banksResponse, cardsResponse] = await Promise.all([
+        // Fetch banks and credit cards in parallel, plus the URL search if there is one
+        const [banksResponse, cardsResponse, searchResponse] = await Promise.all([
           apiService.getBanks(),
           apiService.getCreditCards({ page_size: 100 }),
+          initialSearch
+            ? apiService.getCreditCards({ searchTerm: initialSearch, page_size: 100 })
+            : Promise.resolve(null),
         ]);
 
         // Transform API responses to frontend types
@@ -43,7 +61,11 @@ const HomePage: React.FC = () => {
 
         setBanks(transformedBanks);
         setCards(transformedCards);
-        setFilteredCards(transformedCards);
+        setFilteredCards(
+          searchResponse
+            ? searchResponse.results.map(card => apiService.transformCreditCard(card))
+            : transformedCards
+        );
       } catch (error) {
         console.error('Failed to fetch data:', error);
         // Keep empty arrays as fallback
@@ -53,7 +75,7 @@ const HomePage: React.FC = () => {
     };
 
     fetchInitialData();
-  }, []);
+  }, [initialSearch]);
 
   const handleCardSelect = (card: CreditCard) => {
     const isRemoving = selectedCardIds.includes(card.id);

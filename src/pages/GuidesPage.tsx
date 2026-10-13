@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import RelatedContent from '../components/RelatedContent';
+import { getCategoriesForGuide } from '../config/categories';
 import { guides, getGuide, SITE_NAME } from '../content/guides';
+import { breadcrumbJsonLd, faqPageJsonLd } from '../utils/structuredData';
 
 import '../styles/GuidesPage.css';
 
@@ -133,17 +136,6 @@ const organization = (name: string) => ({
   name,
 });
 
-const breadcrumb = (items: { name: string; item: string }[]) => ({
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: items.map((item, index) => ({
-    '@type': 'ListItem',
-    position: index + 1,
-    name: item.name,
-    item: item.item,
-  })),
-});
-
 const GuidesPage: React.FC = () => {
   const { slug } = useParams();
   const guide = getGuide(slug);
@@ -167,13 +159,14 @@ const GuidesPage: React.FC = () => {
     : 'The guide you asked for does not exist. Browse the full list of CreditMate AI user guides instead.';
 
   const structuredData = useMemo(() => {
-    const crumbs = breadcrumb([
-      { name: 'Home', item: `${origin}/` },
-      { name: 'Guides', item: `${origin}${GUIDES_PATH}` },
-      ...(guide ? [{ name: guide.title, item: canonical }] : []),
+    const crumbs = breadcrumbJsonLd(origin, [
+      { name: 'Home', path: '/' },
+      { name: 'Guides', path: GUIDES_PATH },
+      ...(guide ? [{ name: guide.title, path: `${GUIDES_PATH}/${guide.slug}` }] : []),
     ]);
 
     return {
+      faq: guide ? faqPageJsonLd(guide.faqs) : null,
       primary: guide
         ? {
             '@context': 'https://schema.org',
@@ -283,6 +276,16 @@ const GuidesPage: React.FC = () => {
         attributes: { id: 'guides-breadcrumb-data', type: 'application/ld+json' },
         text: JSON.stringify(structuredData.crumbs),
       },
+      ...(structuredData.faq
+        ? [
+            {
+              selector: 'script#guides-faq-data',
+              tag: 'script' as const,
+              attributes: { id: 'guides-faq-data', type: 'application/ld+json' },
+              text: JSON.stringify(structuredData.faq),
+            },
+          ]
+        : []),
     ];
 
     // The returned cleanup restores the prior <head> state when the page
@@ -376,6 +379,16 @@ const GuidesPage: React.FC = () => {
             </section>
           ))}
 
+          <section className="guides-section guides-faq">
+            <h2>Frequently asked questions</h2>
+            {guide.faqs.map(faq => (
+              <div key={faq.question} className="guides-faq-item">
+                <h3>{faq.question}</h3>
+                <p>{faq.answer}</p>
+              </div>
+            ))}
+          </section>
+
           <section className="guides-section guides-sources">
             <h2>Sources</h2>
             <p>Every claim in this guide comes from one of these pages.</p>
@@ -396,16 +409,20 @@ const GuidesPage: React.FC = () => {
           </aside>
 
           <footer className="guides-related">
-            <h2>More guides</h2>
-            <ul className="guides-list-block">
-              {guides
+            <RelatedContent
+              heading="More guides"
+              links={guides
                 .filter(item => item.slug !== guide.slug)
-                .map(item => (
-                  <li key={item.slug}>
-                    <Link to={`${GUIDES_PATH}/${item.slug}`}>{item.title}</Link>
-                  </li>
-                ))}
-            </ul>
+                .map(item => ({ to: `${GUIDES_PATH}/${item.slug}`, label: item.title }))}
+            />
+            <RelatedContent
+              heading="Browse cards in these categories"
+              links={getCategoriesForGuide(guide.slug).map(category => ({
+                to: `/category/${category.slug}`,
+                label: category.name,
+                description: category.description,
+              }))}
+            />
             <Link className="guides-button" to={GUIDES_PATH}>
               All guides
             </Link>

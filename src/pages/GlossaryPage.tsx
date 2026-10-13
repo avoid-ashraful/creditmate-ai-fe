@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
+import { useSeoMeta } from '../hooks/useSeoMeta';
 import {
   filterGlossaryTerms,
   formatBengaliDate,
@@ -14,6 +15,13 @@ import type { GlossaryCategory } from '../locales';
 import '../styles/GlossaryPage.css';
 
 const GlossaryPage: React.FC = () => {
+  useSeoMeta({
+    title: 'Financial terms glossary | CreditMate AI',
+    description:
+      'Plain-language definitions of credit card terms, including annual fee, interest rate, cash advance and lounge access.',
+    canonicalPath: '/glossary',
+  });
+
   const { lang, setLang } = useLanguage();
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [activeCategory, setActiveCategory] = useState<GlossaryCategory | 'all'>('all');
