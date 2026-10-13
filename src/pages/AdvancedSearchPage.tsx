@@ -163,55 +163,50 @@ const AdvancedSearchPage: React.FC = () => {
   );
 
   // Execute search
-  const executeSearch = useCallback(
-    async (state: AdvancedSearchUIState, isLoadMore = false) => {
+  const executeSearch = useCallback(async (state: AdvancedSearchUIState, isLoadMore = false) => {
+    if (!isLoadMore) {
+      setIsLoading(true);
+      setError(null);
+      setRateLimited(false);
+    } else {
+      setIsLoadingMore(true);
+    }
+
+    try {
+      const params = uiStateToParams(state);
+      const response = await advancedSearchService.search(params);
+
       if (!isLoadMore) {
-        setIsLoading(true);
-        setError(null);
-        setRateLimited(false);
+        setResults(response);
+        setCards(response.results.map(transformAdvancedSearchCard));
       } else {
-        setIsLoadingMore(true);
+        const newCards = response.results.map(transformAdvancedSearchCard);
+        setCards(prev => [...prev, ...newCards]);
+        setResults(prev =>
+          prev
+            ? {
+                ...prev,
+                results: [...(prev.results || []), ...response.results],
+                total: response.total,
+                page: response.page,
+                facets: response.facets,
+              }
+            : response
+        );
       }
-
-      try {
-        const params = uiStateToParams(state);
-        const response = await advancedSearchService.search(params);
-
-        if (!isLoadMore) {
-          setResults(response);
-          setCards(response.results.map(transformAdvancedSearchCard));
-        } else {
-          const newCards = response.results.map(transformAdvancedSearchCard);
-          setCards(prev => [...prev, ...newCards]);
-          if (results) {
-            setResults(prev =>
-              prev
-                ? {
-                    ...prev,
-                    results: [...(prev.results || []), ...response.results],
-                    total: response.total,
-                    page: response.page,
-                    facets: response.facets,
-                  }
-                : response
-            );
-          }
-        }
-        setHasMorePages(response.page * response.page_size < response.total);
-      } catch (err) {
-        if (err instanceof Error && err.message === 'RATE_LIMITED') {
-          setRateLimited(true);
-          setError('Too many requests. Please wait a moment and try again.');
-        } else {
-          setError('Failed to search. Please try again later.');
-        }
-      } finally {
-        setIsLoading(false);
-        setIsLoadingMore(false);
+      setHasMorePages(response.page * response.page_size < response.total);
+    } catch (err) {
+      if (err instanceof Error && err.message === 'RATE_LIMITED') {
+        setRateLimited(true);
+        setError('Too many requests. Please wait a moment and try again.');
+      } else {
+        setError('Failed to search. Please try again later.');
       }
-    },
-    [results]
-  );
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  }, []);
 
   // Search when uiState changes (debounced)
   useEffect(() => {
@@ -675,7 +670,6 @@ const AdvancedSearchPage: React.FC = () => {
                     checked={cat.selected}
                     onChange={() => cat.count > 0 && handleCategoryToggle(cat.slug)}
                     disabled={cat.count === 0}
-                    aria-label={pickLang(lang, `Category: ${cat.name}`, `ক্যাটাগরি: ${cat.name}`)}
                   />
                   <span className="category-name">{pickLang(lang, cat.name, cat.name)}</span>
                   <span className="category-count">{cat.count}</span>
