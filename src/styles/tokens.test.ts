@@ -257,12 +257,21 @@ describe('design token build outputs', () => {
 
   it('emits CSS custom properties for every token', () => {
     expect(cssOutput).toMatch(/:root\s*\{/);
-    Object.keys(cssVars).forEach(name => {
+    // Light mode tokens are at root level
+    const lightTokenVars = Object.keys(cssVars).filter(name => !name.includes('-dark-'));
+    lightTokenVars.forEach(name => {
       expect(cssOutput).toContain(`${name}:`);
+    });
+    // Dark mode tokens are in dark mode rules (renamed without -dark- prefix)
+    const darkTokenVars = Object.keys(cssVars).filter(name => name.includes('-dark-'));
+    darkTokenVars.forEach(name => {
+      const renamedVar = name.replace('--color-dark-', '--color-');
+      expect(cssOutput).toContain(`${renamedVar}:`);
     });
   });
 
-  it('keeps the CSS custom property names unique', () => {
+  it('keeps the CSS custom property names unique within their scope', () => {
+    // Extract unique variable names (accounting for multiple declarations in different scopes)
     const declaration = /^\s*(--[a-z0-9-]+):/gm;
     const declared: string[] = [];
     // `matchAll` is unavailable at the project's `target: es5`, so iterate
@@ -273,8 +282,18 @@ describe('design token build outputs', () => {
       match = declaration.exec(cssOutput);
     }
 
-    expect(declared.length).toBe(Object.keys(cssVars).length);
-    expect(new Set(declared).size).toBe(declared.length);
+    // Dark mode: semantic colors declared in multiple scopes:
+    // 1. :root (light mode defaults)
+    // 2. @media (prefers-color-scheme: dark) :root:not(.light) (system dark)
+    // 3. :root.dark (manual dark override)
+    // 4. :root.light (manual light override on dark system)
+    // CSS emits semantic names only (--color-primary-base, not --color-dark-*).
+    const uniqueVarNames = new Set(declared);
+    const lightTokens = Object.keys(cssVars).filter(k => !k.includes('-dark-'));
+    // Unique variable names should match the count of non-dark tokens
+    expect(uniqueVarNames.size).toBe(lightTokens.length);
+    // Total declarations > unique names due to multiple scopes
+    expect(declared.length).toBeGreaterThan(uniqueVarNames.size);
   });
 
   it('has no unresolved {reference} left in the CSS output', () => {

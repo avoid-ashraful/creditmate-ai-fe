@@ -231,7 +231,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     /* color */
     --color-primary-base: #60a5fa;
     --color-primary-hover: #93c5fd;
@@ -356,4 +356,230 @@
   --color-gradient-footer: linear-gradient(to right, #f1f5f9, #e2e8f0);
   --color-gradient-background: linear-gradient(135deg, #0a0f1a 0%, #1e3a5f 100%);
   --color-gradient-card-accent: linear-gradient(90deg, #60a5fa, #34d399);
+}
+
+:root.light {
+  /* color */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #2563eb;
+  --color-blue-600: #1d4ed8;
+  --color-blue-700: #1e40af;
+  --color-blue-800: #1e3a8a;
+  --color-blue-900: #172554;
+  --color-indigo-50: #eef2ff;
+  --color-indigo-100: #e0e7ff;
+  --color-indigo-200: #c7d2fe;
+  --color-indigo-300: #a5b4fc;
+  --color-indigo-400: #818cf8;
+  --color-indigo-500: #6366f1;
+  --color-indigo-600: #4f46e5;
+  --color-indigo-700: #4338ca;
+  --color-indigo-800: #3730a3;
+  --color-indigo-900: #312e81;
+  --color-sky-50: #f0f9ff;
+  --color-sky-100: #e0f2fe;
+  --color-sky-200: #bae6fd;
+  --color-sky-300: #7dd3fc;
+  --color-sky-400: #38bdf8;
+  --color-sky-500: #0ea5e9;
+  --color-sky-600: #0284c7;
+  --color-sky-700: #0369a1;
+  --color-sky-800: #075985;
+  --color-sky-900: #0c4a6e;
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-brand-gradient-from: #667eea;
+  --color-brand-gradient-to: #764ba2;
+  --color-primary-base: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-active: #1e40af;
+  --color-primary-subtle: #eff6ff;
+  --color-primary-border: #bfdbfe;
+  --color-primary-contrast: #ffffff;
+  --color-secondary-base: #0f172a;
+  --color-secondary-hover: #1e293b;
+  --color-secondary-contrast: #ffffff;
+  --color-success-base: #10b981;
+  --color-success-hover: #059669;
+  --color-success-subtle: #ecfdf5;
+  --color-success-border: #a7f3d0;
+  --color-success-contrast: #ffffff;
+  --color-warning-base: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-subtle: #fffbeb;
+  --color-warning-border: #fde68a;
+  --color-warning-contrast: #78350f;
+  --color-error-base: #ef4444;
+  --color-error-hover: #dc2626;
+  --color-error-subtle: #fef2f2;
+  --color-error-border: #fecaca;
+  --color-error-contrast: #ffffff;
+  --color-info-base: #0ea5e9;
+  --color-info-subtle: #f0f9ff;
+  --color-info-border: #bae6fd;
+  --color-info-contrast: #ffffff;
+  --color-background-base: #f8fafc;
+  --color-background-surface: #ffffff;
+  --color-background-elevated: #ffffff;
+  --color-background-muted: #f1f5f9;
+  --color-background-inverse: #0f172a;
+  --color-background-overlay: rgba(15, 23, 42, 0.6);
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-text-tertiary: #94a3b8;
+  --color-text-disabled: #94a3b8;
+  --color-text-inverse: #ffffff;
+  --color-text-inverse-secondary: #94a3b8;
+  --color-text-link: #2563eb;
+  --color-text-link-hover: #1d4ed8;
+  --color-text-on-primary: #ffffff;
+  --color-border-base: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-border-subtle: #f1f5f9;
+  --color-border-focus: #2563eb;
+  --color-border-error: #ef4444;
+  --color-state-hover-surface: #f1f5f9;
+  --color-state-selected-surface: #eff6ff;
+  --color-state-disabled-surface: #f1f5f9;
+  --color-state-disabled-border: #e2e8f0;
+  --color-gradient-brand: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --color-gradient-header: linear-gradient(-45deg, #2563eb, #60a5fa, #4f46e5, #818cf8);
+  --color-gradient-primary-button: linear-gradient(90deg, #2563eb, #1d4ed8);
+  --color-gradient-accent-button: linear-gradient(90deg, #10b981, #059669);
+  --color-gradient-footer: linear-gradient(to right, #0f172a, #1e293b);
+  --color-gradient-background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  --color-gradient-card-accent: linear-gradient(90deg, #2563eb, #10b981);
+
+  /* radius */
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* shadow */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(15, 23, 42, 0.06);
+  --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.35);
+  --shadow-focus-error: 0 0 0 3px rgba(239, 68, 68, 0.35);
+  --shadow-primary-glow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+  --shadow-primary-glow-strong: 0 6px 8px -1px rgba(37, 99, 235, 0.4);
+
+  /* spacing */
+  --spacing-none: 0;
+  --spacing-2xs: 2px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  --spacing-4xl: 96px;
+
+  /* transition */
+  --transition-duration-instant: 0ms;
+  --transition-duration-fast: 150ms;
+  --transition-duration-base: 200ms;
+  --transition-duration-slow: 300ms;
+  --transition-duration-slower: 500ms;
+  --transition-easing-linear: linear;
+  --transition-easing-ease: ease;
+  --transition-easing-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --transition-easing-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --transition-easing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-property-colors: color, background-color, border-color, fill, stroke;
+  --transition-property-single-color: color;
+  --transition-property-opacity: opacity;
+  --transition-property-transform: transform;
+  --transition-property-shadow: box-shadow;
+  --transition-property-all: all;
+  --transition-preset-colors: color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), fill 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    stroke 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-preset-single-color: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-preset-shadow: box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-preset-transform: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+  --transition-preset-all: all 200ms ease;
+
+  /* typography */
+  --typography-font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --typography-font-family-mono: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  --typography-font-size-xs: 12px;
+  --typography-font-size-sm: 14px;
+  --typography-font-size-md: 16px;
+  --typography-font-size-lg: 18px;
+  --typography-font-size-xl: 20px;
+  --typography-font-size-2xl: 24px;
+  --typography-font-size-3xl: 30px;
+  --typography-font-size-4xl: 36px;
+  --typography-font-size-5xl: 48px;
+  --typography-font-weight-regular: 400;
+  --typography-font-weight-medium: 500;
+  --typography-font-weight-semibold: 600;
+  --typography-font-weight-bold: 700;
+  --typography-line-height-none: 1;
+  --typography-line-height-tight: 1.25;
+  --typography-line-height-snug: 1.375;
+  --typography-line-height-normal: 1.5;
+  --typography-line-height-relaxed: 1.625;
+  --typography-line-height-loose: 2;
+  --typography-letter-spacing-tight: -0.025em;
+  --typography-letter-spacing-normal: 0;
+  --typography-letter-spacing-wide: 0.025em;
+  --typography-letter-spacing-wider: 0.05em;
 }

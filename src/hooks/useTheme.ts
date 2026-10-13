@@ -13,6 +13,18 @@ interface UseThemeReturn {
   toggleTheme: () => void;
 }
 
+function getSystemTheme(): Theme {
+  if (typeof window === 'undefined' || !window.matchMedia) {
+    return LIGHT_THEME;
+  }
+  try {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    return mq.matches ? DARK_THEME : LIGHT_THEME;
+  } catch {
+    return LIGHT_THEME;
+  }
+}
+
 export function useTheme(): UseThemeReturn {
   const [theme, setThemeState] = useState<Theme | null>(null);
 
@@ -23,10 +35,8 @@ export function useTheme(): UseThemeReturn {
 
     if (storedTheme) {
       resolvedTheme = storedTheme;
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      resolvedTheme = DARK_THEME;
     } else {
-      resolvedTheme = LIGHT_THEME;
+      resolvedTheme = getSystemTheme();
     }
 
     setThemeState(resolvedTheme);
@@ -35,18 +45,27 @@ export function useTheme(): UseThemeReturn {
 
   // Listen for system theme changes
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-      if (!storedTheme) {
-        const newTheme = e.matches ? DARK_THEME : LIGHT_THEME;
-        setThemeState(newTheme);
-        applyTheme(newTheme);
-      }
-    };
+    if (typeof window === 'undefined' || !window.matchMedia) {
+      return;
+    }
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    try {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = (e: MediaQueryListEvent) => {
+        const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+        if (!storedTheme) {
+          const newTheme = e.matches ? DARK_THEME : LIGHT_THEME;
+          setThemeState(newTheme);
+          applyTheme(newTheme);
+        }
+      };
+
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    } catch {
+      // If matchMedia fails, just don't listen for system changes
+      return undefined;
+    }
   }, []);
 
   const setTheme = (newTheme: Theme) => {
@@ -72,7 +91,9 @@ function applyTheme(theme: Theme) {
   const root = document.documentElement;
   if (theme === DARK_THEME) {
     root.classList.add('dark');
+    root.classList.remove('light');
   } else {
+    root.classList.add('light');
     root.classList.remove('dark');
   }
 }

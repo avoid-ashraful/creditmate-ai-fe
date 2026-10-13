@@ -8,7 +8,8 @@ import { BUILD_STAMP, formatWithPrettier } from './utils.mjs';
  * reads like the token files and stays deterministic.
  *
  * Light mode (default) in :root, dark mode in @media (prefers-color-scheme: dark)
- * and .dark class for manual overrides.
+ * when no .light override, and .dark/.light classes for manual overrides.
+ * The .light class takes precedence over system dark preference.
  */
 export default function cssTokens({ dictionary, options = {} }) {
   const selector = options.selector ?? ':root';
@@ -64,13 +65,21 @@ export default function cssTokens({ dictionary, options = {} }) {
     }
   }
 
+  // Media query for system dark preference, but not when .light class is set
   const darkModeMediaBody = darkModeSections.length > 0
-    ? [`@media (prefers-color-scheme: dark) {`, `  ${selector} {`, darkModeSections.join('\n\n'), `  }`, '}'].join('\n')
+    ? [`@media (prefers-color-scheme: dark) {`, `  ${selector}:not(.light) {`, darkModeSections.join('\n\n'), `  }`, '}'].join('\n')
     : '';
 
+  // Explicit .dark class (manual dark mode override)
   const darkClassBodyContent = darkModeSections.join('\n\n');
   const darkClassBody = darkModeSections.length > 0
     ? [`${selector}.dark {`, darkClassBodyContent, '}'].join('\n')
+    : '';
+
+  // Explicit .light class (manual light mode override on dark system)
+  const lightOverrideBody = lightSections.join('\n\n');
+  const lightClassBody = lightSections.length > 0
+    ? [`${selector}.light {`, lightOverrideBody, '}'].join('\n')
     : '';
 
   const code = `/**
@@ -84,6 +93,8 @@ ${lightBody}
 ${darkModeMediaBody}
 
 ${darkClassBody}
+
+${lightClassBody}
 `;
 
   return formatWithPrettier(code, 'css');
