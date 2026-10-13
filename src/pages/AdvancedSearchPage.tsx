@@ -22,7 +22,6 @@ import {
   searchParamsToUIState,
   transformAdvancedSearchCard,
 } from '../services/advancedSearch';
-import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import { resetSeoMeta, setSeoMeta } from '../utils/seo';
 import '../styles/AdvancedSearchPage.css';
@@ -121,14 +120,12 @@ const AdvancedSearchPage: React.FC = () => {
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
-        const [sortRes, catRes, banksRes] = await Promise.all([
+        const [sortRes, catRes] = await Promise.all([
           advancedSearchService.getSortOptions(),
           advancedSearchService.getCategories(),
-          apiService.getBanks(),
         ]);
         setSortOptions(sortRes.sort_options);
         setCategories(catRes.categories);
-        setBanks(banksRes.results.map(b => apiService.transformBank(b)));
       } catch (err) {
         console.error('Failed to fetch metadata:', err);
       }
@@ -678,7 +675,7 @@ const AdvancedSearchPage: React.FC = () => {
                     checked={cat.selected}
                     onChange={() => cat.count > 0 && handleCategoryToggle(cat.slug)}
                     disabled={cat.count === 0}
-                    aria-label={pickLang(lang, cat.name, cat.name)}
+                    aria-label={pickLang(lang, `Category: ${cat.name}`, `ক্যাটাগরি: ${cat.name}`)}
                   />
                   <span className="category-name">{pickLang(lang, cat.name, cat.name)}</span>
                   <span className="category-count">{cat.count}</span>
@@ -855,6 +852,11 @@ const AdvancedSearchPage: React.FC = () => {
                   onChange={e =>
                     handleFilterChange({ hasAnnualFee: e.target.checked, noAnnualFee: false })
                   }
+                  aria-label={pickLang(
+                    lang,
+                    'Fee option: Has Annual Fee',
+                    'ফি অপশন: বার্ষিক ফি আছে'
+                  )}
                 />
                 <span>{pickLang(lang, 'Has Annual Fee', 'বার্ষিক ফি আছে')}</span>
               </label>
@@ -865,6 +867,11 @@ const AdvancedSearchPage: React.FC = () => {
                   onChange={e =>
                     handleFilterChange({ noAnnualFee: e.target.checked, hasAnnualFee: false })
                   }
+                  aria-label={pickLang(
+                    lang,
+                    'Fee option: No Annual Fee',
+                    'ফি অপশন: বার্ষিক ফি নেই'
+                  )}
                 />
                 <span>{pickLang(lang, 'No Annual Fee', 'বার্ষিক ফি নেই')}</span>
               </label>
@@ -873,6 +880,11 @@ const AdvancedSearchPage: React.FC = () => {
                   type="checkbox"
                   checked={uiState.hasFeeWaiver}
                   onChange={e => handleFilterChange({ hasFeeWaiver: e.target.checked })}
+                  aria-label={pickLang(
+                    lang,
+                    'Fee option: Fee Waiver Available',
+                    'ফি অপশন: ফি ছাড় উপলব্ধ'
+                  )}
                 />
                 <span>{pickLang(lang, 'Fee Waiver Available', 'ফি ছাড় উপলব্ধ')}</span>
               </label>

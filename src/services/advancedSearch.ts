@@ -77,7 +77,7 @@ export interface AdvancedSearchResponse {
   total: number;
   page: number;
   page_size: number;
-  results: CreditCard[];
+  results: CreditCardApiResponse[];
   facets: Record<string, AdvancedSearchFacet>;
   took: number;
   source: 'elasticsearch' | 'database';
