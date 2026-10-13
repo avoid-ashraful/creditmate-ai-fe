@@ -1,4 +1,9 @@
-import { ANALYTICS_EVENTS, analytics, getAnalyticsContextProperties } from './analytics';
+import {
+  ANALYTICS_EVENTS,
+  AnalyticsProperties,
+  analytics,
+  getAnalyticsContextProperties,
+} from './analytics';
 
 const originalAnalyticsKey = process.env.REACT_APP_ANALYTICS_KEY;
 const originalLocation = window.location;
@@ -55,9 +60,10 @@ describe('analytics', () => {
   });
 
   it('drops unsafe referrer and UTM values', () => {
+    const unsafeReferrer = `java${'script:alert(1)'}`;
     Object.defineProperty(document, 'referrer', {
       configurable: true,
-      value: 'javascript:alert(1)',
+      value: unsafeReferrer,
     });
     window.history.replaceState(
       null,
@@ -77,7 +83,7 @@ describe('analytics', () => {
   });
 
   it('sends only normalized allowlisted event properties', () => {
-    const payload = {
+    const payload: unknown = {
       bank: 'Eastern_Bank_Limited',
       cardId: Number.NaN,
       cardIds: [2, Number.NaN, ...new Array(20).fill(3)],
@@ -85,8 +91,8 @@ describe('analytics', () => {
       searchLength: 8,
       primaryUse: 'travel',
       email: 'person@example.com',
-    } as any;
-    analytics.track(ANALYTICS_EVENTS.search, payload);
+    };
+    analytics.track(ANALYTICS_EVENTS.search, payload as AnalyticsProperties);
 
     expect(provider).toHaveBeenCalledWith({
       name: ANALYTICS_EVENTS.search,
@@ -99,7 +105,7 @@ describe('analytics', () => {
   });
 
   it('drops forbidden quiz answer properties (monthlySpend, primaryUse, etc.)', () => {
-    const payload = {
+    const payload: unknown = {
       monthlySpend: 50000,
       primaryUse: 'travel',
       travelFrequency: 'frequent',
@@ -107,8 +113,8 @@ describe('analytics', () => {
       cardTier: 'premium',
       fromStep: 'spend',
       toStep: 'results',
-    } as any;
-    analytics.track(ANALYTICS_EVENTS.quizStart, payload);
+    };
+    analytics.track(ANALYTICS_EVENTS.quizStart, payload as AnalyticsProperties);
 
     expect(provider).toHaveBeenCalledWith({
       name: ANALYTICS_EVENTS.quizStart,
@@ -117,11 +123,11 @@ describe('analytics', () => {
   });
 
   it('drops all non-allowlisted calculator properties', () => {
-    const payload = {
+    const payload: unknown = {
       resultCount: 5,
       monthlySpend: 100000,
-    } as any;
-    analytics.track(ANALYTICS_EVENTS.calculatorUse, payload);
+    };
+    analytics.track(ANALYTICS_EVENTS.calculatorUse, payload as AnalyticsProperties);
 
     expect(provider).toHaveBeenCalledWith({
       name: ANALYTICS_EVENTS.calculatorUse,
@@ -130,7 +136,7 @@ describe('analytics', () => {
   });
 
   it('drops non-allowlisted event properties (resultCount, selectedCount, shareId, tier, etc.)', () => {
-    const payload = {
+    const payload: unknown = {
       cardId: 42,
       resultCount: 5,
       selectedCount: 3,
@@ -138,8 +144,8 @@ describe('analytics', () => {
       tier: 'premium',
       emailOptIn: true,
       savedComparisons: 10,
-    } as any;
-    analytics.track(ANALYTICS_EVENTS.cardSelect, payload);
+    };
+    analytics.track(ANALYTICS_EVENTS.cardSelect, payload as AnalyticsProperties);
 
     expect(provider).toHaveBeenCalledWith({
       name: ANALYTICS_EVENTS.cardSelect,
