@@ -10,6 +10,7 @@ import { SkeletonCardGrid } from '../components/Skeleton';
 import Toast from '../components/Toast';
 import { CATEGORIES, Category, getCategoryBySlug } from '../config/categories';
 import { getGuide } from '../content/guides';
+import { useLanguage, getCommonCopy } from '../locales';
 import { apiService, CreditCardApiResponse } from '../services/api';
 import { CreditCard } from '../types';
 import { resetSeoMeta, setSeoMeta } from '../utils/seo';
@@ -59,6 +60,8 @@ const transformResponses = (responses: CategoryResponse[]): CreditCard[] =>
 const CategoryPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const category = slug ? getCategoryBySlug(slug) : undefined;
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
 
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -149,7 +152,7 @@ const CategoryPage: React.FC = () => {
         if (cancelled) return;
         if (queryGenerationRef.current !== requestGeneration) return;
         console.error('Failed to fetch category cards:', fetchError);
-        setError('Failed to load credit cards. Please try again later.');
+        setError(common.categoryErrorLoading);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -230,7 +233,7 @@ const CategoryPage: React.FC = () => {
     } catch (fetchError) {
       if (queryGenerationRef.current !== requestGeneration) return;
       console.error('Failed to load more category cards:', fetchError);
-      setError('Failed to load additional credit cards. Please try again later.');
+      setError(common.categoryErrorLoadingMore);
     } finally {
       if (queryGenerationRef.current === requestGeneration) {
         setIsLoadingMore(false);
@@ -242,9 +245,9 @@ const CategoryPage: React.FC = () => {
     return (
       <div className="category-page">
         <div className="category-not-found">
-          <h1>Category not found</h1>
-          <p>The category you are looking for does not exist.</p>
-          <Link to="/">Back to homepage</Link>
+          <h1>{common.categoryNotFoundTitle}</h1>
+          <p>{common.categoryNotFoundDesc}</p>
+          <Link to="/">{common.categoryBackHome}</Link>
         </div>
       </div>
     );
@@ -257,7 +260,7 @@ const CategoryPage: React.FC = () => {
       return;
     }
     if (selectedCardIds.length >= 4) {
-      setSelectionMessage('You can only select up to 4 cards for comparison.');
+      setSelectionMessage(common.categorySelectionLimit);
       return;
     }
     setSelectionMessage('');
@@ -274,13 +277,13 @@ const CategoryPage: React.FC = () => {
         <p>{category.description}</p>
         {!isLoading && !error && (
           <span className="category-count">
-            {totalCount} card{totalCount === 1 ? '' : 's'} found
+            {totalCount} {common.categoryCount}
           </span>
         )}
       </div>
 
       {isLoading ? (
-        <SkeletonCardGrid label={`Loading ${category.name} credit cards...`} />
+        <SkeletonCardGrid label={common.categorySkeletonLabel} />
       ) : error ? (
         <div className="error-state" role="alert">
           {error}
@@ -315,7 +318,7 @@ const CategoryPage: React.FC = () => {
                 onClick={loadMoreCards}
                 disabled={isLoadingMore}
               >
-                {isLoadingMore ? 'Loading more cards...' : 'Load more cards'}
+                {isLoadingMore ? common.categoryLoadingMore : common.categoryLoadMore}
               </button>
             </div>
           )}
@@ -330,8 +333,11 @@ const CategoryPage: React.FC = () => {
         </>
       )}
 
-      <RelatedContent heading="Learn before you apply" links={guideLinksFor(category)} />
-      <RelatedContent heading="Other categories" links={otherCategoryLinksFor(category)} />
+      <RelatedContent heading={common.categoryRelatedGuides} links={guideLinksFor(category)} />
+      <RelatedContent
+        heading={common.categoryOtherCategories}
+        links={otherCategoryLinksFor(category)}
+      />
     </div>
   );
 };

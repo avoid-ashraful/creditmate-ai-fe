@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -117,13 +117,25 @@ describe('LanguageProvider', () => {
 });
 
 describe('useLanguage outside a provider', () => {
-  it('throws a descriptive error', () => {
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  it('falls back to English default context', () => {
     const Broken: React.FC = () => {
-      useLanguage();
-      return null;
+      const { lang, setLang, toggleLang } = useLanguage();
+      return (
+        <div>
+          <span data-testid="lang">{lang}</span>
+          <button type="button" onClick={() => setLang('bn')}>
+            set bn
+          </button>
+          <button type="button" onClick={toggleLang}>
+            toggle
+          </button>
+        </div>
+      );
     };
-    expect(() => render(<Broken />)).toThrow('useLanguage must be used within a LanguageProvider');
-    spy.mockRestore();
+    render(<Broken />);
+    expect(screen.getByTestId('lang')).toHaveTextContent('en');
+    // setLang and toggleLang are no-ops when no provider is present
+    fireEvent.click(screen.getByText('set bn'));
+    expect(screen.getByTestId('lang')).toHaveTextContent('en');
   });
 });

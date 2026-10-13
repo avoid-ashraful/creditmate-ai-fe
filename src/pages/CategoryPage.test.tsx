@@ -121,7 +121,7 @@ test('renders travel category with badge, filtered API call, and SEO meta', asyn
 
   // Rendered list shows real (transformed) API data, including truthful strings
   expect(await screen.findByText('Travel Card 1')).toBeInTheDocument();
-  expect(screen.getByText('2 cards found')).toBeInTheDocument();
+  expect(screen.getByText('2 card(s) found')).toBeInTheDocument();
   expect(screen.getByText('Bank A')).toBeInTheDocument();
 
   // SEO-friendly titles/meta per category
@@ -151,7 +151,9 @@ test('no-annual-fee category requests numeric-zero fee cards only', async () => 
   const callArgs = mockGetCreditCards.mock.calls[0][0];
   expect(callArgs).toMatchObject({ hasAnnualFee: false });
   // Unknown fees must stay unknown - empty result message, not a crash
-  expect(await screen.findByText(/No credit cards found/i)).toBeInTheDocument();
+  expect(
+    await screen.findByText('The category you are looking for does not exist.')
+  ).toBeInTheDocument();
 });
 
 test('unknown slug shows category-not-found message', async () => {
@@ -176,7 +178,7 @@ test('loads the next API page and deduplicates cashback results from both terms'
   renderCategoryPage('cashback');
 
   await screen.findByText('Category Card 102');
-  expect(screen.getByText('3 cards found')).toBeInTheDocument();
+  expect(screen.getByText('3 card(s) found')).toBeInTheDocument();
   expect(mockGetCreditCards.mock.calls[0][0]).toEqual({
     searchTerm: 'cash back',
     ordering: 'annual_fee',
@@ -191,7 +193,7 @@ test('loads the next API page and deduplicates cashback results from both terms'
   fireEvent.click(screen.getByRole('button', { name: /load more cards/i }));
   await screen.findByText('Category Card 201');
   expect(screen.getByText('Category Card 202')).toBeInTheDocument();
-  expect(screen.getByText('5 cards found')).toBeInTheDocument();
+  expect(screen.getByText('5 card(s) found')).toBeInTheDocument();
   expect(mockGetCreditCards.mock.calls[2][0]).toEqual({
     searchTerm: 'cash back',
     ordering: 'annual_fee',

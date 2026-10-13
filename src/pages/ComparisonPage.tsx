@@ -6,7 +6,7 @@ import Toast from '../components/Toast';
 import { useAuth, AUTH_STATUS } from '../hooks/AuthProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
-import { useLanguage, getSavedCopy } from '../locales';
+import { useLanguage, getSavedCopy, getCommonCopy } from '../locales';
 import { apiService } from '../services/api';
 import { savedService, savedErrorMessage } from '../services/saved';
 import { CreditCard } from '../types';
@@ -25,6 +25,7 @@ const ComparisonPage: React.FC = () => {
   const { status } = useAuth();
   const { lang } = useLanguage();
   const savedCopy = getSavedCopy(lang);
+  const common = getCommonCopy(lang);
   const [selectedCards, setSelectedCards] = useState<CreditCard[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [comparisonId, setComparisonId] = useState<string>('');
@@ -47,7 +48,7 @@ const ComparisonPage: React.FC = () => {
       });
       setSaveMessage(savedCopy.saved);
     } catch (error) {
-      setSaveMessage(savedErrorMessage(error));
+      setSaveMessage(savedErrorMessage(error, lang));
     }
   };
 
@@ -119,11 +120,11 @@ const ComparisonPage: React.FC = () => {
     navigator.clipboard
       .writeText(shareableUrl)
       .then(() => {
-        setShareMessage('Comparison link copied to clipboard!');
+        setShareMessage(common.comparisonShareSuccess);
       })
       .catch(err => {
         console.error('Failed to copy link: ', err);
-        setShareMessage('Could not copy the link. Please copy it from the address bar.');
+        setShareMessage(common.comparisonShareError);
       });
 
     return shareableUrl;
@@ -133,15 +134,15 @@ const ComparisonPage: React.FC = () => {
     <div className="comparison-page">
       <div className="comparison-hero">
         <div className="comparison-header">
-          <h1>Credit Card Comparison</h1>
+          <h1>{common.comparisonTitle}</h1>
           <div className="comparison-actions">
             <Link to="/" className="back-link">
-              ← Back to All Cards
+              {common.comparisonBackLink}
             </Link>
             {selectedCards.length > 0 && (
               <>
                 <button className="share-button" onClick={generateShareableLink}>
-                  Share Comparison
+                  {common.comparisonShareButton}
                 </button>
                 <button className="share-button" onClick={() => void saveComparison()}>
                   {savedCopy.save}
@@ -159,21 +160,21 @@ const ComparisonPage: React.FC = () => {
       <div className="comparison-content">
         {isLoading ? (
           <div className="loading-state" role="status" aria-live="polite">
-            Loading comparison data...
+            {common.loading}
           </div>
         ) : selectedCards.length === 0 ? (
           <div className="empty-state">
-            <h2>No Cards Selected</h2>
-            <p>Please select credit cards to compare from the home page.</p>
+            <h2>{common.comparisonEmptyTitle}</h2>
+            <p>{common.comparisonEmptyDesc}</p>
             <Link to="/" className="footer-button">
-              Browse Credit Cards
+              {common.comparisonBrowseCards}
             </Link>
           </div>
         ) : (
           <>
             <div className="selected-cards-summary">
               <h2>
-                Comparing Cards
+                {common.comparisonSelectedTitle}
                 <span className="summary-count">{selectedCards.length}</span>
               </h2>
               <div className="card-chips">
@@ -187,8 +188,8 @@ const ComparisonPage: React.FC = () => {
                     <button
                       className="remove-card"
                       onClick={() => handleRemoveCard(card.id)}
-                      title="Remove from comparison"
-                      aria-label={`Remove ${card.name} from comparison`}
+                      title={common.comparisonRemoveAriaLabel}
+                      aria-label={`${common.comparisonRemoveAriaLabel} ${card.name}`}
                     >
                       ×
                     </button>
@@ -202,16 +203,14 @@ const ComparisonPage: React.FC = () => {
             <div className="comparison-footer">
               <div className="footer-actions">
                 <Link to="/" className="footer-button secondary">
-                  Browse More Cards
+                  {common.comparisonFooterBrowse}
                 </Link>
                 <button className="footer-button" onClick={generateShareableLink}>
-                  Share This Comparison
+                  {common.comparisonFooterShare}
                 </button>
               </div>
               <div className="disclaimer">
-                <strong>Disclaimer:</strong> This information is provided for comparison purposes
-                only. Please verify all details with the respective banks before applying for any
-                credit card. Terms and conditions may apply.
+                <strong>{common.comparisonDisclaimer}</strong>
               </div>
             </div>
           </>

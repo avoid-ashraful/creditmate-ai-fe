@@ -34,7 +34,15 @@ export interface LanguageContextValue {
   toggleLang: () => void;
 }
 
-export const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
+const DEFAULT_LANGUAGE_CONTEXT: LanguageContextValue = {
+  lang: 'en',
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  setLang: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  toggleLang: () => {},
+};
+
+export const LanguageContext = createContext<LanguageContextValue>(DEFAULT_LANGUAGE_CONTEXT);
 
 export interface LanguageProviderProps {
   children: React.ReactNode;
@@ -93,13 +101,10 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, in
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };
 
-/** Access the active language. Must be used inside a {@link LanguageProvider}. */
+/** Access the active language. Falls back to English when no provider is present. */
 export function useLanguage(): LanguageContextValue {
   const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
+  return context ?? DEFAULT_LANGUAGE_CONTEXT;
 }
 
 export { SUPPORTED_LANGUAGES };

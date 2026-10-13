@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useId, useMemo } from 'react';
 
+import { useLanguage, getCommonCopy } from '../locales';
 import { apiService } from '../services/api';
 import {
   TypeaheadResult,
@@ -55,7 +56,7 @@ const renderHighlighted = (text: string, query: string): React.ReactNode => {
       elements.push(<span key={idx}>{part.text}</span>);
     }
   });
-  return elements;
+  return <>{elements}</>;
 };
 
 const buildFlatOptions = (result: TypeaheadResult | null): FlattenedOption[] => {
@@ -88,7 +89,10 @@ const buildFlatOptions = (result: TypeaheadResult | null): FlattenedOption[] => 
   return [...cards, ...banks, ...categories];
 };
 
-const buildGroups = (result: TypeaheadResult | null): SuggestionGroup[] => {
+const buildGroups = (
+  result: TypeaheadResult | null,
+  commonCopy: ReturnType<typeof getCommonCopy>
+): SuggestionGroup[] => {
   if (!result) return [];
 
   const groups: SuggestionGroup[] = [];
@@ -96,7 +100,7 @@ const buildGroups = (result: TypeaheadResult | null): SuggestionGroup[] => {
   if (result.cards?.length > 0) {
     groups.push({
       key: 'cards',
-      label: 'Cards',
+      label: commonCopy.searchGroupCards,
       items: result.cards.map((c, idx) => ({
         key: `card-${c.id}`,
         kind: 'card' as const,
@@ -110,7 +114,7 @@ const buildGroups = (result: TypeaheadResult | null): SuggestionGroup[] => {
   if (result.banks?.length > 0) {
     groups.push({
       key: 'banks',
-      label: 'Banks',
+      label: commonCopy.searchGroupBanks,
       items: result.banks.map((b, idx) => ({
         key: `bank-${b.id}`,
         kind: 'bank' as const,
@@ -124,7 +128,7 @@ const buildGroups = (result: TypeaheadResult | null): SuggestionGroup[] => {
   if (result.categories?.length > 0) {
     groups.push({
       key: 'categories',
-      label: 'Categories',
+      label: commonCopy.searchGroupCategories,
       items: result.categories.map((c, idx) => ({
         key: `category-${c.slug}`,
         kind: 'category' as const,
@@ -146,11 +150,13 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   onSelectBank,
   onSelectCategory,
   onSelectFacet,
-  placeholder = 'Search by card name, bank, or features...',
+  placeholder,
   debounceMs = 150,
   minQueryLength = 2,
   ariaLabel = 'Search',
 }) => {
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
   const [result, setResult] = useState<TypeaheadResult | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -270,7 +276,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
 
   // Derived values
   const options = useMemo(() => buildFlatOptions(result), [result]);
-  const groups = useMemo(() => buildGroups(result), [result]);
+  const groups = useMemo(() => buildGroups(result, common), [result, common]);
   const totalOptions = options.length;
   const showDropdown = isOpen && totalOptions > 0;
   const hasFacets = (result?.facets?.length ?? 0) > 0;
@@ -333,7 +339,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   }, [value, minQueryLength, result]);
 
   // Render
-  const ariaLabelForCombobox = `${ariaLabel}, search suggestions`;
+  const ariaLabelForCombobox = `${ariaLabel}, ${common.searchSuggestionsAriaLabel}`;
 
   return (
     <div className="search-autocomplete" ref={containerRef}>
@@ -341,7 +347,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         ref={inputRef}
         type="text"
         className="search-autocomplete-input"
-        placeholder={placeholder}
+        placeholder={placeholder ?? common.searchPlaceholder}
         value={value}
         onChange={e => {
           const nextValue = e.target.value;
@@ -374,7 +380,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         <ul
           className="search-autocomplete-listbox"
           role="listbox"
-          aria-label="Search suggestions"
+          aria-label={common.searchSuggestionsAriaLabel}
           aria-labelledby={`${listboxId}-label`}
           id={listboxId}
         >
@@ -411,12 +417,16 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
                         'bankName' in item.selection &&
                         item.selection.bankName ? (
                           <span className="search-autocomplete-item-meta">
-                            {'by ' + item.selection.bankName}
+                            {`${common.searchByMeta} ${item.selection.bankName}`}
                           </span>
                         ) : null}
                         {item.kind === 'category' && 'slug' in item.selection ? (
                           <span className="search-autocomplete-item-meta">
-                            ({item.selection.slug === 'no-annual-fee' ? 'No Fee' : ''})
+                            (
+                            {item.selection.slug === 'no-annual-fee'
+                              ? common.searchCategoryNoFee
+                              : ''}
+                            )
                           </span>
                         ) : null}
                       </div>
@@ -428,13 +438,13 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
 
           {isLoading && (
             <li role="option" aria-selected={false} className="search-autocomplete-status">
-              Loading suggestions…
+              {common.searchLoading}
             </li>
           )}
 
           {!isLoading && totalOptions === 0 && (
             <li role="option" aria-selected={false} className="search-autocomplete-status">
-              No suggestions
+              {common.searchNoSuggestions}
             </li>
           )}
         </ul>
@@ -463,7 +473,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
 
       {hasDidYouMean && (
         <div className="search-autocomplete-did-you-mean">
-          <span>Did you mean:</span>
+          <span>{common.searchDidYouMean}</span>
           <button
             type="button"
             className="search-autocomplete-did-you-mean-button"

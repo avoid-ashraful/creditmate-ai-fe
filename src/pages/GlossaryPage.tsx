@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 import { useSeoMeta } from '../hooks/useSeoMeta';
+import type { GlossaryCategory } from '../locales';
 import {
   filterGlossaryTerms,
   formatBengaliDate,
@@ -10,42 +11,39 @@ import {
   glossaryCategories,
   glossaryTerms,
   useLanguage,
+  getCommonCopy,
 } from '../locales';
-import type { GlossaryCategory } from '../locales';
 import '../styles/GlossaryPage.css';
 
 const GlossaryPage: React.FC = () => {
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
   useSeoMeta({
-    title: 'Financial terms glossary | CreditMate AI',
-    description:
-      'Plain-language definitions of credit card terms, including annual fee, interest rate, cash advance and lounge access.',
+    title: common.glossaryTitle,
+    description: common.glossaryDescription,
     canonicalPath: '/glossary',
   });
 
-  const { lang, setLang } = useLanguage();
+  const { lang: currentLang, setLang } = useLanguage();
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [activeCategory, setActiveCategory] = useState<GlossaryCategory | 'all'>('all');
 
-  const isBengali = lang === 'bn';
+  const isBengali = currentLang === 'bn';
 
   const visibleTerms = useMemo(() => {
     const filtered = filterGlossaryTerms(glossaryTerms, {
       query: searchTerm,
       category: activeCategory,
-      lang,
+      lang: currentLang,
     });
     return [...filtered].sort((a, b) => a.term_en.localeCompare(b.term_en));
-  }, [searchTerm, activeCategory, lang]);
+  }, [searchTerm, activeCategory, currentLang]);
 
   return (
     <div className="glossary-page">
       <div className="glossary-header">
-        <h1>{isBengali ? 'আর্থিক শব্দকোষ' : 'Financial Terms Glossary'}</h1>
-        <p>
-          {isBengali
-            ? 'ক্রেডিট কার্ডের প্রস্তাব ও আর্থিক পণ্যে ব্যবহৃত মূল পরিভাষাগুলো বুঝুন।'
-            : 'Understanding the key terminology used in credit card offers and financial products'}
-        </p>
+        <h1>{common.glossaryTitle}</h1>
+        <p>{common.glossaryDescription}</p>
       </div>
 
       <div className="glossary-controls">
@@ -53,16 +51,16 @@ const GlossaryPage: React.FC = () => {
           <div className="language-switcher" role="group" aria-label="Language">
             <button
               type="button"
-              className={`lang-button ${lang === 'en' ? 'active' : ''}`}
-              aria-pressed={lang === 'en'}
+              className={`lang-button ${currentLang === 'en' ? 'active' : ''}`}
+              aria-pressed={currentLang === 'en'}
               onClick={() => setLang('en')}
             >
               EN
             </button>
             <button
               type="button"
-              className={`lang-button ${lang === 'bn' ? 'active' : ''}`}
-              aria-pressed={lang === 'bn'}
+              className={`lang-button ${currentLang === 'bn' ? 'active' : ''}`}
+              aria-pressed={currentLang === 'bn'}
               onClick={() => setLang('bn')}
             >
               BN
@@ -73,8 +71,8 @@ const GlossaryPage: React.FC = () => {
         <div className="search-box">
           <input
             type="text"
-            aria-label={isBengali ? 'শব্দ খুঁজুন' : 'Search glossary'}
-            placeholder={isBengali ? 'শব্দ খুঁজুন...' : 'Search for terms...'}
+            aria-label={common.glossarySearchAriaLabel}
+            placeholder={common.glossarySearchPlaceholder}
             value={searchTerm}
             onChange={event => setSearchTerm(event.target.value)}
           />
@@ -89,7 +87,7 @@ const GlossaryPage: React.FC = () => {
               aria-pressed={activeCategory === category.id}
               onClick={() => setActiveCategory(category.id)}
             >
-              {getCategoryLabel(category.id, lang)}
+              {getCategoryLabel(category.id, currentLang)}
             </button>
           ))}
         </div>
@@ -98,11 +96,7 @@ const GlossaryPage: React.FC = () => {
       <div className="glossary-content">
         {visibleTerms.length === 0 ? (
           <div className="no-results">
-            <p>
-              {isBengali
-                ? 'আপনার অনুসন্ধানের সাথে কোনো শব্দ মেলেনি। অনুসন্ধান বা বিভাগ পরিবর্তন করে দেখুন।'
-                : 'No terms match your search criteria. Try adjusting your search or category filter.'}
-            </p>
+            <p>{common.glossaryNoResults}</p>
           </div>
         ) : (
           <section aria-labelledby="terms-heading">
@@ -119,10 +113,13 @@ const GlossaryPage: React.FC = () => {
                 return (
                   <React.Fragment key={item.id}>
                     <dt className="term" role="term">
-                      {getTermText(item, lang)}
+                      {getTermText(item, currentLang)}
                     </dt>
                     <dd className="definition" role="definition">
-                      {getDefinitionText(item, lang)}
+                      {getDefinitionText(item, currentLang)}
+                    </dd>
+                    <dd className="category-tag" role="definition">
+                      {getCategoryLabel(item.category, currentLang)}
                     </dd>
                     {showBengaliDate && (
                       <dd className="bengali-calendar-tag" role="definition">

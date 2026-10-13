@@ -159,19 +159,24 @@ test('selects cards and exposes compare navigation', async () => {
   renderRoutes();
 
   expect(await screen.findByText(/Test Credit Card/i)).toBeInTheDocument();
-  await userEvent.click(screen.getAllByRole('button', { name: /Add to Compare/i })[0]);
+  await userEvent.click(screen.getAllByRole('button', { name: /Add a card/i })[0]);
   await waitFor(() =>
-    expect(screen.getAllByRole('button', { name: /Remove from Compare/i })).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: /Share This Comparison/i })).toHaveLength(1)
   );
-  await userEvent.click(screen.getAllByRole('button', { name: /Add to Compare/i })[0]);
+  await userEvent.click(screen.getAllByRole('button', { name: /Add a card/i })[0]);
 
   expect(screen.getAllByText((_, node) => node?.textContent === 'Selected: 2 of 4')).toHaveLength(
     2
   );
 
-  const compareLink = screen.getByRole('link', { name: /Compare Cards/i });
-  expect(compareLink).toHaveAttribute('href', '/compare?ids=1,2');
-  await userEvent.click(compareLink);
+  // The ComparisonBar link has the compare URL, CardListItem links have card detail URLs
+  const compareLinks = screen.getAllByRole('link', { name: /Share This Comparison/i });
+  const comparisonBarLink = compareLinks.find(link =>
+    link.getAttribute('href')?.includes('/compare')
+  );
+  expect(comparisonBarLink).toBeInTheDocument();
+  expect(comparisonBarLink).toHaveAttribute('href', '/compare?ids=1,2');
+  await userEvent.click(comparisonBarLink!);
 
   expect(await screen.findByText(/Credit Card Comparison/i)).toBeInTheDocument();
   await screen.findAllByText(/Test Credit Card/i);

@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import { useThemeContext } from '../hooks/ThemeProvider';
+import { useLanguage, getCommonCopy } from '../locales';
 
 const ToggleButton = styled.button`
   background: var(--color-background-surface);
@@ -43,17 +44,25 @@ const IconSpan = styled.span`
   font-size: 1.2em;
 `;
 
-interface ThemeToggleProps {
+export interface ThemeToggleProps {
+  /** Custom aria-label for the toggle button (defaults to localized "Toggle dark mode") */
   ariaLabel?: string;
 }
 
-export const ThemeToggle: React.FC<ThemeToggleProps> = ({ ariaLabel = 'Toggle dark mode' }) => {
+export const ThemeToggle: React.FC<ThemeToggleProps> = ({ ariaLabel }) => {
   const { isDark, toggleTheme } = useThemeContext();
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
 
   return (
-    <ToggleButton onClick={toggleTheme} aria-label={ariaLabel} aria-pressed={isDark} type="button">
+    <ToggleButton
+      onClick={toggleTheme}
+      aria-label={ariaLabel ?? common.themeToggleAriaLabel}
+      aria-pressed={isDark}
+      type="button"
+    >
       <IconSpan aria-hidden="true">{isDark ? '☀️' : '🌙'}</IconSpan>
-      <span>{isDark ? 'Light' : 'Dark'}</span>
+      <span>{isDark ? common.themeLight : common.themeDark}</span>
     </ToggleButton>
   );
 };

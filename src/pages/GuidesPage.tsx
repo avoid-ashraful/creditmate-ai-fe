@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import RelatedContent from '../components/RelatedContent';
 import { getCategoriesForGuide } from '../config/categories';
 import { guides, getGuide, SITE_NAME } from '../content/guides';
+import { useLanguage, getCommonCopy } from '../locales';
 import { breadcrumbJsonLd, faqPageJsonLd } from '../utils/structuredData';
 
 import '../styles/GuidesPage.css';
@@ -139,6 +140,8 @@ const organization = (name: string) => ({
 const GuidesPage: React.FC = () => {
   const { slug } = useParams();
   const guide = getGuide(slug);
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const canonical = `${origin}${slug ? `${GUIDES_PATH}/${slug}` : GUIDES_PATH}`;
@@ -150,7 +153,7 @@ const GuidesPage: React.FC = () => {
     ? INDEX_TITLE
     : guide
     ? `${guide.title} | ${SITE_NAME}`
-    : `Guide not found | ${SITE_NAME}`;
+    : `${common.guidesNotFoundTitle} | ${SITE_NAME}`;
 
   const description = isIndex
     ? INDEX_DESCRIPTION
@@ -173,7 +176,7 @@ const GuidesPage: React.FC = () => {
             '@type': 'Article',
             headline: guide.title,
             description: guide.description,
-            inLanguage: 'en',
+            inLanguage: lang,
             dateModified: guide.updated,
             articleSection: guide.category,
             author: organization(SITE_NAME),
@@ -185,7 +188,7 @@ const GuidesPage: React.FC = () => {
             '@type': 'CollectionPage',
             name: INDEX_TITLE,
             description: INDEX_DESCRIPTION,
-            inLanguage: 'en',
+            inLanguage: lang,
             url: canonical,
             author: organization(SITE_NAME),
             mainEntity: {
@@ -200,7 +203,7 @@ const GuidesPage: React.FC = () => {
           },
       crumbs,
     };
-  }, [guide, canonical, origin]);
+  }, [guide, canonical, origin, lang]);
 
   useEffect(() => {
     const writes: HeadWrite[] = [
@@ -227,7 +230,7 @@ const GuidesPage: React.FC = () => {
       {
         selector: 'meta[property="og:locale"]',
         tag: 'meta',
-        attributes: { property: 'og:locale', content: 'en_US' },
+        attributes: { property: 'og:locale', content: lang === 'bn' ? 'bn_BD' : 'en_US' },
       },
       {
         selector: 'meta[property="og:title"]',
@@ -297,10 +300,10 @@ const GuidesPage: React.FC = () => {
   if (notFound) {
     return (
       <div className="guides-page guides-not-found">
-        <h1>Guide not found</h1>
-        <p>That guide address does not exist. Browse the guides we do have.</p>
+        <h1>{common.guidesNotFoundTitle}</h1>
+        <p>{common.guidesNotFoundDesc}</p>
         <Link className="guides-button" to={GUIDES_PATH}>
-          See all guides
+          {common.guidesNotFoundButton}
         </Link>
       </div>
     );
@@ -328,7 +331,9 @@ const GuidesPage: React.FC = () => {
             <p className="guides-meta">
               <span>{guide.readingTime}</span>
               <span aria-hidden="true">&middot;</span>
-              <time dateTime={guide.updated}>Updated {formatDate(guide.updated)}</time>
+              <time dateTime={guide.updated}>
+                {common.guidesArticleMetaUpdated} {formatDate(guide.updated)}
+              </time>
             </p>
           </header>
 
@@ -380,7 +385,7 @@ const GuidesPage: React.FC = () => {
           ))}
 
           <section className="guides-section guides-faq">
-            <h2>Frequently asked questions</h2>
+            <h2>{common.guidesSectionFaq}</h2>
             {guide.faqs.map(faq => (
               <div key={faq.question} className="guides-faq-item">
                 <h3>{faq.question}</h3>
@@ -390,8 +395,8 @@ const GuidesPage: React.FC = () => {
           </section>
 
           <section className="guides-section guides-sources">
-            <h2>Sources</h2>
-            <p>Every claim in this guide comes from one of these pages.</p>
+            <h2>{common.guidesSectionSources}</h2>
+            <p>{common.guidesSourcesDesc}</p>
             <ul className="guides-list-block">
               {guide.sources.map(source => (
                 <li key={source.url}>
@@ -410,13 +415,13 @@ const GuidesPage: React.FC = () => {
 
           <footer className="guides-related">
             <RelatedContent
-              heading="More guides"
+              heading={common.guidesRelatedMore}
               links={guides
                 .filter(item => item.slug !== guide.slug)
                 .map(item => ({ to: `${GUIDES_PATH}/${item.slug}`, label: item.title }))}
             />
             <RelatedContent
-              heading="Browse cards in these categories"
+              heading={common.guidesRelatedCategories}
               links={getCategoriesForGuide(guide.slug).map(category => ({
                 to: `/category/${category.slug}`,
                 label: category.name,
@@ -424,7 +429,7 @@ const GuidesPage: React.FC = () => {
               }))}
             />
             <Link className="guides-button" to={GUIDES_PATH}>
-              All guides
+              {common.guidesButtonAll}
             </Link>
           </footer>
         </article>
@@ -435,12 +440,9 @@ const GuidesPage: React.FC = () => {
   return (
     <div className="guides-page">
       <header className="guides-header">
-        <p className="guides-eyebrow">Learn</p>
-        <h1>Credit card guides and how-tos</h1>
-        <p className="guides-lede">
-          Four short guides that explain credit cards in plain English. Each guide cites Bangladesh
-          Bank rules, or pages that a bank publishes itself.
-        </p>
+        <p className="guides-eyebrow">{common.guidesIndexEyebrow}</p>
+        <h1>{common.guidesIndexTitle}</h1>
+        <p className="guides-lede">{common.guidesIndexLede}</p>
       </header>
 
       <nav aria-label="User guides" className="guides-index">
@@ -459,7 +461,7 @@ const GuidesPage: React.FC = () => {
                   <time dateTime={listed.updated}>Updated {formatDate(listed.updated)}</time>
                 </p>
                 <Link className="guides-card-link" to={`${GUIDES_PATH}/${listed.slug}`}>
-                  Read guide
+                  {common.guidesIndexReadButton}
                   <span className="guides-visually-hidden">: {listed.title}</span>
                 </Link>
               </article>
@@ -469,13 +471,10 @@ const GuidesPage: React.FC = () => {
       </nav>
 
       <section className="guides-cta">
-        <h2>Ready to compare cards?</h2>
-        <p>
-          Start on the home page. Use the fee waiver and lounge filters there, pick two to four
-          cards, then press Compare Cards to see them side by side.
-        </p>
+        <h2>{common.guidesCtaTitle}</h2>
+        <p>{common.guidesCtaDesc}</p>
         <Link className="guides-button" to="/">
-          Browse cards on the home page
+          {common.guidesCtaButton}
         </Link>
       </section>
     </div>

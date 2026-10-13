@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
+import { useLanguage, getCommonCopy } from '../locales';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import {
@@ -15,12 +16,12 @@ import {
 
 import './RewardCalculatorPage.css';
 
-const CATEGORY_LABELS: { key: keyof CategoryAllocation; label: string }[] = [
-  { key: 'dining', label: 'Dining' },
-  { key: 'travel', label: 'Travel' },
-  { key: 'groceries', label: 'Groceries' },
-  { key: 'fuel', label: 'Fuel' },
-  { key: 'other', label: 'Other' },
+const CATEGORY_LABELS: Array<{ key: keyof CategoryAllocation; labelKey: string }> = [
+  { key: 'dining', labelKey: 'calcCategoryDining' },
+  { key: 'travel', labelKey: 'calcCategoryTravel' },
+  { key: 'groceries', labelKey: 'calcCategoryGroceries' },
+  { key: 'fuel', labelKey: 'calcCategoryFuel' },
+  { key: 'other', labelKey: 'calcCategoryOther' },
 ];
 
 const EMPTY_ALLOCATION: CategoryAllocation = {
@@ -34,6 +35,8 @@ const EMPTY_ALLOCATION: CategoryAllocation = {
 const formatBdt = (value: number): string => `BDT ${Math.round(value).toLocaleString()}`;
 
 const RewardCalculatorPage: React.FC = () => {
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
   useSeoMeta({
     title: 'Annual fee vs rewards calculator | CreditMate AI',
     description:
@@ -127,40 +130,41 @@ const RewardCalculatorPage: React.FC = () => {
   return (
     <div className="reward-calculator-page">
       <section className="calculator-hero">
-        <h1>Annual Fee vs Rewards Calculator</h1>
-        <p>
-          Estimate whether a card&apos;s annual rewards outweigh its annual fee, based on your
-          monthly spending pattern.
-        </p>
+        <h1>{common.calcTitle}</h1>
+        <p>{common.calcSubtitle}</p>
       </section>
 
       <section className="calculator-form-section" aria-labelledby="spend-form-heading">
-        <h2 id="spend-form-heading">Your monthly spend by category</h2>
+        <h2 id="spend-form-heading">{common.calcFormTitle}</h2>
         <form className="spend-form" onSubmit={handleSubmit} noValidate>
-          {CATEGORY_LABELS.map(({ key, label }) => (
-            <div className="input-group" key={key}>
-              <label htmlFor={`spend-${key}`}>{label} (BDT / month):</label>
-              <input
-                type="number"
-                id={`spend-${key}`}
-                name={key}
-                min="0"
-                step="any"
-                value={allocation[key] || ''}
-                onChange={handleAmountChange(key)}
-                aria-invalid={Boolean(errors[key])}
-                aria-describedby={errors[key] ? `spend-${key}-error` : undefined}
-              />
-              {errors[key] && (
-                <p className="field-error" id={`spend-${key}-error`} role="alert">
-                  {errors[key]}
-                </p>
-              )}
-            </div>
-          ))}
+          {CATEGORY_LABELS.map(({ key, labelKey }) => {
+            return (
+              <div className="input-group" key={key}>
+                <label htmlFor={`spend-${key}`}>
+                  {common[labelKey as keyof typeof common]} (BDT / month):
+                </label>
+                <input
+                  type="number"
+                  id={`spend-${key}`}
+                  name={key}
+                  min="0"
+                  step="any"
+                  value={allocation[key] || ''}
+                  onChange={handleAmountChange(key)}
+                  aria-invalid={Boolean(errors[key])}
+                  aria-describedby={errors[key] ? `spend-${key}-error` : undefined}
+                />
+                {errors[key] && (
+                  <p className="field-error" id={`spend-${key}-error`} role="alert">
+                    {errors[key]}
+                  </p>
+                )}
+              </div>
+            );
+          })}
 
           <p className="total-spend" aria-live="polite">
-            Total monthly spend: {formatBdt(totalMonthlySpend)}
+            {common.calcTotalSpend} {formatBdt(totalMonthlySpend)}
           </p>
 
           {errors.form && (
@@ -174,78 +178,70 @@ const RewardCalculatorPage: React.FC = () => {
             className="calculate-button"
             disabled={isLoading || Boolean(apiError)}
           >
-            Calculate best value cards
+            {common.calcCalculateButton}
           </button>
         </form>
 
         <div className="assumptions-note">
-          <h3>Assumptions</h3>
+          <h3>{common.calcAssumptionsTitle}</h3>
           <ul>
-            <li>
-              Reward earn rates are parsed only from each card&apos;s published reward policy text.
-              Categories without an explicitly stated boost use the card&apos;s base earn rate.
-            </li>
-            <li>
-              To express rewards in BDT we conservatively assume 1 reward point ={' '}
-              {formatBdt(POINT_VALUE_BDT)}. This is an estimate, not a bank-stated value; check each
-              bank&apos;s redemption catalogue.
-            </li>
-            <li>Lounge access, discounts and fee waivers are not monetised.</li>
+            <li>{common.calcAssumption1}</li>
+            <li>{common.calcAssumption2.replace('BDT 1', formatBdt(POINT_VALUE_BDT))}</li>
+            <li>{common.calcAssumption3}</li>
           </ul>
         </div>
       </section>
 
       <section className="calculator-results" aria-live="polite">
         {isLoading ? (
-          <div className="loading-state">Loading credit cards...</div>
+          <div className="loading-state">{common.calcLoading}</div>
         ) : apiError ? (
           <div className="error-state" role="alert">
             {apiError}
           </div>
         ) : !submitted ? (
           <div className="empty-state">
-            <h2>Enter your monthly spend</h2>
-            <p>
-              Fill in your typical monthly spending above and we will rank the top cards by annual
-              rewards minus annual fee.
-            </p>
+            <h2>{common.calcEmptyTitle}</h2>
+            <p>{common.calcEmptyDesc}</p>
           </div>
         ) : ranked.length === 0 ? (
           <div className="empty-state">
-            <h2>No cards to rank</h2>
-            <p>No active cards with known fees and parseable reward policies were found.</p>
+            <h2>{common.calcErrorTitle}</h2>
+            <p>{common.calcErrorDesc}</p>
           </div>
         ) : (
           <>
-            <h2>Top {ranked.length} cards by net annual value</h2>
+            <h2>
+              {common.calcResultsTitle} {ranked.length} {common.cardsByNetAnnualValue}
+            </h2>
             <ol className="ranked-card-list">
               {ranked.map(({ card, annualRewardValue, netAnnualValue, breakEvenMonthlySpend }) => (
                 <li key={card.id} className="ranked-card">
                   <div className="ranked-card-main">
                     <span className="ranked-card-name">{card.name}</span>
-                    <span className="ranked-card-bank">
-                      {card.bankName ?? 'Data not available'}
-                    </span>
+                    <span className="ranked-card-bank">{card.bankName ?? common.unknown}</span>
                     <dl className="ranked-card-metrics">
                       <div>
-                        <dt>Annual fee</dt>
-                        <dd>{card.annualFee !== null ? formatBdt(card.annualFee) : 'Unknown'}</dd>
+                        <dt>{common.calcResultAnnualFee}</dt>
+                        <dd>
+                          {card.annualFee !== null ? formatBdt(card.annualFee) : common.unknown}
+                        </dd>
                       </div>
                       <div>
-                        <dt>Est. annual rewards</dt>
+                        <dt>{common.calcResultEstRewards}</dt>
                         <dd>{formatBdt(annualRewardValue)}</dd>
                       </div>
                       <div>
-                        <dt>Net annual value</dt>
+                        <dt>{common.calcResultNetValue}</dt>
                         <dd className={netAnnualValue >= 0 ? 'positive' : 'negative'}>
                           {formatBdt(netAnnualValue)}
                         </dd>
                       </div>
                       <div>
-                        <dt>Break-even monthly spend</dt>
+                        <dt>{common.calcResultBreakEven}</dt>
                         <dd>
                           {breakEvenMonthlySpend === null
-                            ? 'Not computable with current allocation'
+                            ? common.calcResultBreakEvenUnknown
                             : formatBdt(breakEvenMonthlySpend)}
                         </dd>
                       </div>
@@ -255,7 +251,7 @@ const RewardCalculatorPage: React.FC = () => {
                       className="export-compare-button"
                       onClick={() => handleExportToComparison(card)}
                     >
-                      Export to comparison
+                      {common.calcExportCompare}
                     </button>
                   </div>
                 </li>

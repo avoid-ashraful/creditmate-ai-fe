@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { dummyBanks } from '../dummy-data/credit-cards';
+import { useLanguage, getCommonCopy } from '../locales';
 import { CreditCard } from '../types';
 import { getComparisonSummary } from '../utils/narratives';
 
@@ -12,92 +13,94 @@ interface CardComparisonTableProps {
 interface ComparisonFeature {
   key: string;
   label: string;
-  value: (card: CreditCard) => React.ReactNode;
+  value: (card: CreditCard, common: ReturnType<typeof getCommonCopy>) => React.ReactNode;
   differenceKey?: keyof CreditCard;
   group: 'Costs' | 'Benefits' | 'Card information';
 }
 
-const formatAnnualFee = (fee: number | null): string =>
-  fee === null ? 'Data not available' : `BDT ${fee.toLocaleString()}`;
+const formatAnnualFee = (fee: number | null, common: ReturnType<typeof getCommonCopy>): string =>
+  fee === null ? common.unknown : `BDT ${fee.toLocaleString()}`;
 
-const formatInterestRate = (rate: number | null): string =>
-  rate === null ? 'Data not available' : `${rate}%`;
+const formatInterestRate = (
+  rate: number | null,
+  common: ReturnType<typeof getCommonCopy>
+): string => (rate === null ? common.unknown : `${rate}${common.aprSuffix}`);
 
-const getBankName = (card: CreditCard): string => {
+const getBankName = (card: CreditCard, common: ReturnType<typeof getCommonCopy>): string => {
   if (card.bankName) return card.bankName;
-  if (card.bankId === undefined) return 'Data not available';
+  if (card.bankId === undefined) return common.unknown;
   const bank = dummyBanks.find(bankItem => bankItem.id === card.bankId);
-  return bank?.name || `Bank ID: ${card.bankId}`;
+  return bank?.name || common.bankIdLabel.replace('{id}', card.bankId.toString());
 };
 
-const getFeatures = (): ComparisonFeature[] => [
+const getFeatures = (common: ReturnType<typeof getCommonCopy>): ComparisonFeature[] => [
   {
     key: 'annual-fee',
-    label: 'Annual Fee',
-    value: card => formatAnnualFee(card.annualFee),
+    label: common.calcResultAnnualFee,
+    value: card => formatAnnualFee(card.annualFee, common),
     differenceKey: 'annualFee',
     group: 'Costs',
   },
   {
     key: 'apr',
-    label: 'Interest Rate (APR)',
-    value: card => formatInterestRate(card.interestRateApr),
+    label: common.filterSectionInterestRate,
+    value: card => formatInterestRate(card.interestRateApr, common),
     differenceKey: 'interestRateApr',
     group: 'Costs',
   },
   {
     key: 'cash-advance-fee',
-    label: 'Cash Advance Fee',
+    label: common.cashAdvanceFeeLabel,
     value: card => card.cashAdvanceFee,
     differenceKey: 'cashAdvanceFee',
     group: 'Costs',
   },
   {
     key: 'late-payment-fee',
-    label: 'Late Payment Fee',
+    label: common.latePaymentFeeLabel,
     value: card => card.latePaymentFee,
     differenceKey: 'latePaymentFee',
     group: 'Costs',
   },
   {
     key: 'fee-waiver',
-    label: 'Annual Fee Waiver',
-    value: card => card.annualFeeWaiverPolicy?.conditions || 'Not available',
+    label: common.annualFeeWaiverLabel,
+    value: card => card.annualFeeWaiverPolicy?.conditions || common.unknown,
     group: 'Costs',
   },
   {
     key: 'international-lounge',
-    label: 'International Lounge Access',
+    label: common.filterLabelHasInternationalLounge,
     value: card =>
       card.loungeAccessInternational === null
-        ? 'Data not available'
+        ? common.unknown
         : card.loungeAccessInternational === ''
-        ? 'None'
+        ? common.calcResultBreakEvenUnknown
         : card.loungeAccessInternational,
     differenceKey: 'loungeAccessInternational',
     group: 'Benefits',
   },
   {
     key: 'domestic-lounge',
-    label: 'Domestic Lounge Access',
+    label: common.filterLabelHasDomesticLounge,
     value: card =>
       card.loungeAccessDomestic === null
-        ? 'Data not available'
+        ? common.unknown
         : card.loungeAccessDomestic === ''
-        ? 'None'
+        ? common.calcResultBreakEvenUnknown
         : card.loungeAccessDomestic,
     differenceKey: 'loungeAccessDomestic',
     group: 'Benefits',
   },
   {
     key: 'reward-points',
-    label: 'Reward Points',
+    label: common.cardRewards,
     value: card => card.rewardPointsPolicy,
     group: 'Benefits',
   },
   {
     key: 'additional-features',
-    label: 'Additional Features',
+    label: common.cardAdditionalFeatures,
     value: card =>
       card.additionalFeatures.length ? (
         <ul className="feature-list">
@@ -106,15 +109,14 @@ const getFeatures = (): ComparisonFeature[] => [
           ))}
         </ul>
       ) : (
-        'Data not available'
+        common.unknown
       ),
     group: 'Benefits',
   },
   {
     key: 'last-updated',
-    label: 'Last Updated',
-    value: card =>
-      card.lastUpdated ? card.lastUpdated.toLocaleDateString() : 'Data not available',
+    label: common.cardLastUpdated,
+    value: card => (card.lastUpdated ? card.lastUpdated.toLocaleDateString() : common.unknown),
     group: 'Card information',
   },
 ];
@@ -123,11 +125,14 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
   cards,
   highlightDifferences = true,
 }) => {
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
+
   if (!cards || cards.length === 0) {
-    return <div className="empty-state">No cards selected for comparison</div>;
+    return <div className="empty-state">{common.comparisonEmptyDesc}</div>;
   }
 
-  const features = getFeatures();
+  const features = getFeatures(common);
   const hasDifferences = (key: keyof CreditCard): boolean => {
     if (!highlightDifferences || cards.length <= 1) return false;
     return new Set(cards.map(card => card[key])).size > 1;
@@ -140,7 +145,7 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
     <div className="comparison-table-container">
       {comparisonSummary && (
         <section className="comparison-insight" aria-label="Comparison insight">
-          <h2>Comparison insight</h2>
+          <h2>{common.experimentLegendTitle}</h2>
           <p>{comparisonSummary}</p>
         </section>
       )}
@@ -149,7 +154,7 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
           <article className="comparison-mobile-card" key={card.id}>
             <header className="comparison-mobile-card-header">
               <h3>{card.name}</h3>
-              <p>by {getBankName(card)}</p>
+              <p>by {getBankName(card, common)}</p>
             </header>
             {groups.map((group, index) => (
               <details
@@ -164,7 +169,7 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
                     .map(feature => (
                       <div className="comparison-mobile-feature" key={feature.key}>
                         <dt>{feature.label}</dt>
-                        <dd>{feature.value(card)}</dd>
+                        <dd>{feature.value(card, common)}</dd>
                       </div>
                     ))}
                 </dl>
@@ -179,13 +184,13 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
           <thead>
             <tr>
               <th className="feature-column" scope="col">
-                Feature
+                {common.featureColumnLabel}
               </th>
               {cards.map(card => (
                 <th key={card.id} className="card-column" scope="col">
                   <div className="card-header">
                     <h3>{card.name}</h3>
-                    <span className="bank-name">by {getBankName(card)}</span>
+                    <span className="bank-name">by {getBankName(card, common)}</span>
                   </div>
                 </th>
               ))}
@@ -205,7 +210,7 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
                   {feature.label}
                 </th>
                 {cards.map(card => (
-                  <td key={`${card.id}-${feature.key}`}>{feature.value(card)}</td>
+                  <td key={`${card.id}-${feature.key}`}>{feature.value(card, common)}</td>
                 ))}
               </tr>
             ))}
