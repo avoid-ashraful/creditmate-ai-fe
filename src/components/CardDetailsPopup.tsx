@@ -110,7 +110,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
           <div className="card-image-gallery">
             <img
               src={card.images[currentImageIndex].full}
-              alt={`${card.name} card image ${currentImageIndex + 1} of ${card.images.length}`}
+              alt={`${card.name} card ${currentImageIndex + 1} of ${card.images.length}`}
               className="card-full-image"
             />
             {card.images.length > 1 && (

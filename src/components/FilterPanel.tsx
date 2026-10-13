@@ -148,7 +148,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   return (
     <section
       className={`filter-panel ${expanded ? 'expanded' : 'collapsed'}`}
-      role="region"
       aria-labelledby="filter-panel-heading"
     >
       <div className="filter-header" onClick={toggleExpanded}>

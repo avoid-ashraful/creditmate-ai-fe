@@ -85,8 +85,9 @@ const feeNarrative = (cards: CreditCard[]): ComparisonNarrative[] => {
 
   // All have the same known fee → tie
   const allSame = annualFees.every(f => f === annualFees[0] && f !== null);
-  if (allSame && annualFees[0] !== null) {
-    const fee = annualFees[0]!;
+  const sameFee = annualFees[0];
+  if (allSame && sameFee !== null && sameFee !== undefined) {
+    const fee = sameFee;
     return [
       {
         key: 'annual-fee',
@@ -147,8 +148,9 @@ const feeNarrative = (cards: CreditCard[]): ComparisonNarrative[] => {
   }
 
   // Find the card with min fee and card with max fee
-  const minFeeCard = cards.find(c => c.annualFee === minFee)!;
-  const maxFeeCard = cards.find(c => c.annualFee === maxFee)!;
+  const minFeeCard = cards.find(c => c.annualFee === minFee);
+  const maxFeeCard = cards.find(c => c.annualFee === maxFee);
+  if (!minFeeCard || !maxFeeCard) return [];
 
   // If more than one card has the min fee, it's a tie for best
   const minFeeCount = cards.filter(c => c.annualFee === minFee).length;
@@ -224,8 +226,9 @@ const aprNarrative = (cards: CreditCard[]): ComparisonNarrative[] => {
 
   // All have the same known APR → tie
   const allSameApr = aprs.every(a => a === aprs[0] && a !== null);
-  if (allSameApr && aprs[0] !== null) {
-    const apr = aprs[0]!;
+  const sameApr = aprs[0];
+  if (allSameApr && sameApr !== null && sameApr !== undefined) {
+    const apr = sameApr;
     return [
       {
         key: 'apr',
@@ -285,8 +288,9 @@ const aprNarrative = (cards: CreditCard[]): ComparisonNarrative[] => {
     ];
   }
 
-  const minAprCard = cards.find(c => c.interestRateApr === minApr)!;
-  const maxAprCard = cards.find(c => c.interestRateApr === maxApr)!;
+  const minAprCard = cards.find(c => c.interestRateApr === minApr);
+  const maxAprCard = cards.find(c => c.interestRateApr === maxApr);
+  if (!minAprCard || !maxAprCard) return [];
 
   const minAprCount = cards.filter(c => c.interestRateApr === minApr).length;
   const maxAprCount = cards.filter(c => c.interestRateApr === maxApr).length;
@@ -359,10 +363,11 @@ const rewardNarrative = (cards: CreditCard[]): ComparisonNarrative[] => {
 
   // All have the same policy text → tie
   const allSamePolicy = policies.every(
-    (p, i) => p === policies[0] && (p === null || p.trim() !== '')
+    (p, _i) => p === policies[0] && (p === null || p.trim() !== '')
   );
-  if (allSamePolicy) {
-    const policy = policies[0]!;
+  const samePolicy = policies[0];
+  if (allSamePolicy && samePolicy !== null && samePolicy !== undefined) {
+    const policy = samePolicy;
     return [
       {
         key: 'reward-points',
@@ -446,9 +451,6 @@ const rewardNarrative = (cards: CreditCard[]): ComparisonNarrative[] => {
 
   const minBaseIndex = bases.indexOf(minBase);
   const maxBaseIndex = bases.indexOf(maxBase);
-  const minBaseCard = cards[minBaseIndex];
-  const maxBaseCard = cards[maxBaseIndex];
-
   const minBaseCount = bases.filter(b => b === minBase).length;
   const maxBaseCount = bases.filter(b => b === maxBase).length;
 
@@ -685,9 +687,10 @@ const waiverNarrative = (cards: CreditCard[]): ComparisonNarrative[] => {
   }
 
   // All have the same waiver conditions → tie
-  const allSameWaiver = waiverPolicies.every((p, i) => p === waiverPolicies[0] && p !== null);
-  if (allSameWaiver && waiverPolicies[0] !== null) {
-    const policy = waiverPolicies[0]!;
+  const allSameWaiver = waiverPolicies.every((p, _i) => p === waiverPolicies[0] && p !== null);
+  const sameWaiver = waiverPolicies[0];
+  if (allSameWaiver && sameWaiver !== null && sameWaiver !== undefined) {
+    const policy = sameWaiver;
     const conditions =
       typeof policy === 'object' && policy.conditions
         ? (policy.conditions as string)
@@ -760,8 +763,9 @@ const waiverNarrative = (cards: CreditCard[]): ComparisonNarrative[] => {
   const minThreshold = Math.min(...knownThresholds.map(t => t.threshold));
   const maxThreshold = Math.max(...knownThresholds.map(t => t.threshold));
 
-  const minThresholdCard = knownThresholds.find(t => t.threshold === minThreshold)!;
-  const maxThresholdCard = knownThresholds.find(t => t.threshold === maxThreshold)!;
+  const minThresholdCard = knownThresholds.find(t => t.threshold === minThreshold);
+  const maxThresholdCard = knownThresholds.find(t => t.threshold === maxThreshold);
+  if (!minThresholdCard || !maxThresholdCard) return [];
 
   const minThresholdIndex = knownThresholds.findIndex(t => t.threshold === minThreshold);
   const winnerIndex = minThresholdIndex; // card with lower threshold wins
@@ -1039,7 +1043,7 @@ export const getTopReliableExplanation = (
  * Never claims superiority from absent data.
  */
 export const getComparisonSummary = (cards: CreditCard[], featureKey?: string): string => {
-  const { narrative, isTie, isUnknown, winner } = getTopReliableExplanation(cards, featureKey);
+  const { narrative, isTie, isUnknown } = getTopReliableExplanation(cards, featureKey);
 
   if (!narrative) return 'No comparison data available';
 
@@ -1055,4 +1059,10 @@ export const getComparisonSummary = (cards: CreditCard[], featureKey?: string): 
   return narrative.text;
 };
 
-export default { generateComparisonNarratives, getTopReliableExplanation, getComparisonSummary };
+const narratives = {
+  generateComparisonNarratives,
+  getTopReliableExplanation,
+  getComparisonSummary,
+};
+
+export default narratives;

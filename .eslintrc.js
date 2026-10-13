@@ -63,6 +63,8 @@ module.exports = {
       rules: {
         // Story handlers are intentionally inert when rendering controls.
         '@typescript-eslint/no-empty-function': 'off',
+        // Storybook's CSF contract uses the default export as story metadata.
+        'import/no-anonymous-default-export': 'off',
       },
     },
     {

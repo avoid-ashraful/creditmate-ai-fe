@@ -440,6 +440,9 @@ const RecommendationQuiz: React.FC = () => {
               >
                 📤 Share Results
               </button>
+              <p className="share-message" role="status" aria-live="polite">
+                {shareMessage}
+              </p>
               <button
                 onClick={handleSeeAllCards}
                 className="action-btn see-all-btn"
