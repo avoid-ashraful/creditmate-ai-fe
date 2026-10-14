@@ -68,7 +68,7 @@ module.exports = {
       },
     },
     {
-      files: ['e2e/**/*.ts', 'playwright.config.ts'],
+      files: ['e2e/**/*.ts', 'e2e-live/**/*.ts', 'playwright.config.ts'],
       rules: {
         // These files use Playwright's page locators and per-viewport checks,
         // not React Testing Library render queries or Jest conditionals.
