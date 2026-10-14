@@ -43,3 +43,13 @@
 ## Backend issues
 
 No backend API defect is confirmed so far. Advanced-search endpoints, typeahead, card list/detail, CORS preflights, registration, login, and auth profile requests returned successful responses. Refresh 400s occurred only after the frontend unnecessarily reused a rotated refresh token; the frontend change addresses that cause. Continue to record any reproducible non-2xx contract mismatch here with request and response evidence.
+
+### Follow-up full run after the fixes
+
+The fresh run built and served the production FE at `127.0.0.1:4950` against backend `127.0.0.1:4408`, with a new scratch database. It completed **5 passed, 18 failed of 23** after about 1.7 hours of severe shared-host contention. It is not a green run.
+
+Browser network diagnostics recorded multiple `net::ERR_ABORTED` requests and a frontend `ApiError: Network error` while page loads and timed-out tests navigated or closed. The backend log showed successful CORS preflights and successful responses for the card list (12 rows), travel filter (8 rows), typeahead (200), and advanced-search endpoint APIs (200); it contained no 4xx/5xx responses in this run. Some UI requests only reached OPTIONS before the browser aborted. The concurrent host load was substantial (more than ten Playwright processes from another worktree were active throughout); test durations ranged from about 1.5 to 6 minutes each, so these outcomes do not establish a backend contract defect.
+
+The new advanced-search UI assertion also needs adjustment: the page heading loaded but `.results-count` was absent when the assertion ran. The UI displays a loading skeleton until results arrive, and the backend log had only preflights for its initial search request during that test. Recheck this under normal host load and assert the results or explicit error/loading state after the corresponding response.
+
+Three consecutive green full runs have **not** been achieved. The auth-refresh frontend fix and the final UI assertions still need a clean live run under normal host load.
