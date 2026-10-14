@@ -39,9 +39,10 @@ const SavedPage: React.FC = () => {
   }, []);
   const copyComparisonLink = async (item: SavedComparison) => {
     try {
-      const updated = item.share_token
-        ? item
-        : await savedService.updateComparison(item.id, { is_public: true });
+      const updated =
+        item.is_public && item.share_token
+          ? item
+          : await savedService.updateComparison(item.id, { is_public: true });
       await copyLink(updated.share_token);
       await refresh();
     } catch (e) {
@@ -50,9 +51,10 @@ const SavedPage: React.FC = () => {
   };
   const copyCollectionLink = async (item: SavedCollection) => {
     try {
-      const updated = item.share_token
-        ? item
-        : await savedService.updateCollection(item.id, { is_public: true });
+      const updated =
+        item.is_public && item.share_token
+          ? item
+          : await savedService.updateCollection(item.id, { is_public: true });
       await copyLink(updated.share_token);
       await refresh();
     } catch (e) {
