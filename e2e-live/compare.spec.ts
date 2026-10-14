@@ -21,7 +21,7 @@ test.describe('Compare cards - live backend', () => {
 
     // Should show 3 cards
     await expect(page.locator('.card-chip-name')).toHaveCount(3);
-    await expect(page.getByText('Comparing Cards 3')).toBeVisible();
+    await expect(page.locator('.summary-count')).toHaveText('3');
   });
 
   test('share comparison copies URL', async ({ page }) => {

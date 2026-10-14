@@ -33,13 +33,11 @@ test.describe('Home page - live backend', () => {
 
   test('search filters cards', async ({ page }) => {
     const searchInput = page.locator('.search-form input');
-    await searchInput.fill('Smoke');
+    await searchInput.fill('Smoke Card 12');
     await page.getByRole('button', { name: 'Search' }).click();
 
-    await expect(page.locator('.card-list-item')).toHaveCount(10);
-    for (const name of ['Smoke Card 01', 'Smoke Card 12']) {
-      await expect(page.getByText(name)).toBeVisible();
-    }
+    await expect(page.locator('.card-list-item')).toHaveCount(1);
+    await expect(page.getByText('Smoke Card 12')).toBeVisible();
   });
 
   test('filter panel opens and applies annual fee filter', async ({ page }) => {

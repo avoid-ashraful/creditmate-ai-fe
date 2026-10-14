@@ -1,13 +1,13 @@
 import { expect, test } from './fixtures';
 
-const TEST_EMAIL = `e2e-saved-${Date.now()}@example.test`;
 const TEST_PASSWORD = 'Strong-pass-123!';
 
 test.describe('Saved comparisons - live backend', () => {
   test('save comparison and see it in /saved', async ({ page }) => {
+    const testEmail = `e2e-saved-${Date.now()}@example.test`;
     // Register and login
     await page.goto('/register');
-    await page.getByLabel('Email').fill(TEST_EMAIL);
+    await page.getByLabel('Email').fill(testEmail);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByLabel(/confirm password/i).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /create account|register/i }).click();
@@ -16,7 +16,7 @@ test.describe('Saved comparisons - live backend', () => {
     await page.waitForURL(/\/login$/);
 
     // Login
-    await page.getByLabel('Email').fill(TEST_EMAIL);
+    await page.getByLabel('Email').fill(testEmail);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /log in/i }).click();
 
@@ -37,7 +37,7 @@ test.describe('Saved comparisons - live backend', () => {
 
     // Save comparison
     page.on('dialog', dialog => {
-      expect(dialog.message()).toContain('name');
+      expect(dialog.message()).toMatch(/name/i);
       dialog.accept('My Live Comparison');
     });
     await page.getByRole('button', { name: /Save Comparison/i }).click();
@@ -47,17 +47,18 @@ test.describe('Saved comparisons - live backend', () => {
 
     // Go to saved page
     await page.goto('/saved');
-    await expect(page.getByRole('heading', { name: /Saved Comparisons/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Saved comparisons/i })).toBeVisible();
 
     // Should see the saved comparison
     await expect(page.getByText('My Live Comparison')).toBeVisible();
   });
 
   test('public share link works', async ({ page }) => {
+    const testEmail = `e2e-saved-share-${Date.now()}@example.test`;
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     // Register and login
     await page.goto('/register');
-    await page.getByLabel('Email').fill(TEST_EMAIL);
+    await page.getByLabel('Email').fill(testEmail);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByLabel(/confirm password/i).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /create account|register/i }).click();
@@ -66,7 +67,7 @@ test.describe('Saved comparisons - live backend', () => {
     await page.waitForURL(/\/login$/);
 
     // Login
-    await page.getByLabel('Email').fill(TEST_EMAIL);
+    await page.getByLabel('Email').fill(testEmail);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /log in/i }).click();
 

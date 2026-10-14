@@ -53,3 +53,13 @@ Browser network diagnostics recorded multiple `net::ERR_ABORTED` requests and a 
 The new advanced-search UI assertion also needs adjustment: the page heading loaded but `.results-count` was absent when the assertion ran. The UI displays a loading skeleton until results arrive, and the backend log had only preflights for its initial search request during that test. Recheck this under normal host load and assert the results or explicit error/loading state after the corresponding response.
 
 Three consecutive green full runs have **not** been achieved. The auth-refresh frontend fix and the final UI assertions still need a clean live run under normal host load.
+
+### Continuation runs (2026-10-14)
+
+The current continuation ran the suite three times total: the requested initial run, one rerun after fixing confirmed harness mismatches, and one final verification after correcting two more selectors. Each run started one Playwright process at a time. Output was redirected and only the failure summaries were inspected.
+
+- Run 1: **17 passed, 6 failed**. Failures were alert page heading, compare count text, card 12 missing from a broad search (the home page is paginated), review body label, saved prompt case, and public saved comparison visibility.
+- Run 2: **19 passed, 4 failed** after correcting those test assumptions and using distinct registration emails for the two saved-comparison tests. Remaining summary failures: alert heading absent, review section locator detached, saved page heading absent, and public comparison absent from `/saved`.
+- Run 3: **19 passed, 4 failed**. The saved-page heading and review section selector were corrected based on source labels. The failure summary still reports the alert heading absent, review section heading absent until the 60-second timeout, saved page heading absent, and `Public Comparison` absent from `/saved`.
+
+The current failure summaries do not show whether the alerts and saved pages are blocked by lost authentication, failed data requests, or a frontend state defect. No backend contract bug is confirmed. These four flows remain unresolved and need browser/network evidence in a subsequent run. Do not treat this suite as green.

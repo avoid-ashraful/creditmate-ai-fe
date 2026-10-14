@@ -47,7 +47,7 @@ test.describe('Watch card / Alert subscription - live backend', () => {
 
     // Go to alerts page to verify
     await page.goto('/alerts');
-    await expect(page.getByRole('heading', { name: /Alert Subscriptions/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /Your Subscriptions/i })).toBeVisible({
       timeout: 10000,
     });
 

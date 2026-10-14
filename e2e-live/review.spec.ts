@@ -33,8 +33,7 @@ test.describe('Write review - live backend', () => {
 
     // Scroll to reviews section
     await page
-      .getByRole('heading', { name: /Reviews|Write a Review/i })
-      .first()
+      .getByRole('heading', { name: 'Customer reviews', exact: true })
       .scrollIntoViewIfNeeded();
 
     // Click write review button
@@ -43,9 +42,7 @@ test.describe('Write review - live backend', () => {
     // Fill review form
     await page.locator('.rating-star').nth(3).click(); // 4 stars
     await page.getByLabel(/Review Title/i).fill('Great card for travel');
-    await page
-      .getByLabel(/Review Body/i)
-      .fill('This card has excellent lounge access and rewards.');
+    await page.locator('#review-body').fill('This card has excellent lounge access and rewards.');
     await page.getByLabel(/Pros/i).fill('Lounge access, good rewards');
     await page.getByLabel(/Cons/i).fill('High annual fee');
 
