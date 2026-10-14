@@ -95,6 +95,27 @@ describe('SavedPage', () => {
     await waitFor(() => expect(screen.queryByText('Renamed trip')).not.toBeInTheDocument());
   });
 
+  it('makes a private comparison public before copying its share link', async () => {
+    await authenticated();
+    let shareUpdate: unknown;
+    server.use(
+      rest.get('*/api/v1/saved/comparisons/', (_req, res, ctx) => res(ctx.json([comparison]))),
+      rest.patch('*/api/v1/saved/comparisons/7/', (req, res, ctx) => {
+        shareUpdate = req.body;
+        return res(ctx.json({ ...comparison, is_public: true }));
+      }),
+      rest.get('*/api/v1/saved/collections/', (_req, res, ctx) => res(ctx.json([])))
+    );
+    const user = userEvent.setup();
+    renderWithAuth(routes, { route: '/saved' });
+
+    await user.click(await screen.findByRole('button', { name: 'Copy share link' }));
+    await waitFor(() => expect(shareUpdate).toEqual({ is_public: true }));
+    await waitFor(async () =>
+      expect(await navigator.clipboard.readText()).toMatch(/\/shared\/share-7$/)
+    );
+  });
+
   it('reports an API limit error when creating a collection', async () => {
     await authenticated();
     let shareUpdate: unknown;
