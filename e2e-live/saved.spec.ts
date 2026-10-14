@@ -108,7 +108,10 @@ test.describe('Saved comparisons - live backend', () => {
     await expect(page.getByText('Public Comparison')).toBeVisible();
 
     // Click share button
-    await page.locator('button:has-text("Share")').first().click();
+    await page
+      .getByRole('button', { name: /copy share link/i })
+      .first()
+      .click();
 
     // Get the share URL from clipboard
     await expect

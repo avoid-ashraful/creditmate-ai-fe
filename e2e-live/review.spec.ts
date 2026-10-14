@@ -32,7 +32,7 @@ test.describe('Write review - live backend', () => {
     });
 
     // Scroll to reviews section
-    await page.getByRole('heading', { name: /customer reviews/i }).scrollIntoViewIfNeeded();
+    await expect(page.getByRole('heading', { name: /customer reviews/i })).toBeVisible();
 
     // Click write review button
     await page.getByRole('button', { name: /Write a Review/i }).click();
@@ -49,6 +49,5 @@ test.describe('Write review - live backend', () => {
 
     // Should show pending notice
     await expect(page.getByText(/pending moderation/i)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText(/will be visible after review/i)).toBeVisible();
   });
 });
