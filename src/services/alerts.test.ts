@@ -23,6 +23,7 @@ jest.mock('./auth', () => ({
   authClient: {
     hasSession: jest.fn(() => true),
     getAccessToken: jest.fn().mockResolvedValue('access-token'),
+    refreshAccessToken: jest.fn().mockResolvedValue('access-token'),
   },
 }));
 

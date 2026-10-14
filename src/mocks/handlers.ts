@@ -86,7 +86,6 @@ const paginated = <T>(results: T[]) => ({
   results,
 });
 
-const AUTH_USER = { id: 7, email: 'reader@example.com', first_name: 'John', last_name: 'Doe' };
 let storedRefreshToken = 'refresh-1';
 let storedAccessToken = 'access-1';
 
