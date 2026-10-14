@@ -75,3 +75,104 @@ describe('SEO meta lifecycle', () => {
     expect(unrelated).toHaveAttribute('content', 'Unchanged');
   });
 });
+
+describe('SEO social tags and JSON-LD', () => {
+  beforeEach(() => {
+    document.head.innerHTML = '';
+    document.title = '';
+  });
+
+  test('writes Open Graph, Twitter and canonical URL tags from one call', () => {
+    setSeoMeta({
+      title: 'Travel cards | CreditMate AI',
+      description: 'Travel credit cards in Bangladesh.',
+      canonicalPath: '/category/travel',
+      ogType: 'article',
+    });
+
+    expect(document.querySelector('meta[property="og:url"]')).toHaveAttribute(
+      'content',
+      'http://localhost/category/travel'
+    );
+    expect(document.querySelector('meta[property="og:type"]')).toHaveAttribute(
+      'content',
+      'article'
+    );
+    expect(document.querySelector('meta[property="og:site_name"]')).toHaveAttribute(
+      'content',
+      'CreditMate AI'
+    );
+    expect(document.querySelector('meta[name="twitter:card"]')).toHaveAttribute(
+      'content',
+      'summary'
+    );
+    expect(document.querySelector('meta[name="twitter:title"]')).toHaveAttribute(
+      'content',
+      'Travel cards | CreditMate AI'
+    );
+    expect(document.querySelector('meta[name="twitter:description"]')).toHaveAttribute(
+      'content',
+      'Travel credit cards in Bangladesh.'
+    );
+
+    resetSeoMeta();
+
+    expect(document.querySelector('meta[property="og:url"]')).not.toBeInTheDocument();
+    expect(document.querySelector('meta[name="twitter:card"]')).not.toBeInTheDocument();
+    expect(document.querySelector('meta[property="og:site_name"]')).not.toBeInTheDocument();
+  });
+
+  test('defaults og:type to website and omits og:url without a canonical path', () => {
+    setSeoMeta({ title: 'Home', description: 'Home page.' });
+
+    expect(document.querySelector('meta[property="og:type"]')).toHaveAttribute(
+      'content',
+      'website'
+    );
+    expect(document.querySelector('meta[property="og:url"]')).not.toBeInTheDocument();
+    expect(document.querySelector('link[rel="canonical"]')).not.toBeInTheDocument();
+  });
+
+  test('writes JSON-LD as one script and replaces it on the next call', () => {
+    setSeoMeta({
+      title: 'First',
+      description: 'First page.',
+      jsonLd: { '@type': 'Organization', name: 'First' },
+    });
+    setSeoMeta({
+      title: 'Second',
+      description: 'Second page.',
+      jsonLd: [{ '@type': 'WebSite', name: 'Second' }],
+    });
+
+    const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+    expect(scripts).toHaveLength(1);
+    expect(JSON.parse(scripts[0].textContent ?? '')).toEqual([
+      { '@type': 'WebSite', name: 'Second' },
+    ]);
+  });
+
+  test('drops JSON-LD when a later call does not supply it', () => {
+    setSeoMeta({ title: 'First', description: 'First.', jsonLd: { '@type': 'FAQPage' } });
+    setSeoMeta({ title: 'Second', description: 'Second.' });
+
+    expect(document.querySelectorAll('script[data-seo-json-ld]')).toHaveLength(0);
+  });
+
+  test('removes the JSON-LD script on reset and leaves other scripts alone', () => {
+    const unrelated = document.createElement('script');
+    unrelated.setAttribute('type', 'application/ld+json');
+    unrelated.textContent = '{"@type":"Thing"}';
+    document.head.appendChild(unrelated);
+
+    setSeoMeta({
+      title: 'Managed',
+      description: 'Managed page.',
+      jsonLd: { '@type': 'FAQPage' },
+    });
+    resetSeoMeta();
+
+    expect(document.querySelectorAll('script[data-seo-json-ld]')).toHaveLength(0);
+    expect(unrelated.textContent).toBe('{"@type":"Thing"}');
+  });
+});

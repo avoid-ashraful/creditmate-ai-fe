@@ -1,6 +1,9 @@
 import { ENV } from '../config/env';
 import { CreditCard, Bank, CardFilterOptions } from '../types';
 
+import { responseApiError, resilientFetch } from './apiError';
+export { ApiError } from './apiError';
+
 const API_BASE_URL = ENV.API_BASE_URL;
 
 export interface ApiResponse<T> {
@@ -103,14 +106,14 @@ class ApiService {
       : `${API_BASE_URL}${endpoint}`;
 
     try {
-      const response = await fetch(url, {
+      const response = await resilientFetch(url, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        throw await responseApiError(response);
       }
 
       const data = await response.json();
@@ -278,6 +281,38 @@ class ApiService {
     popular_banks: string[];
   }> {
     return this.fetchApi('/credit-cards/search-suggestions/');
+  }
+
+  async getAdvancedSearch(
+    params: Record<string, string | number | boolean | undefined>
+  ): Promise<unknown> {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) query.set(key, String(value));
+    });
+    return this.fetchApi('/credit-cards/advanced-search/', query);
+  }
+
+  async getAdvancedSearchCategories(): Promise<unknown> {
+    return this.fetchApi('/credit-cards/advanced-search/categories/');
+  }
+
+  async getAdvancedSearchSortOptions(): Promise<unknown> {
+    return this.fetchApi('/credit-cards/advanced-search/sort-options/');
+  }
+
+  async normalizeAdvancedSearch(query: string): Promise<unknown> {
+    return this.fetchApi(
+      '/credit-cards/advanced-search/normalize/',
+      new URLSearchParams({ search: query })
+    );
+  }
+
+  /** Call the typeahead endpoint: GET /api/v1/credit-cards/typeahead/?q=<query> */
+  async getTypeaheadSuggestions(query: string): Promise<unknown> {
+    const params = new URLSearchParams();
+    params.append('q', query);
+    return this.fetchApi<unknown>('/credit-cards/typeahead/', params);
   }
 
   // Transform API response to match frontend types

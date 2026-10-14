@@ -25,6 +25,7 @@ jest.mock('framer-motion', () => {
 const mockCreditCard: CreditCard = {
   id: 1,
   bankId: 123,
+  bankName: 'Test Bank',
   name: 'Test Credit Card',
   annualFee: 5000,
   interestRateApr: 18.5,
@@ -70,7 +71,7 @@ describe('CardListItem Component', () => {
     expect(screen.getByText('Test Credit Card')).toBeInTheDocument();
 
     // Check if bank ID is rendered
-    expect(screen.getByText('Bank ID: 123')).toBeInTheDocument();
+    expect(screen.getByText('Test Bank')).toBeInTheDocument();
 
     // Check if annual fee is rendered
     expect(screen.getByText('BDT 5,000')).toBeInTheDocument();
@@ -105,8 +106,8 @@ describe('CardListItem Component', () => {
   test('renders card without lounge access correctly', () => {
     render(<CardListItem card={mockCreditCardNoLounge} />);
 
-    // Check if "None" is displayed for lounge access
-    expect(screen.getByText('None')).toBeInTheDocument();
+    // Check if "Not computable with current allocation" is displayed for lounge access
+    expect(screen.getByText('Not computable with current allocation')).toBeInTheDocument();
   });
 
   // Test selectable card
@@ -114,15 +115,15 @@ describe('CardListItem Component', () => {
     render(<CardListItem card={mockCreditCard} selectable={true} />);
 
     // Check if the add to compare button is rendered
-    expect(screen.getByText('Add to Compare')).toBeInTheDocument();
+    expect(screen.getByText('Add a card')).toBeInTheDocument();
   });
 
   // Test selected card
   test('renders selected card with remove from compare button', () => {
     render(<CardListItem card={mockCreditCard} selectable={true} isSelected={true} />);
 
-    // Check if the remove from compare button is rendered
-    expect(screen.getByText('Remove from Compare')).toBeInTheDocument();
+    // Check if the remove from compare button is rendered (button role)
+    expect(screen.getByRole('button', { name: 'Share This Comparison' })).toBeInTheDocument();
   });
 
   // Test onSelect callback
@@ -131,7 +132,7 @@ describe('CardListItem Component', () => {
     render(<CardListItem card={mockCreditCard} selectable={true} onSelect={mockOnSelect} />);
 
     // Click the add to compare button
-    fireEvent.click(screen.getByText('Add to Compare'));
+    fireEvent.click(screen.getByText('Add a card'));
 
     // Check if onSelect was called
     expect(mockOnSelect).toHaveBeenCalledTimes(1);
@@ -148,6 +149,16 @@ describe('CardListItem Component', () => {
     // Check if onViewDetails was called with the correct card
     expect(mockOnViewDetails).toHaveBeenCalledTimes(1);
     expect(mockOnViewDetails).toHaveBeenCalledWith(mockCreditCard);
+  });
+
+  test('links to the full details route without opening the card popup', () => {
+    const onViewDetails = jest.fn();
+    render(<CardListItem card={mockCreditCard} onViewDetails={onViewDetails} />);
+
+    const detailsLink = screen.getByRole('link', { name: 'Share This Comparison' });
+    expect(detailsLink).toHaveAttribute('href', '/card/test-bank/test-credit-card');
+    fireEvent.click(detailsLink);
+    expect(onViewDetails).not.toHaveBeenCalled();
   });
 
   // Test edge case: no callbacks provided

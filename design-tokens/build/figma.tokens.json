@@ -6,6 +6,287 @@
   },
   "global": {
     "color": {
+      "dark": {
+        "primary": {
+          "base": {
+            "type": "color",
+            "value": "#60a5fa",
+            "description": "Default brand / interactive color for dark mode."
+          },
+          "hover": {
+            "type": "color",
+            "value": "#93c5fd"
+          },
+          "active": {
+            "type": "color",
+            "value": "#bfdbfe"
+          },
+          "subtle": {
+            "type": "color",
+            "value": "#172554",
+            "description": "Tinted surface for selected / highlighted rows."
+          },
+          "border": {
+            "type": "color",
+            "value": "#1e40af"
+          },
+          "contrast": {
+            "type": "color",
+            "value": "#0f172a",
+            "description": "Text/icon color placed on top of primary."
+          }
+        },
+        "secondary": {
+          "base": {
+            "type": "color",
+            "value": "#f1f5f9",
+            "description": "Light neutral used for header, footer and comparison bar in dark mode."
+          },
+          "hover": {
+            "type": "color",
+            "value": "#e2e8f0"
+          },
+          "contrast": {
+            "type": "color",
+            "value": "#0f172a"
+          }
+        },
+        "success": {
+          "base": {
+            "type": "color",
+            "value": "#34d399"
+          },
+          "hover": {
+            "type": "color",
+            "value": "#6ee7b7"
+          },
+          "subtle": {
+            "type": "color",
+            "value": "#064e3b"
+          },
+          "border": {
+            "type": "color",
+            "value": "#047857"
+          },
+          "contrast": {
+            "type": "color",
+            "value": "#ecfdf5"
+          }
+        },
+        "warning": {
+          "base": {
+            "type": "color",
+            "value": "#fbbf24"
+          },
+          "hover": {
+            "type": "color",
+            "value": "#fcd34d"
+          },
+          "subtle": {
+            "type": "color",
+            "value": "#78350f"
+          },
+          "border": {
+            "type": "color",
+            "value": "#b45309"
+          },
+          "contrast": {
+            "type": "color",
+            "value": "#fef3c7",
+            "description": "Amber needs light text for AA contrast in dark mode."
+          }
+        },
+        "error": {
+          "base": {
+            "type": "color",
+            "value": "#f87171"
+          },
+          "hover": {
+            "type": "color",
+            "value": "#fca5a5"
+          },
+          "subtle": {
+            "type": "color",
+            "value": "#7f1d1d"
+          },
+          "border": {
+            "type": "color",
+            "value": "#b91c1c"
+          },
+          "contrast": {
+            "type": "color",
+            "value": "#fef2f2"
+          }
+        },
+        "info": {
+          "base": {
+            "type": "color",
+            "value": "#38bdf8"
+          },
+          "subtle": {
+            "type": "color",
+            "value": "#0c4a6e"
+          },
+          "border": {
+            "type": "color",
+            "value": "#0369a1"
+          },
+          "contrast": {
+            "type": "color",
+            "value": "#f0f9ff"
+          }
+        },
+        "background": {
+          "base": {
+            "type": "color",
+            "value": "#0a0f1a",
+            "description": "App canvas behind all content in dark mode."
+          },
+          "surface": {
+            "type": "color",
+            "value": "#1a1f2e",
+            "description": "Cards, modals, panels in dark mode."
+          },
+          "elevated": {
+            "type": "color",
+            "value": "#2d3348"
+          },
+          "muted": {
+            "type": "color",
+            "value": "#334155",
+            "description": "Striped rows, code blocks, disabled areas in dark mode."
+          },
+          "inverse": {
+            "type": "color",
+            "value": "#f1f5f9",
+            "description": "Light strips in dark mode."
+          },
+          "overlay": {
+            "type": "color",
+            "value": "rgba(10, 15, 26, 0.8)",
+            "description": "Scrim behind modals and popups in dark mode."
+          }
+        },
+        "text": {
+          "primary": {
+            "type": "color",
+            "value": "#f1f5f9",
+            "description": "Body copy and headings in dark mode."
+          },
+          "secondary": {
+            "type": "color",
+            "value": "#94a3b8",
+            "description": "Supporting copy, captions, meta in dark mode."
+          },
+          "tertiary": {
+            "type": "color",
+            "value": "#64748b",
+            "description": "Placeholders, disabled labels in dark mode."
+          },
+          "disabled": {
+            "type": "color",
+            "value": "#475569"
+          },
+          "inverse": {
+            "type": "color",
+            "value": "#0f172a",
+            "description": "Text on light surfaces in dark mode."
+          },
+          "inverseSecondary": {
+            "type": "color",
+            "value": "#475569"
+          },
+          "link": {
+            "type": "color",
+            "value": "#60a5fa"
+          },
+          "linkHover": {
+            "type": "color",
+            "value": "#93c5fd"
+          },
+          "onPrimary": {
+            "type": "color",
+            "value": "#0f172a"
+          }
+        },
+        "border": {
+          "base": {
+            "type": "color",
+            "value": "#334155",
+            "description": "Default 1px borders in dark mode."
+          },
+          "strong": {
+            "type": "color",
+            "value": "#475569",
+            "description": "Emphasised borders and dividers in dark mode."
+          },
+          "subtle": {
+            "type": "color",
+            "value": "#1e293b"
+          },
+          "focus": {
+            "type": "color",
+            "value": "#60a5fa",
+            "description": "Focus ring color in dark mode."
+          },
+          "error": {
+            "type": "color",
+            "value": "#f87171"
+          }
+        },
+        "state": {
+          "hoverSurface": {
+            "type": "color",
+            "value": "#334155",
+            "description": "Row / list-item hover background in dark mode."
+          },
+          "selectedSurface": {
+            "type": "color",
+            "value": "#172554"
+          },
+          "disabledSurface": {
+            "type": "color",
+            "value": "#1e293b"
+          },
+          "disabledBorder": {
+            "type": "color",
+            "value": "#334155"
+          }
+        },
+        "gradient": {
+          "brand": {
+            "type": "other",
+            "value": "linear-gradient(135deg, #5a67d8 0%, #553c9a 100%)",
+            "description": "Legacy CreditMate brand gradient for dark mode."
+          },
+          "header": {
+            "type": "other",
+            "value": "linear-gradient(-45deg, #60a5fa, #2563eb, #6366f1, #4f46e5)",
+            "description": "Animated site header background for dark mode."
+          },
+          "primaryButton": {
+            "type": "other",
+            "value": "linear-gradient(90deg, #60a5fa, #93c5fd)"
+          },
+          "accentButton": {
+            "type": "other",
+            "value": "linear-gradient(90deg, #34d399, #6ee7b7)"
+          },
+          "footer": {
+            "type": "other",
+            "value": "linear-gradient(to right, #f1f5f9, #e2e8f0)"
+          },
+          "background": {
+            "type": "other",
+            "value": "linear-gradient(135deg, #0a0f1a 0%, #1e3a5f 100%)",
+            "description": "Page background gradient for dark mode."
+          },
+          "cardAccent": {
+            "type": "other",
+            "value": "linear-gradient(90deg, #60a5fa, #34d399)"
+          }
+        }
+      },
       "white": {
         "type": "color",
         "value": "#ffffff",

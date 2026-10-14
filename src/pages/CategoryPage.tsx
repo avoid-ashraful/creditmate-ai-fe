@@ -1,17 +1,36 @@
+import { AnimatePresence } from 'framer-motion';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import CardDetailsPopup from '../components/CardDetailsPopup';
 import CardList from '../components/CardList';
 import ComparisonBar from '../components/ComparisonBar';
-import { getCategoryBySlug } from '../config/categories';
+import RelatedContent, { RelatedLink } from '../components/RelatedContent';
+import { SkeletonCardGrid } from '../components/Skeleton';
+import Toast from '../components/Toast';
+import { CATEGORIES, Category, getCategoryBySlug } from '../config/categories';
+import { getGuide } from '../content/guides';
+import { useLanguage, getCommonCopy } from '../locales';
 import { apiService, CreditCardApiResponse } from '../services/api';
 import { CreditCard } from '../types';
 import { resetSeoMeta, setSeoMeta } from '../utils/seo';
+import { breadcrumbJsonLd } from '../utils/structuredData';
 import '../styles/HomePage.css';
 import '../styles/CategoryPage.css';
 
 const PAGE_SIZE = 100;
+
+const guideLinksFor = (category: Category): RelatedLink[] =>
+  category.relatedGuideSlugs.flatMap(slug => {
+    const guide = getGuide(slug);
+    return guide ? [{ to: `/guides/${guide.slug}`, label: guide.title }] : [];
+  });
+
+const otherCategoryLinksFor = (category: Category): RelatedLink[] =>
+  CATEGORIES.filter(other => other.slug !== category.slug).map(other => ({
+    to: `/category/${other.slug}`,
+    label: other.name,
+  }));
 
 interface CategoryResponse {
   count: number;
@@ -41,6 +60,8 @@ const transformResponses = (responses: CategoryResponse[]): CreditCard[] =>
 const CategoryPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const category = slug ? getCategoryBySlug(slug) : undefined;
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
 
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -48,6 +69,7 @@ const CategoryPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
   const [viewedCard, setViewedCard] = useState<CreditCard | null>(null);
+  const [selectionMessage, setSelectionMessage] = useState<string>('');
   const [queryStreams, setQueryStreams] = useState<QueryStreams>({
     primary: { page: 1, exhausted: false },
     alternate: { page: 1, exhausted: false },
@@ -62,6 +84,10 @@ const CategoryPage: React.FC = () => {
         title: category.metaTitle,
         description: category.metaDescription,
         canonicalPath: `/category/${category.slug}`,
+        jsonLd: breadcrumbJsonLd(window.location.origin, [
+          { name: 'Home', path: '/' },
+          { name: category.name, path: `/category/${category.slug}` },
+        ]),
       });
     }
     return () => {
@@ -126,7 +152,7 @@ const CategoryPage: React.FC = () => {
         if (cancelled) return;
         if (queryGenerationRef.current !== requestGeneration) return;
         console.error('Failed to fetch category cards:', fetchError);
-        setError('Failed to load credit cards. Please try again later.');
+        setError(common.categoryErrorLoading);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -136,7 +162,7 @@ const CategoryPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [category]);
+  }, [category, common.categoryErrorLoading]);
 
   const loadMoreCards = async (): Promise<void> => {
     if (!category || !hasMorePages || isLoadingMore) return;
@@ -207,7 +233,7 @@ const CategoryPage: React.FC = () => {
     } catch (fetchError) {
       if (queryGenerationRef.current !== requestGeneration) return;
       console.error('Failed to load more category cards:', fetchError);
-      setError('Failed to load additional credit cards. Please try again later.');
+      setError(common.categoryErrorLoadingMore);
     } finally {
       if (queryGenerationRef.current === requestGeneration) {
         setIsLoadingMore(false);
@@ -219,25 +245,26 @@ const CategoryPage: React.FC = () => {
     return (
       <div className="category-page">
         <div className="category-not-found">
-          <h1>Category not found</h1>
-          <p>The category you are looking for does not exist.</p>
-          <Link to="/">Back to homepage</Link>
+          <h1>{common.categoryNotFoundTitle}</h1>
+          <p>{common.categoryNotFoundDesc}</p>
+          <Link to="/">{common.categoryBackHome}</Link>
         </div>
       </div>
     );
   }
 
   const handleCardSelect = (card: CreditCard) => {
-    setSelectedCardIds(prev => {
-      if (prev.includes(card.id)) {
-        return prev.filter(id => id !== card.id);
-      }
-      if (prev.length >= 4) {
-        alert('You can only select up to 4 cards for comparison');
-        return prev;
-      }
-      return [...prev, card.id];
-    });
+    if (selectedCardIds.includes(card.id)) {
+      setSelectionMessage('');
+      setSelectedCardIds(prev => prev.filter(id => id !== card.id));
+      return;
+    }
+    if (selectedCardIds.length >= 4) {
+      setSelectionMessage(common.categorySelectionLimit);
+      return;
+    }
+    setSelectionMessage('');
+    setSelectedCardIds(prev => [...prev, card.id]);
   };
 
   return (
@@ -250,15 +277,17 @@ const CategoryPage: React.FC = () => {
         <p>{category.description}</p>
         {!isLoading && !error && (
           <span className="category-count">
-            {totalCount} card{totalCount === 1 ? '' : 's'} found
+            {totalCount} {common.categoryCount}
           </span>
         )}
       </div>
 
       {isLoading ? (
-        <div className="loading-state">Loading {category.name} credit cards...</div>
+        <SkeletonCardGrid label={common.categorySkeletonLabel} />
       ) : error ? (
-        <div className="error-state">{error}</div>
+        <div className="error-state" role="alert">
+          {error}
+        </div>
       ) : (
         <>
           <CardList
@@ -269,14 +298,17 @@ const CategoryPage: React.FC = () => {
             onViewCardDetails={setViewedCard}
           />
 
-          {viewedCard && (
-            <CardDetailsPopup
-              card={viewedCard}
-              onClose={() => setViewedCard(null)}
-              onAddToCompare={handleCardSelect}
-              isInCompareList={selectedCardIds.includes(viewedCard.id)}
-            />
-          )}
+          <AnimatePresence>
+            {viewedCard && (
+              <CardDetailsPopup
+                key={viewedCard.id}
+                card={viewedCard}
+                onClose={() => setViewedCard(null)}
+                onAddToCompare={handleCardSelect}
+                isInCompareList={selectedCardIds.includes(viewedCard.id)}
+              />
+            )}
+          </AnimatePresence>
 
           {hasMorePages && (
             <div className="load-more-container">
@@ -286,7 +318,7 @@ const CategoryPage: React.FC = () => {
                 onClick={loadMoreCards}
                 disabled={isLoadingMore}
               >
-                {isLoadingMore ? 'Loading more cards...' : 'Load more cards'}
+                {isLoadingMore ? common.categoryLoadingMore : common.categoryLoadMore}
               </button>
             </div>
           )}
@@ -296,8 +328,16 @@ const CategoryPage: React.FC = () => {
             onRemoveCard={cardId => setSelectedCardIds(prev => prev.filter(id => id !== cardId))}
             maxSelections={4}
           />
+
+          <Toast className="selection-message" message={selectionMessage} />
         </>
       )}
+
+      <RelatedContent heading={common.categoryRelatedGuides} links={guideLinksFor(category)} />
+      <RelatedContent
+        heading={common.categoryOtherCategories}
+        links={otherCategoryLinksFor(category)}
+      />
     </div>
   );
 };

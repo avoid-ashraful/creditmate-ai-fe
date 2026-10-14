@@ -1,8 +1,11 @@
 import React from 'react';
 
+import { cardHover, cardTap, fadeInUp, usePrefersReducedMotion } from '../animations';
 import { dummyBanks } from '../dummy-data/credit-cards';
-import { AnimatedCard, GradientButton, fadeInUp } from '../styles/StyledComponents';
+import { useLanguage, getCommonCopy } from '../locales';
+import { AnimatedCard, GradientButton } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
+import { slugify } from '../utils/slugify';
 
 interface CardListItemProps {
   card: CreditCard;
@@ -19,13 +22,17 @@ const CardListItem: React.FC<CardListItemProps> = ({
   selectable = false,
   onViewDetails,
 }) => {
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
+  const reduceMotion = usePrefersReducedMotion();
+
   const getBankName = (bankId: number | undefined): string => {
     if (card.bankName) return card.bankName;
     if (bankId !== undefined) {
       const bank = dummyBanks.find(b => b.id === bankId);
-      return bank?.name || `Bank ID: ${bankId}`;
+      return bank?.name || common.unknown;
     }
-    return 'Bank: Data not available';
+    return common.unknown;
   };
 
   const handleClick = () => {
@@ -43,14 +50,37 @@ const CardListItem: React.FC<CardListItemProps> = ({
 
   // Helper to format annual fee with null handling
   const formatAnnualFee = (fee: number | null): string => {
-    if (fee === null) return 'Data not available';
+    if (fee === null) return common.unknown;
     return `BDT ${fee.toLocaleString()}`;
   };
 
   // Helper to format interest rate with null handling
   const formatInterestRate = (rate: number | null): string => {
-    if (rate === null) return 'Data not available';
-    return `${rate}% APR`;
+    if (rate === null) return common.unknown;
+    return `${rate}${common.aprSuffix}`;
+  };
+
+  const formatLoungeAccess = (): string => {
+    const intl = card.loungeAccessInternational;
+    const dom = card.loungeAccessDomestic;
+
+    if (intl === null && dom === null) {
+      return common.unknown;
+    }
+
+    const parts: string[] = [];
+    if (intl !== null && intl !== '') {
+      parts.push(`${intl} ${common.intlSuffix}`);
+    }
+    if (dom !== null && dom !== '') {
+      parts.push(`${dom} ${common.domesticSuffix}`);
+    }
+
+    if (parts.length === 0) {
+      return common.calcResultBreakEvenUnknown;
+    }
+
+    return parts.join(' / ');
   };
 
   return (
@@ -58,9 +88,10 @@ const CardListItem: React.FC<CardListItemProps> = ({
       className={`card-list-item ${isSelected ? 'selected' : ''}`}
       onClick={handleClick}
       variants={fadeInUp}
-      initial="hidden"
+      initial={reduceMotion ? false : 'hidden'}
       animate="visible"
-      whileHover={{ y: -5 }}
+      whileHover={reduceMotion ? undefined : cardHover}
+      whileTap={reduceMotion ? undefined : cardTap}
     >
       {card.images && card.images.length > 0 && (
         <div className="card-image">
@@ -75,55 +106,52 @@ const CardListItem: React.FC<CardListItemProps> = ({
 
       <div className="card-details">
         <div className="detail-row">
-          <span className="detail-label">Annual Fee:</span>
+          <span className="detail-label">{common.calcResultAnnualFee}:</span>
           <span className="detail-value">{formatAnnualFee(card.annualFee)}</span>
         </div>
 
         <div className="detail-row">
-          <span className="detail-label">Interest Rate:</span>
+          <span className="detail-label">{common.filterSectionInterestRate}:</span>
           <span className="detail-value">{formatInterestRate(card.interestRateApr)}</span>
         </div>
 
         <div className="detail-row">
-          <span className="detail-label">Lounge Access:</span>
-          <span className="detail-value">
-            {card.loungeAccessInternational === null && card.loungeAccessDomestic === null
-              ? 'Data not available'
-              : ''}
-            {card.loungeAccessInternational !== null && card.loungeAccessInternational !== ''
-              ? `${card.loungeAccessInternational} (Int'l)`
-              : ''}
-            {card.loungeAccessInternational && card.loungeAccessDomestic ? ' / ' : ''}
-            {card.loungeAccessDomestic !== null && card.loungeAccessDomestic !== ''
-              ? `${card.loungeAccessDomestic} (Domestic)`
-              : ''}
-            {card.loungeAccessInternational === '' &&
-            (card.loungeAccessDomestic === '' || card.loungeAccessDomestic === null)
-              ? 'None'
-              : ''}
-            {card.loungeAccessDomestic === '' && card.loungeAccessInternational === null
-              ? 'None'
-              : ''}
-          </span>
+          <span className="detail-label">{common.filterSectionLoungeAccess}:</span>
+          <span className="detail-value">{formatLoungeAccess()}</span>
         </div>
       </div>
 
       <div className="card-rewards">
-        <h4>Rewards</h4>
+        <h4>{common.cardRewards}</h4>
         <p>{card.rewardPointsPolicy}</p>
       </div>
 
       <div className="card-features">
-        <h4>Key Features</h4>
+        <h4>{common.cardKeyFeatures}</h4>
         <ul className="feature-list">
           {card.additionalFeatures?.slice(0, 2).map((feature, index) => (
             <li key={index}>{feature}</li>
           ))}
           {card.additionalFeatures && card.additionalFeatures.length > 2 && (
-            <li className="more-features">+{card.additionalFeatures.length - 2} more</li>
+            <li className="more-features">
+              {common.cardMoreFeatures.replace(
+                '{count}',
+                (card.additionalFeatures.length - 2).toString()
+              )}
+            </li>
           )}
         </ul>
       </div>
+
+      {card.bankName && (
+        <a
+          className="card-detail-link"
+          href={`/card/${slugify(card.bankName)}/${slugify(card.name)}`}
+          onClick={event => event.stopPropagation()}
+        >
+          {common.comparisonFooterShare}
+        </a>
+      )}
 
       {selectable && (
         <div className="compare-button-container">
@@ -133,7 +161,7 @@ const CardListItem: React.FC<CardListItemProps> = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            {isSelected ? 'Remove from Compare' : 'Add to Compare'}
+            {isSelected ? common.comparisonFooterShare : common.comparisonAddCard}
           </GradientButton>
         </div>
       )}

@@ -117,3 +117,55 @@ export interface GuideArticle {
   publishedDate: Date;
   lastUpdated?: Date;
 }
+
+/**
+ * Alert types - re-exported from alerts.ts
+ */
+export * from './alerts';
+
+/**
+ * Review types for community reviews feature
+ */
+export interface Review {
+  id: number;
+  cardId: number;
+  rating: number; // 1-5
+  title: string;
+  body: string;
+  pros: string;
+  cons: string;
+  helpfulCount: number;
+  reviewerName: string;
+  created: Date;
+  modified: Date;
+}
+
+export interface ReviewSummary {
+  card: number;
+  average_rating: number | null;
+  review_count: number;
+  distribution: {
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+    5: number;
+  };
+}
+
+export interface CreateReviewInput {
+  card: number;
+  rating: number;
+  title: string;
+  body: string;
+  pros?: string;
+  cons?: string;
+}
+
+export interface UpdateReviewInput {
+  rating?: number;
+  title?: string;
+  body?: string;
+  pros?: string;
+  cons?: string;
+}

@@ -74,7 +74,6 @@
 }
 
 .range-string-input input:focus {
-  outline: none;
   border-color: var(--primary-color);
   background-color: white;
 }
@@ -123,7 +122,6 @@
   padding: var(--spacing-sm);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  outline: none;
   transition: border-color 0.2s ease;
 }
 
@@ -149,7 +147,6 @@
   padding: var(--spacing-sm);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  outline: none;
   transition: border-color 0.2s ease;
 }
 
@@ -158,6 +155,16 @@
 }
 
 /* Filter actions */
+.filter-error {
+  margin: 0 0 var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-error-border, #fecaca);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-error-subtle, #fef2f2);
+  color: var(--color-error-hover, #dc2626);
+  font-size: 0.875rem;
+}
+
 .filter-actions {
   display: flex;
   gap: var(--spacing-md);

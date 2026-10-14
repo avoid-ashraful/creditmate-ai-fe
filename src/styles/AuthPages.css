@@ -1,0 +1,219 @@
+/* Login, register, password reset, account page and header account menu.
+   Colours, spacing and radii come from tokens.css so dark mode follows the theme. */
+
+.auth-page {
+  display: flex;
+  justify-content: center;
+  padding-block: var(--spacing-3xl);
+  padding-inline: var(--spacing-md);
+}
+
+.auth-card {
+  inline-size: 100%;
+  max-inline-size: 440px;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-xl);
+  background: var(--color-background-surface);
+  border: 1px solid var(--color-border-base);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-primary);
+}
+
+.auth-card h1 {
+  font-size: var(--typography-font-size-2xl);
+  font-weight: var(--typography-font-weight-bold);
+  margin-block-end: var(--spacing-md);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.auth-field label {
+  font-size: var(--typography-font-size-sm);
+  font-weight: var(--typography-font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.auth-field input {
+  font: inherit;
+  font-size: var(--typography-font-size-md);
+  padding-block: var(--spacing-sm);
+  padding-inline: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-background-base);
+  color: var(--color-text-primary);
+}
+
+.auth-field input:focus-visible {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.auth-field--invalid input {
+  border-color: var(--color-border-error);
+}
+
+.auth-field--invalid input:focus-visible {
+  box-shadow: var(--shadow-focus-error);
+}
+
+.auth-field-hint,
+.auth-hint {
+  font-size: var(--typography-font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.auth-field-error {
+  font-size: var(--typography-font-size-sm);
+  color: var(--color-error-base);
+}
+
+.auth-alert {
+  font-size: var(--typography-font-size-sm);
+  color: var(--color-error-base);
+  background: var(--color-error-subtle);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+  padding-block: var(--spacing-sm);
+  padding-inline: var(--spacing-md);
+}
+
+.auth-alert:empty {
+  display: none;
+}
+
+.auth-alert:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.auth-status {
+  font-size: var(--typography-font-size-md);
+  color: var(--color-success-base);
+  background: var(--color-success-subtle);
+  border: 1px solid var(--color-success-border);
+  border-radius: var(--radius-md);
+  padding-block: var(--spacing-sm);
+  padding-inline: var(--spacing-md);
+}
+
+.auth-status:focus-visible,
+.auth-session-loading:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.auth-submit {
+  inline-size: 100%;
+  margin-block-start: var(--spacing-xs);
+}
+
+.auth-submit:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.auth-links {
+  margin-block-start: var(--spacing-md);
+  font-size: var(--typography-font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.auth-session-loading {
+  padding-block: var(--spacing-3xl);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.auth-account-email {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-block-end: var(--spacing-md);
+  overflow-wrap: anywhere;
+}
+
+/* Header account menu */
+.account-menu {
+  position: relative;
+}
+
+.account-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  max-inline-size: 220px;
+  padding-block: var(--spacing-xs);
+  padding-inline: var(--spacing-sm);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: white;
+  font: inherit;
+  font-size: var(--typography-font-size-sm);
+}
+
+.account-menu-trigger:hover,
+.account-menu-trigger[aria-expanded='true'] {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.account-menu-trigger:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+.account-menu-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu-panel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--spacing-xs));
+  inset-inline-end: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 180px;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-md);
+  background: var(--color-background-elevated);
+  border: 1px solid var(--color-border-base);
+  box-shadow: var(--shadow-lg);
+}
+
+.account-menu-panel a,
+.account-menu-logout {
+  padding-block: var(--spacing-sm);
+  padding-inline: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  text-align: start;
+  font: inherit;
+  font-size: var(--typography-font-size-sm);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+}
+
+.account-menu-panel a:hover,
+.account-menu-logout:hover {
+  background: var(--color-state-hover-surface);
+}
+
+.account-menu-panel a:focus-visible,
+.account-menu-logout:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: -2px;
+}

@@ -1,0 +1,83 @@
+.saved-page {
+  width: min(100% - 2rem, 960px);
+  margin: 2rem auto;
+  color: var(--color-slate-900);
+  animation: saved-enter 180ms ease-out;
+}
+.saved-page h1,
+.saved-page h2 {
+  color: inherit;
+}
+.saved-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.saved-list li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--color-slate-200);
+  border-radius: 0.75rem;
+  background: var(--color-white);
+}
+.saved-list li span {
+  flex: 1;
+}
+.saved-page button,
+.saved-create button {
+  min-height: 2.5rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--color-blue-600);
+  border-radius: 0.4rem;
+  color: var(--color-blue-700);
+  background: transparent;
+  cursor: pointer;
+}
+.saved-page button:focus-visible,
+.saved-page a:focus-visible,
+.saved-page input:focus-visible {
+  outline: 3px solid var(--color-blue-400);
+  outline-offset: 2px;
+}
+.saved-create {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.saved-create label {
+  display: grid;
+  gap: 0.25rem;
+}
+.saved-create input {
+  min-height: 2.5rem;
+  padding: 0.4rem;
+  border: 1px solid var(--color-slate-400);
+  border-radius: 0.35rem;
+}
+html.dark .saved-page {
+  color: var(--color-slate-100);
+}
+html.dark .saved-list li {
+  background: var(--color-slate-800);
+  border-color: var(--color-slate-600);
+}
+@keyframes saved-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .saved-page {
+    animation: none;
+  }
+}

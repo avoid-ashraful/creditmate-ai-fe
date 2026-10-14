@@ -16,7 +16,6 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.16.0",
     "react-scripts": "5.0.1",
-    "react-spring": "^10.0.1",
     "serve": "^14.2.1",
     "styled-components": "^6.1.18",
     "typescript": "^4.9.5",
@@ -24,18 +23,32 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:e2e": "playwright test",
+    "test:e2e:visual": "playwright test e2e/visual-regression.spec.ts",
+    "test:e2e:visual:update": "playwright test e2e/visual-regression.spec.ts --update-snapshots",
     "eject": "react-scripts eject",
     "tokens:build": "style-dictionary build -c style-dictionary.config.mjs",
     "tokens:clean": "style-dictionary clean -c style-dictionary.config.mjs",
     "tokens:check": "node scripts/verify-tokens.mjs",
+    "generate:sitemap": "node scripts/generate-sitemap.mjs",
     "lint": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
     "check-format": "prettier --check \"src/**/*.{js,jsx,ts,tsx,css,md,json}\"",
     "check-lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "check-types": "tsc --noEmit",
-    "prepare": "husky install"
+    "bundle:budget": "node scripts/bundle-budget.js",
+    "bundle:budget:ci": "node scripts/bundle-budget.js --budget=210",
+    "lighthouse": "node scripts/lighthouse-runner.js",
+    "lighthouse:ci": "node scripts/lighthouse-runner.js --runs=1",
+    "prepare": "husky install",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "storybook:build": "storybook build --output-dir storybook-static",
+    "chromatic": "chromatic --config chromatic.config.json",
+    "check:all": "npm run check-types && npm run check-lint && npm run check-format && npm test -- --watchAll=false --passWithNoTests && npm run build && npm run bundle:budget"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -59,6 +72,13 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "@storybook/addon-a11y": "^8.6.19",
+    "@storybook/addon-essentials": "^8.6.19",
+    "@storybook/addon-viewport": "^8.6.19",
+    "@storybook/preset-create-react-app": "^8.6.19",
+    "@storybook/preset-typescript": "^3.0.0",
+    "@storybook/react-webpack5": "^8.6.19",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.5.2",
@@ -74,6 +94,13 @@
     "lint-staged": "^15.2.0",
     "msw": "^1.3.5",
     "prettier": "^2.8.8",
-    "style-dictionary": "^4.4.0"
+    "chromatic": "^11.25.2",
+    "storybook": "^8.6.19",
+    "style-dictionary": "^4.4.0",
+    "ts-loader": "^9.6.2"
+  },
+  "overrides": {
+    "compression": "^1.8.2",
+    "underscore": "^1.13.8"
   }
 }

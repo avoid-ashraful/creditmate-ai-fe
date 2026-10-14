@@ -41,7 +41,21 @@
   letter-spacing: -0.02em;
 }
 
-.comparison-actions {
+.share-status {
+  max-width: 1400px;
+  margin: 12px auto 0;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
+
+.share-status:empty {
+  margin: 0;
+}
+
+.comparison-page .comparison-actions {
   display: flex;
   gap: 20px;
   align-items: center;
@@ -129,14 +143,14 @@
   font-weight: 600;
 }
 
-.card-chips {
+.comparison-page .card-chips {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.card-chip {
+.comparison-page .card-chip {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   border: 2px solid #e2e8f0;
   color: var(--text-color);
@@ -150,36 +164,36 @@
   overflow: hidden;
 }
 
-.card-chip:hover {
+.comparison-page .card-chip:hover {
   border-color: #667eea;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
 }
 
-.card-chip-content {
+.comparison-page .card-chip-content {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.card-chip-name {
+.comparison-page .card-chip-name {
   font-weight: 600;
   font-size: 1rem;
   color: var(--text-color);
 }
 
-.card-chip-bank {
+.comparison-page .card-chip-bank {
   font-size: 0.85rem;
   color: var(--text-light);
   font-weight: 500;
 }
 
-.remove-card {
+.comparison-page .remove-card {
   background: #ef4444;
   border: none;
   color: white;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -190,7 +204,7 @@
   line-height: 1;
 }
 
-.remove-card:hover {
+.comparison-page .remove-card:hover {
   background: #dc2626;
   transform: scale(1.1);
 }
@@ -205,19 +219,22 @@
   margin-bottom: 40px;
 }
 
+.comparison-table-scroll {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.comparison-mobile-cards {
+  display: none;
+}
+
 .comparison-table {
   width: 100%;
+  min-width: 760px;
   border-collapse: separate;
   border-spacing: 0;
   background: white;
-  overflow-x: auto;
-  display: block;
-}
-
-.comparison-table thead,
-.comparison-table tbody {
-  display: table;
-  width: 100%;
   table-layout: fixed;
 }
 
@@ -240,7 +257,7 @@
 }
 
 .feature-column {
-  width: 220px;
+  width: 200px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   color: white !important;
   font-weight: 600;
@@ -250,7 +267,7 @@
 }
 
 .card-column {
-  min-width: 280px;
+  min-width: 220px;
   position: relative;
 }
 
@@ -279,6 +296,125 @@
 .feature-name {
   font-weight: 600;
   color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.comparison-table td {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .comparison-table-container {
+    border-radius: 16px;
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .comparison-table-scroll {
+    display: none;
+  }
+
+  .comparison-mobile-cards {
+    display: grid;
+    gap: 16px;
+  }
+
+  .comparison-mobile-card {
+    min-width: 0;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
+  }
+
+  .comparison-mobile-card-header {
+    padding: 18px 20px;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .comparison-mobile-card-header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.35;
+  }
+
+  .comparison-mobile-card-header p {
+    margin: 5px 0 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+  }
+
+  .comparison-mobile-group {
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .comparison-mobile-group:last-child {
+    border-bottom: 0;
+  }
+
+  .comparison-mobile-group summary {
+    min-height: 48px;
+    padding: 14px 20px;
+    color: #334155;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .comparison-mobile-group summary:focus-visible {
+    outline: 3px solid #4f46e5;
+    outline-offset: -3px;
+  }
+
+  .comparison-mobile-group dl {
+    margin: 0;
+    padding: 0 20px 8px;
+  }
+
+  .comparison-mobile-feature {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .comparison-mobile-feature dt {
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .comparison-mobile-feature dd {
+    min-width: 0;
+    margin: 0;
+    color: #0f172a;
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+  }
+
+  .comparison-page .remove-card {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .comparison-table-scroll {
+    overflow-x: auto;
+  }
+
+  .comparison-table {
+    min-width: 760px;
+  }
 }
 
 .comparison-table td {
@@ -430,7 +566,7 @@
     font-size: 2rem;
   }
 
-  .card-chips {
+  .comparison-page .card-chips {
     grid-template-columns: 1fr;
   }
 
@@ -446,7 +582,7 @@
     gap: 20px;
   }
 
-  .comparison-actions {
+  .comparison-page .comparison-actions {
     width: 100%;
     justify-content: space-between;
   }
@@ -483,7 +619,7 @@
 }
 
 @media (max-width: 480px) {
-  .comparison-actions {
+  .comparison-page .comparison-actions {
     flex-direction: column;
     gap: 16px;
   }
@@ -496,11 +632,11 @@
     font-size: 1.25rem;
   }
 
-  .card-chip {
+  .comparison-page .card-chip {
     padding: 12px 16px;
   }
 
-  .card-chip-name {
+  .comparison-page .card-chip-name {
     font-size: 0.9rem;
   }
 

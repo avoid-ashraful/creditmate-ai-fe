@@ -2,11 +2,45 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import App from '../App';
-import { guides } from '../content/guides';
+import { getGuide, guides } from '../content/guides';
 import { server } from '../mocks/jest.setup';
 
 import GuidesPage from './GuidesPage';
+
+// Mock experiments to always return control
+jest.mock('../lib/experiments', () => ({
+  getVariant: () => 'control',
+  isTreatment: () => false,
+  isResultsViewEnabled: () => false,
+  EXPERIMENTS: {
+    hero_cta_text: {
+      key: 'hero_cta_text',
+      name: 'Hero CTA Text',
+      treatmentAllocation: 50,
+      enabled: true,
+      minSampleSize: 100,
+      confidenceLevel: 0.95,
+    },
+    quiz_vs_browse_default: {
+      key: 'quiz_vs_browse_default',
+      name: 'Quiz vs Browse Default',
+      treatmentAllocation: 50,
+      enabled: true,
+      minSampleSize: 100,
+      confidenceLevel: 0.95,
+    },
+    card_layout: {
+      key: 'card_layout',
+      name: 'Card Layout',
+      treatmentAllocation: 50,
+      enabled: true,
+      minSampleSize: 100,
+      confidenceLevel: 0.95,
+    },
+  },
+}));
 
 /**
  * <head> metadata lives outside the rendered body, so Testing Library queries
@@ -53,7 +87,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe('GuidesPage index', () => {
-  test('renders the four required guides', () => {
+  test('renders all guides including the four required ones', () => {
     renderGuides('/guides');
 
     expect(
@@ -76,13 +110,29 @@ describe('GuidesPage index', () => {
     ).toBeTruthy();
   });
 
-  test('lists exactly the four acceptance-criteria slugs', () => {
-    expect(guides.map(guide => guide.slug)).toEqual([
-      'choosing-your-first-credit-card',
-      'understanding-annual-fee-waivers',
-      'maximizing-lounge-access-benefits',
-      'credit-card-vs-debit-card',
-    ]);
+  test('lists the four acceptance-criteria slugs among all guides', () => {
+    const allSlugs = guides.map(guide => guide.slug);
+    expect(allSlugs).toContain('choosing-your-first-credit-card');
+    expect(allSlugs).toContain('understanding-annual-fee-waivers');
+    expect(allSlugs).toContain('maximizing-lounge-access-benefits');
+    expect(allSlugs).toContain('credit-card-vs-debit-card');
+    // New guides added in task 9.1 follow-up (English + Bengali)
+    expect(allSlugs).toContain('create-account-sign-in');
+    expect(allSlugs).toContain('save-share-comparison');
+    expect(allSlugs).toContain('organize-cards-collections');
+    expect(allSlugs).toContain('email-alerts-card-changes');
+    expect(allSlugs).toContain('write-read-community-reviews');
+    expect(allSlugs).toContain('advanced-search-filters');
+    expect(allSlugs).toContain('switch-dark-mode-language');
+    expect(allSlugs).toContain('how-creditmate-handles-your-data');
+    expect(allSlugs).toContain('create-account-sign-in-bn');
+    expect(allSlugs).toContain('save-share-comparison-bn');
+    expect(allSlugs).toContain('organize-cards-collections-bn');
+    expect(allSlugs).toContain('email-alerts-card-changes-bn');
+    expect(allSlugs).toContain('write-read-community-reviews-bn');
+    expect(allSlugs).toContain('advanced-search-filters-bn');
+    expect(allSlugs).toContain('switch-dark-mode-language-bn');
+    expect(allSlugs).toContain('how-creditmate-handles-your-data-bn');
   });
 
   test('sets index metadata and JSON-LD', () => {
@@ -134,6 +184,18 @@ describe('GuidesPage index', () => {
 });
 
 describe('GuidesPage detail', () => {
+  test('renders editorial guide links as working in-app links', () => {
+    renderGuides('/guides/comparing-credit-cards-bn');
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'ক্রেডিট কার্ড কীভাবে তুলনা করবেন' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'সুদ ও এপিআর' })).toHaveAttribute(
+      'href',
+      '/guides/apr-interest-explained-bn'
+    );
+  });
+
   test('navigates from the index into a guide', () => {
     renderGuides('/guides');
 
@@ -233,6 +295,34 @@ describe('GuidesPage detail', () => {
     expect(within(table).getByText(/up to 25 percent on what you owe/i)).toBeInTheDocument();
   });
 
+  test('shows each FAQ on the page and in matching FAQPage markup', () => {
+    renderGuides('/guides/understanding-annual-fee-waivers');
+
+    const guide = getGuide('understanding-annual-fee-waivers');
+    expect(guide).toBeDefined();
+    guide?.faqs.forEach(faq => {
+      expect(screen.getByRole('heading', { level: 3, name: faq.question })).toBeInTheDocument();
+      expect(screen.getByText(faq.answer)).toBeInTheDocument();
+    });
+
+    const faqData = readJsonLd('guides-faq-data');
+    expect(faqData?.['@type']).toBe('FAQPage');
+    expect(faqData?.mainEntity).toEqual(
+      guide?.faqs.map(faq => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+      }))
+    );
+  });
+
+  test('links each guide to the categories it relates to', () => {
+    renderGuides('/guides/maximizing-lounge-access-benefits');
+
+    const categoryLink = screen.getByRole('link', { name: 'Travel' });
+    expect(categoryLink).toHaveAttribute('href', '/category/travel');
+  });
+
   test('shows a friendly not-found state for an unknown slug', () => {
     renderGuides('/guides/does-not-exist');
 
@@ -283,8 +373,8 @@ describe('App route integration', () => {
     expect(readMeta('meta[name="description"]')).not.toBe('Home page description');
     expect(readJsonLd('guides-structured-data')?.['@type']).toBe('Article');
 
-    // ...but HomePage has no metadata of its own, so leaving the guide must
-    // roll back everything the guides page wrote.
+    // HomePage now writes its own metadata, so leaving the guide must remove
+    // everything the guides page wrote and replace it with Home's values.
     fireEvent.click(screen.getAllByRole('link', { name: 'Home' })[0]);
     expect(
       await screen.findByRole('heading', { level: 1, name: /find your perfect credit card/i })
@@ -292,17 +382,18 @@ describe('App route integration', () => {
     // Let HomePage's mocked API fetch settle inside act.
     expect(await screen.findByText(/Test Credit Card/i)).toBeInTheDocument();
 
-    expect(document.title).toBe('CreditMate AI');
-    // Pre-existing tags are restored to their prior values.
-    expect(readMeta('meta[name="description"]')).toBe('Home page description');
+    expect(document.title).toBe('Compare credit cards in Bangladesh | CreditMate AI');
+    expect(readMeta('meta[name="description"]')).toMatch(/^Compare credit cards in Bangladesh/);
     expect(headQuery('link[rel="canonical"]')?.getAttribute('href')).toBe('http://localhost/');
     // Tags the guides page created are removed.
     expect(headQuery('script#guides-structured-data')).toBeNull();
     expect(headQuery('script#guides-breadcrumb-data')).toBeNull();
-    expect(headQuery('meta[property="og:type"]')).toBeNull();
-    expect(headQuery('meta[property="og:url"]')).toBeNull();
+    expect(headQuery('script#guides-faq-data')).toBeNull();
+    expect(readMeta('meta[property="og:type"]')).toBe('website');
+    expect(readMeta('meta[property="og:url"]')).toBe('http://localhost/');
     expect(readMeta('meta[name="robots"]')).toBeNull();
-    expect(readMeta('meta[name="twitter:card"]')).toBeNull();
+    // The JSON-LD now comes from HomePage, not from the guide.
+    expect(headQuery('script[data-seo-json-ld]')?.textContent).toContain('"WebSite"');
   });
 });
 
@@ -371,4 +462,21 @@ describe('Head metadata lifecycle', () => {
     expect(headQuery('script#guides-structured-data')).toBeNull();
     expect(headQuery('script#guides-breadcrumb-data')).toBeNull();
   });
+});
+
+describe('Accessibility', () => {
+  it('guides index has no accessibility violations', async () => {
+    const { container } = renderGuides('/guides');
+    await expectNoAxeViolations(container);
+  }, 15000);
+
+  it('guide detail has no accessibility violations', async () => {
+    const { container } = renderGuides('/guides/choosing-your-first-credit-card');
+    await expectNoAxeViolations(container);
+  }, 15000);
+
+  it('guide not found has no accessibility violations', async () => {
+    const { container } = renderGuides('/guides/does-not-exist');
+    await expectNoAxeViolations(container);
+  }, 15000);
 });

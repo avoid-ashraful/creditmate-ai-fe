@@ -1,0 +1,113 @@
+/**
+ * Unsubscribe Page Styles
+ * Uses design tokens for colors, spacing, and typography.
+ */
+
+.unsubscribe-page {
+  min-height: 100vh;
+  background: var(--color-background-base);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.unsubscribe-container {
+  width: 100%;
+  max-width: 480px;
+}
+
+.unsubscribe-card {
+  background: var(--color-background-surface);
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+  text-align: center;
+}
+
+.success-icon,
+.error-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-bottom: var(--spacing-lg);
+}
+
+.success-icon {
+  background: var(--color-success-subtle);
+  color: var(--color-success-base);
+}
+
+.error-icon {
+  background: var(--color-error-subtle);
+  color: var(--color-error-base);
+}
+
+.unsubscribe-card h1 {
+  font-size: var(--typography-font-size-2xl);
+  font-weight: var(--typography-font-weight-bold);
+  margin: 0 0 var(--spacing-md);
+  color: var(--color-text-primary);
+}
+
+.unsubscribe-card p {
+  font-size: var(--typography-font-size-md);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-xl);
+  line-height: var(--typography-line-height-relaxed);
+}
+
+.unsubscribe-card .btn {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: var(--spacing-md);
+}
+
+.unsubscribe-card .btn:last-child {
+  margin-bottom: 0;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl);
+  color: var(--color-text-secondary);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border-base);
+  border-top-color: var(--color-primary-base);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .unsubscribe-page {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+
+  .unsubscribe-card {
+    padding: var(--spacing-lg);
+  }
+
+  .unsubscribe-card h1 {
+    font-size: var(--typography-font-size-xl);
+  }
+}

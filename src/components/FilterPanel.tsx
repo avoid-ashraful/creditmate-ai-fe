@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
+import { useLanguage, getCommonCopy } from '../locales';
 import { CardFilterOptions, Bank } from '../types';
 import './FilterPanel.css';
 
@@ -14,8 +15,11 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   onFilterChange,
   initialFilters = {},
 }) => {
+  const { lang } = useLanguage();
+  const common = getCommonCopy(lang);
   const [filters, setFilters] = useState<CardFilterOptions>(initialFilters);
   const [expanded, setExpanded] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Apply initial filters if provided
@@ -115,7 +119,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       validatedFilters.annualFeeRangeString &&
       !validateRangeString(validatedFilters.annualFeeRangeString)
     ) {
-      alert('Invalid annual fee range format. Please use "min,max" format (e.g., "0,200").');
+      setError(common.filterErrorAnnualFeeFormat);
       return;
     }
 
@@ -123,16 +127,18 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       validatedFilters.interestRateRangeString &&
       !validateRangeString(validatedFilters.interestRateRangeString)
     ) {
-      alert('Invalid interest rate range format. Please use "min,max" format (e.g., "18.0,25.0").');
+      setError(common.filterErrorInterestRateFormat);
       return;
     }
 
+    setError(null);
     onFilterChange(validatedFilters);
   };
 
   const resetFilters = () => {
     const emptyFilters: CardFilterOptions = {};
     setFilters(emptyFilters);
+    setError(null);
     onFilterChange(emptyFilters);
   };
 
@@ -141,16 +147,26 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   return (
-    <div className={`filter-panel ${expanded ? 'expanded' : 'collapsed'}`}>
+    <section
+      className={`filter-panel ${expanded ? 'expanded' : 'collapsed'}`}
+      aria-labelledby="filter-panel-heading"
+    >
       <div className="filter-header" onClick={toggleExpanded}>
-        <h3>Filter Options</h3>
-        <button className="toggle-button">{expanded ? 'Collapse' : 'Expand'}</button>
+        <h3 id="filter-panel-heading">{common.filterPanelTitle}</h3>
+        <button
+          className="toggle-button"
+          type="button"
+          aria-expanded={expanded}
+          aria-controls="filter-panel-content"
+        >
+          {expanded ? common.filterCollapse : common.filterExpand}
+        </button>
       </div>
 
       {expanded && (
-        <div className="filter-content">
+        <div className="filter-content" id="filter-panel-content">
           <div className="filter-section">
-            <h4>Banks</h4>
+            <h4>{common.filterSectionBanks}</h4>
             <div className="bank-options">
               {banks.map(bank => (
                 <div key={bank.id} className="bank-option">
@@ -167,10 +183,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>Annual Fee</h4>
+            <h4>{common.filterSectionAnnualFee}</h4>
             <div className="range-inputs">
               <div className="input-group">
-                <label htmlFor="minAnnualFee">Min (BDT):</label>
+                <label htmlFor="minAnnualFee">{common.filterLabelMinAnnualFee}</label>
                 <input
                   type="number"
                   id="minAnnualFee"
@@ -182,7 +198,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 />
               </div>
               <div className="input-group">
-                <label htmlFor="maxAnnualFee">Max (BDT):</label>
+                <label htmlFor="maxAnnualFee">{common.filterLabelMaxAnnualFee}</label>
                 <input
                   type="number"
                   id="maxAnnualFee"
@@ -195,7 +211,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               </div>
             </div>
             <div className="range-string-input">
-              <label htmlFor="annualFeeRangeString">Or Range (min,max):</label>
+              <label htmlFor="annualFeeRangeString">{common.filterLabelAnnualFeeRange}</label>
               <input
                 type="text"
                 id="annualFeeRangeString"
@@ -208,10 +224,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>Interest Rate (APR)</h4>
+            <h4>{common.filterSectionInterestRate}</h4>
             <div className="range-inputs">
               <div className="input-group">
-                <label htmlFor="minInterestRate">Min (%):</label>
+                <label htmlFor="minInterestRate">{common.filterLabelMinInterestRate}</label>
                 <input
                   type="number"
                   id="minInterestRate"
@@ -224,7 +240,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 />
               </div>
               <div className="input-group">
-                <label htmlFor="maxInterestRate">Max (%):</label>
+                <label htmlFor="maxInterestRate">{common.filterLabelMaxInterestRate}</label>
                 <input
                   type="number"
                   id="maxInterestRate"
@@ -238,7 +254,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               </div>
             </div>
             <div className="range-string-input">
-              <label htmlFor="interestRateRangeString">Or Range (min,max):</label>
+              <label htmlFor="interestRateRangeString">{common.filterLabelInterestRateRange}</label>
               <input
                 type="text"
                 id="interestRateRangeString"
@@ -251,7 +267,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>Annual Fee Options</h4>
+            <h4>{common.filterSectionAnnualFeeOptions}</h4>
             <div className="checkbox-inputs">
               <div className="input-group">
                 <input
@@ -261,7 +277,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   checked={filters.hasAnnualFee || false}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="hasAnnualFee">Has Annual Fee</label>
+                <label htmlFor="hasAnnualFee">{common.filterLabelHasAnnualFee}</label>
               </div>
               <div className="input-group">
                 <input
@@ -271,13 +287,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   checked={filters.hasFeeWaiver || false}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="hasFeeWaiver">Has Fee Waiver Policy</label>
+                <label htmlFor="hasFeeWaiver">{common.filterLabelHasFeeWaiver}</label>
               </div>
             </div>
           </div>
 
           <div className="filter-section">
-            <h4>Lounge Access</h4>
+            <h4>{common.filterSectionLoungeAccess}</h4>
             <div className="checkbox-inputs">
               <div className="input-group">
                 <input
@@ -287,7 +303,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   checked={filters.hasLoungeAccess || false}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="hasLoungeAccess">Any Lounge Access</label>
+                <label htmlFor="hasLoungeAccess">{common.filterLabelHasLoungeAccess}</label>
               </div>
               <div className="input-group">
                 <input
@@ -297,7 +313,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   checked={filters.hasInternationalLounge || false}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="hasInternationalLounge">International Lounge Access</label>
+                <label htmlFor="hasInternationalLounge">
+                  {common.filterLabelHasInternationalLounge}
+                </label>
               </div>
               <div className="input-group">
                 <input
@@ -307,12 +325,14 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   checked={filters.hasDomesticLounge || false}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="hasDomesticLounge">Domestic Lounge Access</label>
+                <label htmlFor="hasDomesticLounge">{common.filterLabelHasDomesticLounge}</label>
               </div>
             </div>
             <div className="range-inputs">
               <div className="input-group">
-                <label htmlFor="minInternationalLounge">Min International:</label>
+                <label htmlFor="minInternationalLounge">
+                  {common.filterLabelMinInternationalLounge}
+                </label>
                 <input
                   type="number"
                   id="minInternationalLounge"
@@ -324,7 +344,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 />
               </div>
               <div className="input-group">
-                <label htmlFor="minDomesticLounge">Min Domestic:</label>
+                <label htmlFor="minDomesticLounge">{common.filterLabelMinDomesticLounge}</label>
                 <input
                   type="number"
                   id="minDomesticLounge"
@@ -339,7 +359,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>Features</h4>
+            <h4>{common.filterSectionFeatures}</h4>
             <div className="checkbox-inputs">
               <div className="input-group">
                 <input
@@ -349,7 +369,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   checked={filters.hasAdditionalFeatures || false}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="hasAdditionalFeatures">Has Additional Features</label>
+                <label htmlFor="hasAdditionalFeatures">
+                  {common.filterLabelHasAdditionalFeatures}
+                </label>
               </div>
             </div>
             <div className="search-input">
@@ -359,13 +381,14 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 name="featureSearch"
                 value={filters.featureSearch || ''}
                 onChange={handleInputChange}
-                placeholder="Search in features"
+                placeholder={common.filterLabelFeatureSearch}
+                aria-label={common.filterLabelFeatureSearch}
               />
             </div>
           </div>
 
           <div className="filter-section">
-            <h4>Search</h4>
+            <h4>{common.filterSectionSearch}</h4>
             <div className="search-input">
               <input
                 type="text"
@@ -373,22 +396,29 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 name="searchTerm"
                 value={filters.searchTerm || ''}
                 onChange={handleInputChange}
-                placeholder="Search by card name or features"
+                placeholder={common.filterLabelSearchTerm}
+                aria-label={common.filterLabelSearchTerm}
               />
             </div>
           </div>
 
+          {error && (
+            <p className="filter-error" role="alert">
+              {error}
+            </p>
+          )}
+
           <div className="filter-actions">
             <button className="apply-button" onClick={applyFilters}>
-              Apply Filters
+              {common.filterApply}
             </button>
             <button className="reset-button" onClick={resetFilters}>
-              Reset
+              {common.filterReset}
             </button>
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 };
 
