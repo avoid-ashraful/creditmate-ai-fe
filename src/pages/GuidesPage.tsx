@@ -295,7 +295,7 @@ const GuidesPage: React.FC = () => {
     // unmounts (for example navigating a guide back to Home, which has no
     // metadata of its own) and before every index/detail re-write.
     return applyHeadWrites(title, writes);
-  }, [title, description, canonical, guide, structuredData]);
+  }, [title, description, canonical, guide, structuredData, lang]);
 
   if (notFound) {
     return (
