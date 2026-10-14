@@ -31,6 +31,7 @@ const routes = (
     </ul>
     <Routes>
       <Route path="/" element={<p>home page</p>} />
+      <Route path="/account" element={<p>account page</p>} />
       <Route path="/login" element={<p>login page</p>} />
     </Routes>
   </>
@@ -86,6 +87,25 @@ describe('AccountMenu', () => {
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(trigger).toHaveFocus();
     expect(screen.queryByRole('button', { name: 'Log out' })).not.toBeInTheDocument();
+  });
+
+  it('opens and navigates the menu with the keyboard', async () => {
+    await signIn();
+    const user = userEvent.setup();
+    renderWithAuth(routes);
+
+    await screen.findByRole('button', { name: /Account menu/ });
+    await user.tab();
+    const trigger = screen.getByRole('button', { name: /Account menu/ });
+    expect(trigger).toHaveFocus();
+    await user.keyboard('{Enter}');
+
+    const accountLink = screen.getByRole('link', { name: 'My account' });
+    expect(accountLink).toBeVisible();
+    await user.tab();
+    expect(accountLink).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(await screen.findByText('account page')).toBeInTheDocument();
   });
 
   it('logs out, returns home and shows the anonymous links again', async () => {
