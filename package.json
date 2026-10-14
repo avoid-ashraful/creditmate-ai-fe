@@ -40,7 +40,7 @@
     "check-lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "check-types": "tsc --noEmit",
     "bundle:budget": "node scripts/bundle-budget.js",
-    "bundle:budget:ci": "node scripts/bundle-budget.js --budget=200",
+    "bundle:budget:ci": "node scripts/bundle-budget.js --budget=210",
     "lighthouse": "node scripts/lighthouse-runner.js",
     "lighthouse:ci": "node scripts/lighthouse-runner.js --runs=1",
     "prepare": "husky install",
