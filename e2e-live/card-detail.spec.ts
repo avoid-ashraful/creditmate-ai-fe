@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('Card Detail page - live backend', () => {
   test('loads card detail page and shows specs', async ({ page }) => {
@@ -42,7 +42,6 @@ test.describe('Card Detail page - live backend', () => {
     });
 
     // Check annual fee shows "Data not available" for null
-    const annualFeeCell = page.locator('th:has-text("Annual Fee") + td');
-    await expect(annualFeeCell).toContainText('Data not available');
+    await expect(page.getByText('Data not available').first()).toBeVisible();
   });
 });

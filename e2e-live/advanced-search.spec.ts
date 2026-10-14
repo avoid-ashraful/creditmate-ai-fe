@@ -1,6 +1,12 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('Advanced Search - live backend', () => {
+  test('advanced search page loads real backend results', async ({ page }) => {
+    await page.goto('/search');
+    await expect(page.getByRole('heading', { name: 'Advanced Search', exact: true })).toBeVisible();
+    await expect(page.locator('.results-count')).toBeVisible();
+  });
+
   test('API advanced search endpoint works', async ({ request }) => {
     // Use the backend port from environment
     const bePort = process.env.BE_PORT || '4001';

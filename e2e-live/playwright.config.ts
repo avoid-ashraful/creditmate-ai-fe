@@ -10,7 +10,7 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  retries: 0,
   workers: 1,
   reporter: [['list']],
   use: {
@@ -22,16 +22,8 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-    },
-    {
       name: 'desktop-chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: '/home/ubuntu/credit-workers/task-live-e2e/e2e-live/.auth/state.json',
-      },
-      dependencies: ['setup'],
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
   webServer: undefined,

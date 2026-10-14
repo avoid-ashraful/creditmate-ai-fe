@@ -1,176 +1,45 @@
-# Live E2E Integration Test Findings
+# Live E2E findings
 
 **Report ID:** live
-**Date:** 2026-10-13
-**Frontend:** /home/ubuntu/credit-workers/task-live-e2e (React CRA)
-**Backend:** /home/ubuntu/credit-workers/integration/creditmate-ai-be (Django)
-**Database:** PostgreSQL in docker container task-63-search-db-1
+**Date:** 2026-10-14
+**Frontend:** `/home/ubuntu/credit-workers/task-live-e2e`
+**Backend:** `/home/ubuntu/credit-workers/integration/creditmate-ai-be` (read-only)
+**Harness:** `e2e-live/run.sh`, production CRA build + Playwright + scratch PostgreSQL
 
----
+## Verified setup
 
-## Summary
+- `REACT_APP_API_BASE_URL` is the correct build variable. Playwright's `baseURL` resolves to the dynamic `127.0.0.1` frontend origin; the browser loads deep links and backend requests successfully.
+- `serve -s build -l tcp://127.0.0.1:<port>` serves the SPA at the expected address. Backend CORS preflight requests from that origin returned 200.
+- Email registration and login work against the current auth API. The register endpoint returns its documented detail response and the UI proceeds to login; login accepts the email username.
+- Card deep links work with seeded slugs, e.g. `/card/smoke-bank-1/smoke-card-01`.
+- Typeahead works with the real backend. Browser requests to `/api/v1/credit-cards/typeahead/?q=Smoke` returned 200 and the UI selected card and category suggestions.
+- The earlier first attempt failed before FE startup because the database seed reported a missing `banks_bank` table. The migration output was successful, and a standalone migration into a fresh scratch DB created the table. Clearing `DATABASE_URL` and checking the migrated table before seed resolved the setup failure; no backend migration defect reproduced.
 
-**Total Tests:** 23
+## Confirmed frontend bug and fix
 
-- **Passed:** 3 (Advanced Search API endpoints)
-- **Failed:** 20 (frontend/backend integration issues)
+### Alert subscription refresh cleared a valid login
 
----
+**Reproduction:** Register and log in, then open a card detail URL and inspect `/auth/token/refresh/` calls and the browser's auth UI. The backend logs show register 201, login 200, session restore `/auth/me/` 200, followed by another refresh request returning 400. The card page then shows anonymous login prompts instead of the watch button.
 
-## Frontend Bugs (to fix)
+**Cause:** `AlertsClient` called `AuthClient.refreshAccessToken()` for every authenticated request, even when a valid access token was already available. With refresh rotation, an extra refresh can reuse a token already exchanged and clear local auth state.
 
-### 1. **E2E_BASE_URL not properly passed to Playwright config**
+**Fix:** `AlertsClient` now calls `AuthClient.getAccessToken()`, reusing the in-memory access token or joining a single refresh only when needed. The existing alerts service unit test now asserts this call. A targeted live rerun is pending.
 
-- **Symptom:** Tests show `baseURL: about:blank` despite E2E_BASE_URL being set in environment
-- **Root cause:** Playwright config reads `process.env.E2E_BASE_URL` at config load time, but the env var is set after Playwright process starts
-- **Fix:** Pass `--base-url` CLI argument or use proper config file path
-- **Test file:** All tests affected
+## Harness/test corrections
 
-### 2. **Frontend serving on `localhost` not `127.0.0.1`**
+- The first Playwright attempt had 23 failures because the config required a nonexistent `.auth/state.json`; registration/login tests already manage their own users. Removed that dependency and the unused setup project.
+- `e2e/test-init.spec.ts` was a stray root E2E file and was deleted. Removed the live debug-only `e2e-live/test-init.spec.ts` too.
+- The category and home filter tests used `toHaveCount({ min: 1 })`, which Playwright does not support. Replaced these with supported assertions.
+- Compare tests used a stale accessible button name; the current control has `.add-to-compare-btn`. Updated the selector.
+- Card detail's annual-fee selector matched two specification tables; assert the visible unknown value instead. Review test now identifies the exact card heading.
+- Auth, home, category, card detail, alerts, and shared comparison tests now record browser console errors, failed requests, HTTP errors, and card-list response counts in the Playwright log.
+- Runner uses a unique scratch DB, clears inherited `DATABASE_URL`, checks migrations before seeding, binds FE/BE ports in 4000–4999, and writes logs under a unique `/tmp` directory. It kills only the direct server PIDs it launches and drops only its own database.
 
-- **Symptom:** `serve -s build -p PORT` binds to `localhost` (IPv6) but Playwright config expects `127.0.0.1`
-- **Root cause:** `npx serve` defaults to `localhost` which resolves to `::1` on some systems
-- **Fix:** Use `--listen 127.0.0.1:PORT` or bind to `0.0.0.0`
-- **Test file:** All tests affected
+## Run results so far
 
-### 3. **Typeahead/Autocomplete not working against real backend**
+- First full Playwright run after fixing the missing storage-state setup: **11 passed, 11 failed of 22**. Advanced search (3), auth (2), deep-link detail (1), category pagination (1), dark mode (1), and typeahead (3) passed. The failures exposed the alert refresh bug and the harness assertion/selector issues above.
+- A follow-up targeted live run is queued behind the shared host's `heavy` semaphore. Its backend migrated and seeded 3 banks / 12 cards. Exact current test result and list response counts will be added after the run completes.
 
-- **Symptom:** Tests fail with timeout waiting for autocomplete suggestions
-- **Root cause:** The typeahead endpoint `/api/v1/credit-cards/typeahead/` may not exist or return different format
-- **Fix:** Check backend API implementation or update test expectations
-- **Test file:** `typeahead.spec.ts`
+## Backend issues
 
-### 4. **Card Detail page deep link routing not working**
-
-- **Symptom:** Tests trying to navigate to `/card/bank-slug/card-slug` fail
-- **Root cause:** Frontend routing expects specific slug format but backend returns different slugs
-- **Fix:** Align frontend slug generation with backend data
-- **Test file:** `card-detail.spec.ts`
-
-### 5. **Category page pagination and filtering issues**
-
-- **Symptom:** Tests for `/category/travel` fail
-- **Root cause:** Category routes may not be implemented or use different slug format
-- **Fix:** Verify category page implementation and API filter parameters
-- **Test file:** `category.spec.ts`
-
-### 6. **Dark mode toggle state persistence**
-
-- **Symptom:** Dark mode test fails - state not persisting across reloads
-- **Root cause:** localStorage key may be different or not being set correctly
-- **Fix:** Check ThemeToggle component localStorage key
-- **Test file:** `dark-mode.spec.ts`
-
-### 7. **Compare page share URL functionality**
-
-- **Symptom:** Share comparison copy fails
-- **Root cause:** Clipboard API may not work in test context or URL format differs
-- **Fix:** Update test to handle clipboard properly or verify share URL format
-- **Test file:** `compare.spec.ts`
-
-### 8. **Saved comparisons public share link**
-
-- **Symptom:** Public share link test fails
-- **Root cause:** Share token generation or retrieval may be broken
-- **Fix:** Check saved service share token handling
-- **Test file:** `saved.spec.ts`
-
-### 9. **Review submission pending notice**
-
-- **Symptom:** Review test fails to see pending notice
-- **Root cause:** Review form submission or UI state update may be broken
-- **Fix:** Check ReviewsSection component pending state handling
-- **Test file:** `review.spec.ts`
-
-### 10. **Auth flow - account redirect after login**
-
-- **Symptom:** Protected account page doesn't redirect to login
-- **Root cause:** AuthProvider may not be checking auth state correctly on protected routes
-- **Fix:** Check ProtectedRoute and AuthProvider implementation
-- **Test file:** `auth.spec.ts`
-
-### 11. **Watch card / Alert subscription**
-
-- **Symptom:** Watch card test fails - cannot navigate to register
-- **Root cause:** Frontend routing or auth flow issues
-- **Fix:** Check AlertsPage and auth integration
-- **Test file:** `alerts.spec.ts`
-
----
-
-## Backend Bugs (reproduction provided - do not fix)
-
-### 1. **CORS not allowing frontend origin dynamically**
-
-- **Reproduction:** Set `CORS_ALLOWED_ORIGINS=http://127.0.0.1:59223` and try to access from frontend
-- **Expected:** Backend should allow the FE origin
-- **Actual:** Need to restart backend with correct CORS_ALLOWED_ORIGINS
-- **Workaround:** Set CORS_ALLOWED_ORIGINS before starting backend
-
-### 2. **Typeahead endpoint format mismatch**
-
-- **Reproduction:** Call `GET /api/v1/credit-cards/typeahead/?q=Smoke`
-- **Expected:** Return `{ suggestions: [...], facets: [...] }`
-- **Actual:** Need to verify endpoint exists and returns correct format
-
-### 3. **Advanced search endpoints working correctly** ✓
-
-- `GET /api/v1/credit-cards/advanced-search/` - PASS
-- `GET /api/v1/credit-cards/advanced-search/categories/` - PASS
-- `GET /api/v1/credit-cards/advanced-search/sort-options/` - PASS
-
-### 4. **Throttling needs high limits for testing**
-
-- **Config:** Set THROTTLE*RATE*\* env vars high before starting backend:
-  - `THROTTLE_RATE_ANON=1000/min`
-  - `THROTTLE_RATE_USER=1000/min`
-  - `THROTTLE_RATE_BURST=100/sec`
-  - `THROTTLE_RATE_REVIEW_WRITE=50/hour`
-  - `THROTTLE_RATE_AUTH_BURST=100/min`
-  - `THROTTLE_RATE_AUTH_ANON=100/min`
-  - `THROTTLE_RATE_AUTH_USER=1000/min`
-
----
-
-## Test Results Breakdown
-
-| Test Category       | Tests | Passed | Failed | Notes                             |
-| ------------------- | ----- | ------ | ------ | --------------------------------- |
-| Advanced Search API | 3     | 3      | 0      | ✓ Backend endpoints working       |
-| Alerts / Watch Card | 1     | 0      | 1      | Frontend auth/routing issue       |
-| Auth Flow           | 2     | 0      | 2      | ProtectedRoute/AuthProvider issue |
-| Card Detail         | 2     | 0      | 2      | Routing/slug format issue         |
-| Category Pages      | 2     | 0      | 2      | Category routing/API filters      |
-| Compare Cards       | 2     | 0      | 2      | Share URL/clipboard issue         |
-| Dark Mode           | 1     | 0      | 1      | localStorage persistence          |
-| Home Page           | 3     | 0      | 3      | Typeahead/filters issue           |
-| Reviews             | 1     | 0      | 1      | Pending notice not shown          |
-| Saved Comparisons   | 2     | 0      | 2      | Share link/retrieval issue        |
-| Typeahead           | 3     | 0      | 3      | Backend endpoint format           |
-| Basic/Init          | 1     | 0      | 1      | BaseURL config issue              |
-
----
-
-## Next Steps
-
-1. **Fix frontend bugs** in priority order:
-   - BaseURL/config issue (affects all tests)
-   - Frontend serving on correct host (127.0.0.1)
-   - Auth flow (ProtectedRoute, AuthProvider)
-   - Card detail routing
-   - Typeahead integration
-2. **Re-run tests** after each fix to verify
-
-3. **Run full test suite 3 times** (heavy-gated) as required
-
----
-
-## Environment Notes
-
-- **Heavy command semaphore:** Used `/home/ubuntu/.local/bin/heavy` for all CPU-intensive operations
-- **Node modules:** Symlinked from `/home/ubuntu/credit-workers/fe-e2e-integration/node_modules`
-- **Backend Python:** `/home/ubuntu/credit-workers/task-8.4-be/.venv/bin/python`
-- **PostgreSQL:** Docker container `task-63-search-db-1` on port 5432
-- **Redis:** Port 6379, DB 14 (shared)
-- **Ports:** Dynamic allocation 4000-4999 for FE, 4000-4999 for BE
-- **Database:** Unique names with task ID `e2e_live_<timestamp>_<random>`
+No backend API defect is confirmed so far. Advanced-search endpoints, typeahead, card list/detail, CORS preflights, registration, login, and auth profile requests returned successful responses. Refresh 400s occurred only after the frontend unnecessarily reused a rotated refresh token; the frontend change addresses that cause. Continue to record any reproducible non-2xx contract mismatch here with request and response evidence.

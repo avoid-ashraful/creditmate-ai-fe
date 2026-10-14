@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('Category pages - live backend', () => {
   test('category page loads and shows filtered cards', async ({ page }) => {
@@ -9,7 +9,7 @@ test.describe('Category pages - live backend', () => {
     });
 
     // Should show some cards with lounge access
-    await expect(page.locator('.card-list-item')).toHaveCount({ min: 1 });
+    await expect(page.locator('.card-list-item')).not.toHaveCount(0);
   });
 
   test('category page pagination works', async ({ page }) => {
@@ -23,7 +23,7 @@ test.describe('Category pages - live backend', () => {
     if (await loadMore.isVisible({ timeout: 5000 }).catch(() => false)) {
       await loadMore.click();
       // Should load more cards
-      await expect(page.locator('.card-list-item')).toHaveCount({ min: 1 });
+      await expect(page.locator('.card-list-item')).not.toHaveCount(0);
     }
   });
 });

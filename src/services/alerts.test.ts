@@ -22,7 +22,7 @@ jest.mock('./auth', () => ({
   ...jest.requireActual('./auth'),
   authClient: {
     hasSession: jest.fn(() => true),
-    refreshAccessToken: jest.fn().mockResolvedValue('access-token'),
+    getAccessToken: jest.fn().mockResolvedValue('access-token'),
   },
 }));
 
@@ -32,7 +32,7 @@ describe('AlertsClient', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAuthClient.hasSession.mockReturnValue(true);
-    mockAuthClient.refreshAccessToken.mockResolvedValue('access-token');
+    mockAuthClient.getAccessToken.mockResolvedValue('access-token');
   });
 
   describe('listSubscriptions', () => {
@@ -63,7 +63,7 @@ describe('AlertsClient', () => {
       const result = await alertsClient.listSubscriptions();
 
       expect(result).toEqual(mockSubscriptions);
-      expect(mockAuthClient.refreshAccessToken).toHaveBeenCalled();
+      expect(mockAuthClient.getAccessToken).toHaveBeenCalled();
     });
 
     it('throws AlertsApiError on 401', async () => {

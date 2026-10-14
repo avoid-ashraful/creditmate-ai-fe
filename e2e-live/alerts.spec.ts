@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 const TEST_EMAIL = `e2e-alerts-${Date.now()}@example.test`;
 const TEST_PASSWORD = 'Strong-pass-123!';

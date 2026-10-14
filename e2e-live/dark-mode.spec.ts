@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('Dark mode toggle - live backend', () => {
   test('dark mode toggle persists across reloads', async ({ page }) => {

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('Compare cards - live backend', () => {
   test('compare 3 cards from home page', async ({ page }) => {
@@ -8,21 +8,9 @@ test.describe('Compare cards - live backend', () => {
     });
 
     // Add 3 cards to compare
-    await page
-      .locator('.card-list-item')
-      .nth(0)
-      .getByRole('button', { name: 'Add to Compare' })
-      .click();
-    await page
-      .locator('.card-list-item')
-      .nth(1)
-      .getByRole('button', { name: 'Add to Compare' })
-      .click();
-    await page
-      .locator('.card-list-item')
-      .nth(2)
-      .getByRole('button', { name: 'Add to Compare' })
-      .click();
+    await page.locator('.add-to-compare-btn').nth(0).click();
+    await page.locator('.add-to-compare-btn').nth(1).click();
+    await page.locator('.add-to-compare-btn').nth(2).click();
 
     // Click compare button
     await page.locator('a.compare-button').click();
@@ -37,38 +25,22 @@ test.describe('Compare cards - live backend', () => {
   });
 
   test('share comparison copies URL', async ({ page }) => {
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('/');
     await expect(page.getByRole('heading', { name: /Credit Cards \(/ })).toBeVisible({
       timeout: 30000,
     });
 
     // Add 2 cards
-    await page
-      .locator('.card-list-item')
-      .nth(0)
-      .getByRole('button', { name: 'Add to Compare' })
-      .click();
-    await page
-      .locator('.card-list-item')
-      .nth(1)
-      .getByRole('button', { name: 'Add to Compare' })
-      .click();
+    await page.locator('.add-to-compare-btn').nth(0).click();
+    await page.locator('.add-to-compare-btn').nth(1).click();
     await page.locator('a.compare-button').click();
 
     await expect(page.getByRole('heading', { name: 'Credit Card Comparison' })).toBeVisible();
 
-    // Set up clipboard interception
-    await page.addInitScript(() => {
-      window.navigator.clipboard.writeText = async (value: string) => {
-        window.__sharedComparison = value;
-      };
-    });
-
     await page.getByRole('button', { name: 'Share Comparison' }).click();
 
-    const sharedUrl = await page.evaluate(
-      () => (window as Window & { __sharedComparison?: string }).__sharedComparison
-    );
+    const sharedUrl = await page.evaluate(() => window.navigator.clipboard.readText());
     expect(sharedUrl).toBeTruthy();
     expect(sharedUrl).toMatch(/\/compare\?ids=/);
   });

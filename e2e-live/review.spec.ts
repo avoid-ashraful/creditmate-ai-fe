@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 const TEST_EMAIL = `e2e-review-${Date.now()}@example.test`;
 const TEST_PASSWORD = 'Strong-pass-123!';
@@ -27,7 +27,7 @@ test.describe('Write review - live backend', () => {
     await page.goto('/card/smoke-bank-1/smoke-card-01');
 
     // Wait for detail page/popup
-    await expect(page.getByRole('heading', { name: /Smoke Card/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: 'Smoke Card 01', exact: true })).toBeVisible({
       timeout: 10000,
     });
 

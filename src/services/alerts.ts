@@ -51,7 +51,7 @@ export class AlertsClient {
    * Get the current access token from AuthClient, refreshing if needed.
    */
   private async getAccessToken(): Promise<string | null> {
-    return authClient.hasSession() ? authClient.refreshAccessToken() : null;
+    return authClient.hasSession() ? authClient.getAccessToken() : null;
   }
 
   /**

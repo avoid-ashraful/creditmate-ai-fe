@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('Typeahead / Search Autocomplete - live backend', () => {
   test.beforeEach(async ({ page }) => {

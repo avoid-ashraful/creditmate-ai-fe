@@ -8,8 +8,25 @@ FE_ROOT="/home/ubuntu/credit-workers/task-live-e2e"
 BE_ROOT="/home/ubuntu/credit-workers/integration/creditmate-ai-be"
 
 # Port allocation
-FE_PORT=$(python3 -c "import socket; s=socket.socket(); s.bind(('127.0.0.1',0)); print(s.getsockname()[1]); s.close()")
-BE_PORT=$(python3 -c "import socket; s=socket.socket(); s.bind(('127.0.0.1',0)); print(s.getsockname()[1]); s.close()")
+find_port() {
+  python3 - <<'PY'
+import random, socket
+ports = list(range(4000, 5000))
+random.shuffle(ports)
+for port in ports:
+    with socket.socket() as sock:
+        try:
+            sock.bind(('127.0.0.1', port))
+        except OSError:
+            continue
+        print(port)
+        break
+else:
+    raise SystemExit('No free port in 4000-4999')
+PY
+}
+FE_PORT=$(find_port)
+BE_PORT=$(find_port)
 
 # Unique DB name
 DB_NAME="e2e_live_$(date +%s)_${RANDOM}"
@@ -20,7 +37,7 @@ FE_SERVER_PID=""
 DB_CREATED=0
 
 # Log file
-LOG_DIR="${FE_ROOT}/e2e-live/logs"
+LOG_DIR="${TMPDIR:-/tmp}/task-live-e2e-logs/$(date +%Y%m%d_%H%M%S)_${RANDOM}"
 mkdir -p "${LOG_DIR}"
 BACKEND_LOG="${LOG_DIR}/backend-${DB_NAME}.log"
 FE_BUILD_LOG="${LOG_DIR}/fe-build.log"
@@ -57,17 +74,14 @@ cleanup() {
     echo "FE server log: ${FE_SERVER_LOG}"
     echo "Playwright log: ${PLAYWRIGHT_LOG}"
     echo ""
-    echo "Last 100 lines of backend log:"
-    tail -100 "${BACKEND_LOG}" 2>/dev/null || true
-    echo ""
-    echo "Last 100 lines of FE build log:"
-    tail -100 "${FE_BUILD_LOG}" 2>/dev/null || true
-    echo ""
-    echo "Last 100 lines of FE server log:"
-    tail -100 "${FE_SERVER_LOG}" 2>/dev/null || true
-    echo ""
-    echo "Last 100 lines of Playwright log:"
-    tail -100 "${PLAYWRIGHT_LOG}" 2>/dev/null || true
+    echo "Recent backend log:"
+    tail -20 "${BACKEND_LOG}" 2>/dev/null || true
+    echo "Recent FE build log:"
+    tail -12 "${FE_BUILD_LOG}" 2>/dev/null || true
+    echo "Recent FE server log:"
+    tail -8 "${FE_SERVER_LOG}" 2>/dev/null || true
+    echo "Playwright failure summary:"
+    rg -n -m 12 '^  [0-9]+\)|^[[:space:]]+[0-9]+ failed|Error:' "${PLAYWRIGHT_LOG}" 2>/dev/null | tail -24 || true
   else
     echo "=== TEST RUN PASSED ==="
   fi
@@ -99,7 +113,8 @@ export DEBUG=True
 export SECRET_KEY=test
 export SEARCH_ENABLED=False
 export REDIS_CACHE_URL=redis://127.0.0.1:6379/14
-export DATABASE_URL="postgres://postgres:postgres@127.0.0.1:5432/${DB_NAME}"
+export DATABASE_URL=
+export DB_USER=postgres DB_PASSWORD=postgres DB_HOST=127.0.0.1 DB_PORT=5432 DB_NAME="${DB_NAME}"
 export THROTTLE_RATE_ANON=1000/min
 export THROTTLE_RATE_USER=1000/min
 export THROTTLE_RATE_BURST=100/sec
@@ -111,6 +126,9 @@ export CORS_ALLOWED_ORIGINS="http://127.0.0.1:${FE_PORT},http://localhost:${FE_P
 export CORS_ALLOW_CREDENTIALS=True
 
 /home/ubuntu/credit-workers/task-8.4-be/.venv/bin/python manage.py migrate --noinput >> "${BACKEND_LOG}" 2>&1
+/home/ubuntu/credit-workers/task-8.4-be/.venv/bin/python manage.py shell -c \
+  "from django.db import connection; assert 'banks_bank' in connection.introspection.table_names()" \
+  >> "${BACKEND_LOG}" 2>&1
 /home/ubuntu/credit-workers/task-8.4-be/.venv/bin/python scripts/seed_smoke_data.py >> "${BACKEND_LOG}" 2>&1
 
 /home/ubuntu/credit-workers/task-8.4-be/.venv/bin/python manage.py runserver "127.0.0.1:${BE_PORT}" --noreload >> "${BACKEND_LOG}" 2>&1 &
@@ -148,7 +166,7 @@ CI=true \
 # Frontend is built, just serve it
 echo "Serving frontend on port ${FE_PORT}..."
 cd "${FE_ROOT}"
-nohup npx serve -s build -p "${FE_PORT}" > "${FE_SERVER_LOG}" 2>&1 &
+./node_modules/.bin/serve -s build -l "tcp://127.0.0.1:${FE_PORT}" > "${FE_SERVER_LOG}" 2>&1 &
 FE_SERVER_PID=$!
 
 # Wait for FE server
@@ -176,6 +194,8 @@ export FE_PORT="${FE_PORT}"
 export E2E_BASE_URL="http://127.0.0.1:${FE_PORT}"
 export BE_PORT="${BE_PORT}"
 cd "${FE_ROOT}"
-/home/ubuntu/.local/bin/heavy npx playwright test --config="${FE_ROOT}/e2e-live/playwright.config.ts" --reporter=list 2>&1 | tee "${PLAYWRIGHT_LOG}"
+/home/ubuntu/.local/bin/heavy npx playwright test --config="${FE_ROOT}/e2e-live/playwright.config.ts" --reporter=list "$@" 2>&1 | tee "${PLAYWRIGHT_LOG}"
 
+echo "Playwright summary:"
+grep -E '^[[:space:]]*[0-9]+ (passed|failed|skipped)' "${PLAYWRIGHT_LOG}" | tail -1 || true
 echo "=== All tests completed ==="
