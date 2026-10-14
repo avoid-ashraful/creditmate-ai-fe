@@ -115,11 +115,16 @@ button {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--primary-color);
+  white-space: nowrap;
+}
+
+.logo {
+  flex-shrink: 0;
 }
 
 .main-nav ul {
   display: flex;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xs);
 }
 
 .main-nav a {

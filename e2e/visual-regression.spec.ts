@@ -19,6 +19,19 @@ const isMobile = (testInfo: { project: { name: string } }) =>
 
 test.beforeEach(async ({ page }) => {
   await mockApi(page);
+  await page.route('**/mock-assets/cards/**', route =>
+    route.fulfill({
+      contentType: 'image/svg+xml',
+      body: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400">
+        <defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="#667eea"/><stop offset="1" stop-color="#764ba2"/></linearGradient></defs>
+        <rect width="640" height="400" rx="28" fill="url(#g)"/>
+        <circle cx="520" cy="80" r="150" fill="#fff" opacity=".12"/>
+        <rect x="52" y="52" width="92" height="68" rx="12" fill="#fff" opacity=".92"/>
+        <path d="M70 96h56M70 108h34" stroke="#667eea" stroke-width="7" stroke-linecap="round"/>
+        <text x="52" y="325" fill="#fff" font-family="Arial,sans-serif" font-size="30" font-weight="700">CreditMate</text>
+      </svg>`,
+    })
+  );
   // Freeze animations and time for deterministic screenshots
   await page.addStyleTag({
     content: `

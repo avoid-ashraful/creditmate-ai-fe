@@ -14,6 +14,6 @@ export const waitForCards = async (page: Page) => {
 export const addCardsToCompare = async (page: Page, count: number) => {
   const items = page.locator('.card-list-item');
   for (let index = 0; index < count; index += 1) {
-    await items.nth(index).getByRole('button', { name: 'Add to Compare' }).click();
+    await items.nth(index).locator('.add-to-compare-btn').click();
   }
 };

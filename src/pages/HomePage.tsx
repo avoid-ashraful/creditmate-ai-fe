@@ -151,8 +151,8 @@ const HomePage: React.FC = () => {
       setFilteredCards(transformedCards);
     } catch (error) {
       console.error('Failed to filter cards:', error);
-      // Fallback to showing all cards
-      setFilteredCards(cards);
+      // A failed filter request cannot safely reuse unfiltered results.
+      setFilteredCards([]);
     } finally {
       setIsLoading(false);
     }

@@ -59,9 +59,13 @@ export const mockApi = (page: Page, options: RouteOptions = {}) => {
     // Card detail pages always request a review summary and list. Keep the
     // default mock aligned with the review API contract so unrelated tests do
     // not feed card-list payloads into the review components.
-    if (url.pathname.endsWith('/reviews/summary/')) {
+    if (url.pathname.includes('/reviews/cards/') && url.pathname.endsWith('/summary/')) {
       await route.fulfill({
-        json: { average: 0, count: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
+        json: {
+          average_rating: null,
+          review_count: 0,
+          distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        },
       });
       return;
     }
