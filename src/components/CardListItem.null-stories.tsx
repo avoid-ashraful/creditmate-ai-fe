@@ -2,7 +2,7 @@ import React from 'react';
 
 import CardListItem from './CardListItem';
 
-export default {
+const storiesConfig = {
   title: 'Components/CardListItem/Null States',
   component: CardListItem,
   tags: ['autodocs'],
@@ -11,6 +11,8 @@ export default {
     viewport: { defaultViewport: 'tablet' },
   },
 };
+
+export default storiesConfig;
 
 /* State: card with null annual fee */
 export const NullAnnualFee = () => {
@@ -267,7 +269,7 @@ export const NullFeatures = () => {
     latePaymentFee: 'BDT 1000',
     annualFeeWaiverPolicy: { conditions: 'Must spend BDT 300,000' },
     rewardPointsPolicy: '1 point per BDT 50',
-    additionalFeatures: null as any,
+    additionalFeatures: null as unknown as unknown[],
     sourceUrl: 'https://example.com',
     isActive: true,
     images: [{ small: '/img.png', full: '/img-full.png' }],
@@ -318,7 +320,7 @@ export const NullImages = () => {
     additionalFeatures: ['Feature 1', 'Feature 2', 'Feature 3'],
     sourceUrl: 'https://example.com',
     isActive: true,
-    images: null as any,
+    images: null as unknown as { small: string; full: string }[],
     lastUpdated: new Date('2025-05-15'),
   };
   return <CardListItem card={card} isSelected={false} selectable={true} />;

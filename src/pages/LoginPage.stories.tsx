@@ -3,18 +3,36 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { AuthProvider } from '../hooks/AuthProvider';
 import { LanguageProvider } from '../locales';
-import { AuthClient } from '../services/auth';
+import type { AuthClient } from '../services/auth';
 
 import LoginPage from './LoginPage';
 
-const createMockClient = (overrides: Record<string, any> = {}): any => {
+/** Minimal auth client shape used by AuthProvider and stories. */
+interface MockAuthClient {
+  hasSession: () => boolean;
+  subscribe: (cb: (active: boolean) => void) => () => void;
+  restoreSession: () => Promise<{ id: number; email: string } | null>;
+  login: (input: { email: string; password: string }) => Promise<{
+    user: { id: number; email: string; name: string };
+    access: string;
+    refresh: string;
+  }>;
+  register: (input: { email: string; password: string; passwordConfirm: string }) => Promise<{
+    user: { id: number; email: string; name: string };
+    access: string;
+    refresh: string;
+  }>;
+  logout: () => Promise<void>;
+}
+
+const createMockClient = (overrides: Partial<MockAuthClient> = {}): MockAuthClient => {
   let session: {
     user: { id: number; email: string; name: string };
     access: string;
     refresh: string;
   } | null = null;
 
-  return {
+  const baseClient: MockAuthClient = {
     hasSession: () => !!session,
     subscribe: (cb: (active: boolean) => void) => {
       cb(!!session);
@@ -24,12 +42,12 @@ const createMockClient = (overrides: Record<string, any> = {}): any => {
       session ? { id: session.user.id, email: session.user.email } : null,
     login: async (input: { email: string; password: string }) => {
       if (input.email === 'fail@example.com') {
-        const error = new Error('Invalid credentials') as any;
+        const error = new Error('Invalid credentials') as Error & { status: number };
         error.status = 401;
         throw error;
       }
       if (input.email === 'network@example.com') {
-        const error = new Error('Network error') as any;
+        const error = new Error('Network error') as Error & { status: number };
         error.status = 0;
         throw error;
       }
@@ -42,17 +60,17 @@ const createMockClient = (overrides: Record<string, any> = {}): any => {
     },
     register: async (input: { email: string; password: string; passwordConfirm: string }) => {
       if (input.email === 'fail@example.com') {
-        const error = new Error('Email already exists') as any;
+        const error = new Error('Email already exists') as Error & { status: number };
         error.status = 400;
         throw error;
       }
       if (input.email === 'network@example.com') {
-        const error = new Error('Network error') as any;
+        const error = new Error('Network error') as Error & { status: number };
         error.status = 0;
         throw error;
       }
       if (input.password !== input.passwordConfirm) {
-        const error = new Error('Passwords do not match') as any;
+        const error = new Error('Passwords do not match') as Error & { status: number };
         error.status = 400;
         throw error;
       }
@@ -68,6 +86,7 @@ const createMockClient = (overrides: Record<string, any> = {}): any => {
     },
     ...overrides,
   };
+  return baseClient;
 };
 
 const withProviders = (
@@ -77,11 +96,11 @@ const withProviders = (
     initialLang = 'en',
     route = '/login',
     state,
-  }: { client?: AuthClient; initialLang?: 'en' | 'bn'; route?: string; state?: unknown } = {}
+  }: { client?: MockAuthClient; initialLang?: 'en' | 'bn'; route?: string; state?: unknown } = {}
 ) => (
   <MemoryRouter initialEntries={[{ pathname: route, state }]}>
     <LanguageProvider initialLang={initialLang}>
-      <AuthProvider client={client}>{Story}</AuthProvider>
+      <AuthProvider client={client as unknown as AuthClient}>{Story}</AuthProvider>
     </LanguageProvider>
   </MemoryRouter>
 );
@@ -108,7 +127,7 @@ export const WithReturnUrl = () => {
 
 /* State: pre-filled email */
 export const PrefilledEmail = () => {
-  // Note: LoginPage manages its own state, so we can&apos;t easily pre-fill
+  // Note: LoginPage manages its own state, so we can't easily pre-fill
   // This story documents the default state
   return <LoginPage />;
 };
@@ -153,7 +172,7 @@ export const DarkMode = () => {
   return (
     <MemoryRouter initialEntries={[{ pathname: '/login' }]}>
       <LanguageProvider initialLang="en">
-        <AuthProvider client={client}>
+        <AuthProvider client={client as unknown as AuthClient}>
           <div data-theme="dark" style={{ padding: '1rem' }}>
             <LoginPage />
           </div>

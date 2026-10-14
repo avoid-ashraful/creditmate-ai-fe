@@ -46,7 +46,7 @@ test('three cards compare with all comparison data visible', async ({ page }) =>
       await expect(table.getByText(`Synthetic feature ${card.id}.2`)).toBeVisible();
     }
 
-    const annualFeeRow = page.getByRole('row', { name: /^Annual Fee BDT/ });
+    const annualFeeRow = page.getByRole('row', { name: /^Annual fee BDT/ });
     await expect(annualFeeRow).toContainText('BDT 0');
     await expect(annualFeeRow).toContainText('BDT 500');
     await expect(annualFeeRow).toContainText('BDT 2,000');

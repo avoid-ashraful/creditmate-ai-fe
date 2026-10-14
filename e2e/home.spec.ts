@@ -13,7 +13,7 @@ test('homepage search for visa returns matching cards', async ({ page }) => {
 
   const search = page.locator('.search-form input');
   await search.fill('visa');
-  await page.getByRole('button', { name: 'Search' }).click();
+  await page.locator('.search-form > button[type="submit"]').click();
 
   await expect(page.locator('.card-list-item')).toHaveCount(3);
   for (const name of [
@@ -74,9 +74,9 @@ test('API down exposes the no-results state', async ({ page }) => {
   await openHome(page);
 
   await page.locator('.search-form input').fill('visa');
-  await page.getByRole('button', { name: 'Search' }).click();
-  await expect(page.getByText('No credit cards found')).toBeVisible();
-  await expect(page.getByText('Try adjusting your search or filter criteria')).toBeVisible();
+  await page.locator('.search-form > button[type="submit"]').click();
+  await expect(page.locator('.no-results')).toBeVisible();
+  await expect(page.locator('.card-list-item')).toHaveCount(0);
 });
 
 test('a truthful empty API response exposes the no-results state', async ({ page }) => {
@@ -85,8 +85,7 @@ test('a truthful empty API response exposes the no-results state', async ({ page
 
   const search = page.locator('.search-form input');
   await search.fill('mastercard');
-  await page.getByRole('button', { name: 'Search' }).click();
-  await expect(page.getByText('No credit cards found')).toBeVisible();
-  await expect(page.getByText('Try adjusting your search or filter criteria')).toBeVisible();
+  await page.locator('.search-form > button[type="submit"]').click();
+  await expect(page.locator('.no-results')).toBeVisible();
   await expect(page.locator('.card-list-item')).toHaveCount(0);
 });

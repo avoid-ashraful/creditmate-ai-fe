@@ -447,11 +447,15 @@ describe('Results view (env gated)', () => {
     assignVariantSync('hero_cta_text');
     const data = getExperimentViewData('hero_cta_text');
     expect(data).not.toBeNull();
-    expect(data!.experimentKey).toBe('hero_cta_text');
-    expect(data!.config).toBeDefined();
-    expect(data!.results).toBeDefined();
-    expect(data!.significance).toBeDefined();
-    expect(data!.autoStop).toBeDefined();
+    // TypeScript doesn't narrow the type after expect().not.toBeNull(),
+    // but we know data is non-null here because the test would fail otherwise.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const viewData = data!;
+    expect(viewData.experimentKey).toBe('hero_cta_text');
+    expect(viewData.config).toBeDefined();
+    expect(viewData.results).toBeDefined();
+    expect(viewData.significance).toBeDefined();
+    expect(viewData.autoStop).toBeDefined();
   });
 
   it('getAllExperimentViewData returns all experiments', () => {

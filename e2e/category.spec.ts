@@ -106,13 +106,13 @@ test('category page applies travel filter and loads paginated results', async ({
 
   await page.goto('/category/travel');
   await expect(page.getByRole('heading', { name: /✈️ Travel Credit Cards/ })).toBeVisible();
-  await expect(page.getByText('2 cards found')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Credit Cards (2)' })).toBeVisible();
   await expect(page.getByText('Synthetic Traveler Visa')).toBeVisible();
   await expect(page.getByText('Synthetic Traveler Signature')).toBeVisible();
   await expect(page.getByText('Synthetic Traveler Basic')).not.toBeVisible();
 
   await page.getByRole('button', { name: 'Load more cards' }).click();
-  await expect(page.getByText('3 cards found')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Credit Cards (3)' })).toBeVisible();
   await expect(page.getByText('Synthetic Traveler Basic')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Load more cards' })).not.toBeVisible();
   expect(requestedUrls.filter(url => url.includes('page=2'))).toHaveLength(1);

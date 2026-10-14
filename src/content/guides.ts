@@ -1199,7 +1199,7 @@ export const guides: Guide[] = [
       {
         question: 'What happens when I opt out?',
         answer:
-          'The opt-out flag is saved in localStorage. The analytics client stops sending events immediately. If a provider deletion callback is registered, it is called. Your past events already sent to the provider are governed by their policy.',
+          'The opt-out flag is saved in localStorage. Analytics stops at once. If the provider has a deletion tool, we call it. The provider policy covers past events.',
       },
       {
         question: 'Do you sell my data?',
@@ -1362,7 +1362,7 @@ export const guides: Guide[] = [
         heading: 'সংরক্ষিত তুলনা পরিচালনা করুন',
         bullets: [
           'নাম পরিবর্তন: নামের পাশের পেনসিল আইকনে ক্লিক করুন।',
-          'পাবলিক/প্রাইভেট টগল: তুলনা এডিট করুন এবং видиবিলিটি পরিবর্তন করুন।',
+          'পাবলিক/প্রাইভেট টগল: তুলনা এডিট করুন এবং দৃশ্যমানতা পরিবর্তন করুন।',
           'মুছুন: ট্র্যাশ আইকনে ক্লিক করুন। এটি ফেরত আনা যাবে না।',
         ],
         paragraphs: [],
@@ -1459,7 +1459,7 @@ export const guides: Guide[] = [
       },
       {
         question: 'কি একই কার্ড একাধিক সংগ্রহে যোগ করা যায়?',
-        answer: 'হ্যাঁ। একটি কার্ড আপনার ইচ্ছামত تعداد সংগ্রহে থাকতে পারে।',
+        answer: 'হ্যাঁ। একটি কার্ড আপনার ইচ্ছামত সংখ্যক সংগ্রহে থাকতে পারে।',
       },
       {
         question: 'শেয়ার করা সংগ্রহে আমার নোট দেখাবে কি?',
@@ -1615,7 +1615,7 @@ export const guides: Guide[] = [
       {
         question: 'মডারেশন কতক্ষণ নেয়?',
         answer:
-          'সাধারণত ২৪-৪৮ ঘন্টা। গাইডলাইন লঙ্ঘনকারী রিভিউ (স্প্যাম, দুরупযোগ, অফ-টপিক) अस্বীকৃত হয়।',
+          'সাধারণত ২৪-৪৮ ঘন্টা। গাইডলাইন লঙ্ঘনকারী রিভিউ (স্প্যাম, অপব্যবহার, অফ-টপিক) अस্বীকৃত হয়।',
       },
       {
         question: 'কি আমি এমন কার্ডের রিভিউ লিখতে পারি যা আমার নেই?',
@@ -1694,7 +1694,7 @@ export const guides: Guide[] = [
         steps: [
           '"Apply Filters" এ ক্লিক করুন কোয়েরি চালাতে।',
           '"Reset" এ ক্লিক করুন সব ফিল্টার একসাথে মুছতে।',
-          'ফিল্টারগুলো AND লজিক দিয়ে জমা হয়: একটি কার্ড كلّ সক্রিয় ফিল্টার মিলে থাকলে দেখাবে।',
+          'ফিল্টারগুলো AND লজিক দিয়ে জমা হয়: একটি কার্ড সব সক্রিয় ফিল্টার মিলে থাকলে দেখাবে।',
         ],
         paragraphs: [],
       },
@@ -1896,6 +1896,362 @@ export const guides: Guide[] = [
     language: 'bn',
   },
 ];
+
+// Consumer guides are paired by language so each localized article has its own stable URL.
+const consumerSources = [BB_CARD_RULES, BB_SCHEDULE_OF_CHARGES];
+const pairedGuide = (
+  slug: string,
+  title: string,
+  description: string,
+  language: 'en' | 'bn',
+  sections: GuideSection[],
+  faqs: GuideFaq[]
+): Guide => ({
+  slug,
+  title,
+  description,
+  category: 'Getting started',
+  readingTime: '3 min read',
+  updated: '2026-10-13',
+  sections,
+  faqs,
+  sources: consumerSources,
+  disclaimer: DISCLAIMER,
+  language,
+});
+
+const additionalGuides: Guide[] = [
+  pairedGuide(
+    'choosing-your-first-credit-card-bn',
+    'আপনার প্রথম ক্রেডিট কার্ড বেছে নিন',
+    'বাংলাদেশে প্রথম ক্রেডিট কার্ড বাছাইয়ের সহজ নির্দেশিকা।',
+    'bn',
+    [
+      {
+        heading: 'কার্ড নেওয়ার আগে',
+        paragraphs: [
+          'ক্রেডিট কার্ডে ব্যাংকের টাকা ব্যবহার করে পরে বিল দিতে হয়। আবেদন করার আগে নিজের আয়, খরচ এবং পরিশোধের সামর্থ্য দেখুন। ব্যাংকের যোগ্যতার শর্তও জেনে নিন।',
+        ],
+      },
+      {
+        heading: 'খরচ বুঝুন',
+        paragraphs: [
+          'বার্ষিক ফি মানে কার্ড রাখার বছরে একবারের খরচ। ফি মওকুফের শর্ত ব্যাংকভেদে আলাদা। সুদ এড়াতে সময়মতো পুরো বিল দিন। কেবল ন্যূনতম টাকা দিলে বাকি টাকার উপর সুদ হতে পারে।',
+          'ফি বা সুদের হার জানা না থাকলে সেটিকে শূন্য ধরে নেবেন না। কার্ডের শর্তপত্রে তথ্য না পেলে ব্যাংককে জিজ্ঞেস করুন।',
+        ],
+      },
+      {
+        heading: 'সুবিধার সঙ্গে খরচ মেলান',
+        paragraphs: [
+          'রিওয়ার্ড বা লাউঞ্জ সুবিধা আপনার কাজে লাগে কি না দেখুন। ব্যবহারের নিয়ম, সীমা এবং সম্ভাব্য অতিরিক্ত খরচ পড়ুন।',
+        ],
+      },
+      {
+        heading: 'তুলনা করুন',
+        paragraphs: [
+          'বার্ষিক ফি, সুদের হার, বিল দেওয়ার সময় এবং সুবিধা পাশাপাশি দেখুন। তুলনা করতে কার্ড বাছাই করে Compare Cards চাপুন।',
+          'আরও জানতে [বার্ষিক ফি মওকুফ](understanding-annual-fee-waivers-bn), [লাউঞ্জ সুবিধা](maximizing-lounge-access-benefits-bn), [সুদ ও এপিআর](apr-interest-explained-bn) এবং [কার্ড তুলনা](comparing-credit-cards-bn) পড়ুন।',
+        ],
+      },
+    ],
+    [
+      {
+        question: 'বার্ষিক ফি জানা না থাকলে কী করব?',
+        answer:
+          'ফি বা সুদের হার জানা না থাকলে সেটিকে শূন্য ধরে নেবেন না। কার্ডের শর্তপত্রে তথ্য না পেলে ব্যাংককে জিজ্ঞেস করুন।',
+      },
+      {
+        question: 'কার্ডের বিল কীভাবে সুদমুক্ত রাখব?',
+        answer:
+          'সুদ এড়াতে সময়মতো পুরো বিল দিন। কেবল ন্যূনতম টাকা দিলে বাকি টাকার উপর সুদ হতে পারে।',
+      },
+    ]
+  ),
+  pairedGuide(
+    'understanding-annual-fee-waivers-bn',
+    'বার্ষিক ফি মওকুফ বুঝুন',
+    'ক্রেডিট কার্ডের বার্ষিক ফি এবং মওকুফের শর্ত কীভাবে যাচাই করবেন।',
+    'bn',
+    [
+      {
+        heading: 'বার্ষিক ফি কী',
+        paragraphs: [
+          'বার্ষিক ফি হলো কার্ড রাখার জন্য বছরে নেওয়া টাকা। ব্যাংক, কার্ড এবং শর্ত অনুযায়ী এর পরিমাণ বদলায়। তথ্য না থাকলে ফি অজানা; শূন্য নয়।',
+        ],
+      },
+      {
+        heading: 'মওকুফের শর্ত দেখুন',
+        paragraphs: [
+          'কিছু ব্যাংক নির্দিষ্ট খরচ বা লেনদেনের শর্ত পূরণ করলে ফি মওকুফ করে। শর্তটি কোন সময়ে পূরণ করতে হবে এবং কোন লেনদেন গণনা হবে, লিখিতভাবে জেনে নিন।',
+        ],
+      },
+      {
+        heading: 'ব্যাংককে জিজ্ঞেস করুন',
+        paragraphs: [
+          'প্রথম বছরের ফি, পরের বছরের ফি, মওকুফের যোগ্য খরচ এবং কর বা অন্য চার্জ সম্পর্কে জিজ্ঞেস করুন। ব্যাংকের বর্তমান শর্তপত্রই চূড়ান্ত তথ্য।',
+        ],
+      },
+      {
+        heading: 'আরও পড়ুন',
+        paragraphs: [
+          '[প্রথম কার্ড বাছাই](choosing-your-first-credit-card-bn), [সুদ ও এপিআর](apr-interest-explained-bn) এবং [কার্ড তুলনা](comparing-credit-cards-bn) দেখুন।',
+        ],
+      },
+    ],
+    [
+      {
+        question: 'সব কার্ডে কি বার্ষিক ফি মওকুফ হয়?',
+        answer:
+          'না। কিছু ব্যাংক নির্দিষ্ট খরচ বা লেনদেনের শর্ত পূরণ করলে ফি মওকুফ করে। শর্তটি ব্যাংকের কাছ থেকে জেনে নিন।',
+      },
+      {
+        question: 'ফি উল্লেখ না থাকলে কি কার্ডটি বিনা ফির?',
+        answer: 'না। তথ্য না থাকলে ফি অজানা; শূন্য নয়। ব্যাংকের বর্তমান শর্তপত্র দেখে নিশ্চিত হন।',
+      },
+    ]
+  ),
+  pairedGuide(
+    'maximizing-lounge-access-benefits-bn',
+    'লাউঞ্জ সুবিধা বুঝে ব্যবহার করুন',
+    'ক্রেডিট কার্ডের বিমানবন্দর লাউঞ্জ সুবিধার শর্ত যাচাই করার উপায়।',
+    'bn',
+    [
+      {
+        heading: 'সুবিধাটি যাচাই করুন',
+        paragraphs: [
+          'কার্ডে লাউঞ্জ সুবিধা আছে কি না, দেশীয় না আন্তর্জাতিক, এবং বছরে কতবার ব্যবহার করা যায় তা দেখুন। তথ্য অজানা হলে ব্যাংককে জিজ্ঞেস করুন।',
+        ],
+      },
+      {
+        heading: 'শর্ত পড়ুন',
+        paragraphs: [
+          'অতিথি নেওয়া যাবে কি না, অতিরিক্ত ভিজিটের খরচ কত এবং কোন লাউঞ্জে প্রবেশ করা যায় তা যাচাই করুন। সুবিধা বদলাতে পারে; ভ্রমণের আগে ব্যাংক ও লাউঞ্জের নিয়ম দেখুন।',
+        ],
+      },
+      {
+        heading: 'খরচের সঙ্গে তুলনা করুন',
+        paragraphs: [
+          'কার্ডের বার্ষিক ফি ও অন্যান্য শর্তের সঙ্গে আপনার সম্ভাব্য ব্যবহার মেলান। শুধু লাউঞ্জ সুবিধার জন্য কার্ড নিলে সব খরচ বুঝে নিন।',
+          '[প্রথম কার্ড বাছাই](choosing-your-first-credit-card-bn), [বার্ষিক ফি](understanding-annual-fee-waivers-bn), [সুদ ও এপিআর](apr-interest-explained-bn) এবং [কার্ড তুলনা](comparing-credit-cards-bn) দেখুন।',
+        ],
+      },
+    ],
+    [
+      {
+        question: 'সব লাউঞ্জ ভিজিট কি বিনা খরচে?',
+        answer:
+          'এটি কার্ডের শর্তের উপর নির্ভর করে। ভিজিটের সীমা, অতিথির খরচ এবং অতিরিক্ত ভিজিটের মূল্য ব্যাংকের কাছে যাচাই করুন।',
+      },
+      {
+        question: 'সুবিধা অজানা দেখালে কী বোঝায়?',
+        answer:
+          'তথ্য অজানা হলে সুবিধা আছে বা নেই—কোনোটিই ধরে নেওয়া ঠিক নয়। ব্যাংকের কাছে নিশ্চিত হন।',
+      },
+    ]
+  ),
+  pairedGuide(
+    'credit-card-vs-debit-card-bn',
+    'বাংলাদেশে ক্রেডিট ও ডেবিট কার্ডের পার্থক্য',
+    'দুই ধরনের কার্ডে টাকা কীভাবে নেওয়া হয় এবং কোন খরচ যাচাই করবেন।',
+    'bn',
+    [
+      {
+        heading: 'টাকার উৎস আলাদা',
+        paragraphs: [
+          'ডেবিট কার্ডে সাধারণত আপনার ব্যাংক হিসাবে থাকা টাকা খরচ হয়। ক্রেডিট কার্ডে ব্যাংক নির্ধারিত সীমার মধ্যে ধার দেয়; পরে বিল দিতে হয়।',
+        ],
+      },
+      {
+        heading: 'খরচ ও পরিশোধ',
+        paragraphs: [
+          'ক্রেডিট কার্ডের বার্ষিক ফি, সুদের হার, বিলের তারিখ এবং নগদ অগ্রিমের খরচ দেখুন। ডেবিট কার্ডেও ব্যাংকের লেনদেন ফি থাকতে পারে। বর্তমান শর্ত ব্যাংক থেকে যাচাই করুন।',
+        ],
+      },
+      {
+        heading: 'যেটি আপনার কাজে লাগে',
+        paragraphs: [
+          'খরচের হিসাব ও সময়মতো বিল দেওয়া কঠিন হলে ধার এড়ানো ভালো। কার্ড বাছার আগে [প্রথম কার্ডের নির্দেশিকা](choosing-your-first-credit-card-bn), [বার্ষিক ফি](understanding-annual-fee-waivers-bn), [সুদ](apr-interest-explained-bn) এবং [তুলনা](comparing-credit-cards-bn) পড়ুন।',
+        ],
+      },
+    ],
+    [
+      {
+        question: 'ক্রেডিট কার্ড কি নিজের ব্যাংক জমার টাকা খরচ করে?',
+        answer:
+          'সাধারণত না। ক্রেডিট কার্ডে ব্যাংক নির্ধারিত সীমার মধ্যে ধার দেয়; পরে বিল দিতে হয়।',
+      },
+      {
+        question: 'ডেবিট কার্ডে কি কোনো ফি নেই?',
+        answer: 'ডেবিট কার্ডেও ব্যাংকের লেনদেন ফি থাকতে পারে। বর্তমান শর্ত ব্যাংক থেকে যাচাই করুন।',
+      },
+    ]
+  ),
+  pairedGuide(
+    'apr-interest-explained',
+    'Credit card APR and interest explained',
+    'Learn what a card rate means, when interest may apply, and what to check in bank terms.',
+    'en',
+    [
+      {
+        heading: 'What APR means',
+        paragraphs: [
+          'APR means annual percentage rate. It is a yearly rate for borrowing on a card. A rate alone does not tell you the exact charge. Your balance, payment dates, and bank terms matter.',
+        ],
+      },
+      {
+        heading: 'When interest may apply',
+        paragraphs: [
+          'Pay the full statement balance by its due date to avoid purchase interest when your terms allow a grace period. If you pay less, interest may apply to the unpaid balance. Cash advances may have different terms and may start to accrue interest sooner. Check your bank terms.',
+        ],
+      },
+      {
+        heading: 'Read the rate carefully',
+        paragraphs: [
+          'The card data may show the APR as a number or as unknown. Unknown does not mean zero. Check whether the rate is fixed or can change, how the bank works out daily interest, and whether fees are separate. Do not treat an example as your exact bill.',
+        ],
+      },
+      {
+        heading: 'Plan a payment',
+        paragraphs: [
+          'Pay on time and pay more than the minimum when you can. If you cannot pay the full amount, ask the bank how interest is worked out. Compare rates only after you check the same type of transaction.',
+          'Read [how to choose a first card](choosing-your-first-credit-card), [fee waivers](understanding-annual-fee-waivers), and [compare cards](comparing-credit-cards).',
+        ],
+      },
+    ],
+    [
+      {
+        question: 'Does APR show the exact interest on my bill?',
+        answer:
+          'No. A rate alone does not tell you the exact charge. Your balance, payment dates, and bank terms matter.',
+      },
+      {
+        question: 'Does an unknown APR mean zero interest?',
+        answer:
+          'No. The card data may show the APR as unknown. Unknown does not mean zero. Check your bank terms.',
+      },
+    ]
+  ),
+  pairedGuide(
+    'apr-interest-explained-bn',
+    'ক্রেডিট কার্ডের সুদ ও এপিআর বুঝুন',
+    'বার্ষিক শতকরা হার, সুদ কখন লাগতে পারে এবং ব্যাংকের শর্ত কীভাবে পড়বেন।',
+    'bn',
+    [
+      {
+        heading: 'এপিআর কী',
+        paragraphs: [
+          'এপিআর বা বার্ষিক শতকরা হার হলো ধার করা টাকার বার্ষিক সুদের হার। হার দেখেই বিলের সঠিক সুদ জানা যায় না। বকেয়া টাকা, পরিশোধের তারিখ এবং ব্যাংকের শর্তও গুরুত্বপূর্ণ।',
+        ],
+      },
+      {
+        heading: 'কখন সুদ লাগতে পারে',
+        paragraphs: [
+          'শর্তে গ্রেস পিরিয়ড থাকলে নির্ধারিত তারিখে পুরো স্টেটমেন্টের টাকা দিলে কেনাকাটায় সুদ এড়ানো যায়। আংশিক টাকা দিলে বাকি টাকার উপর সুদ হতে পারে। নগদ অগ্রিমে আলাদা শর্ত থাকতে পারে এবং দ্রুত সুদ শুরু হতে পারে।',
+        ],
+      },
+      {
+        heading: 'হার ও শর্ত যাচাই করুন',
+        paragraphs: [
+          'কার্ডের তথ্যভান্ডারে সুদের হার অজানা থাকতে পারে। অজানা মানে শূন্য নয়। হার স্থির নাকি বদলাতে পারে, ব্যাংক কীভাবে সুদ গণনা করে এবং ফি আলাদা কি না জেনে নিন।',
+        ],
+      },
+      {
+        heading: 'আরও পড়ুন',
+        paragraphs: [
+          '[প্রথম কার্ড বাছাই](choosing-your-first-credit-card-bn), [ফি মওকুফ](understanding-annual-fee-waivers-bn), [লাউঞ্জ সুবিধা](maximizing-lounge-access-benefits-bn) এবং [কার্ড তুলনা](comparing-credit-cards-bn) দেখুন।',
+        ],
+      },
+    ],
+    [
+      {
+        question: 'এপিআর কি বিলের সঠিক সুদের অঙ্ক বলে?',
+        answer:
+          'না। হার দেখেই বিলের সঠিক সুদ জানা যায় না। বকেয়া টাকা, পরিশোধের তারিখ এবং ব্যাংকের শর্তও গুরুত্বপূর্ণ।',
+      },
+      {
+        question: 'অজানা সুদের হার কি শূন্য?',
+        answer:
+          'না। কার্ডের তথ্যভান্ডারে সুদের হার অজানা থাকতে পারে। অজানা মানে শূন্য নয়। ব্যাংকের শর্ত যাচাই করুন।',
+      },
+    ]
+  ),
+  pairedGuide(
+    'comparing-credit-cards',
+    'How to compare credit cards',
+    'Compare known costs and benefits without treating missing card data as a promise.',
+    'en',
+    [
+      {
+        heading: 'Start with your needs',
+        paragraphs: [
+          'List how you will use the card and what you can repay each month. Do not choose a card for a benefit you will not use.',
+        ],
+      },
+      {
+        heading: 'Compare the same details',
+        paragraphs: [
+          'Check annual fee, waiver rules, APR, payment terms, rewards, and lounge access. Compare the same period and the same type of purchase. A fee or rate marked unknown is not zero. A null lounge value means the data is not known; it does not prove there is no access.',
+        ],
+      },
+      {
+        heading: 'Use the comparison tool',
+        paragraphs: [
+          'Start on the home page. Select two to four cards, then choose Compare Cards. The table shows available card data side by side. Read the bank terms before you apply.',
+          'Related guides: [first card](choosing-your-first-credit-card), [annual fees](understanding-annual-fee-waivers), [APR and interest](apr-interest-explained), and [lounge access](maximizing-lounge-access-benefits).',
+        ],
+      },
+    ],
+    [
+      {
+        question: 'Does missing fee data mean the card has no fee?',
+        answer: 'No. A fee or rate marked unknown is not zero. Check the bank terms.',
+      },
+      {
+        question: 'How many cards can I compare?',
+        answer: 'Select two to four cards on the home page, then choose Compare Cards.',
+      },
+    ]
+  ),
+  pairedGuide(
+    'comparing-credit-cards-bn',
+    'ক্রেডিট কার্ড কীভাবে তুলনা করবেন',
+    'অজানা তথ্যকে শূন্য না ধরে কার্ডের খরচ ও সুবিধা তুলনা করুন।',
+    'bn',
+    [
+      {
+        heading: 'নিজের প্রয়োজন বুঝুন',
+        paragraphs: [
+          'কার্ডে কী ধরনের খরচ করবেন এবং প্রতি মাসে কত টাকা শোধ করতে পারবেন তা ভাবুন। যে সুবিধা কাজে লাগবে না, শুধু তার জন্য কার্ড বাছবেন না।',
+        ],
+      },
+      {
+        heading: 'একই তথ্য মিলিয়ে দেখুন',
+        paragraphs: [
+          'বার্ষিক ফি, মওকুফের শর্ত, বার্ষিক শতকরা হার, পরিশোধের নিয়ম, রিওয়ার্ড এবং লাউঞ্জ সুবিধা দেখুন। অজানা ফি বা হার শূন্য নয়। লাউঞ্জের অজানা তথ্য মানে সুবিধা নেই—এমন নয়।',
+        ],
+      },
+      {
+        heading: 'তুলনা টুল ব্যবহার করুন',
+        paragraphs: [
+          'হোম পেজে দুই থেকে চারটি কার্ড বেছে Compare Cards চাপুন। টেবিলে পাওয়া তথ্য পাশাপাশি দেখুন। আবেদন করার আগে ব্যাংকের শর্ত পড়ুন।',
+          '[প্রথম কার্ড](choosing-your-first-credit-card-bn), [বার্ষিক ফি](understanding-annual-fee-waivers-bn), [সুদ ও এপিআর](apr-interest-explained-bn), এবং [লাউঞ্জ সুবিধা](maximizing-lounge-access-benefits-bn) পড়ুন।',
+        ],
+      },
+    ],
+    [
+      {
+        question: 'ফি অজানা হলে কি কার্ডে কোনো ফি নেই?',
+        answer: 'না। অজানা ফি বা হার শূন্য নয়। ব্যাংকের শর্ত যাচাই করুন।',
+      },
+      {
+        question: 'কতটি কার্ড তুলনা করা যায়?',
+        answer: 'হোম পেজে দুই থেকে চারটি কার্ড বেছে Compare Cards চাপুন।',
+      },
+    ]
+  ),
+];
+
+guides.push(...additionalGuides);
 
 export const guideSlugs: string[] = guides.map(guide => guide.slug);
 

@@ -165,9 +165,13 @@ test('watch a card, manage alert frequency, and unsubscribe through the public t
       }
     }
   );
-  await page.route(`${API_HOST}/reviews/summary/**`, route =>
+  await page.route(`${API_HOST}/reviews/cards/*/summary/`, route =>
     route.fulfill({
-      json: { average: 0, count: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
+      json: {
+        average_rating: null,
+        review_count: 0,
+        distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+      },
     })
   );
   await page.route(
@@ -220,9 +224,13 @@ test('card detail shows review summary and list; signed-in users can submit and 
 }) => {
   await mockApi(page);
   await mockLogin(page);
-  await page.route(`${API_HOST}/reviews/summary/**`, route =>
+  await page.route(`${API_HOST}/reviews/cards/*/summary/`, route =>
     route.fulfill({
-      json: { average: 4.5, count: 2, distribution: { 1: 0, 2: 0, 3: 0, 4: 1, 5: 1 } },
+      json: {
+        average_rating: 4.5,
+        review_count: 2,
+        distribution: { 1: 0, 2: 0, 3: 0, 4: 1, 5: 1 },
+      },
     })
   );
   let voteCount = 3;
@@ -288,7 +296,7 @@ test('card detail shows review summary and list; signed-in users can submit and 
   await expect(page.getByText('4.5', { exact: true })).toBeVisible();
   await expect(page.getByText('Excellent for travel')).toBeVisible();
   await page.getByRole('button', { name: /mark as helpful/i }).click();
-  await expect(page.getByRole('button', { name: /marked helpful/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /mark as helpful/i })).toContainText('(4)');
   await page.getByRole('button', { name: /write a review/i }).click();
   await page.getByRole('button', { name: '5 stars' }).click();
   await page.getByLabel(/review title/i).fill('Solid card');
@@ -299,9 +307,13 @@ test('card detail shows review summary and list; signed-in users can submit and 
 
 test('anonymous review actions prompt login', async ({ page }) => {
   await mockApi(page);
-  await page.route(`${API_HOST}/reviews/summary/**`, route =>
+  await page.route(`${API_HOST}/reviews/cards/*/summary/`, route =>
     route.fulfill({
-      json: { average: 4.5, count: 2, distribution: { 1: 0, 2: 0, 3: 0, 4: 1, 5: 1 } },
+      json: {
+        average_rating: 4.5,
+        review_count: 2,
+        distribution: { 1: 0, 2: 0, 3: 0, 4: 1, 5: 1 },
+      },
     })
   );
   await page.route(

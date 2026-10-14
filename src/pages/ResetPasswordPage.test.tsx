@@ -50,6 +50,19 @@ describe('ResetPasswordPage', () => {
     );
   });
 
+  it('explains an invalid link and offers a new one when the token is missing', () => {
+    renderWithAuth(routes, { route: '/reset-password?uid=MQ' });
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'This reset link is invalid or incomplete.'
+    );
+    expect(screen.queryByLabelText('New password')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Request a new reset link' })).toHaveAttribute(
+      'href',
+      '/forgot-password'
+    );
+  });
+
   it('checks that the two passwords match before sending', async () => {
     const user = userEvent.setup();
     renderWithAuth(routes, { route: '/reset-password?token=tok&uid=MQ' });
@@ -65,7 +78,7 @@ describe('ResetPasswordPage', () => {
     expect(bodies).toHaveLength(0);
   });
 
-  it('sends uid, token and new_password, then confirms success', async () => {
+  it('sends uid, token, new_password and new_password_confirm, then confirms success', async () => {
     server.use(
       rest.post(authUrl('password-reset/confirm/'), (req, res, ctx) => {
         bodies.push(req.body);
@@ -84,31 +97,6 @@ describe('ResetPasswordPage', () => {
       {
         uid: 'MQ',
         token: 'tok',
-        new_password: 'new-pw-123',
-        new_password_confirm: 'new-pw-123',
-      },
-    ]);
-  });
-
-  it('uses the backend email uid as the required placeholder token when no token is present', async () => {
-    server.use(
-      rest.post(authUrl('password-reset/confirm/'), (req, res, ctx) => {
-        bodies.push(req.body);
-        return res(ctx.status(200), ctx.json({ detail: 'ok' }));
-      })
-    );
-    const user = userEvent.setup();
-    renderWithAuth(routes, { route: '/reset-password?uid=MQ' });
-
-    await user.type(screen.getByLabelText('New password'), 'new-pw-123');
-    await user.type(screen.getByLabelText('Confirm password'), 'new-pw-123');
-    await user.click(screen.getByRole('button', { name: 'Set new password' }));
-
-    expect(await screen.findByRole('status')).toHaveTextContent(SUCCESS);
-    expect(bodies).toEqual([
-      {
-        uid: 'MQ',
-        token: 'MQ',
         new_password: 'new-pw-123',
         new_password_confirm: 'new-pw-123',
       },
@@ -140,7 +128,7 @@ describe('ResetPasswordPage', () => {
       )
     );
     const user = userEvent.setup();
-    renderWithAuth(routes, { route: '/reset-password?uid=MQ' });
+    renderWithAuth(routes, { route: '/reset-password?token=tok&uid=MQ' });
 
     await user.type(screen.getByLabelText('New password'), 'short');
     await user.type(screen.getByLabelText('Confirm password'), 'short');

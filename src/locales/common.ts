@@ -597,7 +597,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     guidesIndexEyebrow: 'Learn',
     guidesIndexTitle: 'Credit card guides and how-tos',
     guidesIndexLede:
-      'Four short guides that explain credit cards in plain English. Each guide cites Bangladesh Bank rules, or pages that a bank publishes itself.',
+      'Plain-language guides about credit cards, fees, interest and benefits in Bangladesh.',
     guidesIndexReadButton: 'Read guide',
     guidesArticleEyebrow: '',
     guidesArticleMetaReadingTime: '',

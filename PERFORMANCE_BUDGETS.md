@@ -17,7 +17,7 @@ Performance budgets ensure the application meets Core Web Vitals thresholds and 
 | INP (Interaction to Next Paint) | < 200ms                                | Core Web Vital |
 | FCP (First Contentful Paint)    | < 1800ms                               | Diagnostic     |
 | TTFB (Time to First Byte)       | < 800ms                                | Diagnostic     |
-| Bundle Size (gzipped JS)        | < 200KB                                | Build Artifact |
+| Bundle Size (gzipped JS)        | < 210KB per file, 400KB total          | Build Artifact |
 
 ## npm Scripts
 

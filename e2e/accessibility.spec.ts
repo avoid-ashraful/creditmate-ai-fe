@@ -27,7 +27,7 @@ test('keyboard navigation reaches primary controls and visible labels', async ({
   const addFirstCard = page.locator('.add-to-compare-btn').first();
   await addFirstCard.focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: 'Remove from Compare' }).first()).toBeFocused();
+  await expect(page.locator('.add-to-compare-btn.in-list').first()).toBeFocused();
 });
 
 test('ARIA attributes and document landmarks support assistive navigation', async ({ page }) => {

@@ -3,18 +3,36 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { AuthProvider } from '../hooks/AuthProvider';
 import { LanguageProvider } from '../locales';
-import { AuthClient } from '../services/auth';
+import type { AuthClient } from '../services/auth';
 
 import RegisterPage from './RegisterPage';
 
-const createMockClient = (overrides: Record<string, any> = {}): any => {
+/** Minimal auth client shape used by AuthProvider and stories. */
+interface MockAuthClient {
+  hasSession: () => boolean;
+  subscribe: (cb: (active: boolean) => void) => () => void;
+  restoreSession: () => Promise<{ id: number; email: string } | null>;
+  login: () => Promise<{
+    user: { id: number; email: string; name: string };
+    access: string;
+    refresh: string;
+  }>;
+  register: (input: { email: string; password: string; passwordConfirm: string }) => Promise<{
+    user: { id: number; email: string; name: string };
+    access: string;
+    refresh: string;
+  }>;
+  logout: () => Promise<void>;
+}
+
+const createMockClient = (overrides: Partial<MockAuthClient> = {}): MockAuthClient => {
   let session: {
     user: { id: number; email: string; name: string };
     access: string;
     refresh: string;
   } | null = null;
 
-  return {
+  const baseClient: MockAuthClient = {
     hasSession: () => !!session,
     subscribe: (cb: (active: boolean) => void) => {
       cb(!!session);
@@ -32,17 +50,17 @@ const createMockClient = (overrides: Record<string, any> = {}): any => {
     },
     register: async (input: { email: string; password: string; passwordConfirm: string }) => {
       if (input.email === 'fail@example.com') {
-        const error = new Error('Email already exists') as any;
+        const error = new Error('Email already exists') as Error & { status: number };
         error.status = 400;
         throw error;
       }
       if (input.email === 'network@example.com') {
-        const error = new Error('Network error') as any;
+        const error = new Error('Network error') as Error & { status: number };
         error.status = 0;
         throw error;
       }
       if (input.password !== input.passwordConfirm) {
-        const error = new Error('Passwords do not match') as any;
+        const error = new Error('Passwords do not match') as Error & { status: number };
         error.status = 400;
         throw error;
       }
@@ -58,6 +76,7 @@ const createMockClient = (overrides: Record<string, any> = {}): any => {
     },
     ...overrides,
   };
+  return baseClient;
 };
 
 const withProviders = (
@@ -65,11 +84,11 @@ const withProviders = (
   {
     client = createMockClient(),
     initialLang = 'en',
-  }: { client?: AuthClient; initialLang?: 'en' | 'bn' } = {}
+  }: { client?: MockAuthClient; initialLang?: 'en' | 'bn' } = {}
 ) => (
   <MemoryRouter initialEntries={['/register']}>
     <LanguageProvider initialLang={initialLang}>
-      <AuthProvider client={client}>{Story}</AuthProvider>
+      <AuthProvider client={client as unknown as AuthClient}>{Story}</AuthProvider>
     </LanguageProvider>
   </MemoryRouter>
 );
@@ -133,7 +152,7 @@ export const DarkMode = () => {
   return (
     <MemoryRouter initialEntries={['/register']}>
       <LanguageProvider initialLang="en">
-        <AuthProvider client={client}>
+        <AuthProvider client={client as unknown as AuthClient}>
           <div data-theme="dark" style={{ padding: '1rem' }}>
             <RegisterPage />
           </div>

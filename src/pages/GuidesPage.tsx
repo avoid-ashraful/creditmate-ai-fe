@@ -25,9 +25,29 @@ import '../styles/GuidesPage.css';
  */
 
 const GUIDES_PATH = '/guides';
+
+/** Render the editorial [label](guide-slug) syntax as real app navigation links. */
+const renderGuideParagraph = (text: string): React.ReactNode[] => {
+  const parts: React.ReactNode[] = [];
+  const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+  while ((match = linkPattern.exec(text)) !== null) {
+    if (match.index > cursor) parts.push(text.slice(cursor, match.index));
+    const [, label, slug] = match;
+    parts.push(
+      <Link key={`${slug}-${match.index}`} to={`${GUIDES_PATH}/${slug}`}>
+        {label}
+      </Link>
+    );
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < text.length) parts.push(text.slice(cursor));
+  return parts;
+};
 const INDEX_TITLE = `Credit card guides and how-tos | ${SITE_NAME}`;
 const INDEX_DESCRIPTION =
-  'Four short, plain-language guides about credit cards in Bangladesh: how to pick your first card, annual fee waivers, airport lounge access and credit card vs debit card.';
+  'Plain-language guides about choosing, comparing and using credit cards in Bangladesh, including fees, interest rates and benefits.';
 
 const ensureHeadElement = <T extends HTMLElement>(selector: string, tag: string): T => {
   const existing = document.querySelector<T>(selector);
@@ -343,7 +363,9 @@ const GuidesPage: React.FC = () => {
             <section key={section.heading} className="guides-section">
               <h2>{section.heading}</h2>
               {section.paragraphs.map((paragraph, paragraphIndex) => (
-                <p key={`${section.heading}-p${paragraphIndex}`}>{paragraph}</p>
+                <p key={`${section.heading}-p${paragraphIndex}`}>
+                  {renderGuideParagraph(paragraph)}
+                </p>
               ))}
               {section.bullets && (
                 <ul className="guides-list-block">
