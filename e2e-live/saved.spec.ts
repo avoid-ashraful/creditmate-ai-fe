@@ -88,9 +88,11 @@ test.describe('Saved comparisons - live backend', () => {
 
     // Make it public and save
     page.on('dialog', dialog => dialog.accept('Public Comparison'));
+    const saved = page.waitForResponse(
+      r => r.url().includes('/saved/comparisons/') && r.request().method() === 'POST'
+    );
     await page.getByRole('button', { name: /Save Comparison/i }).click();
-
-    await expect(page.getByText(/saved/i)).toBeVisible({ timeout: 10000 });
+    expect((await saved).status()).toBe(201);
 
     // Go to saved and make it public/share
     await page.goto('/saved');

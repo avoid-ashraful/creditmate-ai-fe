@@ -32,9 +32,7 @@ test.describe('Write review - live backend', () => {
     });
 
     // Scroll to reviews section
-    await page
-      .getByRole('heading', { name: 'Customer reviews', exact: true })
-      .scrollIntoViewIfNeeded();
+    await page.getByRole('heading', { name: /customer reviews/i }).scrollIntoViewIfNeeded();
 
     // Click write review button
     await page.getByRole('button', { name: /Write a Review/i }).click();
