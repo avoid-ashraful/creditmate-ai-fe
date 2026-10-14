@@ -55,7 +55,16 @@ test.describe('Saved comparisons - live backend', () => {
 
   test('public share link works', async ({ page }) => {
     const testEmail = `e2e-saved-share-${Date.now()}@example.test`;
-    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        value: {
+          writeText: async (text: string) => {
+            (window as unknown as { __sharedUrl?: string }).__sharedUrl = text;
+          },
+        },
+        configurable: true,
+      });
+    });
     // Register and login
     await page.goto('/register');
     await page.getByLabel('Email').fill(testEmail);
@@ -102,9 +111,12 @@ test.describe('Saved comparisons - live backend', () => {
     await page.locator('button:has-text("Share")').first().click();
 
     // Get the share URL from clipboard
-    const shareUrl = await page.evaluate(() => {
-      return navigator.clipboard.readText().catch(() => window.__sharedUrl || '');
-    });
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { __sharedUrl?: string }).__sharedUrl))
+      .toMatch(/\/shared\/[^/]+$/);
+    const shareUrl = await page.evaluate(
+      () => (window as unknown as { __sharedUrl?: string }).__sharedUrl || ''
+    );
 
     expect(shareUrl).toMatch(/\/shared\/[^/]+$/);
     await page.goto(shareUrl);
