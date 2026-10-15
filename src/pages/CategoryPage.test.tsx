@@ -26,14 +26,19 @@ jest.mock('../components/ComparisonBar', () => () => null);
 
 const mockGetCreditCards = apiService.getCreditCards as jest.Mock;
 
-const makeResponse = (results: number[], count = results.length, next: string | null = null) => ({
+const makeResponse = (
+  results: number[],
+  count = results.length,
+  next: string | null = null,
+  cardNamePrefix = 'Category Card'
+) => ({
   count,
   next,
   previous: null,
   results: results.map(id => ({
     id,
     bank_name: `Bank ${id}`,
-    name: `Category Card ${id}`,
+    name: `${cardNamePrefix} ${id}`,
     annual_fee: '1000.00',
     interest_rate_apr: '20.00',
     is_active: true,
@@ -237,7 +242,7 @@ test('cancels a pending load-more when the category slug changes', async () => {
     .mockResolvedValueOnce(makeResponse([101], 150, '/?page=2'))
     .mockResolvedValueOnce(makeResponse([102], 25, null))
     .mockImplementationOnce(() => new Promise(() => undefined));
-  mockGetCreditCards.mockResolvedValueOnce(makeResponse([1]));
+  mockGetCreditCards.mockResolvedValueOnce(makeResponse([1], undefined, null, 'Premium Card'));
 
   render(
     <MemoryRouter initialEntries={['/category/cashback']}>
@@ -250,6 +255,7 @@ test('cancels a pending load-more when the category slug changes', async () => {
 
   await screen.findByRole('heading', { name: /Premium Credit Cards/ });
   expect(screen.queryByText('Category Card 201')).not.toBeInTheDocument();
+  expect(await screen.findByText('Premium Card 1')).toBeInTheDocument();
 });
 
 test('navigating away restores the previous document title', async () => {
