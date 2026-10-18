@@ -243,6 +243,10 @@ describe('buildSitemapXml', () => {
 });
 
 describe('buildRobotsTxt', () => {
+  test('omits the Sitemap line when no origin is configured', () => {
+    expect(buildRobotsTxt()).toBe('User-agent: *\nAllow: /\n');
+  });
+
   test('allows crawling and points at the sitemap on the same origin', () => {
     expect(buildRobotsTxt('https://creditmate.example')).toBe(
       'User-agent: *\nAllow: /\n\nSitemap: https://creditmate.example/sitemap.xml\n'

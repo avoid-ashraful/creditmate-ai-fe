@@ -9,7 +9,9 @@
  *
  * Environment:
  *   SITE_URL (or REACT_APP_SITE_URL)  public origin, e.g. https://example.com.
- *                                     Defaults to http://localhost:3000 and warns.
+ *                                     If neither is set the script warns, removes
+ *                                     public/sitemap.xml and writes robots.txt
+ *                                     without a Sitemap line (never localhost).
  *   SITEMAP_CARDS_API_URL             optional card list URL, e.g.
  *                                     https://api.example.com/api/v1/credit-cards/
  *
@@ -29,14 +31,20 @@ const sitemap = load('src/utils/sitemap.ts');
 const { guides } = load('src/content/guides.ts');
 const { CATEGORIES } = load('src/config/categories.ts');
 
-const DEFAULT_ORIGIN = 'http://localhost:3000';
-
 const main = async () => {
-  const rawOrigin = process.env.SITE_URL || process.env.REACT_APP_SITE_URL;
+  const rawOrigin = process.env.REACT_APP_SITE_URL || process.env.SITE_URL;
   if (!rawOrigin) {
-    console.warn(`SITE_URL is not set; using ${DEFAULT_ORIGIN}. Set it before deploying.`);
+    // A sitemap needs absolute URLs; do not invent one (and never ship localhost).
+    console.warn(
+      'WARNING: REACT_APP_SITE_URL / SITE_URL is not set. Skipping sitemap.xml and the ' +
+        'robots.txt Sitemap line. Set it for production builds.'
+    );
+    fs.mkdirSync(publicDir, { recursive: true });
+    fs.rmSync(path.join(publicDir, 'sitemap.xml'), { force: true });
+    fs.writeFileSync(path.join(publicDir, 'robots.txt'), sitemap.buildRobotsTxt());
+    return;
   }
-  const origin = sitemap.normalizeOrigin(rawOrigin || DEFAULT_ORIGIN);
+  const origin = sitemap.normalizeOrigin(rawOrigin);
 
   const cardResult = await sitemap.fetchCardEntries(
     process.env.SITEMAP_CARDS_API_URL,
@@ -62,7 +70,9 @@ const main = async () => {
   const cardCount = entries.filter(entry => entry.path.startsWith('/card/')).length;
   console.log(
     `Wrote ${entries.length} URLs to public/sitemap.xml ` +
-      `(static and category/guide pages: ${entries.length - cardCount}, card pages: ${cardCount}) ` +
+      `(static and category/guide pages: ${
+        entries.length - cardCount
+      }, card pages: ${cardCount}) ` +
       `for ${origin}`
   );
 };

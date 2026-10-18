@@ -21,3 +21,7 @@ yarn-error.log*
 
 # Raw PostHog exports used by the funnel report (may contain user identifiers)
 /analytics/posthog/exports/
+
+# Local environment (copy .env.example to .env)
+.env
+.env.local

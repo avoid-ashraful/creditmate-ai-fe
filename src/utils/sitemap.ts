@@ -61,6 +61,12 @@ export const STATIC_PATHS: readonly string[] = [
   '/guides',
   '/glossary',
   '/about',
+  '/privacy',
+  '/terms',
+  '/disclaimer',
+  '/how-we-make-money',
+  '/methodology',
+  '/contact',
 ];
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
@@ -256,7 +262,11 @@ export const buildSitemapXml = (origin: string, entries: readonly SitemapEntry[]
   ].join('\n');
 };
 
-export const buildRobotsTxt = (origin: string): string =>
-  ['User-agent: *', 'Allow: /', '', `Sitemap: ${normalizeOrigin(origin)}/sitemap.xml`, ''].join(
-    '\n'
-  );
+/** Without an origin there is no valid absolute Sitemap URL, so the line is omitted. */
+export const buildRobotsTxt = (origin?: string): string =>
+  [
+    'User-agent: *',
+    'Allow: /',
+    '',
+    ...(origin ? [`Sitemap: ${normalizeOrigin(origin)}/sitemap.xml`, ''] : []),
+  ].join('\n');
