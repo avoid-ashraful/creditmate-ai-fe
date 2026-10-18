@@ -4,7 +4,8 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { expectNoAxeViolations } from '../a11y/axe';
 import App from '../App';
-import { getGuide, guides } from '../content/guides';
+import { getGuide, guides, guidesForLanguage } from '../content/guides';
+import { LanguageProvider } from '../locales';
 import { server } from '../mocks/jest.setup';
 
 import GuidesPage from './GuidesPage';
@@ -64,14 +65,16 @@ const readJsonLd = (id: string): Record<string, unknown> | null => {
 // eslint-disable-next-line testing-library/no-node-access
 const headCount = (selector: string): number => document.head.querySelectorAll(selector).length;
 
-const renderGuides = (path: string) =>
+const renderGuides = (path: string, lang: 'en' | 'bn' = 'en') =>
   render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route path="/guides" element={<GuidesPage />} />
-        <Route path="/guides/:slug" element={<GuidesPage />} />
-      </Routes>
-    </MemoryRouter>
+    <LanguageProvider initialLang={lang}>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="/guides" element={<GuidesPage />} />
+          <Route path="/guides/:slug" element={<GuidesPage />} />
+        </Routes>
+      </MemoryRouter>
+    </LanguageProvider>
   );
 
 beforeEach(() => {
@@ -87,7 +90,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe('GuidesPage index', () => {
-  test('renders all guides including the four required ones', () => {
+  test('renders every English guide including the four required ones', () => {
     renderGuides('/guides');
 
     expect(
@@ -95,11 +98,20 @@ describe('GuidesPage index', () => {
     ).toBeInTheDocument();
 
     const list = screen.getByRole('navigation', { name: /user guides/i });
-    expect(within(list).getAllByRole('listitem')).toHaveLength(guides.length);
+    // The index lists only the guides written in the selected language (QA #14),
+    // so with the default English UI the Bengali slugs are not shown.
+    const englishGuides = guidesForLanguage('en');
+    expect(englishGuides).toEqual(guides.filter(guide => (guide.language ?? 'en') === 'en'));
+    expect(within(list).getAllByRole('listitem')).toHaveLength(englishGuides.length);
 
-    guides.forEach(guide => {
+    englishGuides.forEach(guide => {
       expect(within(list).getByRole('link', { name: guide.title })).toBeInTheDocument();
     });
+    guides
+      .filter(guide => guide.language === 'bn')
+      .forEach(guide => {
+        expect(within(list).queryByRole('link', { name: guide.title })).not.toBeInTheDocument();
+      });
 
     // The four titles required by task 9.1 acceptance criteria.
     expect(screen.getByRole('link', { name: 'How to choose your first credit card' })).toBeTruthy();
@@ -175,8 +187,10 @@ describe('GuidesPage index', () => {
     // `/compare` only renders cards already selected on `/`, so it is never linked
     // from a guide as a browse/filter screen.
     expect(hrefs.filter(href => href === '/compare')).toHaveLength(0);
-    // Two internal links per guide card (heading link + "Read guide" link).
-    expect(hrefs.filter(href => href?.startsWith('/guides/'))).toHaveLength(guides.length * 2);
+    // Two internal links per listed guide card (heading link + "Read guide" link).
+    expect(hrefs.filter(href => href?.startsWith('/guides/'))).toHaveLength(
+      guidesForLanguage('en').length * 2
+    );
     hrefs.forEach(href => {
       expect(href).toMatch(/^\/$|^\/(about|compare|glossary)(\/|$)|^\/guides(\/|$)/);
     });
@@ -185,7 +199,7 @@ describe('GuidesPage index', () => {
 
 describe('GuidesPage detail', () => {
   test('renders editorial guide links as working in-app links', () => {
-    renderGuides('/guides/comparing-credit-cards-bn');
+    renderGuides('/guides/comparing-credit-cards-bn', 'bn');
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'ক্রেডিট কার্ড কীভাবে তুলনা করবেন' })
@@ -479,4 +493,59 @@ describe('Accessibility', () => {
     const { container } = renderGuides('/guides/does-not-exist');
     await expectNoAxeViolations(container);
   }, 15000);
+});
+
+describe('GuidesPage language wiring (QA #14)', () => {
+  const renderGuidesLang = (path: string, lang: 'en' | 'bn', initialLang = lang) =>
+    render(
+      <LanguageProvider initialLang={initialLang}>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/guides" element={<GuidesPage />} />
+            <Route path="/guides/:slug" element={<GuidesPage />} />
+          </Routes>
+        </MemoryRouter>
+      </LanguageProvider>
+    );
+
+  test('the Bengali index lists the Bengali guides, titles and reading times', () => {
+    renderGuidesLang('/guides', 'bn');
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'ক্রেডিট কার্ড গাইড ও হাউ-টু' })
+    ).toBeInTheDocument();
+
+    const list = screen.getByRole('navigation', { name: /user guides/i });
+    const bengaliGuides = guidesForLanguage('bn');
+    expect(within(list).getAllByRole('listitem')).toHaveLength(bengaliGuides.length);
+    // Bengali titles, categories and Bengali reading times, no English list entries.
+    within(list)
+      .getAllByRole('link', { name: 'আপনার প্রথম ক্রেডিট কার্ড বেছে নিন' })
+      .forEach(link => expect(link).toBeInTheDocument());
+    expect(within(list).getAllByText(/পড়া/).length).toBe(bengaliGuides.length);
+    expect(
+      within(list).queryByRole('link', { name: /annual fee waivers/i })
+    ).not.toBeInTheDocument();
+    expect(within(list).queryByText(/min read/)).not.toBeInTheDocument();
+  });
+
+  test('opening an English slug in Bengali shows the paired Bengali guide', () => {
+    renderGuidesLang('/guides/understanding-annual-fee-waivers', 'bn');
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'বার্ষিক ফি মওকুফ বুঝুন' })
+    ).toBeInTheDocument();
+    // Category and reading time render in Bengali as well.
+    expect(screen.getByText('শুরু করা')).toBeInTheDocument();
+    expect(screen.getAllByText('৩ মিনিট পড়া').length).toBeGreaterThan(0);
+  });
+
+  test('opening a Bengali slug in English shows the paired English guide', () => {
+    renderGuidesLang('/guides/save-share-comparison-bn', 'en');
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: /Save and share a comparison/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Tools')).toBeInTheDocument();
+  });
 });

@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import RelatedContent from '../components/RelatedContent';
 import { getCategoriesForGuide } from '../config/categories';
-import { guides, getGuide, SITE_NAME } from '../content/guides';
+import { getGuideForLanguage, guidesForLanguage, SITE_NAME } from '../content/guides';
 import { useLanguage, getCommonCopy, getCategoryText } from '../locales';
 import { breadcrumbJsonLd, faqPageJsonLd } from '../utils/structuredData';
 
@@ -159,8 +159,11 @@ const organization = (name: string) => ({
 
 const GuidesPage: React.FC = () => {
   const { slug } = useParams();
-  const guide = getGuide(slug);
   const { lang } = useLanguage();
+  // Language-resolved guide: a request for the English slug in Bengali mode
+  // (or vice versa) renders the paired slug of the selected language (QA #14).
+  const guide = getGuideForLanguage(lang, slug);
+  const langGuides = guidesForLanguage(lang);
   const common = getCommonCopy(lang);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
@@ -213,7 +216,7 @@ const GuidesPage: React.FC = () => {
             author: organization(SITE_NAME),
             mainEntity: {
               '@type': 'ItemList',
-              itemListElement: guides.map((item, index) => ({
+              itemListElement: langGuides.map((item, index) => ({
                 '@type': 'ListItem',
                 position: index + 1,
                 name: item.title,
@@ -223,7 +226,7 @@ const GuidesPage: React.FC = () => {
           },
       crumbs,
     };
-  }, [guide, canonical, origin, lang]);
+  }, [guide, langGuides, canonical, origin, lang]);
 
   useEffect(() => {
     const writes: HeadWrite[] = [
@@ -438,7 +441,7 @@ const GuidesPage: React.FC = () => {
           <footer className="guides-related">
             <RelatedContent
               heading={common.guidesRelatedMore}
-              links={guides
+              links={langGuides
                 .filter(item => item.slug !== guide.slug)
                 .map(item => ({ to: `${GUIDES_PATH}/${item.slug}`, label: item.title }))}
             />
@@ -469,7 +472,7 @@ const GuidesPage: React.FC = () => {
 
       <nav aria-label="User guides" className="guides-index">
         <ul className="guides-grid">
-          {guides.map(listed => (
+          {langGuides.map(listed => (
             <li key={listed.slug} className="guides-card">
               <article>
                 <p className="guides-eyebrow">{listed.category}</p>
@@ -480,7 +483,9 @@ const GuidesPage: React.FC = () => {
                 <p className="guides-meta">
                   <span>{listed.readingTime}</span>
                   <span aria-hidden="true">&middot;</span>
-                  <time dateTime={listed.updated}>Updated {formatDate(listed.updated)}</time>
+                  <time dateTime={listed.updated}>
+                    {common.guidesArticleMetaUpdated} {formatDate(listed.updated)}
+                  </time>
                 </p>
                 <Link className="guides-card-link" to={`${GUIDES_PATH}/${listed.slug}`}>
                   {common.guidesIndexReadButton}
