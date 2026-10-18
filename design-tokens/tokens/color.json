@@ -306,12 +306,12 @@
     },
     "brand": {
       "gradientFrom": {
-        "value": "#667eea",
+        "value": "#4f46b8",
         "type": "color",
         "comment": "Start of the legacy CreditMate brand gradient carried over from the original design."
       },
       "gradientTo": {
-        "value": "#764ba2",
+        "value": "#663c91",
         "type": "color",
         "comment": "End of the legacy CreditMate brand gradient carried over from the original design."
       }
@@ -362,11 +362,11 @@
     },
     "success": {
       "base": {
-        "value": "{color.emerald.500}",
+        "value": "{color.emerald.700}",
         "type": "color"
       },
       "hover": {
-        "value": "{color.emerald.600}",
+        "value": "{color.emerald.800}",
         "type": "color"
       },
       "subtle": {
@@ -400,18 +400,18 @@
         "type": "color"
       },
       "contrast": {
-        "value": "{color.amber.900}",
+        "value": "{color.slate.900}",
         "comment": "Amber needs dark text for AA contrast.",
         "type": "color"
       }
     },
     "error": {
       "base": {
-        "value": "{color.red.500}",
+        "value": "{color.red.700}",
         "type": "color"
       },
       "hover": {
-        "value": "{color.red.600}",
+        "value": "{color.red.800}",
         "type": "color"
       },
       "subtle": {
@@ -429,7 +429,7 @@
     },
     "info": {
       "base": {
-        "value": "{color.sky.500}",
+        "value": "{color.sky.700}",
         "type": "color"
       },
       "subtle": {
@@ -483,12 +483,12 @@
         "type": "color"
       },
       "secondary": {
-        "value": "{color.slate.500}",
+        "value": "{color.slate.600}",
         "comment": "Supporting copy, captions, meta.",
         "type": "color"
       },
       "tertiary": {
-        "value": "{color.slate.400}",
+        "value": "{color.slate.600}",
         "comment": "Placeholders, disabled labels.",
         "type": "color"
       },
@@ -520,12 +520,12 @@
     },
     "border": {
       "base": {
-        "value": "{color.slate.200}",
+        "value": "{color.slate.500}",
         "comment": "Default 1px borders.",
         "type": "color"
       },
       "strong": {
-        "value": "{color.slate.300}",
+        "value": "{color.slate.500}",
         "comment": "Emphasised borders and dividers.",
         "type": "color"
       },
@@ -570,7 +570,7 @@
       },
       "header": {
         "type": "gradient",
-        "value": "linear-gradient(-45deg, {color.primary.base}, {color.blue.400}, {color.indigo.600}, {color.indigo.400})",
+        "value": "linear-gradient(-45deg, {color.blue.700}, {color.blue.600}, {color.indigo.700}, {color.indigo.600})",
         "comment": "Animated site header background (see GradientHeader)."
       },
       "primaryButton": {
