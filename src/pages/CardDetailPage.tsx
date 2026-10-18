@@ -5,11 +5,20 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
+import ReportIssueDialog from '../components/ReportIssueDialog';
 import { ReviewsSection } from '../components/ReviewsSection';
 import { useAuth } from '../hooks/AuthProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
-import { useLanguage, getAuthCopy, getAlertsCopy, getCardDetailCopy, fillCopy } from '../locales';
+import {
+  useLanguage,
+  getAuthCopy,
+  getAlertsCopy,
+  getCardDetailCopy,
+  getNetworkLabel,
+  fillCopy,
+  formatLocalizedDate,
+} from '../locales';
 import { alertsClient } from '../services/alerts';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
@@ -39,6 +48,7 @@ const CardDetailPage: React.FC = () => {
   const [error, setError] = useState<'invalid' | 'notFound' | 'failed' | null>(null);
   const [similarCards, setSimilarCards] = useState<CreditCard[]>([]);
   const [ctaClicked, setCtaClicked] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   // Watch this card state
   const [isWatching, setIsWatching] = useState(false);
@@ -167,12 +177,11 @@ const CardDetailPage: React.FC = () => {
   }, [authStatus, card, checkWatchStatus]);
 
   const handleApplyNow = () => {
-    if (card?.sourceUrl) {
+    if (card) {
       analytics.track(ANALYTICS_EVENTS.cardSelect, {
         cardId: card.id,
       });
       setCtaClicked(true);
-      window.open(card.sourceUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -293,6 +302,17 @@ const CardDetailPage: React.FC = () => {
     ? Number(feeWaiverThreshold.replace(/,/g, ''))
     : null;
 
+  // Never render a dead button: apply link falls back to the bank source, else nothing.
+  const applyHref = card.applyUrl || card.sourceUrl || '';
+  const verifiedText = card.verifiedAt
+    ? fillCopy(copy.verifiedOn, { date: formatLocalizedDate(card.verifiedAt, lang) })
+    : '';
+  // Islamic cards charge profit/fees, not interest: don't label a missing APR as unknown interest.
+  const aprLabel =
+    card.isIslamic && card.interestRateApr === null ? copy.specProfitFeeShariah : copy.apr;
+  const networkLabel = getNetworkLabel(copy, card.cardNetwork);
+  const unknownIfEmpty = (value?: string): string => value || copy.unknown;
+
   // Render watch toggle or login prompt
   const renderWatchToggle = () => {
     if (authStatus === 'authenticated') {
@@ -379,7 +399,7 @@ const CardDetailPage: React.FC = () => {
                 <span className={VALUE_CLASS}>{formatAnnualFee(card.annualFee)}</span>
               </div>
               <div className={METRIC_CLASS}>
-                <span className={LABEL_CLASS}>{copy.apr}</span>
+                <span className={LABEL_CLASS}>{aprLabel}</span>
                 <span className={VALUE_CLASS}>
                   {card.interestRateApr === null
                     ? copy.dataNotAvailable
@@ -410,14 +430,42 @@ const CardDetailPage: React.FC = () => {
               )}
             </div>
 
-            {card.sourceUrl && (
-              <button
+            {applyHref && (
+              <a
                 className={`btn btn-primary apply-cta ${ctaClicked ? 'clicked' : ''}`}
+                href={applyHref}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
                 onClick={handleApplyNow}
               >
-                {ctaClicked ? copy.openingApplication : copy.applyNow}
-              </button>
+                {ctaClicked ? copy.openingApplication : copy.applyOnBankSite}
+              </a>
             )}
+
+            {(card.sourceUrl || verifiedText) && (
+              <p className="data-provenance">
+                {card.sourceUrl && (
+                  <>
+                    {copy.sourceLabel}{' '}
+                    <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">
+                      {copy.sourceScheduleOfCharges}
+                    </a>
+                  </>
+                )}
+                {card.sourceUrl && verifiedText && ' · '}
+                {verifiedText}
+              </p>
+            )}
+            <p className="data-disclaimer">
+              {copy.dataDisclaimer} <Link to="/disclaimer">{copy.disclaimerLink}</Link>
+            </p>
+            <button
+              type="button"
+              className="btn btn-outline report-issue-btn"
+              onClick={() => setReportOpen(true)}
+            >
+              {copy.reportButton}
+            </button>
           </div>
         </div>
 
@@ -506,7 +554,9 @@ const CardDetailPage: React.FC = () => {
                 </tr>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specApr}
+                    {card.isIslamic && card.interestRateApr === null
+                      ? copy.specProfitFeeShariah
+                      : copy.specApr}
                   </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.interestRateApr === null
@@ -525,6 +575,56 @@ const CardDetailPage: React.FC = () => {
                     {copy.specDomesticLounge}
                   </th>
                   <td className={SPEC_VALUE_CLASS}>{loungeText(card.loungeAccessDomestic)}</td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specNetwork}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>{networkLabel ?? copy.unknown}</td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specIslamic}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>
+                    {card.isIslamic ? copy.islamicValue : copy.conventionalValue}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specDualCurrency}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>
+                    {card.isDualCurrency == null
+                      ? copy.unknown
+                      : card.isDualCurrency
+                      ? copy.yes
+                      : copy.no}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specMinIncome}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>
+                    {card.minMonthlyIncome == null
+                      ? copy.unknown
+                      : fillCopy(copy.minIncomePerMonth, {
+                          amount: `${copy.bdt} ${card.minMonthlyIncome.toLocaleString()}`,
+                        })}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specSupplementaryFee}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>{unknownIfEmpty(card.supplementaryCardFee)}</td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specForeignTransactionFee}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>{unknownIfEmpty(card.foreignTransactionFee)}</td>
                 </tr>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>
@@ -594,7 +694,7 @@ const CardDetailPage: React.FC = () => {
                   </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.sourceUrl ? (
-                      <a href={card.sourceUrl} target="_blank" rel="noreferrer">
+                      <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">
                         {copy.bankWebsite}
                       </a>
                     ) : (
@@ -645,6 +745,14 @@ const CardDetailPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {reportOpen && (
+        <ReportIssueDialog
+          cardId={card.id}
+          cardName={card.name}
+          onClose={() => setReportOpen(false)}
+        />
+      )}
 
       {/* Similar Cards */}
       {similarCards.length > 0 && (

@@ -43,8 +43,8 @@ jest.mock('../services/reviews', () => {
 
 const mockApiService = apiService as jest.Mocked<typeof apiService>;
 const mockReviewsService = reviewsService as jest.Mocked<typeof reviewsService>;
-const APPLY_NOW_BUTTON = 'Apply Now';
-const BUTTON_ROLE = 'button';
+const APPLY_NOW_BUTTON = 'Apply on bank website';
+const BUTTON_ROLE = 'link';
 const analyticsProvider = jest.fn();
 
 const mockCard: CreditCard = {
@@ -161,7 +161,7 @@ describe('CardDetailPage', () => {
           annual_fee_waiver_policy: mockCard.annualFeeWaiverPolicy,
           reward_points_policy: mockCard.rewardPointsPolicy,
           additional_features: mockCard.additionalFeatures,
-          sourceUrl: mockCard.sourceUrl,
+          source_url: mockCard.sourceUrl,
           is_active: true,
           modified: '2025-05-15',
           images: mockCard.images,
@@ -180,7 +180,7 @@ describe('CardDetailPage', () => {
           annual_fee_waiver_policy: mockCard.annualFeeWaiverPolicy,
           reward_points_policy: mockCard.rewardPointsPolicy,
           additional_features: [],
-          sourceUrl: mockCard.sourceUrl,
+          source_url: mockCard.sourceUrl,
           is_active: true,
           modified: '2025-05-15',
           images: mockCard.images,
@@ -381,7 +381,7 @@ describe('CardDetailPage', () => {
           annual_fee_waiver_policy: cardWithoutUrl.annualFeeWaiverPolicy,
           reward_points_policy: cardWithoutUrl.rewardPointsPolicy,
           additional_features: cardWithoutUrl.additionalFeatures,
-          sourceUrl: '',
+          source_url: '',
           is_active: true,
           modified: '2025-05-15',
           images: cardWithoutUrl.images,
@@ -438,7 +438,7 @@ describe('CardDetailPage', () => {
           annual_fee_waiver_policy: cardWithNullFee.annualFeeWaiverPolicy,
           reward_points_policy: cardWithNullFee.rewardPointsPolicy,
           additional_features: cardWithNullFee.additionalFeatures,
-          sourceUrl: cardWithNullFee.sourceUrl,
+          source_url: cardWithNullFee.sourceUrl,
           is_active: true,
           modified: '2025-05-15',
           images: cardWithNullFee.images,
@@ -474,7 +474,7 @@ describe('CardDetailPage', () => {
           annual_fee_waiver_policy: cardWithNullRate.annualFeeWaiverPolicy,
           reward_points_policy: cardWithNullRate.rewardPointsPolicy,
           additional_features: cardWithNullRate.additionalFeatures,
-          sourceUrl: cardWithNullRate.sourceUrl,
+          source_url: cardWithNullRate.sourceUrl,
           is_active: true,
           modified: '2025-05-15',
           images: cardWithNullRate.images,
@@ -533,9 +533,7 @@ describe('CardDetailPage', () => {
     });
   });
 
-  test('opens sourceUrl in new tab on Apply Now click', async () => {
-    const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation();
-
+  test('opens the apply link in a new tab with safe rel, falling back to sourceUrl', async () => {
     renderWithRouter();
 
     await waitFor(() => {
@@ -544,12 +542,10 @@ describe('CardDetailPage', () => {
       ).toBeInTheDocument();
     });
 
-    const applyButton = screen.getByRole(BUTTON_ROLE, { name: new RegExp(APPLY_NOW_BUTTON, 'i') });
-    applyButton.click();
-
-    expect(windowOpenSpy).toHaveBeenCalledWith(mockCard.sourceUrl, '_blank', 'noopener,noreferrer');
-
-    windowOpenSpy.mockRestore();
+    const applyLink = screen.getByRole(BUTTON_ROLE, { name: new RegExp(APPLY_NOW_BUTTON, 'i') });
+    expect(applyLink).toHaveAttribute('href', mockCard.sourceUrl);
+    expect(applyLink).toHaveAttribute('target', '_blank');
+    expect(applyLink).toHaveAttribute('rel', 'noopener noreferrer nofollow');
   });
 
   test('renders card image when available', async () => {
@@ -581,7 +577,7 @@ describe('CardDetailPage', () => {
           annual_fee_waiver_policy: null,
           reward_points_policy: cardWithZeroFee.rewardPointsPolicy,
           additional_features: cardWithZeroFee.additionalFeatures,
-          sourceUrl: cardWithZeroFee.sourceUrl,
+          source_url: cardWithZeroFee.sourceUrl,
           is_active: true,
           modified: '2025-05-15',
           images: cardWithZeroFee.images,
