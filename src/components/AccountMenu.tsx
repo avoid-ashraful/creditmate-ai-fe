@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { AUTH_STATUS, useAuth } from '../hooks/AuthProvider';
-import { useLanguage, getAuthCopy, getCommonCopy } from '../locales';
+import { useLanguage, getAlertsCopy, getAuthCopy, getCommonCopy } from '../locales';
 
 const MENU_ID = 'account-menu-panel';
 
@@ -18,6 +18,7 @@ export const AccountMenu: React.FC = () => {
   const { lang } = useLanguage();
   const copy = getAuthCopy(lang);
   const common = getCommonCopy(lang);
+  const alerts = getAlertsCopy(lang);
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -78,6 +79,9 @@ export const AccountMenu: React.FC = () => {
           </Link>
           <Link to="/saved" onClick={() => setOpen(false)}>
             {common.accountMenuSavedItems}
+          </Link>
+          <Link to="/alerts" onClick={() => setOpen(false)}>
+            {alerts.alertsPageTitle}
           </Link>
           <button type="button" className="account-menu-logout" onClick={handleLogout}>
             {copy.headerLogout}

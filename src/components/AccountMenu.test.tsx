@@ -70,6 +70,7 @@ describe('AccountMenu', () => {
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
     expect(trigger).toHaveAttribute('aria-controls', 'account-menu-panel');
     expect(screen.getByRole('link', { name: 'My account' })).toHaveAttribute('href', '/account');
+    expect(screen.getByRole('link', { name: 'Alert Settings' })).toHaveAttribute('href', '/alerts');
     expect(screen.getByRole('button', { name: 'Log out' })).toBeVisible();
   });
 
