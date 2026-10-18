@@ -1,11 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Read FE_PORT from environment or default to 4000
-const FE_PORT = process.env.FE_PORT || '4000';
+// FE_PORT / E2E_BASE_URL point at a stack seeded with `SEED=smoke` (see docs/LOCAL_DEV.md)
+const FE_PORT = process.env.FE_PORT || '3011';
 const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${FE_PORT}`;
 
 export default defineConfig({
-  testDir: '/home/ubuntu/credit-workers/task-live-e2e/e2e-live',
+  testDir: __dirname,
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,

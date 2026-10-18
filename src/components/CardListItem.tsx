@@ -48,7 +48,7 @@ const CardListItem: React.FC<CardListItemProps> = ({
 
   // Helper to format interest rate with null handling
   const formatInterestRate = (rate: number | null): string => {
-    if (rate === null) return common.unknown;
+    if (rate === null) return card.isIslamic ? common.aprIslamicNoInterest : common.unknown;
     return `${rate}${common.aprSuffix}`;
   };
 
@@ -69,7 +69,7 @@ const CardListItem: React.FC<CardListItemProps> = ({
     }
 
     if (parts.length === 0) {
-      return common.calcResultBreakEvenUnknown;
+      return common.loungeNotListed;
     }
 
     return parts.join(' / ');

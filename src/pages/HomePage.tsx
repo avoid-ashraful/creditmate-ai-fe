@@ -17,8 +17,11 @@ import { getVariant } from '../lib/experiments';
 import { useLanguage, getCommonCopy } from '../locales';
 import { apiService } from '../services/api';
 import { CreditCard, Bank, CardFilterOptions } from '../types';
+import { fetchAllPages } from '../utils/fetchAllPages';
 import { organizationJsonLd, websiteJsonLd } from '../utils/structuredData';
 import '../styles/HomePage.css';
+
+const pageParam = (page: number) => (page > 1 ? { page } : {});
 
 const HomePage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -60,18 +63,23 @@ const HomePage: React.FC = () => {
       try {
         // Fetch banks and credit cards in parallel, plus the URL search if there is one
         const [banksResponse, cardsResponse, searchResponse] = await Promise.all([
-          apiService.getBanks(),
-          apiService.getCreditCards({ page_size: 100 }),
+          fetchAllPages(page => apiService.getBanks(undefined, undefined, page)),
+          fetchAllPages(page => apiService.getCreditCards({ page_size: 100, ...pageParam(page) })),
           initialSearch
             ? apiService.getCreditCards({ searchTerm: initialSearch, page_size: 100 })
             : Promise.resolve(null),
         ]);
 
         // Transform API responses to frontend types
-        const transformedBanks = banksResponse.results.map(bank => apiService.transformBank(bank));
         const transformedCards = cardsResponse.results.map(card =>
           apiService.transformCreditCard(card)
         );
+        // The banks table lists every Bangladeshi bank; only those with cards are useful here.
+        const bankIdsWithCards = new Set(transformedCards.map(card => card.bankId));
+        const bankNamesWithCards = new Set(transformedCards.map(card => card.bankName));
+        const transformedBanks = banksResponse.results
+          .map(bank => apiService.transformBank(bank))
+          .filter(bank => bankIdsWithCards.has(bank.id) || bankNamesWithCards.has(bank.name));
 
         setBanks(transformedBanks);
         setCards(transformedCards);
@@ -148,10 +156,9 @@ const HomePage: React.FC = () => {
       setIsLoading(true);
 
       // Use API filtering instead of client-side filtering
-      const response = await apiService.getCreditCards({
-        ...filters,
-        page_size: 100,
-      });
+      const response = await fetchAllPages(page =>
+        apiService.getCreditCards({ ...filters, page_size: 100, ...pageParam(page) })
+      );
 
       const transformedCards = response.results.map(card => apiService.transformCreditCard(card));
       setFilteredCards(transformedCards);

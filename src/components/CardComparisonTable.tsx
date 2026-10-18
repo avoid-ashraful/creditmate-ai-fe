@@ -20,10 +20,10 @@ interface ComparisonFeature {
 const formatAnnualFee = (fee: number | null, common: ReturnType<typeof getCommonCopy>): string =>
   fee === null ? common.unknown : `BDT ${fee.toLocaleString()}`;
 
-const formatInterestRate = (
-  rate: number | null,
-  common: ReturnType<typeof getCommonCopy>
-): string => (rate === null ? common.unknown : `${rate}${common.aprSuffix}`);
+const formatInterestRate = (card: CreditCard, common: ReturnType<typeof getCommonCopy>): string => {
+  if (card.interestRateApr !== null) return `${card.interestRateApr}${common.aprSuffix}`;
+  return card.isIslamic ? common.aprIslamicNoInterest : common.unknown;
+};
 
 const getBankName = (card: CreditCard, common: ReturnType<typeof getCommonCopy>): string =>
   card.bankName || common.unknownBank;
@@ -42,7 +42,7 @@ const getFeatures = (
   {
     key: 'apr',
     label: common.filterSectionInterestRate,
-    value: card => formatInterestRate(card.interestRateApr, common),
+    value: card => formatInterestRate(card, common),
     differenceKey: 'interestRateApr',
     group: 'Costs',
   },
@@ -87,7 +87,7 @@ const getFeatures = (
       card.loungeAccessInternational === null
         ? common.unknown
         : card.loungeAccessInternational === ''
-        ? common.calcResultBreakEvenUnknown
+        ? common.loungeNotListed
         : card.loungeAccessInternational,
     differenceKey: 'loungeAccessInternational',
     group: 'Benefits',
@@ -99,7 +99,7 @@ const getFeatures = (
       card.loungeAccessDomestic === null
         ? common.unknown
         : card.loungeAccessDomestic === ''
-        ? common.calcResultBreakEvenUnknown
+        ? common.loungeNotListed
         : card.loungeAccessDomestic,
     differenceKey: 'loungeAccessDomestic',
     group: 'Benefits',
