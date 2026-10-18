@@ -9,16 +9,16 @@ import { ReviewsSection } from '../components/ReviewsSection';
 import { useAuth } from '../hooks/AuthProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
-import { useLanguage, getAuthCopy, getAlertsCopy } from '../locales';
+import { useLanguage, getAuthCopy, getAlertsCopy, getCardDetailCopy, fillCopy } from '../locales';
 import { alertsClient } from '../services/alerts';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
+import { describeFeeWaiverPolicy, FeeWaiverLabels } from '../utils/feeWaiver';
 import { getComparisonSummary } from '../utils/narratives';
 import { slugify } from '../utils/slugify';
 import { breadcrumbJsonLd } from '../utils/structuredData';
 import '../styles/CardDetailPage.css';
 
-const NA = 'N/A';
 const CARD_DETAIL_PAGE = 'card-detail-page';
 const METRIC_CLASS = 'metric';
 const LABEL_CLASS = 'label';
@@ -32,10 +32,11 @@ const CardDetailPage: React.FC = () => {
   const { lang } = useLanguage();
   const authCopy = getAuthCopy(lang);
   const alertsCopy = getAlertsCopy(lang);
+  const copy = getCardDetailCopy(lang);
 
   const [card, setCard] = useState<CreditCard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<'invalid' | 'notFound' | 'failed' | null>(null);
   const [similarCards, setSimilarCards] = useState<CreditCard[]>([]);
   const [ctaClicked, setCtaClicked] = useState(false);
 
@@ -49,10 +50,16 @@ const CardDetailPage: React.FC = () => {
   useSeoMeta(
     card
       ? {
-          title: `${card.name} from ${card.bankName ?? 'a Bangladeshi bank'} | CreditMate AI`,
-          description: `${card.name} from ${card.bankName ?? 'a Bangladeshi bank'}. Annual fee: ${
-            card.annualFee === null ? NA : `BDT ${card.annualFee}`
-          }. APR: ${card.interestRateApr === null ? NA : `${card.interestRateApr}%`}`,
+          title: fillCopy(copy.seoTitle, {
+            name: card.name,
+            bank: card.bankName ?? copy.seoBankFallback,
+          }),
+          description: fillCopy(copy.seoDescription, {
+            name: card.name,
+            bank: card.bankName ?? copy.seoBankFallback,
+            fee: card.annualFee === null ? copy.na : `${copy.bdt} ${card.annualFee}`,
+            apr: card.interestRateApr === null ? copy.na : `${card.interestRateApr}%`,
+          }),
           canonicalPath: cardPath ?? undefined,
           jsonLd: cardPath
             ? breadcrumbJsonLd(window.location.origin, [
@@ -89,7 +96,7 @@ const CardDetailPage: React.FC = () => {
 
       try {
         if (!bankSlug || !cardSlug) {
-          setError('Invalid card URL');
+          setError('invalid');
           return;
         }
 
@@ -108,7 +115,7 @@ const CardDetailPage: React.FC = () => {
         if (cancelled) return;
 
         if (!foundCard) {
-          setError('Card not found');
+          setError('notFound');
           return;
         }
 
@@ -139,7 +146,7 @@ const CardDetailPage: React.FC = () => {
       } catch (err) {
         if (cancelled) return;
         console.error('Failed to fetch card details:', err);
-        setError('Failed to load card details. Please try again.');
+        setError('failed');
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -217,34 +224,61 @@ const CardDetailPage: React.FC = () => {
   };
 
   const formatAnnualFee = (fee: number | null): string => {
-    if (fee === null) return 'Data not available';
-    if (fee === 0) return 'No annual fee';
-    return `BDT ${fee.toLocaleString()}`;
+    if (fee === null) return copy.dataNotAvailable;
+    if (fee === 0) return copy.noAnnualFee;
+    return `${copy.bdt} ${fee.toLocaleString()}`;
   };
+
+  // null = field absent (unknown), '' = explicitly no access.
+  const loungeText = (value: string | null): string =>
+    value === null ? copy.unknown : value === '' ? copy.none : value;
+
+  const waiverLabels: FeeWaiverLabels = {
+    keys: {
+      conditions: copy.waiverKeyConditions,
+      spendThreshold: copy.waiverKeySpendThreshold,
+      period: copy.waiverKeyPeriod,
+    },
+    values: { yearly: copy.waiverPeriodYearly, monthly: copy.waiverPeriodMonthly },
+    yes: copy.yes,
+    no: copy.no,
+    currency: copy.bdt,
+  };
+
+  const formatFeature = (feature: unknown): string =>
+    typeof feature === 'string'
+      ? feature
+      : describeFeeWaiverPolicy(feature as Record<string, unknown>, waiverLabels).join('; ');
 
   if (isLoading) {
     return (
       <div className={CARD_DETAIL_PAGE}>
         <div className="loading-state" role="status" aria-live="polite">
           <div className="spinner" aria-hidden="true"></div>
-          <p>Loading card details...</p>
+          <p>{copy.loading}</p>
         </div>
       </div>
     );
   }
 
+  const errorMessage = {
+    invalid: copy.errorInvalidUrl,
+    notFound: copy.errorNotFound,
+    failed: copy.errorLoadFailed,
+  }[error ?? 'notFound'];
+
   if (error || !card) {
     return (
       <div className={CARD_DETAIL_PAGE}>
         <div className="error-state">
-          <h2>Card Not Found</h2>
-          <p>{error || 'The card you are looking for does not exist.'}</p>
+          <h2>{copy.notFoundTitle}</h2>
+          <p>{errorMessage}</p>
           <div className="error-actions">
             <Link to="/" className="btn btn-primary">
-              Back to Home
+              {copy.backToHome}
             </Link>
             <Link to="/compare" className="btn btn-secondary">
-              Compare Cards
+              {copy.compareCards}
             </Link>
           </div>
         </div>
@@ -253,6 +287,7 @@ const CardDetailPage: React.FC = () => {
   }
 
   const feeWaiverThreshold = calculateFeeWaiverThreshold();
+  const waiverLines = describeFeeWaiverPolicy(card.annualFeeWaiverPolicy, waiverLabels);
   const cardInsight = getComparisonSummary([card]);
   const annualWaiverSpend = feeWaiverThreshold
     ? Number(feeWaiverThreshold.replace(/,/g, ''))
@@ -269,7 +304,7 @@ const CardDetailPage: React.FC = () => {
           aria-pressed={isWatching}
         >
           {watchLoading
-            ? 'Updating…'
+            ? copy.updating
             : isWatching
             ? alertsCopy.watchingThisCard
             : alertsCopy.watchThisCard}
@@ -311,8 +346,8 @@ const CardDetailPage: React.FC = () => {
           url: card.sourceUrl || window.location.href,
         })}
       </script>
-      <nav aria-label="Breadcrumb" className="breadcrumb">
-        <Link to="/">Home</Link>
+      <nav aria-label={copy.breadcrumbLabel} className="breadcrumb">
+        <Link to="/">{copy.breadcrumbHome}</Link>
         <span aria-hidden="true"> / </span>
         <span className="breadcrumb-item">{card.bankName}</span>
         <span aria-hidden="true"> / </span>
@@ -333,33 +368,33 @@ const CardDetailPage: React.FC = () => {
           <div className="card-key-details">
             <h1>{card.name}</h1>
             <p className="bank-name">{card.bankName}</p>
-            <section className="card-insight" aria-label="Card insight">
-              <h2>Card insight</h2>
+            <section className="card-insight" aria-label={copy.cardInsight}>
+              <h2>{copy.cardInsight}</h2>
               <p>{cardInsight}</p>
             </section>
 
             <div className="key-metrics">
               <div className={METRIC_CLASS}>
-                <span className={LABEL_CLASS}>Annual Fee</span>
+                <span className={LABEL_CLASS}>{copy.annualFee}</span>
                 <span className={VALUE_CLASS}>{formatAnnualFee(card.annualFee)}</span>
               </div>
               <div className={METRIC_CLASS}>
-                <span className={LABEL_CLASS}>APR</span>
+                <span className={LABEL_CLASS}>{copy.apr}</span>
                 <span className={VALUE_CLASS}>
                   {card.interestRateApr === null
-                    ? 'Data not available'
-                    : `${card.interestRateApr}% APR`}
+                    ? copy.dataNotAvailable
+                    : `${card.interestRateApr}% ${copy.apr}`}
                 </span>
               </div>
               {card.loungeAccessInternational && (
                 <div className={METRIC_CLASS}>
-                  <span className={LABEL_CLASS}>International Lounge</span>
+                  <span className={LABEL_CLASS}>{copy.internationalLounge}</span>
                   <span className={VALUE_CLASS}>{card.loungeAccessInternational}</span>
                 </div>
               )}
               {card.loungeAccessDomestic && (
                 <div className={METRIC_CLASS}>
-                  <span className={LABEL_CLASS}>Domestic Lounge</span>
+                  <span className={LABEL_CLASS}>{copy.domesticLounge}</span>
                   <span className={VALUE_CLASS}>{card.loungeAccessDomestic}</span>
                 </div>
               )}
@@ -380,7 +415,7 @@ const CardDetailPage: React.FC = () => {
                 className={`btn btn-primary apply-cta ${ctaClicked ? 'clicked' : ''}`}
                 onClick={handleApplyNow}
               >
-                {ctaClicked ? 'Opening application...' : 'Apply Now'}
+                {ctaClicked ? copy.openingApplication : copy.applyNow}
               </button>
             )}
           </div>
@@ -390,41 +425,56 @@ const CardDetailPage: React.FC = () => {
         <div className="card-detail-right">
           {/* Pros and Cons */}
           <section className="pros-cons-section">
-            <h2>Pros & Cons</h2>
-            <p className="data-derived-note">
-              Highlights are generated from published card fields. The APR comparison flag uses a
-              20% threshold.
-            </p>
+            <h2>{copy.prosConsHeading}</h2>
+            <p className="data-derived-note">{copy.prosConsNote}</p>
             <div className="pros-cons-grid">
               <div className="pros">
-                <h3>Pros</h3>
+                <h3>{copy.pros}</h3>
                 <ul>
                   {card.loungeAccessInternational && (
-                    <li>{card.loungeAccessInternational} international lounge access</li>
+                    <li>
+                      {fillCopy(copy.proInternationalLounge, {
+                        value: card.loungeAccessInternational,
+                      })}
+                    </li>
                   )}
                   {card.loungeAccessDomestic && (
-                    <li>{card.loungeAccessDomestic} domestic lounge access</li>
+                    <li>
+                      {fillCopy(copy.proDomesticLounge, { value: card.loungeAccessDomestic })}
+                    </li>
                   )}
-                  {card.annualFeeWaiverPolicy && <li>Annual fee waiver available</li>}
-                  {card.rewardPointsPolicy && <li>Rewards program available</li>}
+                  {card.annualFeeWaiverPolicy && <li>{copy.proFeeWaiver}</li>}
+                  {card.rewardPointsPolicy && <li>{copy.proRewards}</li>}
                   {card.additionalFeatures && card.additionalFeatures.length > 0 && (
-                    <li>Multiple additional benefits</li>
+                    <li>{copy.proAdditionalBenefits}</li>
                   )}
                 </ul>
               </div>
 
               <div className="cons">
-                <h3>Considerations</h3>
+                <h3>{copy.considerations}</h3>
                 <ul>
-                  {card.annualFee && card.annualFee > 0 && (
-                    <li>Annual fee of BDT {card.annualFee.toLocaleString()}</li>
+                  {card.annualFee !== null && card.annualFee > 0 && (
+                    <li>
+                      {fillCopy(copy.conAnnualFee, {
+                        fee: `${copy.bdt} ${card.annualFee.toLocaleString()}`,
+                      })}
+                    </li>
                   )}
-                  {card.interestRateApr && card.interestRateApr > 20 && (
-                    <li>Higher interest rate at {card.interestRateApr}% APR</li>
+                  {card.interestRateApr !== null && card.interestRateApr > 20 && (
+                    <li>{fillCopy(copy.conHighApr, { apr: card.interestRateApr })}</li>
                   )}
-                  {card.cashAdvanceFee && <li>Cash advance fee: {card.cashAdvanceFee}</li>}
+                  {card.cashAdvanceFee && (
+                    <li>
+                      {copy.conCashAdvanceFee} {card.cashAdvanceFee}
+                    </li>
+                  )}
                   {!card.loungeAccessInternational && !card.loungeAccessDomestic && (
-                    <li>No lounge access included</li>
+                    <li>
+                      {card.loungeAccessInternational === '' && card.loungeAccessDomestic === ''
+                        ? copy.conNoLounge
+                        : copy.conLoungeUnknown}
+                    </li>
                   )}
                 </ul>
               </div>
@@ -433,121 +483,122 @@ const CardDetailPage: React.FC = () => {
 
           {/* Complete Specs Table */}
           <section className="specs-section">
-            <h2>Complete Specifications</h2>
+            <h2>{copy.specsHeading}</h2>
             <table className="specs-table">
               <tbody>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>
-                    Card Name
+                    {copy.specCardName}
                   </th>
                   <td className={SPEC_VALUE_CLASS}>{card.name}</td>
                 </tr>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>
-                    Bank
+                    {copy.specBank}
                   </th>
-                  <td className={SPEC_VALUE_CLASS}>{card.bankName || NA}</td>
+                  <td className={SPEC_VALUE_CLASS}>{card.bankName || copy.na}</td>
                 </tr>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>
-                    Annual Fee
+                    {copy.specAnnualFee}
                   </th>
                   <td className={SPEC_VALUE_CLASS}>{formatAnnualFee(card.annualFee)}</td>
                 </tr>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>
-                    Interest Rate (APR)
+                    {copy.specApr}
                   </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.interestRateApr === null
-                      ? 'Data not available'
-                      : `${card.interestRateApr}% APR`}
+                      ? copy.dataNotAvailable
+                      : `${card.interestRateApr}% ${copy.apr}`}
                   </td>
                 </tr>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>
-                    International Lounge Access
+                    {copy.specInternationalLounge}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>{loungeText(card.loungeAccessInternational)}</td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specDomesticLounge}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>{loungeText(card.loungeAccessDomestic)}</td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specCashAdvanceFee}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>{card.cashAdvanceFee || copy.na}</td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specLatePaymentFee}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>{card.latePaymentFee || copy.na}</td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specRewardsPolicy}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>{card.rewardPointsPolicy || copy.na}</td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specFeeWaiverPolicy}
                   </th>
                   <td className={SPEC_VALUE_CLASS}>
-                    {card.loungeAccessInternational || 'Not available'}
+                    {waiverLines.length ? (
+                      <ul className="waiver-policy-list">
+                        {waiverLines.map(line => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      copy.dataNotAvailable
+                    )}
                   </td>
                 </tr>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>
-                    Domestic Lounge Access
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>
-                    {card.loungeAccessDomestic || 'Not available'}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    Cash Advance Fee
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{card.cashAdvanceFee || NA}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    Late Payment Fee
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{card.latePaymentFee || NA}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    Rewards Policy
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{card.rewardPointsPolicy || NA}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    Annual Fee Waiver Policy
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>
-                    {card.annualFeeWaiverPolicy
-                      ? (card.annualFeeWaiverPolicy.conditions as string) ||
-                        JSON.stringify(card.annualFeeWaiverPolicy)
-                      : 'Data not available'}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    Additional Features
+                    {copy.specAdditionalFeatures}
                   </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.additionalFeatures.length
-                      ? card.additionalFeatures
-                          .map(feature =>
-                            typeof feature === 'string' ? feature : JSON.stringify(feature)
-                          )
-                          .join(', ')
-                      : 'Data not available'}
+                      ? card.additionalFeatures.map(formatFeature).join(', ')
+                      : copy.dataNotAvailable}
                   </td>
                 </tr>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>
-                    Card Status
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{card.isActive ? 'Active' : 'Inactive'}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    Last Updated
+                    {copy.specCardStatus}
                   </th>
                   <td className={SPEC_VALUE_CLASS}>
-                    {card.lastUpdated ? new Date(card.lastUpdated).toLocaleDateString() : 'Unknown'}
+                    {card.isActive ? copy.statusActive : copy.statusInactive}
                   </td>
                 </tr>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>
-                    Official Source
+                    {copy.specLastUpdated}
+                  </th>
+                  <td className={SPEC_VALUE_CLASS}>
+                    {card.lastUpdated
+                      ? new Date(card.lastUpdated).toLocaleDateString()
+                      : copy.unknown}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row" className={SPEC_KEY_CLASS}>
+                    {copy.specOfficialSource}
                   </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.sourceUrl ? (
                       <a href={card.sourceUrl} target="_blank" rel="noreferrer">
-                        Bank website
+                        {copy.bankWebsite}
                       </a>
                     ) : (
-                      'Data not available'
+                      copy.dataNotAvailable
                     )}
                   </td>
                 </tr>
@@ -556,27 +607,25 @@ const CardDetailPage: React.FC = () => {
           </section>
 
           {/* Fee Waiver Calculator */}
-          {feeWaiverThreshold && card.annualFee && card.annualFee > 0 && (
+          {feeWaiverThreshold && card.annualFee !== null && card.annualFee > 0 && (
             <section className="fee-waiver-section">
-              <h2>Fee Waiver Calculator</h2>
+              <h2>{copy.waiverHeading}</h2>
               <div className="waiver-info">
                 <p>
-                  You can waive the annual fee of{' '}
-                  <strong>BDT {card.annualFee.toLocaleString()}</strong> by spending at least{' '}
-                  <strong>BDT {feeWaiverThreshold}</strong> per year.
+                  {fillCopy(copy.waiverSummary, {
+                    fee: `${copy.bdt} ${card.annualFee.toLocaleString()}`,
+                    threshold: `${copy.bdt} ${feeWaiverThreshold}`,
+                  })}
                 </p>
                 <div className="waiver-breakdown">
                   <p>
-                    That&apos;s approximately{' '}
-                    <strong>
-                      BDT{' '}
-                      {annualWaiverSpend
-                        ? (annualWaiverSpend / 12).toLocaleString('en-US', {
+                    {fillCopy(copy.waiverMonthly, {
+                      amount: annualWaiverSpend
+                        ? `${copy.bdt} ${(annualWaiverSpend / 12).toLocaleString('en-US', {
                             maximumFractionDigits: 0,
-                          })
-                        : NA}
-                    </strong>{' '}
-                    per month.
+                          })}`
+                        : copy.na,
+                    })}
                   </p>
                 </div>
               </div>
@@ -586,12 +635,10 @@ const CardDetailPage: React.FC = () => {
           {/* Additional Features */}
           {card.additionalFeatures && card.additionalFeatures.length > 0 && (
             <section className="features-section">
-              <h2>Additional Features</h2>
+              <h2>{copy.additionalFeaturesHeading}</h2>
               <ul className="features-list">
                 {card.additionalFeatures.map((feature, idx) => (
-                  <li key={idx}>
-                    {typeof feature === 'string' ? feature : JSON.stringify(feature)}
-                  </li>
+                  <li key={idx}>{formatFeature(feature)}</li>
                 ))}
               </ul>
             </section>
@@ -602,7 +649,7 @@ const CardDetailPage: React.FC = () => {
       {/* Similar Cards */}
       {similarCards.length > 0 && (
         <section className="similar-cards-section">
-          <h2>Similar Cards from {card.bankName}</h2>
+          <h2>{fillCopy(copy.similarCardsHeading, { bank: card.bankName ?? '' })}</h2>
           <div className="similar-cards-grid">
             {similarCards.map(similarCard => (
               <div key={similarCard.id} className="similar-card-item">
@@ -618,9 +665,9 @@ const CardDetailPage: React.FC = () => {
                 <Link
                   to={`/card/${bankSlug}/${similarCard.name.toLowerCase().replace(/\s+/g, '-')}`}
                   className="btn btn-outline"
-                  aria-label={`View details for ${similarCard.name}`}
+                  aria-label={fillCopy(copy.viewDetailsFor, { name: similarCard.name })}
                 >
-                  View Details
+                  {copy.viewDetails}
                 </Link>
               </div>
             ))}

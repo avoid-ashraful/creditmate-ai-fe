@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
 import { CATEGORIES, Category, getCategoryBySlug } from '../config/categories';
+import { LanguageProvider } from '../locales';
 
 import CategoryCard from './CategoryCard';
 
@@ -30,4 +31,20 @@ test('each category has SEO metadata', () => {
     expect(category.metaDescription).toBeTruthy();
     expect(category.badge).toBeTruthy();
   });
+});
+
+test('CategoryCard shows Bengali text and aria label in Bengali', () => {
+  render(
+    <LanguageProvider initialLang="bn">
+      <BrowserRouter>
+        <CategoryCard category={getCategoryBySlug('travel') as Category} />
+      </BrowserRouter>
+    </LanguageProvider>
+  );
+  expect(screen.getByText('ভ্রমণ')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'ভ্রমণ ক্রেডিট কার্ড দেখুন' })).toHaveAttribute(
+    'href',
+    '/category/travel'
+  );
+  expect(screen.queryByText('Travel')).not.toBeInTheDocument();
 });

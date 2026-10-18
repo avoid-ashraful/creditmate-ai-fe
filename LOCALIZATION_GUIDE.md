@@ -123,6 +123,16 @@ so the layout can flip for a future RTL language without structural changes.
 2. Keep `term_bn`/`definition_bn` in clean Bengali Unicode (run the glossary tests to verify).
 3. The term automatically appears on the glossary page in both languages.
 
+## Later additions
+
+- `src/locales/cardDetail.ts`: card detail page labels (`{placeholder}` templates, filled with `fillCopy`)
+- `src/locales/categories.ts`: Bengali category names/descriptions and page heading
+- `src/locales/legal.ts`: privacy, terms, disclaimer, advertiser disclosure, methodology, contact and 404 text.
+  All of it is a draft and each page shows a "Draft — pending legal review" banner. The contact email is the
+  single constant `CONTACT_EMAIL` in `src/config/site.ts`.
+- `src/locales/bengaliCharset.test.ts` scans every source line containing Bengali text and fails on characters
+  outside Bengali, ASCII and a short list of symbols (catches stray Arabic, CJK, Devanagari, Thai, ...).
+
 ## Limitations
 
 - Only the glossary page content, nav labels, footer strings, and the glossary page

@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import RelatedContent from '../components/RelatedContent';
 import { getCategoriesForGuide } from '../config/categories';
 import { guides, getGuide, SITE_NAME } from '../content/guides';
-import { useLanguage, getCommonCopy } from '../locales';
+import { useLanguage, getCommonCopy, getCategoryText } from '../locales';
 import { breadcrumbJsonLd, faqPageJsonLd } from '../utils/structuredData';
 
 import '../styles/GuidesPage.css';
@@ -446,8 +446,8 @@ const GuidesPage: React.FC = () => {
               heading={common.guidesRelatedCategories}
               links={getCategoriesForGuide(guide.slug).map(category => ({
                 to: `/category/${category.slug}`,
-                label: category.name,
-                description: category.description,
+                label: getCategoryText(category, lang).name,
+                description: getCategoryText(category, lang).description,
               }))}
             />
             <Link className="guides-button" to={GUIDES_PATH}>
