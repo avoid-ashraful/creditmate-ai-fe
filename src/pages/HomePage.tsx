@@ -231,7 +231,7 @@ const HomePage: React.FC = () => {
               placeholder={common.homeSearchPlaceholder}
               ariaLabel={common.homeSearchAriaLabel}
             />
-            <button type="submit">Search</button>
+            <button type="submit">{common.filterSectionSearch}</button>
           </form>
 
           <div className="category-grid">

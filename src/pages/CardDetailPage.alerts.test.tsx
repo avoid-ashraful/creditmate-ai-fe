@@ -120,6 +120,14 @@ describe('CardDetailPage - Watch Toggle', () => {
     expect(
       screen.getByText('Create an account to watch this card and get email alerts.')
     ).toBeInTheDocument();
+    // Each prompt's link is labelled for where it goes.
+    expect(screen.getByRole('link', { name: 'Create an account' })).toHaveAttribute(
+      'href',
+      '/register'
+    );
+    screen
+      .getAllByRole('link', { name: 'Log in' })
+      .forEach(link => expect(link).toHaveAttribute('href', '/login'));
   });
 
   it('shows watch button when authenticated and not watching', async () => {
