@@ -28,7 +28,7 @@ const loggedInClient = async () => {
 };
 
 describe('AuthClient registration and login', () => {
-  it('posts register with password_confirm and keeps the user anonymous pending verification', async () => {
+  it('posts register with password_confirm, accept_terms and marketing_opt_in and keeps the user anonymous pending verification', async () => {
     let body: unknown;
     server.use(
       rest.post(authUrl('register/'), (req, res, ctx) => {
@@ -41,12 +41,16 @@ describe('AuthClient registration and login', () => {
       email: AUTH_USER.email,
       password: 'pw-12345',
       passwordConfirm: 'pw-12345',
+      accept_terms: true,
+      marketing_opt_in: true,
     });
 
     expect(body).toEqual({
       email: AUTH_USER.email,
       password: 'pw-12345',
       password_confirm: 'pw-12345',
+      accept_terms: true,
+      marketing_opt_in: true,
     });
     expect(result.detail).toContain('Registration successful');
     expect(client.hasSession()).toBe(false);
@@ -61,7 +65,11 @@ describe('AuthClient registration and login', () => {
         return res(ctx.status(201), ctx.json({ detail: 'Registration successful.' }));
       })
     );
-    await createClient().register({ email: AUTH_USER.email, password: 'pw-12345' });
+    await createClient().register({
+      email: AUTH_USER.email,
+      password: 'pw-12345',
+      accept_terms: true,
+    });
     expect(body).not.toHaveProperty('password_confirm');
   });
 
@@ -80,7 +88,7 @@ describe('AuthClient registration and login', () => {
     const client = createClient();
 
     const error = await client
-      .register({ email: AUTH_USER.email, password: 'x' })
+      .register({ email: AUTH_USER.email, password: 'x', accept_terms: true })
       .catch((caught: unknown) => caught);
 
     expect(error).toBeInstanceOf(ApiError);
@@ -443,5 +451,83 @@ describe('AuthClient account and password endpoints', () => {
       email: 'new@example.com',
     });
     expect(patchBody).toEqual({ email: 'new@example.com' });
+  });
+});
+
+describe('AuthClient consent, verification and data endpoints', () => {
+  it('posts the email to resend-verification without a session', async () => {
+    let body: unknown;
+    let authorization: string | null = 'unset';
+    server.use(
+      rest.post(authUrl('resend-verification/'), (req, res, ctx) => {
+        body = req.body;
+        authorization = req.headers.get('authorization');
+        return res(ctx.status(200), ctx.json({ detail: 'sent' }));
+      })
+    );
+
+    await createClient().resendVerification(AUTH_USER.email);
+
+    expect(body).toEqual({ email: AUTH_USER.email });
+    expect(authorization).toBeNull();
+  });
+
+  it('exposes the retry-after of a rate-limited resend', async () => {
+    server.use(
+      rest.post(authUrl('resend-verification/'), (_req, res, ctx) =>
+        res(ctx.status(429), ctx.set('Retry-After', '60'), ctx.json({ detail: 'Throttled.' }))
+      )
+    );
+
+    const error = await createClient()
+      .resendVerification(AUTH_USER.email)
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).status).toBe(429);
+    expect((error as ApiError).retryAfter).toBe(60);
+  });
+
+  it('sends the password in a DELETE body with the bearer token and resolves on 204', async () => {
+    let body: unknown;
+    let authorization: string | null = null;
+    const client = await loggedInClient();
+    server.use(
+      rest.delete(authUrl('me/'), (req, res, ctx) => {
+        body = req.body;
+        authorization = req.headers.get('authorization');
+        return res(ctx.status(204));
+      })
+    );
+
+    await expect(client.deleteAccount('pw-12345')).resolves.toBeUndefined();
+
+    expect(body).toEqual({ password: 'pw-12345' });
+    expect(authorization).toBe('Bearer access-1');
+  });
+
+  it('rejects a wrong password with the DRF field error', async () => {
+    const client = await loggedInClient();
+    server.use(
+      rest.delete(authUrl('me/'), (_req, res, ctx) =>
+        res(ctx.status(400), ctx.json({ password: ['Current password is incorrect.'] }))
+      )
+    );
+
+    const error = await client.deleteAccount('nope').catch((caught: unknown) => caught);
+
+    expect((error as ApiError).status).toBe(400);
+    expect((error as ApiError).fieldErrors.password).toEqual(['Current password is incorrect.']);
+  });
+
+  it('fetches the data export as JSON with the bearer token', async () => {
+    const client = await loggedInClient();
+    server.use(
+      rest.get(authUrl('me/export/'), (req, res, ctx) =>
+        res(ctx.json({ auth: req.headers.get('authorization'), reviews: [] }))
+      )
+    );
+
+    await expect(client.exportData()).resolves.toEqual({ auth: 'Bearer access-1', reviews: [] });
   });
 });

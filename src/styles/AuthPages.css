@@ -217,3 +217,41 @@
   outline: 2px solid var(--color-border-focus);
   outline-offset: -2px;
 }
+
+.auth-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  font-size: var(--typography-font-size-sm);
+}
+
+.auth-checkbox-row input {
+  margin-block-start: var(--spacing-2xs);
+}
+
+.auth-resend,
+.auth-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-block-start: var(--spacing-lg);
+}
+
+.auth-section--danger {
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+}
+
+.auth-section h2 {
+  font-size: var(--typography-font-size-lg);
+}
+
+.auth-danger-button {
+  color: var(--color-error-base);
+  border-color: var(--color-error-border);
+}
+
+.auth-section p:empty {
+  display: none;
+}

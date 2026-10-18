@@ -121,7 +121,7 @@ describe('AuthProvider', () => {
       </AuthProvider>
     );
     await act(async () => {
-      await api?.register({ email: AUTH_USER.email, password: 'pw-12345' });
+      await api?.register({ email: AUTH_USER.email, password: 'pw-12345', accept_terms: true });
     });
 
     expect(track).toHaveBeenCalledWith(ANALYTICS_EVENTS.signup);
@@ -143,7 +143,9 @@ describe('AuthProvider', () => {
       </AuthProvider>
     );
     await act(async () => {
-      await expect(api?.register({ email: 'bad', password: 'pw' })).rejects.toBeTruthy();
+      await expect(
+        api?.register({ email: 'bad', password: 'pw', accept_terms: true })
+      ).rejects.toBeTruthy();
     });
 
     expect(track).not.toHaveBeenCalled();
