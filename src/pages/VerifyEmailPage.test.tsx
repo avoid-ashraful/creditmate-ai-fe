@@ -109,8 +109,8 @@ describe('VerifyEmailPage', () => {
     await user.type(screen.getByLabelText(copy.emailLabel), 'reader@example.com');
     await user.click(screen.getByRole('button', { name: copy.resendButton }));
 
-    const alerts = await screen.findAllByRole('alert');
-    expect(alerts.map(node => node.textContent)).toContain(copy.resendRateLimited);
+    // The invalid-link alert is already present; wait for the resend response.
+    expect(await screen.findByText(copy.resendRateLimited)).toHaveAttribute('role', 'alert');
   });
 
   it('has no accessibility violations on the invalid-link page with resend', async () => {
