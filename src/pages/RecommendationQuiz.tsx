@@ -8,6 +8,7 @@ import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { useLanguage, getCommonCopy } from '../locales';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
+import { fetchAllPages } from '../utils/fetchAllPages';
 import { rankCards, encodeQuizResult, decodeQuizResult } from '../utils/quizScoringAlgorithm';
 import { resetSeoMeta, setSeoMeta } from '../utils/seo';
 import '../styles/RecommendationQuiz.css';
@@ -71,7 +72,9 @@ const RecommendationQuiz: React.FC = () => {
     const fetchCards = async () => {
       try {
         setLoadingState('loading');
-        const response = await apiService.getCreditCards({ page_size: 100, isActive: true });
+        const response = await fetchAllPages(page =>
+          apiService.getCreditCards({ page_size: 100, isActive: true, ...(page > 1 && { page }) })
+        );
         const transformed = response.results.map(card => apiService.transformCreditCard(card));
         if (transformed.length === 0) {
           setLoadingState('empty');

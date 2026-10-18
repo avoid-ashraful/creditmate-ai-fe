@@ -7,16 +7,18 @@ test.describe('Saved comparisons - live backend', () => {
     const testEmail = `e2e-saved-${Date.now()}@example.test`;
     // Register and login
     await page.goto('/register');
-    await page.getByLabel('Email').fill(testEmail);
+    await page.getByLabel('Email', { exact: true }).fill(testEmail);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByLabel(/confirm password/i).fill(TEST_PASSWORD);
+    // Registration now requires consenting to the terms and privacy policy.
+    await page.getByRole('checkbox', { name: /terms/i }).check();
     await page.getByRole('button', { name: /create account|register/i }).click();
 
     // Should redirect to login page
     await page.waitForURL(/\/login$/);
 
     // Login
-    await page.getByLabel('Email').fill(testEmail);
+    await page.getByLabel('Email', { exact: true }).fill(testEmail);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /log in/i }).click();
 
@@ -67,16 +69,18 @@ test.describe('Saved comparisons - live backend', () => {
     });
     // Register and login
     await page.goto('/register');
-    await page.getByLabel('Email').fill(testEmail);
+    await page.getByLabel('Email', { exact: true }).fill(testEmail);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByLabel(/confirm password/i).fill(TEST_PASSWORD);
+    // Registration now requires consenting to the terms and privacy policy.
+    await page.getByRole('checkbox', { name: /terms/i }).check();
     await page.getByRole('button', { name: /create account|register/i }).click();
 
     // Should redirect to login page
     await page.waitForURL(/\/login$/);
 
     // Login
-    await page.getByLabel('Email').fill(testEmail);
+    await page.getByLabel('Email', { exact: true }).fill(testEmail);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /log in/i }).click();
 

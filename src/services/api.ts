@@ -157,10 +157,15 @@ class ApiService {
   }
 
   // Banks API
-  async getBanks(search?: string, ordering?: string): Promise<ApiResponse<BankApiResponse>> {
+  async getBanks(
+    search?: string,
+    ordering?: string,
+    page?: number
+  ): Promise<ApiResponse<BankApiResponse>> {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (ordering) params.append('ordering', ordering);
+    if (page && page > 1) params.append('page', page.toString());
 
     return this.fetchApi<ApiResponse<BankApiResponse>>('/banks/', params);
   }

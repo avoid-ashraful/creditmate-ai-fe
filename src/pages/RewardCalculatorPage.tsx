@@ -6,6 +6,7 @@ import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { useLanguage, getCommonCopy } from '../locales';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
+import { fetchAllPages } from '../utils/fetchAllPages';
 import {
   CategoryAllocation,
   POINT_VALUE_BDT,
@@ -64,7 +65,9 @@ const RewardCalculatorPage: React.FC = () => {
       setIsLoading(true);
       setApiError(null);
       try {
-        const response = await apiService.getCreditCards({ page_size: 100 });
+        const response = await fetchAllPages(page =>
+          apiService.getCreditCards({ page_size: 100, ...(page > 1 && { page }) })
+        );
         if (cancelled) return;
         setCards(response.results.map(card => apiService.transformCreditCard(card)));
       } catch (error) {

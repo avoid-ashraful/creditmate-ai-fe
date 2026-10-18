@@ -24,4 +24,16 @@ describe('ComparisonPage save control', () => {
     fireEvent.click(button);
     expect(await screen.findByText('login destination')).toBeInTheDocument();
   });
+
+  it("names each compared card's bank instead of showing its numeric id", async () => {
+    renderWithAuth(
+      <Routes>
+        <Route path="/compare" element={<ComparisonPage />} />
+      </Routes>,
+      { route: '/compare?ids=1' }
+    );
+    await screen.findByText('Test Credit Card', { selector: '.card-chip-name' });
+    expect(screen.getByText('Test Bank', { selector: '.card-chip-bank' })).toBeInTheDocument();
+    expect(screen.queryByText(/Bank ID/i)).not.toBeInTheDocument();
+  });
 });

@@ -176,8 +176,8 @@ describe('CardDetailsPopup Component', () => {
       />
     );
 
-    // Check if "Not available" is displayed for lounge access
-    const notAvailableTexts = screen.getAllByText('Not computable with current allocation');
+    // Empty lounge fields read "Not listed" (not the calculator's break-even copy)
+    const notAvailableTexts = screen.getAllByText('Not listed');
     expect(notAvailableTexts.length).toBeGreaterThanOrEqual(2);
   });
 

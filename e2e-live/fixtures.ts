@@ -1,4 +1,17 @@
+import { readFileSync } from 'fs';
+
 import { expect, test as base } from '@playwright/test';
+
+/**
+ * Verification link the console email backend printed for `email`.
+ * Needs E2E_BACKEND_LOG (run.sh sets it) pointing at the backend's log.
+ */
+export function verificationLink(email: string): string {
+  const log = readFileSync(process.env.E2E_BACKEND_LOG || '', 'utf8');
+  const match = log.match(new RegExp(`https?://\\S+/verify-email\\?token=${email}:\\S+`));
+  if (!match) throw new Error(`no verification email for ${email} in E2E_BACKEND_LOG`);
+  return match[0];
+}
 
 export const test = base.extend({
   page: async ({ page }, use, testInfo) => {

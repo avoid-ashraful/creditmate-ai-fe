@@ -77,7 +77,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
 
   // Helper to format interest rate with null handling
   const formatInterestRate = (rate: number | null): string => {
-    if (rate === null) return common.unknown;
+    if (rate === null) return card.isIslamic ? common.aprIslamicNoInterest : common.unknown;
     return `${rate}${common.aprSuffix}`;
   };
 
@@ -175,7 +175,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
                 {card.loungeAccessInternational === null
                   ? common.unknown
                   : card.loungeAccessInternational === ''
-                  ? common.calcResultBreakEvenUnknown
+                  ? common.loungeNotListed
                   : card.loungeAccessInternational}
               </span>
             </div>
@@ -185,7 +185,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
                 {card.loungeAccessDomestic === null
                   ? common.unknown
                   : card.loungeAccessDomestic === ''
-                  ? common.calcResultBreakEvenUnknown
+                  ? common.loungeNotListed
                   : card.loungeAccessDomestic}
               </span>
             </div>

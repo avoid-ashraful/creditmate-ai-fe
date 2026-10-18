@@ -338,14 +338,14 @@ const CardDetailPage: React.FC = () => {
           {alertsCopy.watchPromptLogin}
           <Link to="/login" className="watch-prompt-link">
             {' '}
-            {authCopy.loginCreateLink}
+            {authCopy.registerLoginLink}
           </Link>
         </p>
         <p className="watch-prompt-text">
           {alertsCopy.watchPromptRegister}
           <Link to="/register" className="watch-prompt-link">
             {' '}
-            {authCopy.registerLoginLink}
+            {authCopy.loginCreateLink}
           </Link>
         </p>
       </div>

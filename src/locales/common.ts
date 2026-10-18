@@ -276,6 +276,8 @@ export interface CommonCopy {
   loading: string;
   error: string;
   unknown: string;
+  aprIslamicNoInterest: string;
+  loungeNotListed: string;
 
   // AboutPage
   aboutTitle: string;
@@ -637,6 +639,8 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     loading: 'Loading...',
     error: 'Something went wrong. Please try again.',
     unknown: 'Unknown',
+    aprIslamicNoInterest: 'No interest (Islamic)',
+    loungeNotListed: 'Not listed',
 
     // AboutPage
     aboutTitle: 'About CreditMate AI',
@@ -1010,6 +1014,8 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     loading: 'লোড হচ্ছে…',
     error: 'কিছু একটা সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
     unknown: 'অজানা',
+    aprIslamicNoInterest: 'সুদ নেই (ইসলামিক)',
+    loungeNotListed: 'তালিকাভুক্ত নয়',
 
     // AboutPage
     aboutTitle: 'CreditMate AI সম্পর্কে',

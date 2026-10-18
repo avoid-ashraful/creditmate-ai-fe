@@ -9,7 +9,7 @@ test.describe('Advanced Search - live backend', () => {
 
   test('API advanced search endpoint works', async ({ request }) => {
     // Use the backend port from environment
-    const bePort = process.env.BE_PORT || '4001';
+    const bePort = process.env.BE_PORT || '8011';
     const response = await request.get(
       `http://127.0.0.1:${bePort}/api/v1/credit-cards/advanced-search/`
     );
@@ -20,7 +20,7 @@ test.describe('Advanced Search - live backend', () => {
   });
 
   test('API advanced search categories endpoint works', async ({ request }) => {
-    const bePort = process.env.BE_PORT || '4001';
+    const bePort = process.env.BE_PORT || '8011';
     const response = await request.get(
       `http://127.0.0.1:${bePort}/api/v1/credit-cards/advanced-search/categories/`
     );
@@ -28,7 +28,7 @@ test.describe('Advanced Search - live backend', () => {
   });
 
   test('API advanced search sort options endpoint works', async ({ request }) => {
-    const bePort = process.env.BE_PORT || '4001';
+    const bePort = process.env.BE_PORT || '8011';
     const response = await request.get(
       `http://127.0.0.1:${bePort}/api/v1/credit-cards/advanced-search/sort-options/`
     );
