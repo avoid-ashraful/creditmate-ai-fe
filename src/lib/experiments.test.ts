@@ -46,6 +46,13 @@ Object.defineProperty(window, 'localStorage', {
   writable: true,
 });
 
+// Registry defaults, captured before the tests below switch experiments on.
+const SHIPPED_ENABLED = Object.values(EXPERIMENTS).map(exp => exp.enabled);
+const setAllEnabled = (enabled: boolean) =>
+  Object.values(EXPERIMENTS).forEach(exp => {
+    (exp as { enabled: boolean }).enabled = enabled;
+  });
+
 // Mock analytics
 const mockAnalyticsProvider = jest.fn();
 const mockUserProvider = jest.fn();
@@ -63,9 +70,12 @@ beforeEach(() => {
   process.env.REACT_APP_ANALYTICS_KEY = 'test-key';
   process.env.REACT_APP_EXPERIMENTS_RESULTS_VIEW = 'false';
   setRemoteOverrideProvider(null);
+  // Experiments ship disabled; the framework tests exercise them enabled.
+  setAllEnabled(true);
 });
 
 afterAll(() => {
+  setAllEnabled(false);
   analytics.setProvider(null);
   analytics.setUserProvider(null);
   analytics.setUserDeletionProvider(null);
@@ -213,13 +223,16 @@ describe('Experiment registry', () => {
     expect(EXPERIMENTS.card_layout).toBeDefined();
   });
 
+  it('ships every experiment disabled so all users get control', () => {
+    expect(SHIPPED_ENABLED).toEqual([false, false, false]);
+  });
+
   it('each experiment has required config', () => {
     Object.values(EXPERIMENTS).forEach(exp => {
       expect(exp.key).toBeTruthy();
       expect(exp.name).toBeTruthy();
       expect(exp.treatmentAllocation).toBeGreaterThanOrEqual(0);
       expect(exp.treatmentAllocation).toBeLessThanOrEqual(100);
-      expect(exp.enabled).toBe(true);
       expect(exp.minSampleSize).toBeGreaterThan(0);
       expect(exp.confidenceLevel).toBeGreaterThan(0);
       expect(exp.confidenceLevel).toBeLessThan(1);

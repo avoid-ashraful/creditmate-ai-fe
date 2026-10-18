@@ -52,7 +52,8 @@ export type AnalyticsProvider = (event: AnalyticsEvent) => void;
 export type AnalyticsUserProvider = (properties: AnalyticsUserProperties) => void;
 export type AnalyticsUserDeletionProvider = () => void;
 
-const STORAGE_KEY = 'creditmate.analytics.optOut';
+// Consent is opt-in: nothing is tracked until this key is stored as 'granted'.
+const STORAGE_KEY = 'creditmate.analytics.consent';
 const MAX_STRING_LENGTH = 64;
 const MAX_ARRAY_LENGTH = 16;
 const SAFE_STRING_PATTERN = /^[A-Za-z0-9-_][A-Za-z0-9_.-]*$/;
@@ -61,8 +62,8 @@ const SAFE_ORIGIN_PATTERN = /^https?:\/\/[A-Za-z0-9.-]+(?::\d+)?$/;
 const hasLocalStorage = (): boolean =>
   typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 
-const readOptOut = (): boolean =>
-  hasLocalStorage() ? window.localStorage.getItem(STORAGE_KEY) === 'true' : false;
+const readConsent = (): boolean =>
+  hasLocalStorage() ? window.localStorage.getItem(STORAGE_KEY) === 'granted' : false;
 
 const hasAnalyticsKey = (): boolean => Boolean(process.env.REACT_APP_ANALYTICS_KEY);
 
@@ -180,7 +181,7 @@ class Analytics {
   private provider: AnalyticsProvider | null = null;
   private userProvider: AnalyticsUserProvider | null = null;
   private userDeletionProvider: AnalyticsUserDeletionProvider | null = null;
-  private optedOut = readOptOut();
+  private optedOut = !readConsent();
 
   setProvider(provider: AnalyticsProvider | null): void {
     this.provider = provider;
@@ -196,7 +197,7 @@ class Analytics {
 
   optIn(): void {
     this.optedOut = false;
-    if (hasLocalStorage()) window.localStorage.removeItem(STORAGE_KEY);
+    if (hasLocalStorage()) window.localStorage.setItem(STORAGE_KEY, 'granted');
   }
 
   optOut(): void {
@@ -247,7 +248,7 @@ class Analytics {
 
   private setOptedOut(): void {
     this.optedOut = true;
-    if (hasLocalStorage()) window.localStorage.setItem(STORAGE_KEY, 'true');
+    if (hasLocalStorage()) window.localStorage.removeItem(STORAGE_KEY);
   }
 }
 

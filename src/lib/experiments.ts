@@ -238,14 +238,16 @@ export const storeConversion = (experimentKey: string): void => {
 };
 
 /**
- * Experiment registry with the three configured experiments
+ * Experiment registry with the three configured experiments.
+ * All are disabled (control for everyone) until a real analytics provider and
+ * consent flow exist; the quiz must never be redirected away.
  */
 export const EXPERIMENTS: Record<string, ExperimentConfig> = {
   hero_cta_text: {
     key: 'hero_cta_text',
     name: 'Hero CTA Text',
     treatmentAllocation: 50,
-    enabled: true,
+    enabled: false,
     minSampleSize: 100,
     confidenceLevel: 0.95,
   },
@@ -253,7 +255,7 @@ export const EXPERIMENTS: Record<string, ExperimentConfig> = {
     key: 'quiz_vs_browse_default',
     name: 'Quiz vs Browse Default',
     treatmentAllocation: 50,
-    enabled: true,
+    enabled: false,
     minSampleSize: 100,
     confidenceLevel: 0.95,
   },
@@ -261,7 +263,7 @@ export const EXPERIMENTS: Record<string, ExperimentConfig> = {
     key: 'card_layout',
     name: 'Card Layout',
     treatmentAllocation: 50,
-    enabled: true,
+    enabled: false,
     minSampleSize: 100,
     confidenceLevel: 0.95,
   },
@@ -302,7 +304,6 @@ export const assignVariant = async (
   experimentKey: ExperimentKey
 ): Promise<ExperimentAssignment> => {
   const config = EXPERIMENTS[experimentKey];
-  const anonymousId = getAnonymousId();
 
   // If analytics opted out, return control with no exposure tracking
   if (isAnalyticsOptedOut() || !config.enabled) {
@@ -312,6 +313,9 @@ export const assignVariant = async (
       isNewExposure: false,
     };
   }
+
+  // Created only once an experiment is live, so nothing is stored for users in control-by-default
+  const anonymousId = getAnonymousId();
 
   // Check for remote override first
   if (remoteOverrideProvider) {
@@ -361,7 +365,6 @@ export const assignVariant = async (
  */
 export const assignVariantSync = (experimentKey: ExperimentKey): ExperimentAssignment => {
   const config = EXPERIMENTS[experimentKey];
-  const anonymousId = getAnonymousId();
 
   if (isAnalyticsOptedOut() || !config.enabled) {
     return {
@@ -370,6 +373,8 @@ export const assignVariantSync = (experimentKey: ExperimentKey): ExperimentAssig
       isNewExposure: false,
     };
   }
+
+  const anonymousId = getAnonymousId();
 
   const bucket = getBucket(experimentKey, anonymousId);
   const variant: Variant = bucket < config.treatmentAllocation ? 'treatment' : 'control';
