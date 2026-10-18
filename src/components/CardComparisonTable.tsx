@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { dummyBanks } from '../dummy-data/credit-cards';
 import { useLanguage, getCommonCopy } from '../locales';
 import { CreditCard } from '../types';
 import { getComparisonSummary } from '../utils/narratives';
@@ -26,12 +25,8 @@ const formatInterestRate = (
   common: ReturnType<typeof getCommonCopy>
 ): string => (rate === null ? common.unknown : `${rate}${common.aprSuffix}`);
 
-const getBankName = (card: CreditCard, common: ReturnType<typeof getCommonCopy>): string => {
-  if (card.bankName) return card.bankName;
-  if (card.bankId === undefined) return common.unknown;
-  const bank = dummyBanks.find(bankItem => bankItem.id === card.bankId);
-  return bank?.name || common.bankIdLabel.replace('{id}', card.bankId.toString());
-};
+const getBankName = (card: CreditCard, common: ReturnType<typeof getCommonCopy>): string =>
+  card.bankName || common.unknownBank;
 
 const getFeatures = (common: ReturnType<typeof getCommonCopy>): ComparisonFeature[] => [
   {

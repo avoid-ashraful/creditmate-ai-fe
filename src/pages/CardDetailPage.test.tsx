@@ -119,9 +119,12 @@ const mockReviews: ReviewApiResponse[] = [
   },
 ];
 
-const renderWithRouter = (initialRoute = '/card/eastern-bank-limited/ebl-platinum-card') => {
+const renderWithRouter = (
+  initialRoute = '/card/eastern-bank-limited/ebl-platinum-card',
+  lang: 'en' | 'bn' = 'en'
+) => {
   return render(
-    <LanguageProvider initialLang="en">
+    <LanguageProvider initialLang={lang}>
       <AuthProvider>
         <MemoryRouter initialEntries={[initialRoute]}>
           <Routes>
@@ -609,5 +612,94 @@ describe('CardDetailPage', () => {
       expect(data.ratingValue).toBe(4.2);
       expect(data.reviewCount).toBe(5);
     });
+  });
+});
+
+describe('CardDetailPage data display', () => {
+  const apiCard = (overrides: Record<string, unknown>) => ({
+    id: 1,
+    bank_id: 1,
+    bank_name: 'Eastern Bank Limited',
+    name: 'EBL Platinum Card',
+    annual_fee: 5000,
+    interest_rate_apr: 24.5,
+    cash_advance_fee: '',
+    late_payment_fee: '',
+    annual_fee_waiver_policy: null,
+    reward_points_policy: '',
+    additional_features: [],
+    is_active: true,
+    modified: '2025-05-15',
+    images: [],
+    ...overrides,
+  });
+
+  const showCard = (overrides: Record<string, unknown>, lang: 'en' | 'bn' = 'en') => {
+    mockApiService.getCreditCards.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [apiCard(overrides)],
+    });
+    return renderWithRouter(undefined, lang);
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockReviewsService.getSummary.mockResolvedValue(mockReviewSummary);
+    mockReviewsService.getReviews.mockResolvedValue({
+      count: 0,
+      next: null,
+      previous: null,
+      results: [],
+    });
+  });
+
+  test('never renders a literal 0 for a no-fee, 0% APR card', async () => {
+    showCard({ annual_fee: 0, interest_rate_apr: 0 });
+
+    expect(await screen.findByRole('heading', { name: 'EBL Platinum Card' })).toBeInTheDocument();
+    expect(screen.getAllByText('No annual fee').length).toBeGreaterThan(0);
+    const considerations = screen.getByRole('heading', { name: 'Considerations' }).parentElement;
+    expect(considerations?.textContent).not.toMatch(/0/);
+    expect(document.querySelector('.fee-waiver-section')).not.toBeInTheDocument();
+  });
+
+  test('says lounge data is unavailable, not absent, when it is unknown', async () => {
+    showCard({});
+
+    await screen.findByRole('heading', { name: 'EBL Platinum Card' });
+    expect(screen.getByText('Lounge access data not available')).toBeInTheDocument();
+    expect(screen.queryByText('No lounge access included')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Unknown').length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('says no lounge access only when the bank states there is none', async () => {
+    showCard({ lounge_access_international: 0, lounge_access_domestic: 0 });
+
+    await screen.findByRole('heading', { name: 'EBL Platinum Card' });
+    expect(screen.getByText('No lounge access included')).toBeInTheDocument();
+    expect(screen.getAllByText('None').length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('renders the fee waiver policy as a readable list, not JSON', async () => {
+    showCard({
+      annual_fee_waiver_policy: { spendThreshold: 300000, period: 'yearly', minTransactions: 12 },
+    });
+
+    await screen.findByRole('heading', { name: 'EBL Platinum Card' });
+    expect(screen.getByText('Spend threshold: BDT 300,000')).toBeInTheDocument();
+    expect(screen.getByText('Period: Yearly')).toBeInTheDocument();
+    expect(screen.getByText('Min transactions: 12')).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/\{"spendThreshold/);
+  });
+
+  test('shows Bengali labels when the language is Bengali', async () => {
+    showCard({ annual_fee: 0 }, 'bn');
+
+    expect(await screen.findByRole('heading', { name: 'সম্পূর্ণ বিবরণ' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'সুবিধা ও বিবেচ্য বিষয়' })).toBeInTheDocument();
+    expect(screen.getAllByText('বার্ষিক ফি নেই').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Complete Specifications')).not.toBeInTheDocument();
   });
 });

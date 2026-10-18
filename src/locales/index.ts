@@ -13,6 +13,9 @@ export * from './saved';
 export * from './common';
 export * from './alerts';
 export * from './reviews';
+export * from './cardDetail';
+export * from './categories';
+export * from './legal';
 export {
   LanguageProvider,
   LanguageContext,

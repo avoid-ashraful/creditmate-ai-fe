@@ -237,6 +237,7 @@ export interface CommonCopy {
   categoryErrorLoadingMore: string;
   categorySkeletonLabel: string;
   categorySelectionLimit: string;
+  categoryCardAriaLabel: string;
   categoryRelatedGuides: string;
   categoryOtherCategories: string;
 
@@ -334,6 +335,7 @@ export interface CommonCopy {
   annualFeeWaiverLabel: string;
   featureColumnLabel: string;
   bankIdLabel: string;
+  unknownBank: string;
   cardsByNetAnnualValue: string;
 
   // Saved service error fallback
@@ -587,6 +589,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     categoryErrorLoadingMore: 'Failed to load additional credit cards. Please try again later.',
     categorySkeletonLabel: 'Loading credit cards...',
     categorySelectionLimit: 'You can only select up to 4 cards for comparison.',
+    categoryCardAriaLabel: 'Browse {name} credit cards',
     categoryRelatedGuides: 'Learn before you apply',
     categoryOtherCategories: 'Other categories',
 
@@ -623,7 +626,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
 
     // AboutPage
     aboutTitle: 'About CreditMate AI',
-    aboutSubtitle: 'The most trusted credit card comparison platform in Bangladesh',
+    aboutSubtitle: 'Compare credit cards in Bangladesh using published bank data',
     missionTitle: 'Our Mission',
     missionDescription:
       "CreditMate AI aims to simplify financial decision-making for Bangladeshi consumers by providing clear, unbiased, and easily comparable credit card information. Our platform aggregates, standardizes, and presents complex financial data in a user-friendly format, supporting informed decisions aligned with users' unique financial goals and lifestyles.",
@@ -699,6 +702,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     annualFeeWaiverLabel: 'Annual Fee Waiver',
     featureColumnLabel: 'Feature',
     bankIdLabel: 'Bank ID: {id}',
+    unknownBank: 'Unknown bank',
     cardsByNetAnnualValue: 'cards by net annual value',
 
     // Saved service error fallback
@@ -858,9 +862,9 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     quizPrimaryUseLabel: 'কার্ডটি মূলত কিসের জন্য ব্যবহার করবেন?',
     quizPrimaryUseOptions: ['ভ্রমণ', 'খাবার', 'শপিং', 'ক্যাশব্যাক', 'প্রিমিয়াম'],
     quizTravelFrequencyLabel: 'আপনি কতবার ভ্রমণ করেন?',
-    quizTravelFrequencyOptions: ['বাড়াবারি', 'কদাचিত', 'কখনো নেই'],
+    quizTravelFrequencyOptions: ['বাড়াবারি', 'কদাচিৎ', 'কখনো নেই'],
     quizFeeToleranceLabel: 'বার্ষিক ফি সম্পর্কে আপনার মতামত?',
-    quizFeeToleranceOptions: ['কোনো ফি নেই', 'কম', 'মাঝপথ', 'অधিক'],
+    quizFeeToleranceOptions: ['কোনো ফি নেই', 'কম', 'মাঝপথ', 'অধিক'],
     quizCardTierLabel: 'কোন কার্ড টায়ার আপনার আকর্ষণীয়?',
     quizCardTierOptions: ['বেসিক', 'স্ট্যান্ডার্ড', 'প্রিমিয়াম'],
     quizProgressLabel: 'ধাপ',
@@ -949,7 +953,8 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     categoryErrorLoading: 'ক্রেডিট কার্ড লোড করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।',
     categoryErrorLoadingMore: 'আরো ক্রেডিট কার্ড লোড করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।',
     categorySkeletonLabel: 'ক্রেডিট কার্ড লোড হচ্ছে…',
-    categorySelectionLimit: 'আপনি চু Consejo ৪টি কার্ড তুলনার জন্য নির্বাচন করতে পারেন।',
+    categorySelectionLimit: 'আপনি সর্বোচ্চ ৪টি কার্ড তুলনার জন্য নির্বাচন করতে পারেন।',
+    categoryCardAriaLabel: '{name} ক্রেডিট কার্ড দেখুন',
     categoryRelatedGuides: 'আবেদনের আগে জানুন',
     categoryOtherCategories: 'অন্যান্য বিভাগ',
 
@@ -987,10 +992,10 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
 
     // AboutPage
     aboutTitle: 'CreditMate AI সম্পর্কে',
-    aboutSubtitle: 'বাংলাদেশের সবচেয়ে বিশ্বস্ত ক্রেডিট কার্ড তুলনার প্ল্যাটফর্ম',
+    aboutSubtitle: 'প্রকাশিত ব্যাংক তথ্যের ভিত্তিতে বাংলাদেশের ক্রেডিট কার্ডের তুলনা',
     missionTitle: 'আমাদের মিশন',
     missionDescription:
-      'CreditMate AI বাংলাদেশের মুসরফকর্তাদের আর্থিক সিদ্ধান্ত গ্রহণকে সহজ করার লক্ষ্যে স্পষ্ট, পক্ষপাতমূলক নয় এবং সহজে তুলনাযোগ্য ক্রেডিট কার্ড তথ্য প্রদান করে। আমাদের প্ল্যাটফর্ম জটিল আর্থিক ডেটা সংগৃহীত, মানদণ্ডায়িত ও ব্যবহারকারী-বান্ধব আকারে উপস্থাপন করে, যাতে ব্যবহারকারীরা তাদের অনন্য আর্থিক লক্ষ্য ও জীবনযাত্রার সাথে সাংগতিপূর্ণ সুনির্দিষ্ট সিদ্ধান্ত নিতে পারে।',
+      'CreditMate AI বাংলাদেশের ভোক্তাদের আর্থিক সিদ্ধান্ত গ্রহণকে সহজ করার লক্ষ্যে স্পষ্ট, পক্ষপাতমূলক নয় এবং সহজে তুলনাযোগ্য ক্রেডিট কার্ড তথ্য প্রদান করে। আমাদের প্ল্যাটফর্ম জটিল আর্থিক ডেটা সংগৃহীত, মানদণ্ডায়িত ও ব্যবহারকারী-বান্ধব আকারে উপস্থাপন করে, যাতে ব্যবহারকারীরা তাদের অনন্য আর্থিক লক্ষ্য ও জীবনযাত্রার সাথে সামঞ্জস্যপূর্ণ সুনির্দিষ্ট সিদ্ধান্ত নিতে পারে।',
     problemTitle: 'আমরা যে সমস্যাগুলো সমাধান করছি',
     problemInfoFragmentationTitle: 'তথ্যের খণ্ডীকরণ',
     problemInfoFragmentationDesc:
@@ -1062,6 +1067,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     annualFeeWaiverLabel: 'বার্ষিক ফি মওকুফ',
     featureColumnLabel: 'বৈশিষ্ট্য',
     bankIdLabel: 'ব্যাংক আইডি: {id}',
+    unknownBank: 'অজানা ব্যাংক',
     cardsByNetAnnualValue: 'নিট বার্ষিক মূল্য অনুযায়ী কার্ড',
 
     // Saved service error fallback

@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { cardHover, cardTap, fadeInUp, usePrefersReducedMotion } from '../animations';
-import { dummyBanks } from '../dummy-data/credit-cards';
 import { useLanguage, getCommonCopy } from '../locales';
 import { AnimatedCard, GradientButton } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
@@ -25,15 +24,6 @@ const CardListItem: React.FC<CardListItemProps> = ({
   const { lang } = useLanguage();
   const common = getCommonCopy(lang);
   const reduceMotion = usePrefersReducedMotion();
-
-  const getBankName = (bankId: number | undefined): string => {
-    if (card.bankName) return card.bankName;
-    if (bankId !== undefined) {
-      const bank = dummyBanks.find(b => b.id === bankId);
-      return bank?.name || common.unknown;
-    }
-    return common.unknown;
-  };
 
   const handleClick = () => {
     if (onViewDetails) {
@@ -101,7 +91,7 @@ const CardListItem: React.FC<CardListItemProps> = ({
 
       <div className="card-header">
         <h3 className="card-name">{card.name}</h3>
-        <span className="bank-name">{getBankName(card.bankId)}</span>
+        <span className="bank-name">{card.bankName || common.unknownBank}</span>
       </div>
 
       <div className="card-details">

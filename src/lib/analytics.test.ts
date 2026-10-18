@@ -28,7 +28,7 @@ describe('analytics', () => {
     analytics.setUserDeletionProvider(null);
     analytics.setUserProvider(null);
     analytics.setProvider(null);
-    analytics.optIn();
+    analytics.optOut();
     process.env.REACT_APP_ANALYTICS_KEY = originalAnalyticsKey;
   });
 
@@ -169,6 +169,23 @@ describe('analytics', () => {
     });
   });
 
+  it('is opt-in: a fresh session has no consent and sends nothing', async () => {
+    window.localStorage.clear();
+    jest.resetModules();
+    const fresh = await import('./analytics');
+    fresh.analytics.setProvider(provider);
+
+    fresh.analytics.track(fresh.ANALYTICS_EVENTS.pageView);
+
+    expect(fresh.analytics.isOptedOut()).toBe(true);
+    expect(provider).not.toHaveBeenCalled();
+
+    fresh.analytics.optIn();
+    expect(window.localStorage.getItem('creditmate.analytics.consent')).toBe('granted');
+    fresh.analytics.track(fresh.ANALYTICS_EVENTS.pageView);
+    expect(provider).toHaveBeenCalledTimes(1);
+  });
+
   it('does not send events when opted out and persists the opt-out', () => {
     analytics.optOut();
 
@@ -176,7 +193,7 @@ describe('analytics', () => {
 
     expect(provider).not.toHaveBeenCalled();
     expect(analytics.isOptedOut()).toBe(true);
-    expect(window.localStorage.getItem('creditmate.analytics.optOut')).toBe('true');
+    expect(window.localStorage.getItem('creditmate.analytics.consent')).toBeNull();
   });
 
   it('does not send events without an analytics key', () => {
@@ -216,7 +233,7 @@ describe('analytics', () => {
 
     expect(deletionProvider).not.toHaveBeenCalled();
     expect(analytics.isOptedOut()).toBe(true);
-    expect(window.localStorage.getItem('creditmate.analytics.optOut')).toBe('true');
+    expect(window.localStorage.getItem('creditmate.analytics.consent')).toBeNull();
   });
 
   it('requests provider deletion before persisting opt-out', () => {
@@ -224,7 +241,7 @@ describe('analytics', () => {
 
     expect(deletionProvider).toHaveBeenCalledTimes(1);
     expect(analytics.isOptedOut()).toBe(true);
-    expect(window.localStorage.getItem('creditmate.analytics.optOut')).toBe('true');
+    expect(window.localStorage.getItem('creditmate.analytics.consent')).toBeNull();
   });
 
   it('persists opt-out when no provider deletion callback is registered', () => {
@@ -233,7 +250,7 @@ describe('analytics', () => {
     analytics.deleteUserData();
 
     expect(analytics.isOptedOut()).toBe(true);
-    expect(window.localStorage.getItem('creditmate.analytics.optOut')).toBe('true');
+    expect(window.localStorage.getItem('creditmate.analytics.consent')).toBeNull();
   });
 });
 

@@ -123,7 +123,7 @@ export const ALERTS_COPY: Record<Language, AlertsCopy> = {
     preferencesHeading: 'বিজ্ঞপ্তি পছন্দ',
     noSubscriptions: 'এখনো কোনো সাবস্ক্রিপশন নেই',
     noSubscriptionsDescription:
-      'একটি কার্ডের বিস্তারিত পৃষ্ঠায় যান এবং "এই কার্ডটি নজরে রাখুন" ক্লিক করে পরিবর্তন সম্পর্কে सूচনা পান।',
+      'একটি কার্ডের বিস্তারিত পৃষ্ঠায় যান এবং "এই কার্ডটি নজরে রাখুন" ক্লিক করে পরিবর্তন সম্পর্কে বিজ্ঞপ্তি পান।',
 
     subscriptionCardTitle: 'সাবস্ক্রিপশন',
     subscriptionKindLabel: 'আলার্ট ধরন',
@@ -138,7 +138,7 @@ export const ALERTS_COPY: Record<Language, AlertsCopy> = {
     watchPromptLogin: 'এই কার্ডটি নজরে রাখতে এবং ইমেল সতর্কতা পেতে লগ ইন করুন।',
     watchPromptRegister: 'এই কার্ডটি নজরে রাখতে এবং ইমেল সতর্কতা পেতে একটি অ্যাকাউন্ট তৈরি করুন।',
     watchButton: 'নজরে রাখুন',
-    unwatchButton: 'নজরदারি বন্ধ করুন',
+    unwatchButton: 'নজরদারি বন্ধ করুন',
 
     frequencyLabel: 'ডেলিভারি ফ্রিকোয়েন্সি',
     frequencyImmediate: 'তাৎক্ষণিক',

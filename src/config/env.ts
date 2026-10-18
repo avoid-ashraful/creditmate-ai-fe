@@ -10,8 +10,9 @@ export const ENV = {
   // App Configuration
   NODE_ENV: process.env.NODE_ENV || 'development',
 
-  // Feature Flags
-  ENABLE_API_LOGGING: process.env.REACT_APP_ENABLE_API_LOGGING === 'true',
+  // Feature Flags (API logging can never be enabled outside development builds)
+  ENABLE_API_LOGGING:
+    process.env.NODE_ENV === 'development' && process.env.REACT_APP_ENABLE_API_LOGGING === 'true',
 
   // Development helpers
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',

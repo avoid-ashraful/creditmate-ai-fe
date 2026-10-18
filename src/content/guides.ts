@@ -1140,14 +1140,9 @@ export const guides: Guide[] = [
         paragraphs: [],
       },
       {
-        heading: 'Analytics consent (opt-in / opt-out)',
+        heading: 'Analytics consent (opt-in)',
         paragraphs: [
-          'Analytics is opt-in by default. No events are sent until you explicitly opt in. You can opt in or out at any time from the About page or by clearing your browser data.',
-        ],
-        steps: [
-          'Go to /about.',
-          'Find the "Analytics" section.',
-          'Click "Opt in" to enable tracking, or "Opt out" to disable and delete local analytics data.',
+          'Analytics is off unless you opt in. Nothing is sent until your consent is saved in your browser. No analytics tool is connected yet, so there is no consent banner. When one is added, we will ask you first. You can withdraw consent by clearing your browser data. The full policy is on the privacy page (/privacy).',
         ],
       },
       {
@@ -1175,7 +1170,7 @@ export const guides: Guide[] = [
           'Saved items: kept until you delete them or delete your account.',
           'Reviews: kept until you delete them or delete your account.',
           'Analytics events: not stored by us; sent to the analytics provider (if configured) with their own retention policy.',
-          'Opt-out flag: stored in localStorage (creditmate.analytics.optOut) until you clear browser data or opt in again.',
+          'Analytics consent: saved in your browser only if you opt in, until you clear browser data or withdraw consent.',
         ],
         paragraphs: [],
       },
@@ -1185,7 +1180,7 @@ export const guides: Guide[] = [
           'Access: request a copy of your account data via support.',
           'Rectification: update your email or display name in account settings.',
           'Erasure: delete your account (removes all linked data).',
-          'Opt-out: disable analytics anytime — no further events are sent.',
+          'Withdraw consent: switch analytics off anytime — no further events are sent.',
           'Portability: exported data available on request.',
         ],
         paragraphs: [],
@@ -1199,7 +1194,7 @@ export const guides: Guide[] = [
       {
         question: 'What happens when I opt out?',
         answer:
-          'The opt-out flag is saved in localStorage. Analytics stops at once. If the provider has a deletion tool, we call it. The provider policy covers past events.',
+          'Your stored consent is removed from localStorage. Analytics stops at once. If the provider has a deletion tool, we call it. The provider policy covers past events.',
       },
       {
         question: 'Do you sell my data?',
@@ -1340,7 +1335,7 @@ export const guides: Guide[] = [
         steps: [
           'তুলনা পৃষ্ঠায় (/compare), "Save comparison" এ ক্লিক করুন।',
           'আপনার তুলনার জন্য একটি নাম দিন (যেমন: "Travel cards shortlist")।',
-          '"Private" (শুধু আপনি দেখবেন) বা "Public" (লিংক 가진 কেউ দেখতে পারবে) বেছে নিন।',
+          '"Private" (শুধু আপনি দেখবেন) বা "Public" (লিংক আছে এমন যে কেউ দেখতে পারবে) বেছে নিন।',
           '"Save" এ ক্লিক করুন।',
         ],
         paragraphs: [
@@ -1437,7 +1432,7 @@ export const guides: Guide[] = [
         bullets: [
           'নোট এডিট করুন: নোট টেক্সটে ক্লিক করুন, পরিবর্তন করুন, Enter চাপুন।',
           'কার্ড সরান: কার্ডের পাশের রিমুভ আইকনে ক্লিক করুন।',
-          'क्रम বদলান: ড্র্যাগ অ্যান্ড ড্রপ (ডেস্কটপ) বা মুভ বাটন (মোবাইল) ব্যবহার করুন।',
+          'ক্রম বদলান: ড্র্যাগ অ্যান্ড ড্রপ (ডেস্কটপ) বা মুভ বাটন (মোবাইল) ব্যবহার করুন।',
         ],
         paragraphs: [],
       },
@@ -1615,7 +1610,7 @@ export const guides: Guide[] = [
       {
         question: 'মডারেশন কতক্ষণ নেয়?',
         answer:
-          'সাধারণত ২৪-৪৮ ঘন্টা। গাইডলাইন লঙ্ঘনকারী রিভিউ (স্প্যাম, অপব্যবহার, অফ-টপিক) अस্বীকৃত হয়।',
+          'সাধারণত ২৪-৪৮ ঘন্টা। গাইডলাইন লঙ্ঘনকারী রিভিউ (স্প্যাম, অপব্যবহার, অফ-টপিক) অস্বীকৃত হয়।',
       },
       {
         question: 'কি আমি এমন কার্ডের রিভিউ লিখতে পারি যা আমার নেই?',
@@ -1717,7 +1712,7 @@ export const guides: Guide[] = [
       },
       {
         question: 'ফিল্টার লাগালে কেন কোনো কার্ড দেখা যাচ্ছে না?',
-        answer: 'ফিল্টারগুলো খুব সীমাবদ্ধ হতে পারে। রেঞ্জ चौড়া করুন বা কিছু বক্স আনচেক করুন।',
+        answer: 'ফিল্টারগুলো খুব সীমাবদ্ধ হতে পারে। রেঞ্জ চওড়া করুন বা কিছু বক্স আনচেক করুন।',
       },
     ],
     sources: [
@@ -1812,14 +1807,9 @@ export const guides: Guide[] = [
         paragraphs: [],
       },
       {
-        heading: 'অ্যানালিটিক্স সম্মতি (অপ্ট-ইন / অপ্ট-আউট)',
+        heading: 'অ্যানালিটিক্স সম্মতি (অপ্ট-ইন)',
         paragraphs: [
-          'অ্যানালিটিক্স ডিফল্টভাবে অপ্ট-ইন। আপনি যতক্ষণ স্পষ্টভাবে অপ্ট-ইন করবেন না, কোনো ইভেন্ট পাঠানো হয় না। আপনি যেকোনো সময় About পেজ থেকে বা ব্রাউজার ডেটা মুছে অপ্ট-ইন বা অপ্ট-আউট করতে পারেন।',
-        ],
-        steps: [
-          '/about-এ যান।',
-          '"Analytics" সেকশন খুঁজুন।',
-          '"Opt in" ক্লিক করুন ট্র্যাকিং চালু করতে, বা "Opt out" ক্লিক করুন বন্ধ করতে এবং লোকাল অ্যানালিটিক্স ডেটা মুছতে।',
+          'আপনি অপ্ট-ইন না করলে অ্যানালিটিক্স বন্ধ থাকে। আপনার সম্মতি ব্রাউজারে সংরক্ষিত না হওয়া পর্যন্ত কোনো ইভেন্ট পাঠানো হয় না। কোনো অ্যানালিটিক্স প্রোভাইডার সংযুক্ত না থাকায় এখনো কোনো সম্মতি ব্যানার নেই; সংযুক্ত হলে আগে আপনার অনুমতি চাওয়া হবে। ব্রাউজার ডেটা মুছে যেকোনো সময় সম্মতি প্রত্যাহার করতে পারেন। পূর্ণ নীতির জন্য গোপনীয়তা পেজ (/privacy) দেখুন।',
         ],
       },
       {
@@ -1837,7 +1827,7 @@ export const guides: Guide[] = [
           'signup / login: প্রমাণীকরণ ইভেন্ট।',
         ],
         paragraphs: [
-          'আমরা ট্র্যাক করি না: পাসওয়ার্ড, ইমেল কন্টেন্ট, IP ঠিকানা (প্রভাইডার লগের বাইরে), সুনির্দিষ্ট লোকেশন, বা উপরে লিস্ট করা ছাড়া অন্য কোনো ডেটা। পাঠানোর আগে সব প্রপার্টি মান স্যানিটাইজ করা হয় (ল 長 সীমা, ক্যারেক্টার আলাউ-লিস্ট)।',
+          'আমরা ট্র্যাক করি না: পাসওয়ার্ড, ইমেল কন্টেন্ট, IP ঠিকানা (প্রভাইডার লগের বাইরে), সুনির্দিষ্ট লোকেশন, বা উপরে লিস্ট করা ছাড়া অন্য কোনো ডেটা। পাঠানোর আগে সব প্রপার্টি মান স্যানিটাইজ করা হয় (দৈর্ঘ্যের সীমা, ক্যারেক্টার আলাউ-লিস্ট)।',
         ],
       },
       {
@@ -1847,7 +1837,7 @@ export const guides: Guide[] = [
           'সংরক্ষিত আইটেম: আপনি মুছা না পর্যন্ত অথবা অ্যাকাউন্ট ডিলিট না করা পর্যন্ত।',
           'রিভিউ: আপনি মুছা না পর্যন্ত অথবা অ্যাকাউন্ট ডিলিট না করা পর্যন্ত।',
           'অ্যানালিটিক্স ইভেন্ট: আমরা সংরক্ষণ করি না; কনফিগার্ড থাকলে অ্যানালিটিক্স প্রোভাইডারকে পাঠানো হয় তাদের নিজস্ব রিটেনশন পলিসি সহ।',
-          'অপ্ট-আউট ফ্ল্যাগ: localStorage-এ (creditmate.analytics.optOut) সংরক্ষিত থাকে যতক্ষণ না ব্রাউজার ডেটা মুছেন বা আবার অপ্ট-ইন করেন।',
+          'অ্যানালিটিক্স সম্মতি: শুধু অপ্ট-ইন করলে localStorage-এ (creditmate.analytics.consent) সংরক্ষিত থাকে, যতক্ষণ না ব্রাউজার ডেটা মুছেন বা সম্মতি প্রত্যাহার করেন।',
         ],
         paragraphs: [],
       },
@@ -1857,7 +1847,7 @@ export const guides: Guide[] = [
           'অ্যাক্সেস: সাপোর্টের মাধ্যমে আপনার অ্যাকাউন্ট ডেটার কপি অনুরোধ করুন।',
           'সংশোধন: অ্যাকাউন্ট সেটিংসে আপনার ইমেল বা প্রদর্শন নাম আপডেট করুন।',
           'মুছে ফেলা: অ্যাকাউন্ট ডিলিট করুন (সব লিংকড ডেটা মুছে যাবে)।',
-          'অপ্ট-আউট: যেকোনো সময় অ্যানালিটিক্স বন্ধ করুন — আর কোনো ইভেন্ট পাঠানো হবে না।',
+          'সম্মতি প্রত্যাহার: যেকোনো সময় অ্যানালিটিক্স বন্ধ করুন — আর কোনো ইভেন্ট পাঠানো হবে না।',
           'পোর্টিবিলিটি: অনুরোধ করলে এক্সপোর্টেড ডেটা উপলব্ধ।',
         ],
         paragraphs: [],
@@ -1872,7 +1862,7 @@ export const guides: Guide[] = [
       {
         question: 'অপ্ট-আউট করলে কী হয়?',
         answer:
-          'অপ্ট-আউট ফ্ল্যাগ localStorage-এ সংরক্ষিত হয়। অ্যানালিটিক্স ক্লায়েন্টইনস্ট্যান্টলি ইভেন্ট পাঠানো বন্ধ করে দেয়। প্রোভাইডার ডিলিশন কলব্যাক নিবন্ধিত থাকলে তা কল করা হয়। ইতিমধ্যে প্রোভাইডারে পাঠানো গയেগুলো তাদের পলিসি দ্বারা গভิร์ন করা হয়।',
+          'localStorage থেকে আপনার সংরক্ষিত সম্মতি মুছে যায়। অ্যানালিটিক্স সাথে সাথে ইভেন্ট পাঠানো বন্ধ করে দেয়। প্রোভাইডার ডিলিশন কলব্যাক নিবন্ধিত থাকলে তা কল করা হয়। ইতিমধ্যে প্রোভাইডারে পাঠানো ডেটা তাদের নীতি অনুযায়ী পরিচালিত হয়।',
       },
       {
         question: 'আপনি কি আমার ডেটা বিক্রি করেন?',

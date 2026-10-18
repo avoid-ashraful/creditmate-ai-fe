@@ -10,7 +10,13 @@ import { SkeletonCardGrid } from '../components/Skeleton';
 import Toast from '../components/Toast';
 import { CATEGORIES, Category, getCategoryBySlug } from '../config/categories';
 import { getGuide } from '../content/guides';
-import { useLanguage, getCommonCopy } from '../locales';
+import {
+  useLanguage,
+  getCommonCopy,
+  getCategoryText,
+  getCategoryHeading,
+  type Language,
+} from '../locales';
 import { apiService, CreditCardApiResponse } from '../services/api';
 import { CreditCard } from '../types';
 import { resetSeoMeta, setSeoMeta } from '../utils/seo';
@@ -26,10 +32,10 @@ const guideLinksFor = (category: Category): RelatedLink[] =>
     return guide ? [{ to: `/guides/${guide.slug}`, label: guide.title }] : [];
   });
 
-const otherCategoryLinksFor = (category: Category): RelatedLink[] =>
+const otherCategoryLinksFor = (category: Category, lang: Language): RelatedLink[] =>
   CATEGORIES.filter(other => other.slug !== category.slug).map(other => ({
     to: `/category/${other.slug}`,
-    label: other.name,
+    label: getCategoryText(other, lang).name,
   }));
 
 interface CategoryResponse {
@@ -267,14 +273,16 @@ const CategoryPage: React.FC = () => {
     setSelectedCardIds(prev => [...prev, card.id]);
   };
 
+  const categoryText = getCategoryText(category, lang);
+
   return (
     <div className="category-page">
       <div className="category-header">
-        <span className="category-badge">{category.badge}</span>
+        <span className="category-badge">{categoryText.badge}</span>
         <h1>
-          {category.icon} {category.name} Credit Cards
+          {category.icon} {getCategoryHeading(categoryText.name, lang)}
         </h1>
-        <p>{category.description}</p>
+        <p>{categoryText.description}</p>
         {!isLoading && !error && (
           <span className="category-count">
             {totalCount} {common.categoryCount}
@@ -336,7 +344,7 @@ const CategoryPage: React.FC = () => {
       <RelatedContent heading={common.categoryRelatedGuides} links={guideLinksFor(category)} />
       <RelatedContent
         heading={common.categoryOtherCategories}
-        links={otherCategoryLinksFor(category)}
+        links={otherCategoryLinksFor(category, lang)}
       />
     </div>
   );

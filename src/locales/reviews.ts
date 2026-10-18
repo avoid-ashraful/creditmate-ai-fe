@@ -197,7 +197,7 @@ export const REVIEWS_COPY: Record<Language, ReviewsCopy> = {
     editReviewTitle: 'আপনার রিভিউ সম্পাদনা করুন',
     yourRating: 'আপনার রেটিং',
     reviewTitle: 'রিভিউ শিরোনাম',
-    reviewTitlePlaceholder: 'কিছু শব্দে আপনার অভিজ্ঞতা خلاصা করুন',
+    reviewTitlePlaceholder: 'কিছু শব্দে আপনার অভিজ্ঞতা সংক্ষেপে লিখুন',
     reviewBody: 'আপনার রিভিউ',
     reviewBodyPlaceholder: 'এই কার্ডটির সাথে আপনার বিস্তারিত অভিজ্ঞতা শেয়ার করুন...',
     prosOptional: 'সুবিধা (ঐচ্ছিক)',
