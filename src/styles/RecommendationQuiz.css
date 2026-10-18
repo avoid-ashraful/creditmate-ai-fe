@@ -1,6 +1,10 @@
 .recommendation-quiz-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 100%
+  );
   padding: 2rem 1rem;
 }
 
@@ -77,7 +81,11 @@
   width: 100%;
   height: 6px;
   border-radius: 3px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    90deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 100%
+  );
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;
@@ -92,7 +100,7 @@
   background: white;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  border: 3px solid #667eea;
+  border: 3px solid var(--color-brand-gradient-from);
   transition: transform 0.2s;
 }
 
@@ -107,7 +115,7 @@
   background: white;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  border: 3px solid #667eea;
+  border: 3px solid var(--color-brand-gradient-from);
   transition: transform 0.2s;
 }
 
@@ -128,7 +136,7 @@
 .spend-value {
   font-size: 2rem;
   font-weight: 700;
-  color: #667eea;
+  color: var(--color-brand-gradient-from);
 }
 
 .spend-label {
@@ -149,18 +157,18 @@
   background: white;
   cursor: pointer;
   font-weight: 600;
-  color: #667eea;
+  color: var(--color-brand-gradient-from);
   transition: all 0.2s;
 }
 
 .preset-btn:hover {
-  border-color: #667eea;
+  border-color: var(--color-brand-gradient-from);
   background: #f5f7fa;
 }
 
 .preset-btn.active {
-  background: #667eea;
-  border-color: #667eea;
+  background: var(--color-brand-gradient-from);
+  border-color: var(--color-brand-gradient-from);
   color: white;
 }
 
@@ -188,14 +196,18 @@
 }
 
 .option-btn:hover {
-  border-color: #667eea;
+  border-color: var(--color-brand-gradient-from);
   background: #f5f7fa;
   transform: translateY(-2px);
 }
 
 .option-btn.selected {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: #667eea;
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 100%
+  );
+  border-color: var(--color-brand-gradient-from);
   color: white;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
@@ -229,14 +241,22 @@
   left: 0;
   height: 4px;
   width: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    90deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 100%
+  );
 }
 
 .result-rank {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 100%
+  );
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
@@ -250,7 +270,7 @@
   right: 0.5rem;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #667eea;
+  color: var(--color-brand-gradient-from);
 }
 
 .result-reason {
@@ -287,7 +307,11 @@
 }
 
 .share-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 100%
+  );
   color: white;
 }
 
@@ -298,12 +322,12 @@
 
 .see-all-btn {
   background: #f5f7fa;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: var(--color-brand-gradient-from);
+  border: 2px solid var(--color-brand-gradient-from);
 }
 
 .see-all-btn:hover {
-  background: #667eea;
+  background: var(--color-brand-gradient-from);
   color: white;
 }
 
@@ -315,7 +339,7 @@
 
 .retake-btn:hover {
   background: #e8eef5;
-  border-color: #667eea;
+  border-color: var(--color-brand-gradient-from);
 }
 
 .quiz-navigation {
@@ -336,13 +360,13 @@
   cursor: pointer;
   font-weight: 600;
   font-size: 0.95rem;
-  color: #667eea;
+  color: var(--color-brand-gradient-from);
   transition: all 0.2s;
 }
 
 .nav-btn:hover:not(:disabled) {
   background: #f5f7fa;
-  border-color: #667eea;
+  border-color: var(--color-brand-gradient-from);
 }
 
 .nav-btn:disabled {
@@ -355,7 +379,11 @@
 }
 
 .next-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 100%
+  );
   color: white;
   border: none;
   flex-grow: 1;

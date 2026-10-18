@@ -7,7 +7,7 @@ const colors = {
   primaryDark: '#1d4ed8',
   primaryLight: '#60a5fa',
   secondary: '#0f172a',
-  accent: '#10b981',
+  accent: '#047857',
   background: '#f8fafc',
   card: '#ffffff',
   text: '#1e293b',
@@ -18,7 +18,7 @@ const colors = {
 // Gradient backgrounds
 export const GradientBackground = createGlobalStyle`
   body {
-    background: linear-gradient(135deg, ${colors.background} 0%, #eef2ff 100%);
+    background: var(--color-gradient-background);
   }
 `;
 
@@ -37,7 +37,7 @@ const gradientAnimation = keyframes`
 
 // Header with animated gradient
 export const GradientHeader = styled.header`
-  background: linear-gradient(-45deg, ${colors.primary}, ${colors.primaryLight}, #4f46e5, #818cf8);
+  background: var(--color-gradient-header);
   background-size: 400% 400%;
   animation: ${gradientAnimation} 15s ease infinite;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -53,6 +53,14 @@ export const GradientHeader = styled.header`
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .main-nav {
+    flex: 1 1 720px;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .logo a {
@@ -64,7 +72,13 @@ export const GradientHeader = styled.header`
 
   .main-nav ul {
     display: flex;
-    gap: 1.5rem;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .main-nav li {
+    flex: 0 0 auto;
   }
 
   .main-nav a {
@@ -80,11 +94,33 @@ export const GradientHeader = styled.header`
     background-color: rgba(255, 255, 255, 0.15);
     transform: translateY(-2px);
   }
+
+  @media (max-width: 768px) {
+    .header-content {
+      padding: 0.75rem 1rem;
+      gap: 0.5rem 1rem;
+    }
+
+    /* Wrapping every nav item onto its own row would stack the sticky header
+       across the whole phone viewport and cover the page beneath it. Keep two
+       rows instead: the nav row scrolls horizontally, its links stay on the
+       gradient, and each stays keyboard-focusable for axe's scroll rules. */
+    .main-nav {
+      flex: 1 1 100%;
+      padding-block: 4px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .main-nav ul {
+      flex-wrap: nowrap;
+    }
+  }
 `;
 
 // Animated card component
 export const AnimatedCard = styled(motion.div)`
-  background: white;
+  background: var(--color-background-surface);
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   padding: 1.5rem;
@@ -216,7 +252,7 @@ export const GradientComparisonBar = styled.div`
   }
 
   .compare-button {
-    background: linear-gradient(90deg, ${colors.accent}, #059669);
+    background: var(--color-gradient-accent-button);
     color: white;
     border: none;
     padding: 0.5rem 1.25rem;
