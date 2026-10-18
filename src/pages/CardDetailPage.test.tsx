@@ -66,6 +66,7 @@ const mockCard: CreditCard = {
   rewardPointsPolicy: 'Earn 1 point for every BDT 50 spent',
   additionalFeatures: ['Feature 1', 'Feature 2'],
   sourceUrl: 'https://www.ebl.com.bd/card',
+  applyUrl: 'https://www.ebl.com.bd/apply',
   isActive: true,
   lastUpdated: new Date('2025-05-15'),
   images: [
@@ -162,6 +163,7 @@ describe('CardDetailPage', () => {
           reward_points_policy: mockCard.rewardPointsPolicy,
           additional_features: mockCard.additionalFeatures,
           source_url: mockCard.sourceUrl,
+          apply_url: mockCard.applyUrl,
           is_active: true,
           modified: '2025-05-15',
           images: mockCard.images,
@@ -350,7 +352,7 @@ describe('CardDetailPage', () => {
     await expectNoAxeViolations(container);
   }, 15000);
 
-  test('displays Apply Now CTA when sourceUrl is present', async () => {
+  test('displays the apply CTA and a separate fee-schedule link when both URLs exist', async () => {
     renderWithRouter();
 
     await waitFor(() => {
@@ -358,6 +360,15 @@ describe('CardDetailPage', () => {
         screen.getByRole(BUTTON_ROLE, { name: new RegExp(APPLY_NOW_BUTTON, 'i') })
       ).toBeInTheDocument();
     });
+    const applyLink = screen.getByRole(BUTTON_ROLE, { name: new RegExp(APPLY_NOW_BUTTON, 'i') });
+    expect(applyLink).toHaveAttribute('href', mockCard.applyUrl);
+    // With a real apply link there is no second CTA; the source stays in the
+    // provenance line.
+    expect(screen.queryByRole('link', { name: 'View fee schedule' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Bank schedule of charges' })).toHaveAttribute(
+      'href',
+      mockCard.sourceUrl
+    );
   });
 
   test('does not apply CTA when sourceUrl is missing', async () => {

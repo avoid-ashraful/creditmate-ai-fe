@@ -124,6 +124,33 @@ describe('CardDetailPage trust fields', () => {
     expect(specValue('Islamic (Shariah-compliant)')).toHaveTextContent('Yes, Shariah-compliant');
     expect(specValue('Profit/fee (Shariah)')).toHaveTextContent('Data not available');
   });
+
+  test('shows the profit/fee wording from additional features on Islamic cards without an APR', async () => {
+    useCard({
+      is_islamic: true,
+      interest_rate_apr: null,
+      additional_features: [
+        'Interest/charges details: 20% (flat profit rate on the financed amount)',
+        'Free supplementary card',
+      ],
+    });
+    renderCard();
+    await screen.findByRole('heading', { level: 1, name: 'Test Credit Card' });
+
+    // The Shariah profit/fee row prints the detail without the field prefix,
+    // both in the specs table and in the key metrics.
+    expect(specValue('Profit/fee (Shariah)')).toHaveTextContent(
+      '20% (flat profit rate on the financed amount)'
+    );
+    expect(specValue('Profit/fee (Shariah)')).not.toHaveTextContent('Interest/charges details');
+  });
+
+  test('keeps "Data not available" for Islamic cards whose features carry no profit/fee text', async () => {
+    useCard({ is_islamic: true, interest_rate_apr: null });
+    renderCard();
+    await screen.findByRole('heading', { level: 1, name: 'Test Credit Card' });
+    expect(specValue('Profit/fee (Shariah)')).toHaveTextContent('Data not available');
+  });
 });
 
 describe('Report incorrect data dialog', () => {

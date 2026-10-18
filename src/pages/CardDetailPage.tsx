@@ -317,6 +317,19 @@ const CardDetailPage: React.FC = () => {
   const networkLabel = getNetworkLabel(copy, card.cardNetwork);
   const unknownIfEmpty = (value?: string): string => value || copy.unknown;
 
+  // QA #12: Islamic cards publish their profit/fee wording in additionalFeatures
+  // as an "Interest/charges details: ..." item while interestRateApr is null by
+  // design. Show that wording in the Shariah profit/fee row (without the
+  // prefix) instead of a generic "data not available".
+  const PROFIT_FEE_PREFIX = 'Interest/charges details: ';
+  const shariahProfitFeeText = (): string => {
+    if (card.interestRateApr !== null || !card.isIslamic) return '';
+    const item = card.additionalFeatures.find(
+      feature => typeof feature === 'string' && feature.startsWith(PROFIT_FEE_PREFIX)
+    );
+    return typeof item === 'string' ? item.slice(PROFIT_FEE_PREFIX.length) : '';
+  };
+
   // Render watch toggle or login prompt
   const renderWatchToggle = () => {
     if (authStatus === 'authenticated') {
@@ -406,7 +419,7 @@ const CardDetailPage: React.FC = () => {
                 <span className={LABEL_CLASS}>{aprLabel}</span>
                 <span className={VALUE_CLASS}>
                   {card.interestRateApr === null
-                    ? copy.dataNotAvailable
+                    ? shariahProfitFeeText() || copy.dataNotAvailable
                     : `${card.interestRateApr}% ${copy.apr}`}
                 </span>
               </div>
@@ -575,7 +588,7 @@ const CardDetailPage: React.FC = () => {
                   </th>
                   <td className={SPEC_VALUE_CLASS}>
                     {card.interestRateApr === null
-                      ? copy.dataNotAvailable
+                      ? shariahProfitFeeText() || copy.dataNotAvailable
                       : `${card.interestRateApr}% ${copy.apr}`}
                   </td>
                 </tr>
