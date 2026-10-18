@@ -13,7 +13,10 @@ export interface CreditCardApiFixture {
   reward_points_policy: string;
   additional_features: string[];
   is_active: boolean;
-  sourceUrl: string;
+  source_url: string;
+  apply_url: string;
+  verification_status: string;
+  verified_at: string;
   modified: string;
   images: Array<{ small: string; full: string }>;
 }
@@ -37,7 +40,10 @@ const card = (id: number, name: string, annualFee: number): CreditCardApiFixture
   reward_points_policy: `Synthetic reward policy ${id}; Earn 1 point for every BDT 50 spent.`,
   additional_features: [`Synthetic feature ${id}.1`, `Synthetic feature ${id}.2`],
   is_active: true,
-  sourceUrl: `https://synthetic-${id}.test/card`,
+  source_url: `https://synthetic-${id}.test/schedule-of-charges.pdf`,
+  apply_url: `https://synthetic-${id}.test/apply`,
+  verification_status: 'verified',
+  verified_at: '2026-10-18T00:00:00Z',
   modified: '2025-01-15T10:00:00Z',
   images: [
     { small: image(id, 1), full: image(id, 1) },
