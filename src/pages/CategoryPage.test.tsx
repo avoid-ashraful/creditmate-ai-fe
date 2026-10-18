@@ -278,3 +278,10 @@ test('unmounting mid-fetch does not throw or set state', async () => {
   unmount();
   expect(() => resolveFetch({ count: 0, next: null, previous: null, results: [] })).not.toThrow();
 });
+
+test('islamic category is a filter-based category that sends is_islamic through the API layer', async () => {
+  mockGetCreditCards.mockResolvedValue(makeResponse([1]));
+  renderCategoryPage('islamic');
+  await screen.findByRole('heading', { name: /Islamic Credit Cards/ });
+  expect(mockGetCreditCards).toHaveBeenCalledWith(expect.objectContaining({ isIslamic: true }));
+});

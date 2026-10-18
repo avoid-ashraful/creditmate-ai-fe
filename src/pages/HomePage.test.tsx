@@ -135,6 +135,55 @@ test('filters cards through the mocked API', async () => {
   expect(screen.queryByText(/Other Rewards Card/i)).not.toBeInTheDocument();
 });
 
+test('filters by card network through the mocked API and keeps the selection after applying', async () => {
+  renderRoutes();
+
+  expect(await screen.findByText(/Test Credit Card/i)).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: /Expand/i }));
+  await userEvent.click(screen.getByRole('button', { name: 'Visa' }));
+  await userEvent.click(screen.getByRole('button', { name: /Apply Filters/i }));
+
+  await waitFor(() => expect(screen.queryByText(/Other Rewards Card/i)).not.toBeInTheDocument());
+  expect(screen.getByText(/Test Credit Card/i)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Visa' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('filters Islamic and dual-currency cards through the mocked API', async () => {
+  renderRoutes();
+
+  expect(await screen.findByText(/Test Credit Card/i)).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: /Expand/i }));
+  await userEvent.click(screen.getByLabelText('Islamic (Shariah) cards only'));
+  await userEvent.click(screen.getByRole('button', { name: /Apply Filters/i }));
+  await waitFor(() => expect(screen.queryByText(/Test Credit Card/i)).not.toBeInTheDocument());
+  expect(screen.getByText(/Other Rewards Card/i)).toBeInTheDocument();
+
+  await userEvent.click(screen.getByLabelText('Dual-currency only'));
+  await userEvent.click(screen.getByRole('button', { name: /Apply Filters/i }));
+  await waitFor(() => expect(screen.queryByText(/Other Rewards Card/i)).not.toBeInTheDocument());
+  expect(screen.queryByText(/Test Credit Card/i)).not.toBeInTheDocument();
+  expect(await screen.findByText(/Category not found/i)).toBeInTheDocument();
+});
+
+test('income filter includes unknown-income cards by default and excludes them when unchecked', async () => {
+  renderRoutes();
+
+  expect(await screen.findByText(/Test Credit Card/i)).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: /Expand/i }));
+  // Test Credit Card needs BDT 50,000; Other Rewards Card publishes no requirement.
+  await userEvent.type(screen.getByLabelText('My monthly income (BDT)'), '30000');
+  await userEvent.click(screen.getByRole('button', { name: /Apply Filters/i }));
+  await waitFor(() => expect(screen.queryByText(/Test Credit Card/i)).not.toBeInTheDocument());
+  expect(screen.getByText(/Other Rewards Card/i)).toBeInTheDocument();
+
+  await userEvent.click(
+    screen.getByLabelText("Include cards whose income requirement isn't published")
+  );
+  await userEvent.click(screen.getByRole('button', { name: /Apply Filters/i }));
+  await waitFor(() => expect(screen.queryByText(/Other Rewards Card/i)).not.toBeInTheDocument());
+  expect(await screen.findByText(/Category not found/i)).toBeInTheDocument();
+});
+
 test('searches cards through the mocked API', async () => {
   renderRoutes();
 

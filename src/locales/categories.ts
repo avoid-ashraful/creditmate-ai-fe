@@ -41,6 +41,11 @@ export const CATEGORY_TEXT_BN: Record<CategorySlug, CategoryText> = {
     name: 'বার্ষিক ফি নেই',
     description: 'যেসব কার্ডের প্রকাশিত বার্ষিক ফি ঠিক শূন্য। ফি অজানা এমন কার্ড অন্তর্ভুক্ত নয়।',
   },
+  islamic: {
+    name: 'ইসলামিক',
+    description:
+      'প্রকাশিত কার্ড তথ্যে যেসব কার্ড ইসলামিক (শরিয়াহ-সম্মত) হিসেবে চিহ্নিত। চুক্তির শর্তাবলি ব্যাংকের কাছ থেকে যাচাই করুন।',
+  },
 };
 
 /** Display name, badge and description of a category in the given language. */

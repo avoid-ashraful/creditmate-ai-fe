@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from 'react';
 
-import { useLanguage, getCommonCopy } from '../locales';
-import { CardFilterOptions, Bank } from '../types';
+import { useLanguage, getCommonCopy, getCardDetailCopy, getNetworkLabel } from '../locales';
+import { CardFilterOptions, Bank, CardNetwork } from '../types';
 import './FilterPanel.css';
+
+const CARD_NETWORKS: CardNetwork[] = [
+  'visa',
+  'mastercard',
+  'amex',
+  'unionpay',
+  'jcb',
+  'diners',
+  'other',
+];
 
 interface FilterPanelProps {
   banks: Bank[];
@@ -17,6 +27,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 }) => {
   const { lang } = useLanguage();
   const common = getCommonCopy(lang);
+  const detailCopy = getCardDetailCopy(lang);
   const [filters, setFilters] = useState<CardFilterOptions>(initialFilters);
   const [expanded, setExpanded] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +35,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   useEffect(() => {
     // Apply initial filters if provided
     if (Object.keys(initialFilters).length > 0) {
-      setFilters(initialFilters);
+      // Merge so filters the user has picked survive a parent re-render.
+      setFilters(prev => ({ ...prev, ...initialFilters }));
     }
   }, [initialFilters]);
 
@@ -109,6 +121,22 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         return { ...prev, bankIds: bankIds.filter(id => id !== bankId) };
       }
     });
+  };
+
+  const handleNetworkToggle = (network: CardNetwork) => {
+    setFilters(prev => {
+      const networks = prev.cardNetworks || [];
+      const next = networks.includes(network)
+        ? networks.filter(n => n !== network)
+        : [...networks, network];
+      return { ...prev, cardNetworks: next.length > 0 ? next : undefined };
+    });
+  };
+
+  // Unchecked means "no filter", not "exclude": keep the key absent.
+  const handleFlagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFilters(prev => ({ ...prev, [name]: checked || undefined }));
   };
 
   const applyFilters = () => {
@@ -354,6 +382,86 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   placeholder="Min"
                   min="0"
                 />
+              </div>
+            </div>
+          </div>
+
+          <div className="filter-section">
+            <h4 id="filter-network-heading">{common.filterSectionCardNetwork}</h4>
+            <div
+              className="network-chip-group"
+              role="group"
+              aria-labelledby="filter-network-heading"
+            >
+              {CARD_NETWORKS.map(network => {
+                const selected = (filters.cardNetworks || []).includes(network);
+                return (
+                  <button
+                    key={network}
+                    type="button"
+                    className={`network-chip${selected ? ' selected' : ''}`}
+                    aria-pressed={selected}
+                    onClick={() => handleNetworkToggle(network)}
+                  >
+                    {getNetworkLabel(detailCopy, network)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="filter-section">
+            <h4>{common.filterSectionCardType}</h4>
+            <div className="checkbox-inputs">
+              <div className="input-group">
+                <input
+                  type="checkbox"
+                  id="isIslamic"
+                  name="isIslamic"
+                  checked={filters.isIslamic || false}
+                  onChange={handleFlagChange}
+                />
+                <label htmlFor="isIslamic">{common.filterLabelIslamic}</label>
+              </div>
+              <div className="input-group">
+                <input
+                  type="checkbox"
+                  id="isDualCurrency"
+                  name="isDualCurrency"
+                  checked={filters.isDualCurrency || false}
+                  onChange={handleFlagChange}
+                />
+                <label htmlFor="isDualCurrency">{common.filterLabelDualCurrency}</label>
+              </div>
+            </div>
+          </div>
+
+          <div className="filter-section">
+            <h4>{common.filterSectionIncome}</h4>
+            <div className="input-group">
+              <label htmlFor="maxMinMonthlyIncome">{common.filterLabelMonthlyIncome}</label>
+              <input
+                type="number"
+                id="maxMinMonthlyIncome"
+                name="maxMinMonthlyIncome"
+                value={filters.maxMinMonthlyIncome ?? ''}
+                onChange={handleInputChange}
+                min="0"
+                inputMode="numeric"
+              />
+            </div>
+            <div className="checkbox-inputs">
+              <div className="input-group">
+                <input
+                  type="checkbox"
+                  id="includeUnknownIncome"
+                  name="includeUnknownIncome"
+                  checked={filters.includeUnknownIncome ?? true}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="includeUnknownIncome">
+                  {common.filterLabelIncludeUnknownIncome}
+                </label>
               </div>
             </div>
           </div>

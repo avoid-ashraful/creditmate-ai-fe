@@ -108,6 +108,15 @@ export interface CardFilterOptions {
   featureSearch?: string;
   hasFeeWaiver?: boolean;
 
+  // Card detail filters
+  cardNetworks?: CardNetwork[];
+  isIslamic?: boolean;
+  isDualCurrency?: boolean;
+  /** Cards whose minimum monthly income (BDT) is at most this. */
+  maxMinMonthlyIncome?: number;
+  /** With maxMinMonthlyIncome: also keep cards with no published income (default true). */
+  includeUnknownIncome?: boolean;
+
   // Status
   isActive?: boolean;
 

@@ -7,9 +7,17 @@ import { LanguageProvider } from '../locales';
 
 import CategoryCard from './CategoryCard';
 
-test('all six required categories exist', () => {
+test('all required categories exist', () => {
   const slugs = CATEGORIES.map(c => c.slug);
-  expect(slugs).toEqual(['travel', 'cashback', 'premium', 'student', 'business', 'no-annual-fee']);
+  expect(slugs).toEqual([
+    'travel',
+    'cashback',
+    'premium',
+    'student',
+    'business',
+    'no-annual-fee',
+    'islamic',
+  ]);
 });
 
 test('CategoryCard renders name, description and link', () => {

@@ -25,6 +25,11 @@ describe('advancedSearch service', () => {
       expect(DEFAULT_UI_STATE.hasAnnualFee).toBe(false);
       expect(DEFAULT_UI_STATE.noAnnualFee).toBe(false);
       expect(DEFAULT_UI_STATE.hasFeeWaiver).toBe(false);
+      expect(DEFAULT_UI_STATE.cardNetworks).toEqual([]);
+      expect(DEFAULT_UI_STATE.isIslamic).toBe(false);
+      expect(DEFAULT_UI_STATE.isDualCurrency).toBe(false);
+      expect(DEFAULT_UI_STATE.maxMinMonthlyIncome).toBe('');
+      expect(DEFAULT_UI_STATE.includeUnknownIncome).toBe(true);
       expect(DEFAULT_UI_STATE.featureSearch).toBe('');
       expect(DEFAULT_UI_STATE.bankIds).toEqual([]);
       expect(DEFAULT_UI_STATE.ordering).toBe('relevance');
@@ -98,6 +103,42 @@ describe('advancedSearch service', () => {
       expect(params.has_annual_fee).toBe(true);
       expect(params.no_annual_fee).toBeUndefined();
       expect(params.has_fee_waiver).toBe(true);
+    });
+
+    it('includes card network, Islamic and dual-currency filters', () => {
+      const params = uiStateToParams({
+        ...DEFAULT_UI_STATE,
+        cardNetworks: ['visa', 'jcb'],
+        isIslamic: true,
+        isDualCurrency: true,
+      });
+      expect(params.card_network).toBe('visa,jcb');
+      expect(params.is_islamic).toBe(true);
+      expect(params.is_dual_currency).toBe(true);
+      expect(params.max_min_monthly_income).toBeUndefined();
+      expect(params.include_unknown_income).toBeUndefined();
+    });
+
+    it('sends include_unknown_income (true or false) only with an income', () => {
+      const income = { ...DEFAULT_UI_STATE, maxMinMonthlyIncome: 30000 };
+      expect(uiStateToParams(income)).toMatchObject({
+        max_min_monthly_income: 30000,
+        include_unknown_income: 'true',
+      });
+      expect(
+        uiStateToParams({ ...income, includeUnknownIncome: false }).include_unknown_income
+      ).toBe('false');
+      expect(
+        paramsToSearchParams(uiStateToParams({ ...income, includeUnknownIncome: false })).get(
+          'include_unknown_income'
+        )
+      ).toBe('false');
+    });
+
+    it('requests the card network / Islamic / dual-currency facets by default', () => {
+      expect(uiStateToParams(DEFAULT_UI_STATE).facets).toEqual(
+        expect.stringContaining('card_network,is_islamic,is_dual_currency')
+      );
     });
 
     it('includes feature search', () => {
@@ -243,6 +284,27 @@ describe('advancedSearch service', () => {
       const searchParams = new URLSearchParams([['page_size', '200']]);
       const state = searchParamsToUIState(searchParams);
       expect(state.pageSize).toBe(MAX_PAGE_SIZE);
+    });
+
+    it('parses card network, Islamic, dual-currency and income params', () => {
+      const state = searchParamsToUIState(
+        new URLSearchParams(
+          'card_network=visa,amex&is_islamic=true&is_dual_currency=true&max_min_monthly_income=25000&include_unknown_income=false'
+        )
+      );
+      expect(state).toMatchObject({
+        cardNetworks: ['visa', 'amex'],
+        isIslamic: true,
+        isDualCurrency: true,
+        maxMinMonthlyIncome: 25000,
+        includeUnknownIncome: false,
+      });
+    });
+
+    it('ignores a non-numeric income and leaves include_unknown_income to the default', () => {
+      const state = searchParamsToUIState(new URLSearchParams('max_min_monthly_income=abc'));
+      expect(state.maxMinMonthlyIncome).toBeUndefined();
+      expect(state.includeUnknownIncome).toBeUndefined();
     });
 
     it('filters out invalid bank IDs', () => {
