@@ -47,6 +47,12 @@ export interface AlertsCopy {
   unsubscribeTitle: string;
   unsubscribeDescription: string;
   unsubscribeButton: string;
+  unsubscribeLoading: string;
+  unsubscribeConfirmIntro: string;
+  unsubscribeCardLine: string;
+  unsubscribeAnyCard: string;
+  unsubscribeAlreadyOff: string;
+  unsubscribeRetry: string;
   unsubscribing: string;
   unsubscribeSuccess: string;
   unsubscribeError: string;
@@ -102,6 +108,14 @@ export const ALERTS_COPY: Record<Language, AlertsCopy> = {
     unsubscribeDescription:
       'Click below to stop receiving all alert emails. You can re-subscribe anytime from your account settings.',
     unsubscribeButton: 'Unsubscribe me',
+    unsubscribeLoading: 'Loading your subscription…',
+    unsubscribeConfirmIntro:
+      'Confirm to stop all alert emails for this account. Nothing changes until you confirm.',
+    unsubscribeCardLine: 'This link is for: {kind} — {card}',
+    unsubscribeAnyCard: 'all cards',
+    unsubscribeAlreadyOff:
+      'This alert is already off. Confirming will also stop any other alerts still active on the account.',
+    unsubscribeRetry: 'Try again',
     unsubscribing: 'Unsubscribing…',
     unsubscribeSuccess: 'You have been unsubscribed from all alert emails.',
     unsubscribeError: 'Something went wrong. Please try again.',
@@ -154,6 +168,14 @@ export const ALERTS_COPY: Record<Language, AlertsCopy> = {
     unsubscribeDescription:
       'সব আলার্ট ইমেল পেতে বন্ধ করতে নিচের বাটনে ক্লিক করুন। আপনি আপনার অ্যাকাউন্ট সেটিংস থেকে যে কোনো সময় পুনরায় সাবস্ক্রাইব করতে পারবেন।',
     unsubscribeButton: 'আমাকে আনসাবস্ক্রাইব করুন',
+    unsubscribeLoading: 'আপনার সাবস্ক্রিপশন লোড হচ্ছে…',
+    unsubscribeConfirmIntro:
+      'এই অ্যাকাউন্টের সব আলার্ট ইমেল বন্ধ করতে নিশ্চিত করুন। আপনি নিশ্চিত না করা পর্যন্ত কিছুই বদলাবে না।',
+    unsubscribeCardLine: 'এই লিংকটি: {kind} — {card}',
+    unsubscribeAnyCard: 'সব কার্ড',
+    unsubscribeAlreadyOff:
+      'এই আলার্ট আগেই বন্ধ আছে। নিশ্চিত করলে অ্যাকাউন্টে চালু থাকা অন্য আলার্টও বন্ধ হবে।',
+    unsubscribeRetry: 'আবার চেষ্টা করুন',
     unsubscribing: 'আনসাবস্ক্রাইব করা হচ্ছে…',
     unsubscribeSuccess: 'আপনি সব আলার্ট ইমেল থেকে আনসাবস্ক্রাইব হয়ে গেছেন।',
     unsubscribeError: 'কিছু একটা সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',

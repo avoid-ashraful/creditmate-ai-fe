@@ -202,6 +202,22 @@ describe('AlertsClient', () => {
   });
 
   describe('unsubscribe (public)', () => {
+    it('previews with a GET that changes nothing', async () => {
+      const preview = {
+        confirm_required: true,
+        is_active: true,
+        kind: 'fee_change',
+        card_name: 'Test Credit Card',
+      };
+      server.use(
+        rest.get('*/api/v1/alerts/unsubscribe/abc123/', (_req, res, ctx) =>
+          res(ctx.status(200), ctx.json(preview))
+        )
+      );
+
+      await expect(alertsClient.getUnsubscribePreview('abc123')).resolves.toEqual(preview);
+    });
+
     it('unsubscribes with token (no auth)', async () => {
       const response = { detail: 'Unsubscribed successfully' };
 
