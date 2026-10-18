@@ -302,8 +302,12 @@ const CardDetailPage: React.FC = () => {
     ? Number(feeWaiverThreshold.replace(/,/g, ''))
     : null;
 
-  // Never render a dead button: apply link falls back to the bank source, else nothing.
-  const applyHref = card.applyUrl || card.sourceUrl || '';
+  // Real apply links only: a bank "schedule of charges" (often a fee-schedule
+  // PDF) is not an application form, so a card without applyUrl must never
+  // show an "Apply" CTA (QA #10). The source URL gets a secondary, truthfully
+  // labelled "View fee schedule" link instead.
+  const applyHref = card.applyUrl || '';
+  const feeScheduleHref = !applyHref ? card.sourceUrl || '' : '';
   const verifiedText = card.verifiedAt
     ? fillCopy(copy.verifiedOn, { date: formatLocalizedDate(card.verifiedAt, lang) })
     : '';
@@ -439,6 +443,17 @@ const CardDetailPage: React.FC = () => {
                 onClick={handleApplyNow}
               >
                 {ctaClicked ? copy.openingApplication : copy.applyOnBankSite}
+              </a>
+            )}
+
+            {feeScheduleHref && (
+              <a
+                className="btn btn-secondary apply-cta fee-schedule-cta"
+                href={feeScheduleHref}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                {copy.viewFeeSchedule}
               </a>
             )}
 

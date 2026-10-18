@@ -59,6 +59,12 @@ export const cards = [
   card(4, 'Synthetic Mastercard Outside Range', 2500),
 ];
 
+/** QA #10: cards without an apply URL get a fee-schedule link, never an apply CTA. */
+export const feeScheduleOnlyCard: CreditCardApiFixture = {
+  ...card(9, 'Synthetic Fee Schedule Only', 0),
+  apply_url: '',
+};
+
 export const banks = [1, 2, 3, 4].map(id => ({
   id,
   name: `Synthetic Bank ${id}`,

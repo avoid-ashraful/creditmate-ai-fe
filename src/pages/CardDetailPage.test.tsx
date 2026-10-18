@@ -533,7 +533,7 @@ describe('CardDetailPage', () => {
     });
   });
 
-  test('opens the apply link in a new tab with safe rel, falling back to sourceUrl', async () => {
+  test('opens the real apply link in a new tab with safe rel', async () => {
     renderWithRouter();
 
     await waitFor(() => {
@@ -543,7 +543,7 @@ describe('CardDetailPage', () => {
     });
 
     const applyLink = screen.getByRole(BUTTON_ROLE, { name: new RegExp(APPLY_NOW_BUTTON, 'i') });
-    expect(applyLink).toHaveAttribute('href', mockCard.sourceUrl);
+    expect(applyLink).toHaveAttribute('href', mockCard.applyUrl);
     expect(applyLink).toHaveAttribute('target', '_blank');
     expect(applyLink).toHaveAttribute('rel', 'noopener noreferrer nofollow');
   });

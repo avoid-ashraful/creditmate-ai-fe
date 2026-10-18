@@ -76,19 +76,30 @@ describe('CardDetailPage trust fields', () => {
     expect(specValue('Foreign Transaction Fee')).toHaveTextContent('3%');
   });
 
-  test('falls back to sourceUrl for the apply link and hides it when neither exists', async () => {
+  test('shows the fee-schedule link, never an apply CTA, when only sourceUrl exists', async () => {
     useCard({ apply_url: '' });
     const { unmount } = renderCard();
-    expect(await screen.findByRole('link', { name: 'Apply on bank website' })).toHaveAttribute(
-      'href',
-      'https://test.com/schedule-of-charges'
-    );
+    await screen.findByRole('heading', { level: 1, name: 'Test Credit Card' });
+    expect(screen.queryByRole('link', { name: 'Apply on bank website' })).not.toBeInTheDocument();
+    const feeSchedule = screen.getByRole('link', { name: 'View fee schedule' });
+    expect(feeSchedule).toHaveAttribute('href', 'https://test.com/schedule-of-charges');
+    expect(feeSchedule).toHaveAttribute('rel', 'noopener noreferrer nofollow');
+    expect(feeSchedule).toHaveAttribute('class', expect.stringContaining('btn-secondary'));
     unmount();
+
+    const { unmount: unmountBengali } = renderCard(CARD_ROUTE, 'bn');
+    await screen.findByRole('heading', { level: 1, name: 'Test Credit Card' });
+    expect(
+      screen.queryByRole('link', { name: 'ব্যাংকের ওয়েবসাইটে আবেদন করুন' })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'ফি তালিকা দেখুন' })).toBeInTheDocument();
+    unmountBengali();
 
     useCard({ apply_url: '', source_url: '', verified_at: null });
     renderCard();
     await screen.findByRole('heading', { level: 1, name: 'Test Credit Card' });
     expect(screen.queryByRole('link', { name: 'Apply on bank website' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'View fee schedule' })).not.toBeInTheDocument();
     expect(screen.queryByText(/Verified on/)).not.toBeInTheDocument();
   });
 

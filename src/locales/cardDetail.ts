@@ -109,6 +109,8 @@ export interface CardDetailCopy {
 
   // Trust & data-quality fields
   applyOnBankSite: string;
+  /** Secondary link shown instead of the apply CTA when a card has only a source URL */
+  viewFeeSchedule: string;
   sourceLabel: string;
   sourceScheduleOfCharges: string;
   /** Placeholder: {date} */
@@ -245,6 +247,7 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     viewDetailsFor: 'View details for {name}',
 
     applyOnBankSite: 'Apply on bank website',
+    viewFeeSchedule: 'View fee schedule',
     sourceLabel: 'Source:',
     sourceScheduleOfCharges: 'Bank schedule of charges',
     verifiedOn: 'Verified on {date}',
@@ -395,6 +398,7 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     viewDetailsFor: '{name}-এর বিস্তারিত দেখুন',
 
     applyOnBankSite: 'ব্যাংকের ওয়েবসাইটে আবেদন করুন',
+    viewFeeSchedule: 'ফি তালিকা দেখুন',
     sourceLabel: 'সূত্র:',
     sourceScheduleOfCharges: 'ব্যাংকের চার্জ তালিকা',
     verifiedOn: '{date} তারিখে যাচাই করা হয়েছে',
