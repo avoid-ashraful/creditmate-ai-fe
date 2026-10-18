@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
@@ -109,8 +109,12 @@ describe('VerifyEmailPage', () => {
     await user.type(screen.getByLabelText(copy.emailLabel), 'reader@example.com');
     await user.click(screen.getByRole('button', { name: copy.resendButton }));
 
-    const alerts = await screen.findAllByRole('alert');
-    expect(alerts.map(node => node.textContent)).toContain(copy.resendRateLimited);
+    // The invalid-link alert is already on screen; wait for the throttle alert to join it.
+    await waitFor(() =>
+      expect(screen.getAllByRole('alert').map(node => node.textContent)).toContain(
+        copy.resendRateLimited
+      )
+    );
   });
 
   it('has no accessibility violations on the invalid-link page with resend', async () => {

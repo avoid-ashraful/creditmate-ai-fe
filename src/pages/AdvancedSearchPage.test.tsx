@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, configure, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { MemoryRouter, Routes, Route, useLocation, useNavigate, Link } from 'react-router-dom';
@@ -11,6 +11,8 @@ import { advancedSearchService } from '../services/advancedSearch';
 import AdvancedSearchPage from './AdvancedSearchPage';
 
 jest.setTimeout(25000);
+// Debounced (300 ms) search + mocked fetch can exceed the 1 s default under full-suite load.
+configure({ asyncUtilTimeout: 5000 });
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
