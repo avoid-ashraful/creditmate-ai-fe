@@ -428,4 +428,23 @@ test('advanced search filters, sorting, and URL state', async ({ page }) => {
       )
     )
     .toBeTruthy();
+
+  // Rapid edits must survive the debounced URL write without a settling wait.
+  const income = page.getByLabel('My monthly income (BDT)', { exact: true });
+  const includeUnknown = page.getByLabel("Include cards whose income requirement isn't published");
+  await income.fill('30000');
+  await includeUnknown.uncheck();
+  await expect(page).toHaveURL(/max_min_monthly_income=30000/);
+  await expect(page).toHaveURL(/include_unknown_income=false/);
+  await expect(income).toHaveValue('30000');
+  await expect(includeUnknown).not.toBeChecked();
+  await expect
+    .poll(() =>
+      requested.some(
+        url =>
+          url.searchParams.get('max_min_monthly_income') === '30000' &&
+          url.searchParams.get('include_unknown_income') === 'false'
+      )
+    )
+    .toBeTruthy();
 });
