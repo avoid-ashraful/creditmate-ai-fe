@@ -1,3 +1,6 @@
+// Module marker: the file only uses require() so isolatedModules needs an export.
+export {};
+
 const loadEnv = (nodeEnv: string, logging: string) => {
   const env = process.env as Record<string, string | undefined>;
   const previous = { NODE_ENV: env.NODE_ENV, log: env.REACT_APP_ENABLE_API_LOGGING };
