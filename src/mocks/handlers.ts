@@ -41,6 +41,16 @@ export const testCards = [
     has_lounge_access: true,
     has_annual_fee: true,
     is_active: true,
+    source_url: 'https://test.com/schedule-of-charges',
+    apply_url: 'https://test.com/apply',
+    verification_status: 'verified',
+    verified_at: '2025-05-01T00:00:00Z',
+    card_network: 'visa',
+    is_islamic: false,
+    is_dual_currency: true,
+    min_monthly_income: '50000.00',
+    supplementary_card_fee: 'BDT 500',
+    foreign_transaction_fee: '3%',
   },
   {
     id: 2,
@@ -53,6 +63,16 @@ export const testCards = [
     has_lounge_access: false,
     has_annual_fee: false,
     is_active: true,
+    source_url: '',
+    apply_url: '',
+    verification_status: 'verified',
+    verified_at: null,
+    card_network: '',
+    is_islamic: true,
+    is_dual_currency: null,
+    min_monthly_income: null,
+    supplementary_card_fee: '',
+    foreign_transaction_fee: '',
   },
 ];
 
@@ -186,6 +206,17 @@ export const handlers = [
       ctx.status(created ? 201 : 200),
       ctx.json({ helpful_count: review.helpful_count + 1 })
     );
+  }),
+  // POST /credit-cards/{id}/report-issue/ (201; 404 for unknown cards; message required)
+  rest.post('*/api/v1/credit-cards/:cardId/report-issue/', async (req, res, ctx) => {
+    if (!testCards.some(card => card.id === Number(req.params.cardId))) {
+      return res(ctx.status(404), ctx.json({ detail: 'Not found.' }));
+    }
+    const body = (await req.json()) as { message?: string };
+    if (!body.message) {
+      return res(ctx.status(400), ctx.json({ message: ['This field is required.'] }));
+    }
+    return res(ctx.status(201), ctx.json({ id: 1, status: 'pending' }));
   }),
   // GET /banks/
   rest.get(apiUrl('banks/'), (_req, res, ctx) => {
