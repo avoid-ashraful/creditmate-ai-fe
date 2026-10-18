@@ -35,11 +35,13 @@ const routes = (
 
 const fillForm = async (
   user: ReturnType<typeof userEvent.setup>,
-  { email, password, confirm }: { email: string; password: string; confirm: string }
+  { email, password, confirm }: { email: string; password: string; confirm: string },
+  { terms = true }: { terms?: boolean } = {}
 ) => {
   await user.type(screen.getByLabelText('Email'), email);
   await user.type(screen.getByLabelText('Password'), password);
   await user.type(screen.getByLabelText('Confirm password'), confirm);
+  if (terms) await user.click(screen.getByRole('checkbox', { name: /I agree to the/ }));
   await user.click(screen.getByRole('button', { name: 'Create account' }));
 };
 
@@ -70,8 +72,80 @@ describe('RegisterPage', () => {
 
     expect(await screen.findByText('login page')).toBeInTheDocument();
     expect(bodies).toEqual([
-      { email: AUTH_USER.email, password: 'pw-12345', password_confirm: 'pw-12345' },
+      {
+        email: AUTH_USER.email,
+        password: 'pw-12345',
+        password_confirm: 'pw-12345',
+        accept_terms: true,
+        marketing_opt_in: false,
+      },
     ]);
+  });
+
+  it('blocks submit until the terms checkbox is ticked and sends no request', async () => {
+    const user = userEvent.setup();
+    renderWithAuth(routes, { route: '/register' });
+
+    await fillForm(
+      user,
+      { email: AUTH_USER.email, password: 'pw-12345', confirm: 'pw-12345' },
+      { terms: false }
+    );
+
+    const terms = screen.getByRole('checkbox', { name: /I agree to the/ });
+    expect(terms).toHaveAccessibleDescription(
+      'You must agree to the Terms of Service and Privacy Policy to register.'
+    );
+    expect(terms).toHaveFocus();
+    expect(bodies).toHaveLength(0);
+  });
+
+  it('links to the terms and privacy pages from the consent label', () => {
+    renderWithAuth(routes, { route: '/register' });
+
+    expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute(
+      'href',
+      '/terms'
+    );
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute(
+      'href',
+      '/privacy'
+    );
+  });
+
+  it('sends marketing_opt_in when the optional box is ticked', async () => {
+    server.use(
+      rest.post(authUrl('register/'), (req, res, ctx) => {
+        bodies.push(req.body);
+        return res(ctx.status(201), ctx.json({ detail: 'Registration successful.' }));
+      })
+    );
+    const user = userEvent.setup();
+    renderWithAuth(routes, { route: '/register' });
+
+    await user.click(screen.getByRole('checkbox', { name: 'Email me product news' }));
+    await fillForm(user, { email: AUTH_USER.email, password: 'pw-12345', confirm: 'pw-12345' });
+
+    expect(await screen.findByText('login page')).toBeInTheDocument();
+    expect(bodies).toEqual([
+      expect.objectContaining({ accept_terms: true, marketing_opt_in: true }),
+    ]);
+  });
+
+  it('shows the server accept_terms rejection on the checkbox', async () => {
+    server.use(
+      rest.post(authUrl('register/'), (_req, res, ctx) =>
+        res(ctx.status(400), ctx.json({ accept_terms: ['You must accept the terms.'] }))
+      )
+    );
+    const user = userEvent.setup();
+    renderWithAuth(routes, { route: '/register' });
+
+    await fillForm(user, { email: AUTH_USER.email, password: 'pw-12345', confirm: 'pw-12345' });
+
+    expect(
+      await screen.findByRole('checkbox', { name: /I agree to the/ })
+    ).toHaveAccessibleDescription('You must accept the terms.');
   });
 
   it('maps DRF field errors onto their inputs and focuses the first one', async () => {

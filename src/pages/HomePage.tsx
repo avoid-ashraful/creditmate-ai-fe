@@ -1,6 +1,6 @@
 import { AnimatePresence } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 
 import CardDetailsPopup from '../components/CardDetailsPopup';
 import CardList from '../components/CardList';
@@ -22,6 +22,12 @@ import '../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  // One-off message from another page, e.g. after deleting the account.
+  const notice = (useLocation().state as { notice?: string } | null)?.notice ?? '';
+  // Drop the notice from browser history so a reload does not show it again.
+  useEffect(() => {
+    if (notice) window.history.replaceState({}, '');
+  }, [notice]);
   const { lang } = useLanguage();
   const common = getCommonCopy(lang);
   // `?search=` comes from the WebSite SearchAction in structured data. It is read
@@ -192,6 +198,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="home-page">
+      <Toast className="home-notice" message={notice} />
       <section className="hero-section">
         <div className="hero-content">
           <h1>{heroCtaText}</h1>

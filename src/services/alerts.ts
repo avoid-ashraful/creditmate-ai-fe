@@ -12,6 +12,7 @@ import {
   AlertPreferences,
   UpdateAlertPreferencesRequest,
   CreateAlertSubscriptionRequest,
+  UnsubscribePreview,
   UnsubscribeResponse,
 } from '../types/alerts';
 
@@ -136,8 +137,18 @@ export class AlertsClient {
   // ==================== Public Unsubscribe ====================
 
   /**
-   * Unsubscribe via token (public endpoint, no auth).
-   * Used by the /unsubscribe?token= page.
+   * Describe what a token would cancel, without changing anything (safe for
+   * link scanners). Used by the /unsubscribe?token= page before confirming.
+   */
+  async getUnsubscribePreview(token: string): Promise<UnsubscribePreview> {
+    return this.request<UnsubscribePreview>(`/unsubscribe/${encodeURIComponent(token)}/`, {
+      authenticated: false,
+    });
+  }
+
+  /**
+   * Unsubscribe via token (public endpoint, no auth). The server cancels all
+   * of the owner's alerts. Only call this after the user confirms.
    */
   async unsubscribe(token: string): Promise<UnsubscribeResponse> {
     return this.request<UnsubscribeResponse>(`/unsubscribe/${encodeURIComponent(token)}/`, {

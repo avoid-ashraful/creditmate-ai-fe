@@ -44,6 +44,14 @@ export interface UpdateAlertPreferencesRequest {
   email_enabled?: boolean;
 }
 
+/** GET /alerts/unsubscribe/{token}/ — read-only; POST performs the unsubscribe. */
+export interface UnsubscribePreview {
+  confirm_required: boolean;
+  is_active: boolean;
+  kind: AlertKind;
+  card_name: string | null;
+}
+
 /** Response from the unsubscribe endpoint. */
 export interface UnsubscribeResponse {
   detail: string;

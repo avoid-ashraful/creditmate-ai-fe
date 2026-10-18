@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { AuthAlert, AuthCard } from '../components/AuthCard';
+import { AuthCheckbox } from '../components/AuthCheckbox';
 import { AuthFormField } from '../components/AuthFormField';
 import { useAuth } from '../hooks/AuthProvider';
 import { useLanguage } from '../locales';
@@ -13,7 +14,7 @@ import {
   requiredFieldErrors,
 } from '../utils/authErrors';
 
-const INPUT_KEYS = ['email', 'password', 'password_confirm'];
+const INPUT_KEYS = ['email', 'password', 'password_confirm', 'accept_terms'];
 
 const RegisterPage: React.FC = () => {
   const { lang } = useLanguage();
@@ -24,11 +25,14 @@ const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [errors, setErrors] = useState<FormErrors>(NO_FORM_ERRORS);
   const [submitting, setSubmitting] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const confirmRef = useRef<HTMLInputElement>(null);
+  const termsRef = useRef<HTMLInputElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -40,11 +44,13 @@ const RegisterPage: React.FC = () => {
     if (!fields.password_confirm && password !== passwordConfirm) {
       fields.password_confirm = copy.passwordsMismatch;
     }
+    if (!acceptTerms) fields.accept_terms = copy.registerTermsRequired;
     if (Object.keys(fields).length > 0) {
       setErrors({ fields, form: copy.checkFields });
       if (fields.email) emailRef.current?.focus();
       else if (fields.password) passwordRef.current?.focus();
-      else confirmRef.current?.focus();
+      else if (fields.password_confirm) confirmRef.current?.focus();
+      else termsRef.current?.focus();
       return;
     }
 
@@ -54,6 +60,8 @@ const RegisterPage: React.FC = () => {
         email: email.trim(),
         password,
         passwordConfirm,
+        accept_terms: acceptTerms,
+        marketing_opt_in: marketingOptIn,
       });
       navigate('/login', { replace: true });
     } catch (error) {
@@ -62,6 +70,7 @@ const RegisterPage: React.FC = () => {
       if (described.fields.email) emailRef.current?.focus();
       else if (described.fields.password) passwordRef.current?.focus();
       else if (described.fields.password_confirm) confirmRef.current?.focus();
+      else if (described.fields.accept_terms) termsRef.current?.focus();
       else alertRef.current?.focus();
     } finally {
       setSubmitting(false);
@@ -102,6 +111,27 @@ const RegisterPage: React.FC = () => {
           onChange={event => setPasswordConfirm(event.target.value)}
           error={errors.fields.password_confirm}
         />
+        <AuthCheckbox
+          ref={termsRef}
+          name="accept_terms"
+          checked={acceptTerms}
+          onChange={event => setAcceptTerms(event.target.checked)}
+          error={errors.fields.accept_terms}
+          required
+        >
+          {copy.registerTermsBefore}
+          <Link to="/terms">{copy.registerTermsLink}</Link>
+          {copy.registerTermsAnd}
+          <Link to="/privacy">{copy.registerPrivacyLink}</Link>
+          {copy.registerTermsAfter}
+        </AuthCheckbox>
+        <AuthCheckbox
+          name="marketing_opt_in"
+          checked={marketingOptIn}
+          onChange={event => setMarketingOptIn(event.target.checked)}
+        >
+          {copy.registerMarketingLabel}
+        </AuthCheckbox>
         <button type="submit" className="primary-button auth-submit" disabled={submitting}>
           {submitting ? copy.submitting : copy.registerSubmit}
         </button>

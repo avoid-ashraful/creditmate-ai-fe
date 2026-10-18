@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { AuthAlert, AuthCard } from '../components/AuthCard';
+import { ResendVerification } from '../components/ResendVerification';
 import { useLanguage } from '../locales';
 import { getAuthCopy } from '../locales/auth';
 import { authClient } from '../services/auth';
@@ -69,6 +70,7 @@ const VerifyEmailPage: React.FC = () => {
   return (
     <AuthCard title={copy.verifyTitle}>
       <AuthAlert ref={alertRef} message={errors.form ?? copy.verifyInvalidLink} />
+      <ResendVerification />
       <p className="auth-links">
         <Link to="/login">Log in</Link> or <Link to="/register">Create an account</Link>
       </p>

@@ -6,10 +6,12 @@ import { useLanguage } from '../locales';
 import { formatGregorianDate, pluralize } from '../locales/format';
 import { getReviewsCopy } from '../locales/reviews';
 import type { Language } from '../locales/types';
-import { authClient } from '../services/auth';
+import { ApiError, authClient } from '../services/auth';
 import { reviewsService } from '../services/reviews';
 import { Review, ReviewSummary } from '../types';
 import { aggregateRatingJsonLd } from '../utils/structuredData';
+
+import { ResendVerification } from './ResendVerification';
 import './ReviewsSection.css';
 
 interface ReviewsSectionProps {
@@ -554,6 +556,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
   const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
@@ -658,6 +661,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
     }
     setShowForm(true);
     setFormError(null);
+    setNeedsVerification(false);
     setSubmissionMessage(null);
   };
 
@@ -677,6 +681,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
     try {
       setIsSubmitting(true);
       setFormError(null);
+      setNeedsVerification(false);
 
       await reviewsService.createReview({ ...data, card: cardId }, accessToken);
       setSubmissionMessage(copy.reviewSubmitted);
@@ -686,7 +691,9 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
       fetchReviews(currentPage);
     } catch (err) {
       console.error('Failed to submit review:', err);
-      if (err instanceof Error) {
+      if (err instanceof ApiError && err.code === 'email_not_verified') {
+        setNeedsVerification(true);
+      } else if (err instanceof Error) {
         setFormError(err.message);
       } else {
         setFormError(copy.genericError);
@@ -699,6 +706,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
   const handleCancelForm = () => {
     setShowForm(false);
     setFormError(null);
+    setNeedsVerification(false);
     setSubmissionMessage(null);
   };
 
@@ -773,6 +781,12 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
       {formError && (
         <div className="form-error-message" role="alert">
           {formError}
+        </div>
+      )}
+      {needsVerification && user && (
+        <div className="form-error-message">
+          <p role="alert">{copy.emailNotVerified}</p>
+          <ResendVerification email={user.email} />
         </div>
       )}
       {submissionMessage && (

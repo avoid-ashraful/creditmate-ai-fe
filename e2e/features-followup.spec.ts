@@ -34,9 +34,10 @@ test('register, login, logout and forgot password use mocked auth endpoints', as
   await mockApi(page);
   await mockAuth(page);
   await page.goto('/register');
-  await page.getByLabel('Email').fill(user.email);
+  await page.getByLabel('Email', { exact: true }).fill(user.email);
   await page.getByLabel('Password', { exact: true }).fill('Strong-pass-123');
   await page.getByLabel(/confirm password/i).fill('Strong-pass-123');
+  await page.getByRole('checkbox', { name: /terms of service/i }).check();
   await page.getByRole('button', { name: /create account|register/i }).click();
   await expect(page).toHaveURL(/\/login$/);
   await page.getByLabel('Email').fill(user.email);

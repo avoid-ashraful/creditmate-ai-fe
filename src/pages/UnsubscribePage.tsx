@@ -9,6 +9,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { useLanguage } from '../locales';
 import { getAlertsCopy } from '../locales/alerts';
 import { alertsClient } from '../services/alerts';
+import { ALERT_KIND_LABELS, UnsubscribePreview } from '../types/alerts';
 import '../styles/UnsubscribePage.css';
 
 const UnsubscribePage: React.FC = () => {
@@ -17,48 +18,62 @@ const UnsubscribePage: React.FC = () => {
   const copy = getAlertsCopy(lang);
 
   const token = searchParams.get('token');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  type Status = 'loading' | 'ready' | 'submitting' | 'success' | 'error';
+  const [status, setStatus] = useState<Status>(token ? 'loading' : 'error');
+  const [preview, setPreview] = useState<UnsubscribePreview | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(
+    token ? null : copy.unsubscribeInvalidToken
+  );
 
+  const fail = (err: unknown) => {
+    console.error('Unsubscribe failed:', err);
+    setStatus('error');
+    const httpStatus = (err as { status?: number } | null)?.status;
+    setErrorMessage(
+      httpStatus === 400 || httpStatus === 404
+        ? copy.unsubscribeInvalidToken
+        : copy.unsubscribeError
+    );
+  };
+
+  // GET only describes the subscription, so link scanners and prefetch cannot unsubscribe anyone.
   useEffect(() => {
-    if (!token) {
-      setStatus('error');
-      setErrorMessage(copy.unsubscribeInvalidToken);
-      return;
-    }
-
-    const unsubscribe = async () => {
-      setStatus('loading');
-      try {
-        await alertsClient.unsubscribe(token);
-        setStatus('success');
-      } catch (err) {
-        console.error('Unsubscribe failed:', err);
-        setStatus('error');
-        // Check if it's a 400/404 (invalid token) or other error
-        if (err instanceof Error && 'status' in err) {
-          const apiError = err as { status: number };
-          if (apiError.status === 400 || apiError.status === 404) {
-            setErrorMessage(copy.unsubscribeInvalidToken);
-          } else {
-            setErrorMessage(copy.unsubscribeError);
-          }
-        } else {
-          setErrorMessage(copy.unsubscribeError);
-        }
-      }
+    if (!token) return;
+    let cancelled = false;
+    alertsClient
+      .getUnsubscribePreview(token)
+      .then(data => {
+        if (cancelled) return;
+        setPreview(data);
+        setStatus('ready');
+      })
+      .catch(err => {
+        if (!cancelled) fail(err);
+      });
+    return () => {
+      cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
-    unsubscribe();
-  }, [token, lang, copy]);
+  const confirm = async () => {
+    if (!token) return;
+    setStatus('submitting');
+    try {
+      await alertsClient.unsubscribe(token);
+      setStatus('success');
+    } catch (err) {
+      fail(err);
+    }
+  };
 
-  if (status === 'loading') {
+  if (status === 'loading' || status === 'submitting') {
     return (
       <div className="unsubscribe-page" role="status" aria-live="polite">
         <div className="unsubscribe-container">
           <div className="loading-state">
             <div className="spinner" aria-hidden="true"></div>
-            <p>{copy.unsubscribing}</p>
+            <p>{status === 'loading' ? copy.unsubscribeLoading : copy.unsubscribing}</p>
           </div>
         </div>
       </div>
@@ -90,6 +105,23 @@ const UnsubscribePage: React.FC = () => {
                 {copy.backToSettings}
               </Link>
             </div>
+          ) : status === 'ready' && preview ? (
+            <div className="confirm-state">
+              <h1>{copy.unsubscribeTitle}</h1>
+              <p>{copy.unsubscribeConfirmIntro}</p>
+              <p>
+                {copy.unsubscribeCardLine
+                  .replace('{kind}', ALERT_KIND_LABELS[preview.kind]?.[lang] ?? preview.kind)
+                  .replace('{card}', preview.card_name ?? copy.unsubscribeAnyCard)}
+              </p>
+              {!preview.is_active && <p>{copy.unsubscribeAlreadyOff}</p>}
+              <button className="btn btn-primary" onClick={confirm}>
+                {copy.unsubscribeButton}
+              </button>
+              <Link to="/" className="btn btn-secondary">
+                {lang === 'bn' ? 'হোম পেজে ফিরে যান' : 'Back to Home'}
+              </Link>
+            </div>
           ) : (
             <div className="error-state">
               <div className="error-icon" aria-hidden="true">
@@ -108,9 +140,9 @@ const UnsubscribePage: React.FC = () => {
               </div>
               <h1>{copy.unsubscribeTitle}</h1>
               <p>{errorMessage || copy.unsubscribeError}</p>
-              {token && (
+              {token && errorMessage !== copy.unsubscribeInvalidToken && (
                 <button className="btn btn-primary" onClick={() => window.location.reload()}>
-                  {copy.unsubscribeButton}
+                  {copy.unsubscribeRetry}
                 </button>
               )}
               <Link to="/" className="btn btn-secondary">
