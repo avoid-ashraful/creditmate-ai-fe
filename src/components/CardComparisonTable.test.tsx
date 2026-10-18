@@ -55,6 +55,33 @@ describe('CardComparisonTable', () => {
     expect(within(region).getAllByRole('cell').length).toBeGreaterThan(2);
   });
 
+  it('shows trust-field rows with Unknown for missing values in both layouts', () => {
+    const known: CreditCard = {
+      ...createCard(1),
+      cardNetwork: 'visa',
+      isIslamic: true,
+      isDualCurrency: true,
+      minMonthlyIncome: 50000,
+      supplementaryCardFee: 'BDT 500',
+      foreignTransactionFee: '3%',
+    };
+    const unknown: CreditCard = { ...createCard(2), isDualCurrency: null, minMonthlyIncome: null };
+    renderWithLanguage(<CardComparisonTable cards={[known, unknown]} />);
+
+    const region = screen.getByRole('region', { name: 'Compare card features' });
+    const row = (label: string) =>
+      within(within(region).getByRole('row', { name: name => name.startsWith(label) }));
+    expect(row('Minimum Monthly Income').getByText('BDT 50,000')).toBeInTheDocument();
+    expect(row('Minimum Monthly Income').getByText('Unknown')).toBeInTheDocument();
+    expect(row('Dual Currency').getByText('Yes')).toBeInTheDocument();
+    expect(row('Supplementary Card Fee').getByText('BDT 500')).toBeInTheDocument();
+    expect(row('Foreign Transaction Fee').getByText('3%')).toBeInTheDocument();
+    expect(row('Card Network').getByText('Visa')).toBeInTheDocument();
+
+    const mobile = screen.getAllByRole('article')[0];
+    expect(within(mobile).getByText('Foreign Transaction Fee')).toBeInTheDocument();
+  });
+
   it('renders five cards without dropping columns or mobile cards', () => {
     const cards = Array.from({ length: 5 }, (_, index) => createCard(index + 1));
     renderWithLanguage(<CardComparisonTable cards={cards} />);

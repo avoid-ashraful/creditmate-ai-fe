@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useLanguage, getCommonCopy } from '../locales';
+import { useLanguage, getCommonCopy, getCardDetailCopy, getNetworkLabel } from '../locales';
 import { CreditCard } from '../types';
 import { getComparisonSummary } from '../utils/narratives';
 
@@ -12,7 +12,7 @@ interface CardComparisonTableProps {
 interface ComparisonFeature {
   key: string;
   label: string;
-  value: (card: CreditCard, common: ReturnType<typeof getCommonCopy>) => React.ReactNode;
+  value: (card: CreditCard) => React.ReactNode;
   differenceKey?: keyof CreditCard;
   group: 'Costs' | 'Benefits' | 'Card information';
 }
@@ -28,7 +28,10 @@ const formatInterestRate = (
 const getBankName = (card: CreditCard, common: ReturnType<typeof getCommonCopy>): string =>
   card.bankName || common.unknownBank;
 
-const getFeatures = (common: ReturnType<typeof getCommonCopy>): ComparisonFeature[] => [
+const getFeatures = (
+  common: ReturnType<typeof getCommonCopy>,
+  detail: ReturnType<typeof getCardDetailCopy>
+): ComparisonFeature[] => [
   {
     key: 'annual-fee',
     label: common.calcResultAnnualFee,
@@ -55,6 +58,20 @@ const getFeatures = (common: ReturnType<typeof getCommonCopy>): ComparisonFeatur
     label: common.latePaymentFeeLabel,
     value: card => card.latePaymentFee,
     differenceKey: 'latePaymentFee',
+    group: 'Costs',
+  },
+  {
+    key: 'supplementary-fee',
+    label: detail.specSupplementaryFee,
+    value: card => card.supplementaryCardFee || common.unknown,
+    differenceKey: 'supplementaryCardFee',
+    group: 'Costs',
+  },
+  {
+    key: 'foreign-transaction-fee',
+    label: detail.specForeignTransactionFee,
+    value: card => card.foreignTransactionFee || common.unknown,
+    differenceKey: 'foreignTransactionFee',
     group: 'Costs',
   },
   {
@@ -109,6 +126,42 @@ const getFeatures = (common: ReturnType<typeof getCommonCopy>): ComparisonFeatur
     group: 'Benefits',
   },
   {
+    key: 'network',
+    label: detail.specNetwork,
+    value: card => getNetworkLabel(detail, card.cardNetwork) ?? common.unknown,
+    differenceKey: 'cardNetwork',
+    group: 'Card information',
+  },
+  {
+    key: 'islamic',
+    label: detail.specIslamic,
+    value: card => (card.isIslamic ? detail.yes : detail.no),
+    differenceKey: 'isIslamic',
+    group: 'Card information',
+  },
+  {
+    key: 'dual-currency',
+    label: detail.specDualCurrency,
+    value: card =>
+      card.isDualCurrency === null || card.isDualCurrency === undefined
+        ? common.unknown
+        : card.isDualCurrency
+        ? detail.yes
+        : detail.no,
+    differenceKey: 'isDualCurrency',
+    group: 'Card information',
+  },
+  {
+    key: 'min-income',
+    label: detail.specMinIncome,
+    value: card =>
+      card.minMonthlyIncome === null || card.minMonthlyIncome === undefined
+        ? common.unknown
+        : `${detail.bdt} ${card.minMonthlyIncome.toLocaleString()}`,
+    differenceKey: 'minMonthlyIncome',
+    group: 'Card information',
+  },
+  {
     key: 'last-updated',
     label: common.cardLastUpdated,
     value: card => (card.lastUpdated ? card.lastUpdated.toLocaleDateString() : common.unknown),
@@ -122,12 +175,13 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
 }) => {
   const { lang } = useLanguage();
   const common = getCommonCopy(lang);
+  const detail = getCardDetailCopy(lang);
 
   if (!cards || cards.length === 0) {
     return <div className="empty-state">{common.comparisonEmptyDesc}</div>;
   }
 
-  const features = getFeatures(common);
+  const features = getFeatures(common, detail);
   const hasDifferences = (key: keyof CreditCard): boolean => {
     if (!highlightDifferences || cards.length <= 1) return false;
     return new Set(cards.map(card => card[key])).size > 1;
@@ -164,7 +218,7 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
                     .map(feature => (
                       <div className="comparison-mobile-feature" key={feature.key}>
                         <dt>{feature.label}</dt>
-                        <dd>{feature.value(card, common)}</dd>
+                        <dd>{feature.value(card)}</dd>
                       </div>
                     ))}
                 </dl>
@@ -205,7 +259,7 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
                   {feature.label}
                 </th>
                 {cards.map(card => (
-                  <td key={`${card.id}-${feature.key}`}>{feature.value(card, common)}</td>
+                  <td key={`${card.id}-${feature.key}`}>{feature.value(card)}</td>
                 ))}
               </tr>
             ))}

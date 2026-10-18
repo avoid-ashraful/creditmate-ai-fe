@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { cardHover, cardTap, fadeInUp, usePrefersReducedMotion } from '../animations';
-import { useLanguage, getCommonCopy } from '../locales';
+import { useLanguage, getCommonCopy, getCardDetailCopy, getNetworkLabel } from '../locales';
 import { AnimatedCard, GradientButton } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
 import { slugify } from '../utils/slugify';
@@ -23,6 +23,8 @@ const CardListItem: React.FC<CardListItemProps> = ({
 }) => {
   const { lang } = useLanguage();
   const common = getCommonCopy(lang);
+  const detailCopy = getCardDetailCopy(lang);
+  const networkLabel = getNetworkLabel(detailCopy, card.cardNetwork);
   const reduceMotion = usePrefersReducedMotion();
 
   const handleClick = () => {
@@ -92,6 +94,14 @@ const CardListItem: React.FC<CardListItemProps> = ({
       <div className="card-header">
         <h3 className="card-name">{card.name}</h3>
         <span className="bank-name">{card.bankName || common.unknownBank}</span>
+        {(networkLabel || card.isIslamic) && (
+          <span className="card-badges">
+            {networkLabel && <span className="card-badge card-badge-network">{networkLabel}</span>}
+            {card.isIslamic && (
+              <span className="card-badge card-badge-islamic">{detailCopy.islamicBadge}</span>
+            )}
+          </span>
+        )}
       </div>
 
       <div className="card-details">
