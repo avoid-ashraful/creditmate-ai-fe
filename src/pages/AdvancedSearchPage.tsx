@@ -717,6 +717,9 @@ const AdvancedSearchPage: React.FC = () => {
           className="filter-sidebar"
           aria-label={pickLang(lang, 'Search filters', 'অনুসন্ধান ফিল্টার')}
         >
+          <h2 className="visually-hidden">
+            {pickLang(lang, 'Search filters', 'অনুসন্ধান ফিল্টার')}
+          </h2>
           {/* Categories */}
           <section className="filter-section">
             <h3>

@@ -167,7 +167,7 @@ describe('SearchAutocomplete – rendering', () => {
   it('renders a combobox input with correct ARIA attributes', () => {
     renderAutocomplete();
     const input = screen.getByRole('combobox');
-    expect(input).toHaveAttribute('aria-controls');
+    expect(input).not.toHaveAttribute('aria-controls');
     expect(input).toHaveAttribute('aria-expanded', 'false');
     expect(input).toHaveAttribute('aria-autocomplete', 'list');
   });

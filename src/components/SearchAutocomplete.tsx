@@ -242,7 +242,7 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const options = buildFlatOptions(result);
-      if (activeIndex >= 0 && activeIndex < options.length) {
+      if (showDropdown && activeIndex >= 0 && activeIndex < options.length) {
         selectOption(options[activeIndex]);
       }
       return;
@@ -364,10 +364,10 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         }}
         role="combobox"
         aria-autocomplete="list"
-        aria-controls={listboxId}
-        aria-expanded={isOpen}
+        aria-controls={showDropdown ? listboxId : undefined}
+        aria-expanded={showDropdown}
         aria-activedescendant={
-          activeIndex >= 0 && activeIndex < options.length
+          showDropdown && activeIndex >= 0 && activeIndex < options.length
             ? `${listboxId}-option-${activeIndex}`
             : undefined
         }
@@ -381,7 +381,6 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
           className="search-autocomplete-listbox"
           role="listbox"
           aria-label={common.searchSuggestionsAriaLabel}
-          aria-labelledby={`${listboxId}-label`}
           id={listboxId}
         >
           {groups.map(

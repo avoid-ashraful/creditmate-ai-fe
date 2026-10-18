@@ -535,14 +535,18 @@ const RecommendationQuiz: React.FC = () => {
               onClick={handlePrevious}
               disabled={stepIndex === 0}
               className="nav-btn prev-btn"
-              aria-label="Go to previous step"
+              aria-label={`${common.quizNavBack}: ${
+                lang === 'bn' ? 'আগের ধাপে যান' : 'Go to previous step'
+              }`}
             >
               {common.quizNavBack}
             </button>
             <button
               onClick={handleNext}
               className="nav-btn next-btn"
-              aria-label="Go to next step or see results"
+              aria-label={`${stepIndex === 4 ? common.quizNavSeeResults : common.quizNavNext}: ${
+                lang === 'bn' ? 'পরের ধাপ বা ফলাফল দেখুন' : 'Go to next step or see results'
+              }`}
             >
               {stepIndex === 4 ? common.quizNavSeeResults : common.quizNavNext}
             </button>

@@ -62,7 +62,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ ariaLabel }) => {
       type="button"
     >
       <IconSpan aria-hidden="true">{isDark ? '☀️' : '🌙'}</IconSpan>
-      <span>{isDark ? common.themeLight : common.themeDark}</span>
+      <span>{ariaLabel ?? common.themeDark}</span>
     </ToggleButton>
   );
 };

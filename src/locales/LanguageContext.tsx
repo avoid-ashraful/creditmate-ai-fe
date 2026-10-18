@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import type { Language } from './types';
 
@@ -71,6 +71,14 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, in
       typeof navigator === 'undefined' ? null : navigator.language
     );
   });
+
+  useEffect(() => {
+    const previous = document.documentElement.lang;
+    document.documentElement.lang = lang;
+    return () => {
+      document.documentElement.lang = previous;
+    };
+  }, [lang]);
 
   const setLang = useCallback((next: Language) => {
     setLangState(next);

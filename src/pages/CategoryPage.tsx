@@ -29,7 +29,9 @@ const PAGE_SIZE = 100;
 const guideLinksFor = (category: Category): RelatedLink[] =>
   category.relatedGuideSlugs.flatMap(slug => {
     const guide = getGuide(slug);
-    return guide ? [{ to: `/guides/${guide.slug}`, label: guide.title }] : [];
+    return guide
+      ? [{ to: `/guides/${guide.slug}`, label: guide.title, lang: guide.language ?? 'en' }]
+      : [];
   });
 
 const otherCategoryLinksFor = (category: Category, lang: Language): RelatedLink[] =>

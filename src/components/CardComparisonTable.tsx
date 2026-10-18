@@ -198,7 +198,7 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
           <p>{comparisonSummary}</p>
         </section>
       )}
-      <div className="comparison-mobile-cards" aria-label="Card comparison details">
+      <div className="comparison-mobile-cards" role="region" aria-label="Card comparison details">
         {cards.map(card => (
           <article className="comparison-mobile-card" key={card.id}>
             <header className="comparison-mobile-card-header">
@@ -228,7 +228,12 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
         ))}
       </div>
 
-      <div className="comparison-table-scroll" role="region" aria-label="Compare card features">
+      <div
+        className="comparison-table-scroll"
+        role="region"
+        aria-label="Compare card features"
+        tabIndex={0}
+      >
         <table className="comparison-table">
           <thead>
             <tr>
