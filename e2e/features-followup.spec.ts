@@ -34,9 +34,10 @@ test('register, login, logout and forgot password use mocked auth endpoints', as
   await mockApi(page);
   await mockAuth(page);
   await page.goto('/register');
-  await page.getByLabel('Email').fill(user.email);
+  await page.getByLabel('Email', { exact: true }).fill(user.email);
   await page.getByLabel('Password', { exact: true }).fill('Strong-pass-123');
   await page.getByLabel(/confirm password/i).fill('Strong-pass-123');
+  await page.getByRole('checkbox', { name: /terms of service/i }).check();
   await page.getByRole('button', { name: /create account|register/i }).click();
   await expect(page).toHaveURL(/\/login$/);
   await page.getByLabel('Email').fill(user.email);
@@ -146,16 +147,16 @@ test('page metadata includes title, canonical and parseable JSON-LD where provid
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/glossary$/);
 });
 
-test('experiment assignment remains stable across reloads', async ({ page }) => {
+test('disabled experiments record no exposures', async ({ page }) => {
+  // Experiments are off until analytics and consent exist.
+  // (playwright.config seeds the anonymous id, so only exposures are checked.)
   await mockApi(page);
   await page.goto('/');
-  const first = await page.evaluate(() => localStorage.getItem('creditmate.experiments.exposures'));
   await page.reload();
-  const second = await page.evaluate(() =>
+  const exposures = await page.evaluate(() =>
     localStorage.getItem('creditmate.experiments.exposures')
   );
-  expect(first).toBeTruthy();
-  expect(second).toBe(first);
+  expect(exposures).toBeNull();
 });
 
 test('guides and glossary routes render their content', async ({ page }) => {

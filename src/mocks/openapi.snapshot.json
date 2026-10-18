@@ -634,6 +634,50 @@
             "description": "No response body"
           }
         }
+      },
+      "delete": {
+        "operationId": "v1_auth_me_destroy",
+        "description": "Get or update current user's profile.",
+        "tags": ["v1"],
+        "security": [
+          {
+            "jwtAuth": []
+          },
+          {
+            "cookieAuth": []
+          },
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No response body"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me/export/": {
+      "get": {
+        "operationId": "v1_auth_me_export_retrieve",
+        "description": "Download all personal data held for the current user as JSON.",
+        "tags": ["v1"],
+        "security": [
+          {
+            "jwtAuth": []
+          },
+          {
+            "cookieAuth": []
+          },
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "No response body"
+          }
+        }
       }
     },
     "/api/v1/auth/password-reset/": {
@@ -688,6 +732,30 @@
       "post": {
         "operationId": "v1_auth_register_create",
         "description": "Register a new user.",
+        "tags": ["v1"],
+        "security": [
+          {
+            "jwtAuth": []
+          },
+          {
+            "cookieAuth": []
+          },
+          {
+            "Bearer": []
+          },
+          {}
+        ],
+        "responses": {
+          "200": {
+            "description": "No response body"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/resend-verification/": {
+      "post": {
+        "operationId": "v1_auth_resend_verification_create",
+        "description": "Resend the verification email to an unverified account.",
         "tags": ["v1"],
         "security": [
           {

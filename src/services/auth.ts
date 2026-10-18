@@ -32,6 +32,9 @@ export interface AuthUser {
   profile?: {
     email_verified?: boolean;
     email_opt_in?: boolean;
+    marketing_opt_in?: boolean;
+    terms_accepted_at?: string | null;
+    terms_version?: string;
     preferences?: Record<string, unknown>;
   };
 }
@@ -43,6 +46,9 @@ export interface RegisterInput {
   first_name?: string;
   last_name?: string;
   email_opt_in?: boolean;
+  /** The backend rejects registration (400) unless this is true. */
+  accept_terms: boolean;
+  marketing_opt_in?: boolean;
 }
 
 export interface RegisterResponse {
@@ -130,10 +136,12 @@ export class AuthClient {
   }
 
   async register(input: RegisterInput): Promise<RegisterResponse> {
-    const body: Record<string, string> = {
+    const body: Record<string, string | boolean> = {
       email: input.email,
       password: input.password,
+      accept_terms: input.accept_terms,
     };
+    if (input.marketing_opt_in !== undefined) body.marketing_opt_in = input.marketing_opt_in;
     if (input.passwordConfirm !== undefined) body.password_confirm = input.passwordConfirm;
     if (input.first_name) body.first_name = input.first_name;
     if (input.last_name) body.last_name = input.last_name;
@@ -242,6 +250,20 @@ export class AuthClient {
     });
   }
 
+  /** Permanently delete the signed-in account. The caller clears the session on success. */
+  async deleteAccount(password: string): Promise<void> {
+    await this.request<unknown>('me/', {
+      method: HTTP_METHOD.delete,
+      body: { password },
+      authenticated: true,
+    });
+  }
+
+  /** All personal data held for the signed-in user (GET /auth/me/export/). */
+  async exportData(): Promise<unknown> {
+    return this.request<unknown>('me/export/', { authenticated: true });
+  }
+
   async requestPasswordReset(email: string): Promise<void> {
     await this.request<unknown>('password-reset/', {
       method: HTTP_METHOD.post,
@@ -261,6 +283,14 @@ export class AuthClient {
 
   async verifyEmail(token: string): Promise<void> {
     await this.request<unknown>('verify-email/', { method: HTTP_METHOD.post, body: { token } });
+  }
+
+  /** Ask for a new verification email. The server answers 200 whether or not the account exists. */
+  async resendVerification(email: string): Promise<void> {
+    await this.request<unknown>('resend-verification/', {
+      method: HTTP_METHOD.post,
+      body: { email },
+    });
   }
 
   /** Forget the session on this device without calling the server. */

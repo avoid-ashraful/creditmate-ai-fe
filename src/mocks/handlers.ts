@@ -125,6 +125,7 @@ interface MePatchBody {
   last_name?: string;
   profile?: {
     email_opt_in?: boolean;
+    marketing_opt_in?: boolean;
     preferences?: Record<string, unknown>;
   };
 }
@@ -826,6 +827,12 @@ export const handlers = [
     if (body.password !== body.password_confirm) {
       return res(ctx.status(400), ctx.json({ password_confirm: ['Passwords do not match.'] }));
     }
+    if (body.accept_terms !== true) {
+      return res(
+        ctx.status(400),
+        ctx.json({ accept_terms: ['You must accept the terms and privacy notice to register.'] })
+      );
+    }
     return res(
       ctx.status(201),
       ctx.json({
@@ -852,6 +859,9 @@ export const handlers = [
             profile: {
               email_verified: true,
               email_opt_in: false,
+              marketing_opt_in: false,
+              terms_accepted_at: '2026-01-01T00:00:00Z',
+              terms_version: '2026-01',
               preferences: {},
             },
           },
@@ -927,6 +937,68 @@ export const handlers = [
     return res(ctx.status(200), ctx.json({ detail: 'Email verified successfully.' }));
   }),
 
+  // POST /auth/resend-verification/ (always 200, generic message)
+  rest.post(authUrl('resend-verification/'), async (req, res, ctx) => {
+    const body = (await req.json()) as { email?: string };
+    if (!body.email) {
+      return res(ctx.status(400), ctx.json({ email: ['This field is required.'] }));
+    }
+    return res(
+      ctx.status(200),
+      ctx.json({ detail: 'If an unverified account exists, a verification email has been sent.' })
+    );
+  }),
+
+  // DELETE /auth/me/ (password-confirmed account deletion)
+  rest.delete(authUrl('me/'), async (req, res, ctx) => {
+    if (!req.headers.get('authorization')?.startsWith('Bearer access-')) {
+      return res(ctx.status(401), ctx.json({ detail: 'Given token not valid' }));
+    }
+    const body = (await req.json()) as { password?: string };
+    if (body.password !== 'pw-12345') {
+      return res(ctx.status(400), ctx.json({ password: ['Current password is incorrect.'] }));
+    }
+    return res(ctx.status(204));
+  }),
+
+  // GET /auth/me/export/
+  rest.get(authUrl('me/export/'), (req, res, ctx) => {
+    if (!req.headers.get('authorization')?.startsWith('Bearer access-')) {
+      return res(ctx.status(401), ctx.json({ detail: 'Given token not valid' }));
+    }
+    return res(
+      ctx.status(200),
+      ctx.json({
+        profile: { email: 'reader@example.com' },
+        saved_comparisons: [],
+        collections: [],
+        alert_subscriptions: [],
+        notification_preference: null,
+        reviews: [],
+      })
+    );
+  }),
+
+  // GET /alerts/unsubscribe/:token/ is read-only; POST performs the unsubscribe
+  rest.get('*/api/v1/alerts/unsubscribe/:token/', (req, res, ctx) =>
+    req.params.token === 'valid-token'
+      ? res(
+          ctx.status(200),
+          ctx.json({
+            confirm_required: true,
+            is_active: true,
+            kind: 'fee_change',
+            card_name: 'Test Credit Card',
+          })
+        )
+      : res(ctx.status(404), ctx.json({ detail: 'Invalid unsubscribe token.' }))
+  ),
+  rest.post('*/api/v1/alerts/unsubscribe/:token/', (req, res, ctx) =>
+    req.params.token === 'valid-token'
+      ? res(ctx.status(200), ctx.json({ detail: 'Subscription cancelled.' }))
+      : res(ctx.status(404), ctx.json({ detail: 'Invalid unsubscribe token.' }))
+  ),
+
   // GET /auth/me/
   rest.get(authUrl('me/'), (req, res, ctx) => {
     const auth = req.headers.get('authorization');
@@ -946,6 +1018,9 @@ export const handlers = [
           profile: {
             email_verified: true,
             email_opt_in: false,
+            marketing_opt_in: false,
+            terms_accepted_at: '2026-01-01T00:00:00Z',
+            terms_version: '2026-01',
             preferences: {},
           },
         })
@@ -974,6 +1049,9 @@ export const handlers = [
           profile: {
             email_verified: true,
             email_opt_in: body.profile?.email_opt_in ?? false,
+            marketing_opt_in: body.profile?.marketing_opt_in ?? false,
+            terms_accepted_at: '2026-01-01T00:00:00Z',
+            terms_version: '2026-01',
             preferences: body.profile?.preferences ?? {},
           },
         })

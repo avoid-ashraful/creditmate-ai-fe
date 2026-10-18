@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import React from 'react';
@@ -72,6 +73,49 @@ describe('VerifyEmailPage', () => {
 
     // The token field error becomes a form-level message since there's no token input field
     await screen.findByText(copy.checkFields);
+  });
+
+  it('resends the verification email for a typed address on an invalid link', async () => {
+    let body: unknown;
+    server.use(
+      rest.post(authUrl('resend-verification/'), (req, res, ctx) => {
+        body = req.body;
+        return res(ctx.status(200), ctx.json({ detail: 'generic' }));
+      })
+    );
+    const user = userEvent.setup();
+    renderWithAuth(routes, { route: '/verify-email' });
+
+    await user.click(screen.getByRole('button', { name: copy.resendButton }));
+    expect(screen.getByLabelText(copy.emailLabel)).toHaveAccessibleDescription(copy.fieldRequired);
+    expect(body).toBeUndefined();
+
+    await user.type(screen.getByLabelText(copy.emailLabel), 'reader@example.com');
+    await user.click(screen.getByRole('button', { name: copy.resendButton }));
+
+    expect(await screen.findByText(copy.resendSent)).toBeInTheDocument();
+    expect(body).toEqual({ email: 'reader@example.com' });
+  });
+
+  it('shows the rate-limit message when resend is throttled', async () => {
+    server.use(
+      rest.post(authUrl('resend-verification/'), (_req, res, ctx) =>
+        res(ctx.status(429), ctx.json({ detail: 'Request was throttled.' }))
+      )
+    );
+    const user = userEvent.setup();
+    renderWithAuth(routes, { route: '/verify-email' });
+
+    await user.type(screen.getByLabelText(copy.emailLabel), 'reader@example.com');
+    await user.click(screen.getByRole('button', { name: copy.resendButton }));
+
+    const alerts = await screen.findAllByRole('alert');
+    expect(alerts.map(node => node.textContent)).toContain(copy.resendRateLimited);
+  });
+
+  it('has no accessibility violations on the invalid-link page with resend', async () => {
+    const { container } = renderWithAuth(routes, { route: '/verify-email' });
+    await expectNoAxeViolations(container);
   });
 
   it('has no accessibility violations on success', async () => {
