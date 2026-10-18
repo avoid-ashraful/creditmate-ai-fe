@@ -223,7 +223,7 @@ const AdvancedSearchPage: React.FC = () => {
       title: pickLang(
         lang,
         'Advanced Credit Card Search | CreditMate AI',
-        'উন্নত ক্রেডিট কার্ড অনুসন্ধান | ক্রেডিটমেইट এআই'
+        'উন্নত ক্রেডিট কার্ড অনুসন্ধান | ক্রেডিটমেট এআই'
       ),
       description: pickLang(
         lang,
@@ -812,7 +812,7 @@ const AdvancedSearchPage: React.FC = () => {
                   checked={uiState.hasLoungeAccess}
                   onChange={e => handleFilterChange({ hasLoungeAccess: e.target.checked })}
                 />
-                <span>{pickLang(lang, 'Any Lounge Access', 'যেকোনো লাউঞ্জ অ্যাক্সيس')}</span>
+                <span>{pickLang(lang, 'Any Lounge Access', 'যেকোনো লাউঞ্জ অ্যাক্সেস')}</span>
               </label>
               <label className="checkbox-label">
                 <input
