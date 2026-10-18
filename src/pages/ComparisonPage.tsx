@@ -182,8 +182,7 @@ const ComparisonPage: React.FC = () => {
                   <div key={card.id} className="card-chip">
                     <div className="card-chip-content">
                       <div className="card-chip-name">{card.name}</div>
-                      {/* Bank name would come from API - for now use bankId */}
-                      <div className="card-chip-bank">Bank ID: {card.bankId}</div>
+                      <div className="card-chip-bank">{card.bankName || common.unknownBank}</div>
                     </div>
                     <button
                       className="remove-card"

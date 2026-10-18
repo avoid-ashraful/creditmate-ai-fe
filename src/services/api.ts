@@ -102,6 +102,20 @@ export const normalizeLoungeAccess = (value: string | number | null | undefined)
 /**
  * Parse an API-modified timestamp; invalid or missing dates stay unknown.
  */
+/** Append `<prefix>_min` / `<prefix>_max` from a range object or a "min,max" string. */
+const appendRange = (
+  params: URLSearchParams,
+  prefix: string,
+  range?: { min?: number; max?: number },
+  rangeString?: string
+): void => {
+  const [fromString, toString] = rangeString ? rangeString.split(',') : [];
+  const min = range?.min ?? (fromString?.trim() ? Number(fromString) : undefined);
+  const max = range?.max ?? (toString?.trim() ? Number(toString) : undefined);
+  if (min !== undefined && Number.isFinite(min)) params.append(`${prefix}_min`, String(min));
+  if (max !== undefined && Number.isFinite(max)) params.append(`${prefix}_max`, String(max));
+};
+
 const parseModifiedDate = (value: string | null | undefined): Date | null => {
   if (!value) return null;
   const parsed = new Date(value);
@@ -143,10 +157,15 @@ class ApiService {
   }
 
   // Banks API
-  async getBanks(search?: string, ordering?: string): Promise<ApiResponse<BankApiResponse>> {
+  async getBanks(
+    search?: string,
+    ordering?: string,
+    page?: number
+  ): Promise<ApiResponse<BankApiResponse>> {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (ordering) params.append('ordering', ordering);
+    if (page && page > 1) params.append('page', page.toString());
 
     return this.fetchApi<ApiResponse<BankApiResponse>>('/banks/', params);
   }
@@ -182,28 +201,9 @@ class ApiService {
       // Search
       if (filters.searchTerm) params.append('search', filters.searchTerm);
 
-      // Annual fee filters
-      if (filters.annualFeeRange) {
-        // Check if we should use string format (both min and max defined)
-        if (filters.annualFeeRange.min !== undefined && filters.annualFeeRange.max !== undefined) {
-          params.append(
-            'annual_fee_range',
-            `${filters.annualFeeRange.min},${filters.annualFeeRange.max}`
-          );
-        } else {
-          // Use individual min/max parameters
-          if (filters.annualFeeRange.min !== undefined) {
-            params.append('annual_fee_min', filters.annualFeeRange.min.toString());
-          }
-          if (filters.annualFeeRange.max !== undefined) {
-            params.append('annual_fee_max', filters.annualFeeRange.max.toString());
-          }
-        }
-      }
-      // Support for direct string format
-      if (filters.annualFeeRangeString) {
-        params.append('annual_fee_range', filters.annualFeeRangeString);
-      }
+      // Annual fee filters. The API's range filters only read *_min/*_max params,
+      // so a combined "min,max" string would be silently ignored.
+      appendRange(params, 'annual_fee', filters.annualFeeRange, filters.annualFeeRangeString);
       if (filters.hasAnnualFee !== undefined) {
         if (filters.hasAnnualFee) {
           params.append('has_annual_fee', 'true');
@@ -212,31 +212,13 @@ class ApiService {
         }
       }
 
-      // Interest rate filters
-      if (filters.interestRateRange) {
-        // Check if we should use string format (both min and max defined)
-        if (
-          filters.interestRateRange.min !== undefined &&
-          filters.interestRateRange.max !== undefined
-        ) {
-          params.append(
-            'interest_rate_range',
-            `${filters.interestRateRange.min},${filters.interestRateRange.max}`
-          );
-        } else {
-          // Use individual min/max parameters
-          if (filters.interestRateRange.min !== undefined) {
-            params.append('interest_rate_min', filters.interestRateRange.min.toString());
-          }
-          if (filters.interestRateRange.max !== undefined) {
-            params.append('interest_rate_max', filters.interestRateRange.max.toString());
-          }
-        }
-      }
-      // Support for direct string format
-      if (filters.interestRateRangeString) {
-        params.append('interest_rate_range', filters.interestRateRangeString);
-      }
+      // Interest rate filters (same *_min/*_max contract as annual fee).
+      appendRange(
+        params,
+        'interest_rate',
+        filters.interestRateRange,
+        filters.interestRateRangeString
+      );
 
       // Lounge access filters
       if (filters.hasLoungeAccess !== undefined) {

@@ -7,16 +7,18 @@ test.describe('Auth flow - live backend', () => {
   test('register -> login -> account menu -> logout', async ({ page }) => {
     // Register - backend returns success message (no tokens), then redirects to /login
     await page.goto('/register');
-    await page.getByLabel('Email').fill(TEST_EMAIL);
+    await page.getByLabel('Email', { exact: true }).fill(TEST_EMAIL);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByLabel(/confirm password/i).fill(TEST_PASSWORD);
+    // Registration now requires consenting to the terms and privacy policy.
+    await page.getByRole('checkbox', { name: /terms/i }).check();
     await page.getByRole('button', { name: /create account|register/i }).click();
 
     // Should redirect to login page (backend doesn't return tokens on register)
     await expect(page).toHaveURL(/\/login$/);
 
     // Login
-    await page.getByLabel('Email').fill(TEST_EMAIL);
+    await page.getByLabel('Email', { exact: true }).fill(TEST_EMAIL);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /log in/i }).click();
 

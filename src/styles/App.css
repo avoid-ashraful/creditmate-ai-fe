@@ -109,6 +109,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--spacing-md);
 }
 
 .logo a {
@@ -124,10 +125,14 @@ button {
 
 .main-nav ul {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
   gap: var(--spacing-xs);
 }
 
 .main-nav a {
+  white-space: nowrap;
   color: var(--text-color);
   font-weight: 500;
   padding: var(--spacing-xs) var(--spacing-sm);

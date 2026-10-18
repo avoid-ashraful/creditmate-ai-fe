@@ -102,12 +102,17 @@ describe('CardListItem Component', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
+  test('explains a missing APR on Islamic cards instead of showing Unknown', () => {
+    render(<CardListItem card={{ ...mockCreditCard, interestRateApr: null, isIslamic: true }} />);
+    expect(screen.getByText('No interest (Islamic)')).toBeInTheDocument();
+  });
+
   // Test card without lounge access
   test('renders card without lounge access correctly', () => {
     render(<CardListItem card={mockCreditCardNoLounge} />);
 
-    // Check if "Not computable with current allocation" is displayed for lounge access
-    expect(screen.getByText('Not computable with current allocation')).toBeInTheDocument();
+    // Check if "Not listed" is displayed for lounge access
+    expect(screen.getByText('Not listed')).toBeInTheDocument();
   });
 
   // Test selectable card

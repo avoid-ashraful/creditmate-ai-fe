@@ -1,6 +1,6 @@
 import { AnimatePresence } from 'framer-motion';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 
 import CardDetailsPopup from '../components/CardDetailsPopup';
 import CardList from '../components/CardList';
@@ -27,6 +27,7 @@ import {
   extractFacetCounts,
   uiStateToParams,
   searchParamsToUIState,
+  paramsToSearchParams,
   transformAdvancedSearchCard,
 } from '../services/advancedSearch';
 import { CardNetwork, CreditCard } from '../types';
@@ -105,14 +106,19 @@ interface FacetWithCounts {
 }
 
 const AdvancedSearchPage: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const navigationType = useNavigationType();
   const { lang } = useLanguage();
   const { isDark } = useThemeContext();
   const common = getCommonCopy(lang);
   const detailCopy = getCardDetailCopy(lang);
 
   // State
-  const [uiState, setUiState] = useState<AdvancedSearchUIState>(DEFAULT_UI_STATE);
+  const [uiState, setUiState] = useState<AdvancedSearchUIState>(() => ({
+    ...DEFAULT_UI_STATE,
+    ...searchParamsToUIState(new URLSearchParams(location.search)),
+  }));
   const [results, setResults] = useState<AdvancedSearchResponse | null>(null);
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -126,14 +132,23 @@ const AdvancedSearchPage: React.FC = () => {
   const [categories, setCategories] = useState<AdvancedSearchCategory[]>([]);
   const [hasMorePages, setHasMorePages] = useState(false);
 
-  // Debounce timer for URL sync
-  const debounceTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const lastWrittenQueryRef = React.useRef<string | null>(null);
+  const lastLocationKeyRef = React.useRef(location.key);
 
-  // Initialize from URL on mount
+  // Local edits own the state. Only navigation should restore filters from the URL.
   useEffect(() => {
-    const initialState = searchParamsToUIState(searchParams);
-    setUiState(prev => ({ ...prev, ...initialState }));
-  }, [searchParams]);
+    if (lastLocationKeyRef.current === location.key) return;
+    lastLocationKeyRef.current = location.key;
+    const isOwnWrite =
+      navigationType === 'REPLACE' && lastWrittenQueryRef.current === location.search;
+    lastWrittenQueryRef.current = null;
+    if (isOwnWrite) return;
+
+    setUiState({
+      ...DEFAULT_UI_STATE,
+      ...searchParamsToUIState(new URLSearchParams(location.search)),
+    });
+  }, [location.key, location.search, navigationType]);
 
   // Fetch sort options and categories on mount
   useEffect(() => {
@@ -152,33 +167,17 @@ const AdvancedSearchPage: React.FC = () => {
     fetchMetadata();
   }, []);
 
-  // Sync UI state to URL (debounced)
+  // Called by the same debounce as fetching so no stale URL write can outlive an edit.
   const syncToUrl = useCallback(
     (newState: AdvancedSearchUIState) => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-      debounceTimerRef.current = setTimeout(() => {
-        const params = uiStateToParams(newState);
-        const searchParams = new URLSearchParams();
-        Object.entries(params).forEach(([key, value]) => {
-          if (value === undefined || value === null || value === '') return;
-          if (Array.isArray(value)) {
-            if (value.length > 0) searchParams.set(key, value.join(','));
-          } else if (typeof value === 'boolean') {
-            if (value) searchParams.set(key, 'true');
-          } else {
-            searchParams.set(key, String(value));
-          }
-        });
-        // Remove page=1 for cleaner URLs
-        if (searchParams.get('page') === '1') {
-          searchParams.delete('page');
-        }
-        setSearchParams(searchParams, { replace: true });
-      }, 300);
+      const searchParams = paramsToSearchParams(uiStateToParams(newState));
+      // Remove page=1 for cleaner URLs.
+      if (searchParams.get('page') === '1') searchParams.delete('page');
+      const query = searchParams.toString();
+      lastWrittenQueryRef.current = query ? `?${query}` : '';
+      navigate({ search: lastWrittenQueryRef.current }, { replace: true });
     },
-    [setSearchParams]
+    [navigate]
   );
 
   // Execute search

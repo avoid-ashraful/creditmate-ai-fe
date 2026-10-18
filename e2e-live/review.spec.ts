@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { expect, test, verificationLink } from './fixtures';
 
 const TEST_EMAIL = `e2e-review-${Date.now()}@example.test`;
 const TEST_PASSWORD = 'Strong-pass-123!';
@@ -7,21 +7,27 @@ test.describe('Write review - live backend', () => {
   test('write a review shows pending notice', async ({ page }) => {
     // Register and login
     await page.goto('/register');
-    await page.getByLabel('Email').fill(TEST_EMAIL);
+    await page.getByLabel('Email', { exact: true }).fill(TEST_EMAIL);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByLabel(/confirm password/i).fill(TEST_PASSWORD);
+    // Registration now requires consenting to the terms and privacy policy.
+    await page.getByRole('checkbox', { name: /terms/i }).check();
     await page.getByRole('button', { name: /create account|register/i }).click();
 
     // Should redirect to login page
     await page.waitForURL(/\/login$/);
 
     // Login
-    await page.getByLabel('Email').fill(TEST_EMAIL);
+    await page.getByLabel('Email', { exact: true }).fill(TEST_EMAIL);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /log in/i }).click();
 
     // Should redirect to account
     await page.waitForURL(/\/account$/);
+
+    // Posting a review requires a verified email.
+    await page.goto(verificationLink(TEST_EMAIL));
+    await expect(page.getByText(/verified successfully/i)).toBeVisible();
 
     // Go to a card detail page
     await page.goto('/card/smoke-bank-1/smoke-card-01');

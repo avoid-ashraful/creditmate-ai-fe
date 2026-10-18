@@ -17,6 +17,10 @@ const comparison = {
   id: 7,
   name: 'Weekend trip',
   card_ids: [2, 4],
+  cards: [
+    { id: 2, name: 'Alpha Card' },
+    { id: 4, name: 'Beta Card' },
+  ],
   is_public: false,
   share_token: 'share-7',
 };
@@ -81,6 +85,7 @@ describe('SavedPage', () => {
     expect(screen.getByRole('heading', { name: 'Comparisons' })).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Collections' })).toBeVisible();
     expect(await screen.findByText('Weekend trip')).toBeVisible();
+    expect(screen.getByText('Alpha Card, Beta Card')).toBeVisible();
     expect(screen.getByRole('link', { name: 'Travel cards' })).toHaveAttribute(
       'href',
       '/saved/collections/9'

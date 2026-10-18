@@ -151,6 +151,20 @@ describe('getCreditCards request serialization', () => {
     expect(url).toContain('annual_fee_min=3000');
     expect(url).not.toContain('annual_fee_range');
   });
+
+  it('sends full ranges and range strings as the min/max params the API reads', async () => {
+    await apiService.getCreditCards({
+      annualFeeRange: { min: 0, max: 2000 },
+      interestRateRangeString: '18,24.5',
+    });
+    const params = new URL(fetchSpy.mock.calls[0][0] as string).searchParams;
+    expect(params.get('annual_fee_min')).toBe('0');
+    expect(params.get('annual_fee_max')).toBe('2000');
+    expect(params.get('interest_rate_min')).toBe('18');
+    expect(params.get('interest_rate_max')).toBe('24.5');
+    expect(params.has('annual_fee_range')).toBe(false);
+    expect(params.has('interest_rate_range')).toBe(false);
+  });
 });
 
 describe('transformCreditCard trust fields', () => {

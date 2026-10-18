@@ -7,16 +7,18 @@ test.describe('Watch card / Alert subscription - live backend', () => {
   test('watch a card creates alert subscription', async ({ page }) => {
     // Register and login
     await page.goto('/register');
-    await page.getByLabel('Email').fill(TEST_EMAIL);
+    await page.getByLabel('Email', { exact: true }).fill(TEST_EMAIL);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByLabel(/confirm password/i).fill(TEST_PASSWORD);
+    // Registration now requires consenting to the terms and privacy policy.
+    await page.getByRole('checkbox', { name: /terms/i }).check();
     await page.getByRole('button', { name: /create account|register/i }).click();
 
     // Should redirect to login page
     await page.waitForURL(/\/login$/);
 
     // Login
-    await page.getByLabel('Email').fill(TEST_EMAIL);
+    await page.getByLabel('Email', { exact: true }).fill(TEST_EMAIL);
     await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /log in/i }).click();
 

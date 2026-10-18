@@ -188,8 +188,11 @@ describe('AccountPage', () => {
       await user.click(screen.getByRole('checkbox', { name: /I understand/ }));
       await user.click(screen.getByRole('button', { name: 'Delete my account' }));
 
-      expect(screen.getByLabelText('Password')).toHaveAccessibleDescription(
-        'The password is incorrect. Your account was not deleted.'
+      // The error arrives with the API response, not synchronously with the click.
+      await waitFor(() =>
+        expect(screen.getByLabelText('Password')).toHaveAccessibleDescription(
+          'The password is incorrect. Your account was not deleted.'
+        )
       );
       expect(authClient.hasSession()).toBe(true);
       expect(screen.queryByText(/home page/)).not.toBeInTheDocument();
