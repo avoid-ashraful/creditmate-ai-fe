@@ -196,9 +196,23 @@ test('watch a card, manage alert frequency, and unsubscribe through the public t
     if (route.request().method() === 'PATCH') frequency = route.request().postDataJSON().frequency;
     await route.fulfill({ json: { frequency, email_enabled: true } });
   });
+  let unsubscribePosts = 0;
   await page.route(`${API_HOST}/alerts/unsubscribe/e2e-unsubscribe/`, async route => {
+    // GET only previews (safe for link scanners); POST cancels after the user confirms.
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        json: {
+          confirm_required: true,
+          is_active: true,
+          kind: 'any_change',
+          card_name: 'Synthetic Visa Classic',
+        },
+      });
+      return;
+    }
     expect(route.request().method()).toBe('POST');
-    await route.fulfill({ json: { detail: 'Unsubscribed' } });
+    unsubscribePosts += 1;
+    await route.fulfill({ json: { detail: 'Subscription cancelled.' } });
   });
 
   await page.goto('/card/synthetic-bank-1/synthetic-visa-classic');
@@ -216,7 +230,11 @@ test('watch a card, manage alert frequency, and unsubscribe through the public t
   await page.getByRole('button', { name: /save preferences/i }).click();
   await expect(page.getByRole('alert')).toContainText(/saved/i);
   await page.goto('/unsubscribe?token=e2e-unsubscribe');
+  await expect(page.getByRole('button', { name: /unsubscribe me/i })).toBeVisible();
+  expect(unsubscribePosts).toBe(0);
+  await page.getByRole('button', { name: /unsubscribe me/i }).click();
   await expect(page.getByRole('heading', { name: /unsubscribed/i })).toBeVisible();
+  expect(unsubscribePosts).toBe(1);
 });
 
 test('card detail shows review summary and list; signed-in users can submit and vote', async ({
