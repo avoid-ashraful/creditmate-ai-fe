@@ -17,7 +17,8 @@ import { AuthProvider } from './hooks/AuthProvider';
 import { ThemeProvider } from './hooks/ThemeProvider';
 import { ANALYTICS_EVENTS, analytics, getAnalyticsContextProperties } from './lib/analytics';
 import { isResultsViewEnabled } from './lib/experiments';
-import { LanguageProvider, useLanguage } from './locales';
+import { LanguageProvider, LEGAL_PAGE_PATHS, getLegalCopy, useLanguage } from './locales';
+import type { LegalPageKey } from './locales';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
 import ComparisonPage from './pages/ComparisonPage';
@@ -73,7 +74,9 @@ const ExperimentResults = lazyLoad(() => import('./pages/ExperimentResults/Exper
 const ForgotPasswordPage = lazyLoad(() => import('./pages/ForgotPasswordPage'));
 const GlossaryPage = lazyLoad(() => import('./pages/GlossaryPage'));
 const GuidesPage = lazyLoad(() => import('./pages/GuidesPage'));
+const LegalPage = lazyLoad(() => import('./pages/LegalPage'));
 const LoginPage = lazyLoad(() => import('./pages/LoginPage'));
+const NotFoundPage = lazyLoad(() => import('./pages/NotFoundPage'));
 const RecommendationQuiz = lazyLoad(() => import('./pages/RecommendationQuiz'));
 const RegisterPage = lazyLoad(() => import('./pages/RegisterPage'));
 const ResetPasswordPage = lazyLoad(() => import('./pages/ResetPasswordPage'));
@@ -105,6 +108,15 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/guides', en: 'Guides', bn: 'গাইড' },
   { to: '/glossary', en: 'Glossary', bn: 'শব্দকোষ' },
   { to: '/about', en: 'About', bn: 'আমাদের সম্পর্কে' },
+];
+
+const FOOTER_LEGAL_KEYS: LegalPageKey[] = [
+  'terms',
+  'privacy',
+  'disclaimer',
+  'howWeMakeMoney',
+  'methodology',
+  'contact',
 ];
 
 /**
@@ -274,6 +286,17 @@ export const AppRoutes: React.FC = () => {
             </ProtectedRoute>
           }
         />
+        {(Object.values(LEGAL_PAGE_PATHS) as string[]).map(path => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <Suspense fallback={<LazyPageFallback label="Loading..." />}>
+                <LegalPage />
+              </Suspense>
+            }
+          />
+        ))}
         {showResultsView && (
           <Route
             path="/experiment-results"
@@ -284,6 +307,14 @@ export const AppRoutes: React.FC = () => {
             }
           />
         )}
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading..." />}>
+              <NotFoundPage />
+            </Suspense>
+          }
+        />
       </Routes>
     </motion.div>
   );
@@ -314,6 +345,7 @@ const PageViewTrackerWrapper: React.FC = () => {
 export const AppContent: React.FC = () => {
   const { lang, setLang } = useLanguage();
   const isBengali = lang === 'bn';
+  const legalCopy = getLegalCopy(lang);
 
   // Prefetch lazy-loaded routes on hover/focus of nav links
   useNavLinkPrefetch();
@@ -392,15 +424,16 @@ export const AppContent: React.FC = () => {
           </nav>
           <nav aria-labelledby="footer-legal-heading" className="footer-section">
             <h2 id="footer-legal-heading" className="visually-hidden">
-              {isBengali ? 'আইনগত' : 'Legal'}
+              {legalCopy.footerLegalHeading}
             </h2>
             <ul>
-              <li>
-                <Link to="/terms">{isBengali ? 'সেবার শর্তাবলি' : 'Terms of Service'}</Link>
-              </li>
-              <li>
-                <Link to="/privacy">{isBengali ? 'গোপনীয়তা নীতি' : 'Privacy Policy'}</Link>
-              </li>
+              {FOOTER_LEGAL_KEYS.map(key => (
+                <li key={key}>
+                  <Link to={LEGAL_PAGE_PATHS[key]} lang={isBengali ? 'bn' : 'en'}>
+                    {legalCopy.pages[key].title}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
         </div>
