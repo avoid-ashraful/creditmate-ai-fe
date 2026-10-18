@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { backdropVariants, modalPanelVariants, usePrefersReducedMotion } from '../animations';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 import { useLanguage, getCommonCopy } from '../locales';
 import { CreditCard } from '../types';
 import { trapTabKey } from '../utils/focus';
@@ -28,18 +29,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Move focus into the dialog on open and restore it to the trigger on close,
-  // so keyboard and screen reader users stay oriented (WCAG 2.4.3).
-  useEffect(() => {
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    closeButtonRef.current?.focus();
-
-    return () => {
-      if (previouslyFocused && document.contains(previouslyFocused)) {
-        previouslyFocused.focus();
-      }
-    };
-  }, []);
+  useDialogFocus(dialogRef, closeButtonRef);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
@@ -97,6 +87,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
         className="card-details-popup"
         onClick={handlePopupClick}
         role="dialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby="card-details-title"
         ref={dialogRef}

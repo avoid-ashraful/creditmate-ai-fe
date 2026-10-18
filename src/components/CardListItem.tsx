@@ -143,6 +143,21 @@ const CardListItem: React.FC<CardListItemProps> = ({
         </ul>
       </div>
 
+      {onViewDetails && (
+        <button
+          type="button"
+          className="view-details-btn"
+          onClick={event => {
+            event.stopPropagation();
+            onViewDetails(card);
+          }}
+          aria-haspopup="dialog"
+          aria-label={`${common.cardMoreInfo}: ${card.name}`}
+        >
+          {common.cardMoreInfo}
+        </button>
+      )}
+
       {card.bankName && (
         <a
           className="card-detail-link"

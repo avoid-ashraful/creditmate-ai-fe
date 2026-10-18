@@ -41,7 +41,7 @@ test('each category has SEO metadata', () => {
   });
 });
 
-test('CategoryCard shows Bengali text and aria label in Bengali', () => {
+test('CategoryCard uses the visible Bengali text as its accessible name', () => {
   render(
     <LanguageProvider initialLang="bn">
       <BrowserRouter>
@@ -50,9 +50,6 @@ test('CategoryCard shows Bengali text and aria label in Bengali', () => {
     </LanguageProvider>
   );
   expect(screen.getByText('ভ্রমণ')).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: 'ভ্রমণ ক্রেডিট কার্ড দেখুন' })).toHaveAttribute(
-    'href',
-    '/category/travel'
-  );
+  expect(screen.getByRole('link', { name: /ভ্রমণ/ })).toHaveAttribute('href', '/category/travel');
   expect(screen.queryByText('Travel')).not.toBeInTheDocument();
 });

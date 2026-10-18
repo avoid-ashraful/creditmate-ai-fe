@@ -1,15 +1,15 @@
 /* Base styles */
 :root {
-  --primary-color: #2563eb;
-  --primary-dark: #1d4ed8;
+  --primary-color: var(--color-primary-base);
+  --primary-dark: var(--color-primary-hover);
   --primary-light: #60a5fa;
   --secondary-color: #0f172a;
-  --accent-color: #10b981;
-  --text-color: #1e293b;
-  --text-light: #64748b;
-  --background-color: #f8fafc;
-  --card-bg: #ffffff;
-  --border-color: #e2e8f0;
+  --accent-color: var(--color-success-base);
+  --text-color: var(--color-text-primary);
+  --text-light: var(--color-text-secondary);
+  --background-color: var(--color-background-base);
+  --card-bg: var(--color-background-surface);
+  --border-color: var(--color-border-strong);
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -41,7 +41,7 @@ body {
 }
 
 a {
-  color: var(--primary-color);
+  color: var(--color-text-link);
   text-decoration: none;
   transition: color 0.2s ease;
 }
@@ -169,7 +169,7 @@ button {
   padding: var(--spacing-xs) var(--spacing-sm);
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.12);
   color: white;
   font-size: 0.875rem;
   font-weight: 600;
@@ -179,7 +179,7 @@ button {
 
 .lang-switcher-button:hover,
 .lang-switcher-button.active {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
   border-color: rgba(255, 255, 255, 0.6);
 }
 
@@ -318,4 +318,21 @@ button {
   text-align: center;
   padding: var(--spacing-xl);
   color: var(--text-light);
+}
+
+/* Inline links stay identifiable without relying on their hue. */
+main p a,
+.auth-checkbox a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.view-details-btn {
+  padding: var(--spacing-sm);
+  margin-block: var(--spacing-sm);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-background-surface);
+  color: var(--color-text-link);
+  font: inherit;
 }

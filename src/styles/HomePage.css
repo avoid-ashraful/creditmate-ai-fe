@@ -2,7 +2,12 @@
 
 /* Hero section with sophisticated gradient */
 .hero-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6b73ff 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 50%,
+    var(--color-brand-gradient-from) 100%
+  );
   position: relative;
   padding: 120px var(--spacing-lg) 80px;
   text-align: center;
@@ -53,7 +58,7 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   border-radius: 16px;
   overflow: hidden;
-  background: white;
+  background: var(--color-background-surface);
 }
 
 .search-form input {
@@ -67,7 +72,7 @@
 }
 
 .search-form input::placeholder {
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-weight: 400;
 }
 
@@ -76,7 +81,11 @@
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 100%
+  );
   color: white;
   border: none;
   border-radius: 12px;
@@ -95,7 +104,7 @@
 
 /* Stats section */
 .stats-section {
-  background: white;
+  background: var(--color-background-surface);
   padding: 60px var(--spacing-lg);
   margin-top: -40px;
   position: relative;
@@ -144,7 +153,7 @@
   position: sticky;
   top: 100px;
   height: fit-content;
-  background: white;
+  background: var(--color-background-surface);
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -152,7 +161,7 @@
 
 /* Enhanced card list with modern styling */
 .card-list {
-  background: white;
+  background: var(--color-background-surface);
   border-radius: 24px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -168,7 +177,12 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #6b73ff 100%);
+  background: linear-gradient(
+    90deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 50%,
+    var(--color-brand-gradient-from) 100%
+  );
 }
 
 .list-header {
@@ -188,10 +202,7 @@
 }
 
 .selection-indicator {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-text-link);
   font-weight: 600;
   font-size: 1.1rem;
 }
@@ -213,7 +224,11 @@
 }
 
 .add-to-compare-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 100%
+  );
   color: white;
   border: none;
   border-radius: 14px;
@@ -249,7 +264,7 @@
 }
 
 .add-to-compare-btn.in-list {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
   box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
 }
 
@@ -265,7 +280,7 @@
 }
 
 .card-list-item {
-  background: white;
+  background: var(--color-background-surface);
   border: 2px solid transparent;
   border-radius: 20px;
   padding: 28px;
@@ -299,7 +314,7 @@
 }
 
 .card-list-item.selected {
-  border-color: #667eea;
+  border-color: var(--color-brand-gradient-from);
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
   box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
 }
@@ -417,7 +432,7 @@
 }
 
 .compare-button {
-  background-color: white;
+  background-color: var(--color-background-surface);
   color: var(--primary-color);
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-md);
@@ -452,7 +467,7 @@
 }
 
 .benefit-card {
-  background-color: white;
+  background-color: var(--color-background-surface);
   border-radius: var(--radius-lg);
   padding: var(--spacing-xl) var(--spacing-lg);
   box-shadow: var(--shadow-sm);
@@ -597,7 +612,7 @@
   gap: 0.4rem;
   padding: 1.25rem 1rem;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.12);
   text-decoration: none;
   color: inherit;
   transition: transform 0.2s ease, background 0.2s ease;
@@ -606,7 +621,7 @@
 .category-card:hover,
 .category-card:focus {
   transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .category-icon {
@@ -614,6 +629,7 @@
 }
 
 .category-name {
+  color: #fff;
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
@@ -622,7 +638,7 @@
 .category-description {
   margin: 0;
   font-size: 0.8rem;
-  opacity: 0.85;
+  opacity: 1;
   text-align: center;
 }
 

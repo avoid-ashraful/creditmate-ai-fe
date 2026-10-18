@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import { Category } from '../config/categories';
-import { fillCopy, getCategoryText, getCommonCopy, useLanguage } from '../locales';
+import { getCategoryText, useLanguage } from '../locales';
 
 interface CategoryCardProps {
   category: Category;
@@ -13,15 +13,11 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
   const text = getCategoryText(category, lang);
 
   return (
-    <Link
-      to={`/category/${category.slug}`}
-      className="category-card"
-      aria-label={fillCopy(getCommonCopy(lang).categoryCardAriaLabel, { name: text.name })}
-    >
+    <Link to={`/category/${category.slug}`} className="category-card" lang={lang}>
       <span className="category-icon" aria-hidden="true">
         {category.icon}
       </span>
-      <h3 className="category-name">{text.name}</h3>
+      <h2 className="category-name">{text.name}</h2>
       <p className="category-description">{text.description}</p>
     </Link>
   );
