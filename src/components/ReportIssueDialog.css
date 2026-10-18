@@ -1,0 +1,55 @@
+.report-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.report-dialog {
+  width: 100%;
+  max-width: 32rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  background: var(--color-background-surface);
+  color: var(--color-text-primary);
+}
+
+.report-dialog label {
+  display: block;
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-2xs);
+  font-weight: var(--typography-font-weight-semibold);
+}
+
+.report-dialog select,
+.report-dialog textarea,
+.report-dialog input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.report-dialog-card,
+.report-dialog-hint {
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-font-size-sm);
+}
+
+.report-dialog-error {
+  color: var(--color-error-base);
+  font-size: var(--typography-font-size-sm);
+}
+
+.report-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+}

@@ -13,6 +13,25 @@ export interface Bank {
   isActive: boolean;
 }
 
+/** Payment network; '' = unknown. */
+export type CardNetwork =
+  | 'visa'
+  | 'mastercard'
+  | 'amex'
+  | 'unionpay'
+  | 'jcb'
+  | 'diners'
+  | 'other'
+  | '';
+
+/** Body of POST /credit-cards/{id}/report-issue/ */
+export interface ReportIssueInput {
+  field?: string;
+  message: string;
+  suggested_value?: string;
+  contact_email?: string;
+}
+
 /**
  * Credit Card entity with complete product information
  * Note: annualFee and interestRateApr can be null if data is not available from source
@@ -35,7 +54,16 @@ export interface CreditCard {
   rewardPointsPolicy: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   additionalFeatures: any[]; // Using any as features can be of various types and structures
-  sourceUrl: string;
+  sourceUrl: string; // bank schedule of charges ('' when unknown)
+  // Trust fields: absent/undefined or null/'' always means unknown, never 0/false.
+  applyUrl?: string;
+  verifiedAt?: Date | null;
+  cardNetwork?: CardNetwork;
+  isIslamic?: boolean;
+  isDualCurrency?: boolean | null;
+  minMonthlyIncome?: number | null;
+  supplementaryCardFee?: string;
+  foreignTransactionFee?: string;
   isActive: boolean;
   lastUpdated: Date | null; // null when API omits the modified date - freshness stays unknown
   images: {

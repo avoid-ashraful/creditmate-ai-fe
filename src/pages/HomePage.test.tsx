@@ -194,15 +194,25 @@ test('selects cards and exposes compare navigation', async () => {
 test('mocked credit-cards fixture matches the Django list serializer fields', () => {
   const expectedKeys = [
     'annual_fee',
+    'apply_url',
     'bank_name',
+    'card_network',
+    'foreign_transaction_fee',
     'has_annual_fee',
     'has_lounge_access',
     'id',
     'interest_rate_apr',
     'is_active',
+    'is_dual_currency',
+    'is_islamic',
     'lounge_access_domestic',
     'lounge_access_international',
+    'min_monthly_income',
     'name',
+    'source_url',
+    'supplementary_card_fee',
+    'verification_status',
+    'verified_at',
   ];
 
   testCards.forEach(card => {

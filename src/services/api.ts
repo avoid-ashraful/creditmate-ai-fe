@@ -1,5 +1,5 @@
 import { ENV } from '../config/env';
-import { CreditCard, Bank, CardFilterOptions } from '../types';
+import { CreditCard, Bank, CardFilterOptions, CardNetwork, ReportIssueInput } from '../types';
 
 import { responseApiError, resilientFetch } from './apiError';
 export { ApiError } from './apiError';
@@ -36,7 +36,16 @@ export interface CreditCardApiResponse {
   has_annual_fee?: boolean;
   created?: string;
   modified?: string;
-  sourceUrl?: string;
+  source_url?: string;
+  apply_url?: string;
+  verification_status?: string;
+  verified_at?: string | null;
+  card_network?: CardNetwork;
+  is_islamic?: boolean;
+  is_dual_currency?: boolean | null;
+  min_monthly_income?: number | string | null;
+  supplementary_card_fee?: string;
+  foreign_transaction_fee?: string;
   images?: Array<{ small: string; full: string }>;
 }
 
@@ -275,6 +284,16 @@ class ApiService {
     return this.fetchApi<CreditCardApiResponse>(`/credit-cards/${id}/`);
   }
 
+  /** Report incorrect data on a card; throws ApiError (status 429 when throttled). */
+  async reportCardIssue(id: number, input: ReportIssueInput): Promise<void> {
+    const response = await resilientFetch(`${API_BASE_URL}/credit-cards/${id}/report-issue/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!response.ok) throw await responseApiError(response);
+  }
+
   async getSearchSuggestions(): Promise<{
     annual_fee_ranges: Array<{ label: string; filter: string }>;
     benefits: Array<{ label: string; filter: string }>;
@@ -333,7 +352,15 @@ class ApiService {
       rewardPointsPolicy: apiCard.reward_points_policy ?? '',
       additionalFeatures: apiCard.additional_features ?? [],
       isActive: apiCard.is_active,
-      sourceUrl: apiCard.sourceUrl || '',
+      sourceUrl: apiCard.source_url || '',
+      applyUrl: apiCard.apply_url || '',
+      verifiedAt: parseModifiedDate(apiCard.verified_at),
+      cardNetwork: apiCard.card_network ?? '',
+      isIslamic: apiCard.is_islamic ?? false,
+      isDualCurrency: apiCard.is_dual_currency ?? null,
+      minMonthlyIncome: normalizeDecimal(apiCard.min_monthly_income),
+      supplementaryCardFee: apiCard.supplementary_card_fee ?? '',
+      foreignTransactionFee: apiCard.foreign_transaction_fee ?? '',
       // Never invent freshness: missing modified date stays unknown (null)
       lastUpdated: parseModifiedDate(apiCard.modified),
       images: apiCard.images || [],

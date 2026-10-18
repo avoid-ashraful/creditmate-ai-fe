@@ -177,3 +177,8 @@ export function pluralize(
   }
   return count === 1 ? singular : plural;
 }
+
+/** Localized date: Bengali digits/month for `bn`, the runtime's default format otherwise. */
+export function formatLocalizedDate(date: Date, lang: Language): string {
+  return lang === 'bn' ? formatBengaliDate(date) : date.toLocaleDateString();
+}

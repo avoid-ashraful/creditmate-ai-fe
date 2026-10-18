@@ -755,3 +755,24 @@
     padding: 16px;
   }
 }
+
+.card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.card-badge {
+  padding: 0 var(--spacing-sm);
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-md);
+  font-size: var(--typography-font-size-xs);
+  font-weight: var(--typography-font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.card-badge-islamic {
+  border-color: var(--color-primary-base);
+  color: var(--color-primary-base);
+}

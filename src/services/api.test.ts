@@ -13,6 +13,9 @@ const baseListCard: CreditCardApiResponse = {
   is_active: true,
 };
 
+const apiServiceTransform = (overrides: Partial<CreditCardApiResponse>) =>
+  apiService.transformCreditCard({ ...baseListCard, ...overrides });
+
 describe('transformCreditCard list-contract adapter', () => {
   it('normalizes valid decimal strings to numbers', () => {
     const card = apiService.transformCreditCard(baseListCard);
@@ -115,5 +118,40 @@ describe('getCreditCards request serialization', () => {
     expect(url).toContain('search=cashback');
     expect(url).toContain('annual_fee_min=3000');
     expect(url).not.toContain('annual_fee_range');
+  });
+});
+
+describe('transformCreditCard trust fields', () => {
+  it('maps snake_case trust fields and keeps unknown values unknown', () => {
+    const full = apiServiceTransform({
+      source_url: 'https://bank.test/charges',
+      apply_url: 'https://bank.test/apply',
+      verified_at: '2025-05-01T00:00:00Z',
+      card_network: 'visa',
+      is_islamic: true,
+      is_dual_currency: false,
+      min_monthly_income: '50000.00',
+      supplementary_card_fee: 'BDT 500',
+      foreign_transaction_fee: '3%',
+    });
+    expect(full).toMatchObject({
+      sourceUrl: 'https://bank.test/charges',
+      applyUrl: 'https://bank.test/apply',
+      cardNetwork: 'visa',
+      isIslamic: true,
+      isDualCurrency: false,
+      minMonthlyIncome: 50000,
+      supplementaryCardFee: 'BDT 500',
+      foreignTransactionFee: '3%',
+    });
+    expect(full.verifiedAt?.toISOString()).toBe('2025-05-01T00:00:00.000Z');
+
+    const unknown = apiServiceTransform({ min_monthly_income: null, is_dual_currency: null });
+    expect(unknown.minMonthlyIncome).toBeNull();
+    expect(unknown.isDualCurrency).toBeNull();
+    expect(unknown.verifiedAt).toBeNull();
+    expect(unknown.cardNetwork).toBe('');
+    expect(apiServiceTransform({ min_monthly_income: 'abc' }).minMonthlyIncome).toBeNull();
+    expect(apiServiceTransform({ min_monthly_income: '0.00' }).minMonthlyIncome).toBe(0);
   });
 });

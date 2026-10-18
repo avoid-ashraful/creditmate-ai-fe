@@ -106,6 +106,56 @@ export interface CardDetailCopy {
   viewDetails: string;
   /** Placeholder: {name} */
   viewDetailsFor: string;
+
+  // Trust & data-quality fields
+  applyOnBankSite: string;
+  sourceLabel: string;
+  sourceScheduleOfCharges: string;
+  /** Placeholder: {date} */
+  verifiedOn: string;
+  dataDisclaimer: string;
+  disclaimerLink: string;
+  specNetwork: string;
+  specIslamic: string;
+  specDualCurrency: string;
+  specMinIncome: string;
+  specSupplementaryFee: string;
+  specForeignTransactionFee: string;
+  specProfitFeeShariah: string;
+  islamicBadge: string;
+  islamicValue: string;
+  conventionalValue: string;
+  /** Network display names; '' key is unknown */
+  networkVisa: string;
+  networkMastercard: string;
+  networkAmex: string;
+  networkUnionpay: string;
+  networkJcb: string;
+  networkDiners: string;
+  networkOther: string;
+  /** Placeholder: {amount} (per month) */
+  minIncomePerMonth: string;
+
+  // Report incorrect data dialog
+  reportButton: string;
+  reportTitle: string;
+  reportIntro: string;
+  reportFieldLabel: string;
+  reportFieldAny: string;
+  reportMessageLabel: string;
+  reportSuggestedLabel: string;
+  reportEmailLabel: string;
+  reportEmailHint: string;
+  reportSubmit: string;
+  reportSubmitting: string;
+  reportCancel: string;
+  reportClose: string;
+  reportMessageRequired: string;
+  reportSuccess: string;
+  reportThrottled: string;
+  reportError: string;
+  /** Human labels for reportable card fields, keyed by API field name */
+  reportFields: Record<string, string>;
 }
 
 export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
@@ -193,6 +243,72 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     similarCardsHeading: 'Similar Cards from {bank}',
     viewDetails: 'View Details',
     viewDetailsFor: 'View details for {name}',
+
+    applyOnBankSite: 'Apply on bank website',
+    sourceLabel: 'Source:',
+    sourceScheduleOfCharges: 'Bank schedule of charges',
+    verifiedOn: 'Verified on {date}',
+    dataDisclaimer:
+      'Card terms can change without notice. Confirm current terms with the bank before applying.',
+    disclaimerLink: 'Read our disclaimer',
+    specNetwork: 'Card Network',
+    specIslamic: 'Islamic (Shariah-compliant)',
+    specDualCurrency: 'Dual Currency',
+    specMinIncome: 'Minimum Monthly Income',
+    specSupplementaryFee: 'Supplementary Card Fee',
+    specForeignTransactionFee: 'Foreign Transaction Fee',
+    specProfitFeeShariah: 'Profit/fee (Shariah)',
+    islamicBadge: 'Islamic',
+    islamicValue: 'Yes, Shariah-compliant',
+    conventionalValue: 'No, conventional',
+    networkVisa: 'Visa',
+    networkMastercard: 'Mastercard',
+    networkAmex: 'American Express',
+    networkUnionpay: 'UnionPay',
+    networkJcb: 'JCB',
+    networkDiners: 'Diners Club',
+    networkOther: 'Other network',
+    minIncomePerMonth: '{amount} per month',
+
+    reportButton: 'Report incorrect data',
+    reportTitle: 'Report incorrect data',
+    reportIntro:
+      'Spotted something wrong on this card? Tell us and our team will review it against the bank’s published terms.',
+    reportFieldLabel: 'Which detail is wrong? (optional)',
+    reportFieldAny: 'Not sure / something else',
+    reportMessageLabel: 'What is incorrect?',
+    reportSuggestedLabel: 'Correct value, if you know it (optional)',
+    reportEmailLabel: 'Your email (optional)',
+    reportEmailHint: 'Only used if we need to follow up. It is not shown publicly.',
+    reportSubmit: 'Send report',
+    reportSubmitting: 'Sending…',
+    reportCancel: 'Cancel',
+    reportClose: 'Close',
+    reportMessageRequired: 'Please describe what is incorrect.',
+    reportSuccess: 'Thank you. Your report was received and will be reviewed.',
+    reportThrottled: 'Too many reports from your network. Please try again later.',
+    reportError: 'Could not send your report. Please check your details and try again.',
+    reportFields: {
+      name: 'Card name',
+      annual_fee: 'Annual fee',
+      interest_rate_apr: 'Interest rate (APR)',
+      lounge_access_international: 'International lounge access',
+      lounge_access_domestic: 'Domestic lounge access',
+      lounge_access_condition: 'Lounge access condition',
+      cash_advance_fee: 'Cash advance fee',
+      late_payment_fee: 'Late payment fee',
+      annual_fee_waiver_policy: 'Annual fee waiver policy',
+      reward_points_policy: 'Rewards policy',
+      additional_features: 'Additional features',
+      source_url: 'Source link',
+      apply_url: 'Apply link',
+      card_network: 'Card network',
+      is_islamic: 'Islamic (Shariah-compliant)',
+      is_dual_currency: 'Dual currency',
+      min_monthly_income: 'Minimum monthly income',
+      supplementary_card_fee: 'Supplementary card fee',
+      foreign_transaction_fee: 'Foreign transaction fee',
+    },
   },
   bn: {
     loading: 'কার্ডের বিবরণ লোড হচ্ছে...',
@@ -277,6 +393,73 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     similarCardsHeading: '{bank}-এর অন্যান্য কার্ড',
     viewDetails: 'বিস্তারিত দেখুন',
     viewDetailsFor: '{name}-এর বিস্তারিত দেখুন',
+
+    applyOnBankSite: 'ব্যাংকের ওয়েবসাইটে আবেদন করুন',
+    sourceLabel: 'সূত্র:',
+    sourceScheduleOfCharges: 'ব্যাংকের চার্জ তালিকা',
+    verifiedOn: '{date} তারিখে যাচাই করা হয়েছে',
+    dataDisclaimer:
+      'কার্ডের শর্ত আগাম নোটিশ ছাড়াই বদলাতে পারে। আবেদনের আগে ব্যাংকের কাছ থেকে বর্তমান শর্ত নিশ্চিত করুন।',
+    disclaimerLink: 'দাবিত্যাগ পড়ুন',
+    specNetwork: 'কার্ড নেটওয়ার্ক',
+    specIslamic: 'ইসলামিক (শরিয়াহ-সম্মত)',
+    specDualCurrency: 'ডুয়াল কারেন্সি',
+    specMinIncome: 'ন্যূনতম মাসিক আয়',
+    specSupplementaryFee: 'সম্পূরক কার্ডের ফি',
+    specForeignTransactionFee: 'বৈদেশিক লেনদেন ফি',
+    specProfitFeeShariah: 'মুনাফা/ফি (শরিয়াহ)',
+    islamicBadge: 'ইসলামিক',
+    islamicValue: 'হ্যাঁ, শরিয়াহ-সম্মত',
+    conventionalValue: 'না, প্রচলিত',
+    networkVisa: 'ভিসা',
+    networkMastercard: 'মাস্টারকার্ড',
+    networkAmex: 'আমেরিকান এক্সপ্রেস',
+    networkUnionpay: 'ইউনিয়নপে',
+    networkJcb: 'জেসিবি',
+    networkDiners: 'ডাইনার্স ক্লাব',
+    networkOther: 'অন্য নেটওয়ার্ক',
+    minIncomePerMonth: 'মাসে {amount}',
+
+    reportButton: 'ভুল তথ্য জানান',
+    reportTitle: 'ভুল তথ্য জানান',
+    reportIntro:
+      'এই কার্ডে কোনো ভুল চোখে পড়েছে? আমাদের জানান, ব্যাংকের প্রকাশিত শর্তের সাথে মিলিয়ে আমাদের দল বিষয়টি দেখবে।',
+    reportFieldLabel: 'কোন তথ্যটি ভুল? (ঐচ্ছিক)',
+    reportFieldAny: 'নিশ্চিত নই / অন্য কিছু',
+    reportMessageLabel: 'কী ভুল আছে?',
+    reportSuggestedLabel: 'সঠিক মান জানা থাকলে লিখুন (ঐচ্ছিক)',
+    reportEmailLabel: 'আপনার ইমেইল (ঐচ্ছিক)',
+    reportEmailHint: 'যোগাযোগের প্রয়োজন হলেই ব্যবহার করা হবে। এটি প্রকাশ্যে দেখানো হয় না।',
+    reportSubmit: 'রিপোর্ট পাঠান',
+    reportSubmitting: 'পাঠানো হচ্ছে…',
+    reportCancel: 'বাতিল',
+    reportClose: 'বন্ধ করুন',
+    reportMessageRequired: 'অনুগ্রহ করে কী ভুল আছে তা লিখুন।',
+    reportSuccess: 'ধন্যবাদ। আপনার রিপোর্ট পেয়েছি, এটি পর্যালোচনা করা হবে।',
+    reportThrottled:
+      'আপনার নেটওয়ার্ক থেকে অনেক বেশি রিপোর্ট পাঠানো হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।',
+    reportError: 'রিপোর্ট পাঠানো যায়নি। তথ্য যাচাই করে আবার চেষ্টা করুন।',
+    reportFields: {
+      name: 'কার্ডের নাম',
+      annual_fee: 'বার্ষিক ফি',
+      interest_rate_apr: 'সুদের হার (এপিআর)',
+      lounge_access_international: 'আন্তর্জাতিক লাউঞ্জ সুবিধা',
+      lounge_access_domestic: 'অভ্যন্তরীণ লাউঞ্জ সুবিধা',
+      lounge_access_condition: 'লাউঞ্জ সুবিধার শর্ত',
+      cash_advance_fee: 'ক্যাশ অ্যাডভান্স ফি',
+      late_payment_fee: 'বিলম্বে পরিশোধের ফি',
+      annual_fee_waiver_policy: 'বার্ষিক ফি মওকুফ নীতি',
+      reward_points_policy: 'রিওয়ার্ড নীতি',
+      additional_features: 'অতিরিক্ত সুবিধা',
+      source_url: 'সূত্রের লিংক',
+      apply_url: 'আবেদনের লিংক',
+      card_network: 'কার্ড নেটওয়ার্ক',
+      is_islamic: 'ইসলামিক (শরিয়াহ-সম্মত)',
+      is_dual_currency: 'ডুয়াল কারেন্সি',
+      min_monthly_income: 'ন্যূনতম মাসিক আয়',
+      supplementary_card_fee: 'সম্পূরক কার্ডের ফি',
+      foreign_transaction_fee: 'বৈদেশিক লেনদেন ফি',
+    },
   },
 };
 
@@ -285,6 +468,20 @@ export function fillCopy(template: string, values: Record<string, string | numbe
   return template.replace(/\{(\w+)\}/g, (match, key) =>
     key in values ? String(values[key]) : match
   );
+}
+
+/** Display name for a card network; '' / undefined (unknown) returns null. */
+export function getNetworkLabel(copy: CardDetailCopy, network?: string): string | null {
+  const labels: Record<string, string> = {
+    visa: copy.networkVisa,
+    mastercard: copy.networkMastercard,
+    amex: copy.networkAmex,
+    unionpay: copy.networkUnionpay,
+    jcb: copy.networkJcb,
+    diners: copy.networkDiners,
+    other: copy.networkOther,
+  };
+  return network ? labels[network] ?? null : null;
 }
 
 export function getCardDetailCopy(lang: Language): CardDetailCopy {

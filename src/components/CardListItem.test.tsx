@@ -187,4 +187,14 @@ describe('CardListItem Component', () => {
     // Check if the "+3 more" text is shown
     expect(screen.getByText('+3 more')).toBeInTheDocument();
   });
+
+  it('shows compact network and Islamic badges only when known', () => {
+    const { rerender } = render(<CardListItem card={mockCreditCard} />);
+    expect(screen.queryByText('Islamic')).not.toBeInTheDocument();
+    expect(screen.queryByText('Visa')).not.toBeInTheDocument();
+
+    rerender(<CardListItem card={{ ...mockCreditCard, cardNetwork: 'visa', isIslamic: true }} />);
+    expect(screen.getByText('Visa')).toBeInTheDocument();
+    expect(screen.getByText('Islamic')).toBeInTheDocument();
+  });
 });

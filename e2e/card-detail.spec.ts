@@ -16,7 +16,10 @@ test('card detail deep link renders published card fields and structured data', 
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Complete Specifications' })).toBeVisible();
   await expect(page.getByText('BDT 500').first()).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Apply Now' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /apply on bank website/i })).toHaveAttribute(
+    'href',
+    'https://synthetic-2.test/apply'
+  );
 
   const schema = await page.locator('[data-testid="card-json-ld"]').textContent();
   expect(JSON.parse(schema || '{}')).toMatchObject({
