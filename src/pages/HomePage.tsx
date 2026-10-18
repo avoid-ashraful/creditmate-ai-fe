@@ -24,6 +24,10 @@ const HomePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   // One-off message from another page, e.g. after deleting the account.
   const notice = (useLocation().state as { notice?: string } | null)?.notice ?? '';
+  // Drop the notice from browser history so a reload does not show it again.
+  useEffect(() => {
+    if (notice) window.history.replaceState({}, '');
+  }, [notice]);
   const { lang } = useLanguage();
   const common = getCommonCopy(lang);
   // `?search=` comes from the WebSite SearchAction in structured data. It is read
