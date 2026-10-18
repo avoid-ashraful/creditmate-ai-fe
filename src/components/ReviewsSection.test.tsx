@@ -9,7 +9,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
 import { AuthProvider, useAuth } from '../hooks/AuthProvider';
 import { LanguageProvider } from '../locales/LanguageContext';
-import { authClient } from '../services/auth';
+import { ApiError, authClient } from '../services/auth';
 import { ReviewApiResponse, reviewsService } from '../services/reviews';
 
 import { ReviewsSection } from './ReviewsSection';
@@ -381,6 +381,39 @@ describe('ReviewsSection', () => {
           screen.getByText('Your review has been submitted and is pending moderation.')
         ).toBeInTheDocument();
       });
+    });
+
+    test('offers to resend the verification email when the server says it is not verified', async () => {
+      mockReviewsService.createReview.mockRejectedValue(
+        new ApiError({
+          status: 403,
+          code: 'email_not_verified',
+          detail: 'Verify your email address before posting a review.',
+        })
+      );
+      const resend = jest.spyOn(authClient, 'resendVerification').mockResolvedValue(undefined);
+
+      renderWithProviders({ user: { id: 101, email: 'test@example.com' } });
+
+      fireEvent.click(await screen.findByRole('button', { name: /Write a Review/ }));
+      fireEvent.click(screen.getAllByRole('button', { name: /star/ })[4]);
+      fireEvent.change(screen.getByPlaceholderText('Summarize your experience in a few words'), {
+        target: { value: 'Amazing card!' },
+      });
+      fireEvent.change(
+        screen.getByPlaceholderText('Share your detailed experience with this card...'),
+        { target: { value: 'This card is absolutely amazing with great benefits.' } }
+      );
+      fireEvent.click(await screen.findByRole('button', { name: /Submit review/ }));
+
+      expect(
+        await screen.findByText(/Verify your email address before posting a review\. Check/)
+      ).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Resend verification email' }));
+
+      await waitFor(() => expect(resend).toHaveBeenCalledWith('test@example.com'));
+      expect(await screen.findByText(/we have sent a new verification link/)).toBeInTheDocument();
     });
 
     test('cancels form and returns to list', async () => {

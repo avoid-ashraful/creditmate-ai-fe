@@ -86,6 +86,7 @@ export interface ReviewsCopy {
   networkError: string;
   genericError: string;
   unauthorizedError: string;
+  emailNotVerified: string;
   notFoundError: string;
   validationError: string;
 
@@ -160,6 +161,8 @@ export const REVIEWS_COPY: Record<Language, ReviewsCopy> = {
     networkError: 'We could not reach the server. Please try again.',
     genericError: 'Something went wrong. Please try again.',
     unauthorizedError: 'Please log in to perform this action.',
+    emailNotVerified:
+      'Verify your email address before posting a review. Check your inbox for the verification link, or request a new one.',
     notFoundError: 'Review not found.',
     validationError: 'Please check the highlighted fields.',
     previousPage: 'Previous page',
@@ -230,6 +233,8 @@ export const REVIEWS_COPY: Record<Language, ReviewsCopy> = {
     networkError: 'সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না। অনুগ্রহ করে আবার চেষ্টা করুন।',
     genericError: 'কিছু একটা সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
     unauthorizedError: 'এই কাজ করার জন্য দয়া করে লগ ইন করুন।',
+    emailNotVerified:
+      'রিভিউ দেওয়ার আগে আপনার ইমেইল যাচাই করুন। যাচাই লিংকের জন্য ইনবক্স দেখুন, অথবা নতুন লিংকের অনুরোধ করুন।',
     notFoundError: 'রিভিউ পাওয়া যায়নি।',
     validationError: 'অনুগ্রহ করে হাইলাইট করা ঘরগুলো যাচাই করুন।',
     previousPage: 'পূর্বের পৃষ্ঠা',
