@@ -180,7 +180,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       aria-labelledby="filter-panel-heading"
     >
       <div className="filter-header" onClick={toggleExpanded}>
-        <h3 id="filter-panel-heading">{common.filterPanelTitle}</h3>
+        <h2 id="filter-panel-heading">{common.filterPanelTitle}</h2>
         <button
           className="toggle-button"
           type="button"
@@ -194,7 +194,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       {expanded && (
         <div className="filter-content" id="filter-panel-content">
           <div className="filter-section">
-            <h4>{common.filterSectionBanks}</h4>
+            <h3>{common.filterSectionBanks}</h3>
             <div className="bank-options">
               {banks.map(bank => (
                 <div key={bank.id} className="bank-option">
@@ -211,7 +211,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>{common.filterSectionAnnualFee}</h4>
+            <h3>{common.filterSectionAnnualFee}</h3>
             <div className="range-inputs">
               <div className="input-group">
                 <label htmlFor="minAnnualFee">{common.filterLabelMinAnnualFee}</label>
@@ -252,7 +252,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>{common.filterSectionInterestRate}</h4>
+            <h3>{common.filterSectionInterestRate}</h3>
             <div className="range-inputs">
               <div className="input-group">
                 <label htmlFor="minInterestRate">{common.filterLabelMinInterestRate}</label>
@@ -295,7 +295,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>{common.filterSectionAnnualFeeOptions}</h4>
+            <h3>{common.filterSectionAnnualFeeOptions}</h3>
             <div className="checkbox-inputs">
               <div className="input-group">
                 <input
@@ -321,7 +321,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>{common.filterSectionLoungeAccess}</h4>
+            <h3>{common.filterSectionLoungeAccess}</h3>
             <div className="checkbox-inputs">
               <div className="input-group">
                 <input
@@ -387,7 +387,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4 id="filter-network-heading">{common.filterSectionCardNetwork}</h4>
+            <h3 id="filter-network-heading">{common.filterSectionCardNetwork}</h3>
             <div
               className="network-chip-group"
               role="group"
@@ -411,7 +411,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>{common.filterSectionCardType}</h4>
+            <h3>{common.filterSectionCardType}</h3>
             <div className="checkbox-inputs">
               <div className="input-group">
                 <input
@@ -437,7 +437,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>{common.filterSectionIncome}</h4>
+            <h3>{common.filterSectionIncome}</h3>
             <div className="input-group">
               <label htmlFor="maxMinMonthlyIncome">{common.filterLabelMonthlyIncome}</label>
               <input
@@ -467,7 +467,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>{common.filterSectionFeatures}</h4>
+            <h3>{common.filterSectionFeatures}</h3>
             <div className="checkbox-inputs">
               <div className="input-group">
                 <input
@@ -496,7 +496,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
 
           <div className="filter-section">
-            <h4>{common.filterSectionSearch}</h4>
+            <h3>{common.filterSectionSearch}</h3>
             <div className="search-input">
               <input
                 type="text"

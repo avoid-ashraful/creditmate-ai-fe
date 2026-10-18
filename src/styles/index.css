@@ -16,12 +16,29 @@ code {
  * `:focus:not(:focus-visible)` for mouse-only styling.
  */
 :focus-visible {
-  outline: 3px solid var(--color-border-focus, #2563eb);
+  outline: 3px solid var(--color-border-focus, #2563eb) !important;
   outline-offset: 2px;
 }
 
 /* Placeholder text must remain legible; the UA default is too low contrast. */
 ::placeholder {
-  color: #6b7280;
+  color: var(--color-text-secondary, #475569);
   opacity: 1;
+}
+
+/* Keep a solid focus outline even when lazy component styles reset outlines. */
+header :focus-visible,
+.hero-section :focus-visible {
+  outline-color: #fff !important;
+  box-shadow: 0 0 0 5px #0f172a;
+}
+
+main :focus-visible {
+  scroll-margin-block: 12rem 6rem;
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='range']),
+select,
+textarea {
+  border-color: var(--color-border-strong);
 }

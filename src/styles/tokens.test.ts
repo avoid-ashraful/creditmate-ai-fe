@@ -86,10 +86,10 @@ describe('design tokens — semantic colours', () => {
   it('resolves semantic colours through to palette references', () => {
     expect(color.primary.base).toBe(color.blue['500']);
     expect(color.secondary.base).toBe(color.slate['900']);
-    expect(color.success.base).toBe(color.emerald['500']);
+    expect(color.success.base).toBe(color.emerald['700']);
     expect(color.warning.base).toBe(color.amber['500']);
-    expect(color.error.base).toBe(color.red['500']);
-    expect(color.info.base).toBe(color.sky['500']);
+    expect(color.error.base).toBe(color.red['700']);
+    expect(color.info.base).toBe(color.sky['700']);
   });
 });
 
@@ -693,47 +693,8 @@ describe('design tokens — WCAG contrast ratios', () => {
     return value;
   }
 
-  // Combined known issues for both light and dark mode
-  const knownIssues: Record<string, { ratio: number; minRatio: number }> = {
-    // Light mode issues
-    'Tertiary text on base background (light)': { ratio: 2.45, minRatio: 4.5 },
-    'Success text on success background (light)': { ratio: 2.54, minRatio: 4.5 },
-    'Warning text on warning background (light)': { ratio: 4.22, minRatio: 4.5 },
-    'Error text on error background (light)': { ratio: 3.76, minRatio: 4.5 },
-    'Info text on info background (light)': { ratio: 2.77, minRatio: 4.5 },
-    'Border on base background (light)': { ratio: 1.18, minRatio: 3.0 },
-    // Dark mode issues
-    'Border on base background (dark)': { ratio: 1.85, minRatio: 3.0 },
-    'Focus border on base background (dark)': { ratio: 1.82, minRatio: 3.0 },
-    'Error border on base background (dark)': { ratio: 1.5, minRatio: 3.0 },
-    'Secondary text on base background (dark)': { ratio: 2.45, minRatio: 4.5 },
-    'Tertiary text on base background (dark)': { ratio: 2.54, minRatio: 4.5 },
-    'Secondary text on surface (dark)': { ratio: 2.77, minRatio: 4.5 },
-    'Text on primary button hover (dark)': { ratio: 3.76, minRatio: 4.5 },
-    'Warning text on warning background (dark)': { ratio: 4.03, minRatio: 4.5 },
-    'Info text on info background (dark)': { ratio: 4.22, minRatio: 4.5 },
-    'Text on primary button (dark)': { ratio: 2.01, minRatio: 4.5 },
-    'Success text on success background (dark)': { ratio: 2.53, minRatio: 4.5 },
-    'Error text on error background (dark)': { ratio: 2.53, minRatio: 4.5 },
-  };
-
   [...lightContrastPairs, ...darkContrastPairs].forEach(
     ([fgToken, bgToken, description, minRatio]) => {
-      if (knownIssues[description]) {
-        it.skip(`meets WCAG ${minRatio}:1 for ${description} — KNOWN ISSUE: actual ratio ${knownIssues[
-          description
-        ].ratio.toFixed(2)}:1`, () => {
-          // Known contrast issue - documented in accessibility-audit.md
-          const isDark = description.includes('(dark)');
-          const varMap = isDark ? darkVars : lightVars;
-          const fgValue = resolveToken(varMap, fgToken);
-          const bgValue = resolveToken(varMap, bgToken);
-          const ratio = contrastRatio(fgValue, bgValue);
-          expect(ratio).toBeCloseTo(knownIssues[description].ratio, 1);
-        });
-        return;
-      }
-
       it(`meets WCAG ${minRatio}:1 for ${description}`, () => {
         const isDark = description.includes('(dark)');
         const varMap = isDark ? darkVars : lightVars;
@@ -749,4 +710,42 @@ describe('design tokens — WCAG contrast ratios', () => {
       });
     }
   );
+});
+
+// Browser axe cannot resolve every gradient or interactive state. Keep the
+// shared text, filled-control and control-boundary pairs above their AA ratios.
+describe('WCAG AA semantic contrast', () => {
+  const luminance = (hex: string): number => {
+    const channels = [1, 3, 5].map(index => {
+      const value = parseInt(hex.slice(index, index + 2), 16) / 255;
+      return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+    });
+    return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+  };
+  const ratio = (a: string, b: string): number => {
+    const [lighter, darker] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+    return (lighter + 0.05) / (darker + 0.05);
+  };
+
+  it.each([
+    ['light', color],
+    ['dark', color.dark],
+  ] as const)('%s text and UI colors retain AA contrast', (_name, theme) => {
+    const surfaces = [
+      theme.background.base,
+      theme.background.surface,
+      theme.background.elevated,
+      theme.background.muted,
+    ];
+    for (const background of surfaces) {
+      for (const text of [theme.text.primary, theme.text.secondary, theme.text.tertiary]) {
+        expect(ratio(text, background)).toBeGreaterThanOrEqual(4.5);
+      }
+      expect(ratio(theme.border.strong, background)).toBeGreaterThanOrEqual(3);
+      expect(ratio(theme.border.focus, background)).toBeGreaterThanOrEqual(3);
+    }
+    for (const group of [theme.primary, theme.success, theme.error, theme.info]) {
+      expect(ratio(group.base, group.contrast)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
 });

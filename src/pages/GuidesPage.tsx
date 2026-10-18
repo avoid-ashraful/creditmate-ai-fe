@@ -322,7 +322,7 @@ const GuidesPage: React.FC = () => {
       <div className="guides-page guides-not-found">
         <h1>{common.guidesNotFoundTitle}</h1>
         <p>{common.guidesNotFoundDesc}</p>
-        <Link className="guides-button" to={GUIDES_PATH}>
+        <Link lang={lang} className="guides-button" to={GUIDES_PATH}>
           {common.guidesNotFoundButton}
         </Link>
       </div>
@@ -332,7 +332,7 @@ const GuidesPage: React.FC = () => {
   if (!isIndex && guide) {
     return (
       <div className="guides-page">
-        <article className="guides-article">
+        <article className="guides-article" lang={guide.language ?? 'en'}>
           <nav aria-label="Breadcrumb" className="guides-breadcrumb">
             <ol>
               <li>
@@ -351,7 +351,7 @@ const GuidesPage: React.FC = () => {
             <p className="guides-meta">
               <span>{guide.readingTime}</span>
               <span aria-hidden="true">&middot;</span>
-              <time dateTime={guide.updated}>
+              <time lang={lang} dateTime={guide.updated}>
                 {common.guidesArticleMetaUpdated} {formatDate(guide.updated)}
               </time>
             </p>
@@ -407,7 +407,7 @@ const GuidesPage: React.FC = () => {
           ))}
 
           <section className="guides-section guides-faq">
-            <h2>{common.guidesSectionFaq}</h2>
+            <h2 lang={lang}>{common.guidesSectionFaq}</h2>
             {guide.faqs.map(faq => (
               <div key={faq.question} className="guides-faq-item">
                 <h3>{faq.question}</h3>
@@ -417,8 +417,8 @@ const GuidesPage: React.FC = () => {
           </section>
 
           <section className="guides-section guides-sources">
-            <h2>{common.guidesSectionSources}</h2>
-            <p>{common.guidesSourcesDesc}</p>
+            <h2 lang={lang}>{common.guidesSectionSources}</h2>
+            <p lang={lang}>{common.guidesSourcesDesc}</p>
             <ul className="guides-list-block">
               {guide.sources.map(source => (
                 <li key={source.url}>
@@ -440,7 +440,11 @@ const GuidesPage: React.FC = () => {
               heading={common.guidesRelatedMore}
               links={guides
                 .filter(item => item.slug !== guide.slug)
-                .map(item => ({ to: `${GUIDES_PATH}/${item.slug}`, label: item.title }))}
+                .map(item => ({
+                  to: `${GUIDES_PATH}/${item.slug}`,
+                  label: item.title,
+                  lang: item.language ?? 'en',
+                }))}
             />
             <RelatedContent
               heading={common.guidesRelatedCategories}
@@ -450,7 +454,7 @@ const GuidesPage: React.FC = () => {
                 description: getCategoryText(category, lang).description,
               }))}
             />
-            <Link className="guides-button" to={GUIDES_PATH}>
+            <Link lang={lang} className="guides-button" to={GUIDES_PATH}>
               {common.guidesButtonAll}
             </Link>
           </footer>
@@ -470,7 +474,7 @@ const GuidesPage: React.FC = () => {
       <nav aria-label="User guides" className="guides-index">
         <ul className="guides-grid">
           {guides.map(listed => (
-            <li key={listed.slug} className="guides-card">
+            <li key={listed.slug} className="guides-card" lang={listed.language ?? 'en'}>
               <article>
                 <p className="guides-eyebrow">{listed.category}</p>
                 <h2>
@@ -480,11 +484,15 @@ const GuidesPage: React.FC = () => {
                 <p className="guides-meta">
                   <span>{listed.readingTime}</span>
                   <span aria-hidden="true">&middot;</span>
-                  <time dateTime={listed.updated}>Updated {formatDate(listed.updated)}</time>
+                  <time lang="en" dateTime={listed.updated}>
+                    Updated {formatDate(listed.updated)}
+                  </time>
                 </p>
-                <Link className="guides-card-link" to={`${GUIDES_PATH}/${listed.slug}`}>
+                <Link lang={lang} className="guides-card-link" to={`${GUIDES_PATH}/${listed.slug}`}>
                   {common.guidesIndexReadButton}
-                  <span className="guides-visually-hidden">: {listed.title}</span>
+                  <span lang={listed.language ?? 'en'} className="guides-visually-hidden">
+                    : {listed.title}
+                  </span>
                 </Link>
               </article>
             </li>

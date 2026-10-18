@@ -63,7 +63,7 @@
           "type": "color"
         },
         "contrast": {
-          "value": "{color.emerald.50}",
+          "value": "{color.slate.900}",
           "type": "color"
         }
       },
@@ -85,8 +85,8 @@
           "type": "color"
         },
         "contrast": {
-          "value": "{color.amber.100}",
-          "comment": "Amber needs light text for AA contrast in dark mode.",
+          "value": "{color.slate.900}",
+          "comment": "Dark text on the amber control background.",
           "type": "color"
         }
       },
@@ -108,7 +108,7 @@
           "type": "color"
         },
         "contrast": {
-          "value": "{color.red.50}",
+          "value": "{color.slate.900}",
           "type": "color"
         }
       },
@@ -126,7 +126,7 @@
           "type": "color"
         },
         "contrast": {
-          "value": "{color.sky.50}",
+          "value": "{color.slate.900}",
           "type": "color"
         }
       },
@@ -168,12 +168,12 @@
           "type": "color"
         },
         "secondary": {
-          "value": "{color.slate.400}",
+          "value": "{color.slate.300}",
           "comment": "Supporting copy, captions, meta in dark mode.",
           "type": "color"
         },
         "tertiary": {
-          "value": "{color.slate.500}",
+          "value": "{color.slate.300}",
           "comment": "Placeholders, disabled labels in dark mode.",
           "type": "color"
         },
@@ -205,12 +205,12 @@
       },
       "border": {
         "base": {
-          "value": "{color.slate.700}",
+          "value": "{color.slate.400}",
           "comment": "Default 1px borders in dark mode.",
           "type": "color"
         },
         "strong": {
-          "value": "{color.slate.600}",
+          "value": "{color.slate.400}",
           "comment": "Emphasised borders and dividers in dark mode.",
           "type": "color"
         },
@@ -255,7 +255,7 @@
         },
         "header": {
           "type": "gradient",
-          "value": "linear-gradient(-45deg, {color.dark.primary.base}, {color.blue.500}, {color.indigo.500}, {color.indigo.600})",
+          "value": "linear-gradient(-45deg, {color.blue.700}, {color.blue.600}, {color.indigo.700}, {color.indigo.600})",
           "comment": "Animated site header background for dark mode."
         },
         "primaryButton": {

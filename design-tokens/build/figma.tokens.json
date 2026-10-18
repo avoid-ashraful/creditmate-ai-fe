@@ -70,7 +70,7 @@
           },
           "contrast": {
             "type": "color",
-            "value": "#ecfdf5"
+            "value": "#0f172a"
           }
         },
         "warning": {
@@ -92,8 +92,8 @@
           },
           "contrast": {
             "type": "color",
-            "value": "#fef3c7",
-            "description": "Amber needs light text for AA contrast in dark mode."
+            "value": "#0f172a",
+            "description": "Dark text on the amber control background."
           }
         },
         "error": {
@@ -115,7 +115,7 @@
           },
           "contrast": {
             "type": "color",
-            "value": "#fef2f2"
+            "value": "#0f172a"
           }
         },
         "info": {
@@ -133,7 +133,7 @@
           },
           "contrast": {
             "type": "color",
-            "value": "#f0f9ff"
+            "value": "#0f172a"
           }
         },
         "background": {
@@ -175,12 +175,12 @@
           },
           "secondary": {
             "type": "color",
-            "value": "#94a3b8",
+            "value": "#cbd5e1",
             "description": "Supporting copy, captions, meta in dark mode."
           },
           "tertiary": {
             "type": "color",
-            "value": "#64748b",
+            "value": "#cbd5e1",
             "description": "Placeholders, disabled labels in dark mode."
           },
           "disabled": {
@@ -212,12 +212,12 @@
         "border": {
           "base": {
             "type": "color",
-            "value": "#334155",
+            "value": "#94a3b8",
             "description": "Default 1px borders in dark mode."
           },
           "strong": {
             "type": "color",
-            "value": "#475569",
+            "value": "#94a3b8",
             "description": "Emphasised borders and dividers in dark mode."
           },
           "subtle": {
@@ -261,7 +261,7 @@
           },
           "header": {
             "type": "other",
-            "value": "linear-gradient(-45deg, #60a5fa, #2563eb, #6366f1, #4f46e5)",
+            "value": "linear-gradient(-45deg, #1e40af, #1d4ed8, #4338ca, #4f46e5)",
             "description": "Animated site header background for dark mode."
           },
           "primaryButton": {
@@ -594,12 +594,12 @@
       "brand": {
         "gradientFrom": {
           "type": "color",
-          "value": "#667eea",
+          "value": "#4f46b8",
           "description": "Start of the legacy CreditMate brand gradient carried over from the original design."
         },
         "gradientTo": {
           "type": "color",
-          "value": "#764ba2",
+          "value": "#663c91",
           "description": "End of the legacy CreditMate brand gradient carried over from the original design."
         }
       },
@@ -650,11 +650,11 @@
       "success": {
         "base": {
           "type": "color",
-          "value": "#10b981"
+          "value": "#047857"
         },
         "hover": {
           "type": "color",
-          "value": "#059669"
+          "value": "#065f46"
         },
         "subtle": {
           "type": "color",
@@ -688,18 +688,18 @@
         },
         "contrast": {
           "type": "color",
-          "value": "#78350f",
+          "value": "#0f172a",
           "description": "Amber needs dark text for AA contrast."
         }
       },
       "error": {
         "base": {
           "type": "color",
-          "value": "#ef4444"
+          "value": "#b91c1c"
         },
         "hover": {
           "type": "color",
-          "value": "#dc2626"
+          "value": "#991b1b"
         },
         "subtle": {
           "type": "color",
@@ -717,7 +717,7 @@
       "info": {
         "base": {
           "type": "color",
-          "value": "#0ea5e9"
+          "value": "#0369a1"
         },
         "subtle": {
           "type": "color",
@@ -771,12 +771,12 @@
         },
         "secondary": {
           "type": "color",
-          "value": "#64748b",
+          "value": "#475569",
           "description": "Supporting copy, captions, meta."
         },
         "tertiary": {
           "type": "color",
-          "value": "#94a3b8",
+          "value": "#475569",
           "description": "Placeholders, disabled labels."
         },
         "disabled": {
@@ -808,12 +808,12 @@
       "border": {
         "base": {
           "type": "color",
-          "value": "#e2e8f0",
+          "value": "#64748b",
           "description": "Default 1px borders."
         },
         "strong": {
           "type": "color",
-          "value": "#cbd5e1",
+          "value": "#64748b",
           "description": "Emphasised borders and dividers."
         },
         "subtle": {
@@ -852,12 +852,12 @@
       "gradient": {
         "brand": {
           "type": "other",
-          "value": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          "value": "linear-gradient(135deg, #4f46b8 0%, #663c91 100%)",
           "description": "Legacy CreditMate brand gradient."
         },
         "header": {
           "type": "other",
-          "value": "linear-gradient(-45deg, #2563eb, #60a5fa, #4f46e5, #818cf8)",
+          "value": "linear-gradient(-45deg, #1e40af, #1d4ed8, #4338ca, #4f46e5)",
           "description": "Animated site header background (see GradientHeader)."
         },
         "primaryButton": {
@@ -866,7 +866,7 @@
         },
         "accentButton": {
           "type": "other",
-          "value": "linear-gradient(90deg, #10b981, #059669)"
+          "value": "linear-gradient(90deg, #047857, #065f46)"
         },
         "footer": {
           "type": "other",
@@ -878,7 +878,7 @@
         },
         "cardAccent": {
           "type": "other",
-          "value": "linear-gradient(90deg, #2563eb, #10b981)"
+          "value": "linear-gradient(90deg, #2563eb, #047857)"
         }
       }
     },

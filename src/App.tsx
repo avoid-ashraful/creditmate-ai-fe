@@ -351,20 +351,20 @@ export const AppContent: React.FC = () => {
   useNavLinkPrefetch();
 
   return (
-    <div className="app">
+    <div className="app" lang={lang}>
       {/* Keyboard users can bypass the repeated header navigation. The target
           is focusable so the browser moves focus into the main content. */}
-      <a className="skip-link" href="#main-content">
+      <a className="skip-link" href="#main-content" lang="en">
         Skip to main content
       </a>
       <GradientHeader>
         <div className="header-content">
           <div className="logo">
-            <Link to="/" lang={isBengali ? 'bn' : 'en'}>
+            <Link to="/" lang="en">
               CreditMate AI
             </Link>
           </div>
-          <nav className="main-nav" aria-label="Main navigation">
+          <nav className="main-nav" aria-label={isBengali ? 'প্রধান নেভিগেশন' : 'Main navigation'}>
             <ul>
               {NAV_ITEMS.map(item => (
                 <li key={item.to}>
@@ -376,11 +376,12 @@ export const AppContent: React.FC = () => {
               <li className="lang-switcher-item">
                 <button
                   type="button"
+                  lang="en"
                   className={`lang-switcher-button ${isBengali ? 'active' : ''}`}
                   onClick={() => setLang(isBengali ? 'en' : 'bn')}
                   aria-label={isBengali ? 'Switch to English' : 'Switch to Bengali'}
                 >
-                  {isBengali ? 'EN' : 'BN'}
+                  {isBengali ? 'English' : 'Bengali'}
                 </button>
               </li>
               <li className="lang-switcher-item">

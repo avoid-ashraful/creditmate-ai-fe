@@ -124,19 +124,20 @@
   padding-bottom: 8px;
 }
 
-.detail-row {
+/* Scoped to the popup: unscoped, these leaked #333 text into the dark-mode card list. */
+.card-details-popup .detail-row {
   display: flex;
   justify-content: space-between;
   margin-bottom: 8px;
   font-size: 15px;
 }
 
-.detail-label {
+.card-details-popup .detail-label {
   font-weight: 500;
   color: #555;
 }
 
-.detail-value {
+.card-details-popup .detail-value {
   color: #333;
 }
 
@@ -186,12 +187,12 @@
     padding: 16px;
   }
 
-  .detail-row {
+  .card-details-popup .detail-row {
     flex-direction: column;
     margin-bottom: 12px;
   }
 
-  .detail-value {
+  .card-details-popup .detail-value {
     margin-top: 4px;
   }
 }

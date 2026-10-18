@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+import { useDialogFocus } from '../hooks/useDialogFocus';
 import { getCardDetailCopy, useLanguage } from '../locales';
 import { ApiError, apiService } from '../services/api';
 import { trapTabKey } from '../utils/focus';
@@ -17,6 +18,8 @@ const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({ cardId, cardName,
   const copy = getCardDetailCopy(lang);
   const dialogRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<HTMLSelectElement>(null);
+  const successCloseRef = useRef<HTMLButtonElement>(null);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
   const [field, setField] = useState('');
   const [message, setMessage] = useState('');
   const [suggested, setSuggested] = useState('');
@@ -24,14 +27,10 @@ const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({ cardId, cardName,
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'throttled' | 'error'>('idle');
   const [missingMessage, setMissingMessage] = useState(false);
 
-  // Focus into the dialog on open and restore to the trigger on close (WCAG 2.4.3).
+  useDialogFocus(dialogRef, fieldRef);
   useEffect(() => {
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    fieldRef.current?.focus();
-    return () => {
-      if (previouslyFocused && document.contains(previouslyFocused)) previouslyFocused.focus();
-    };
-  }, []);
+    if (status === 'sent') successCloseRef.current?.focus();
+  }, [status]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
@@ -46,6 +45,7 @@ const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({ cardId, cardName,
     event.preventDefault();
     if (!message.trim()) {
       setMissingMessage(true);
+      messageRef.current?.focus();
       return;
     }
     setMissingMessage(false);
@@ -70,6 +70,7 @@ const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({ cardId, cardName,
       <div
         className="report-dialog"
         role="dialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby="report-dialog-title"
         ref={dialogRef}
@@ -82,7 +83,12 @@ const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({ cardId, cardName,
           <>
             <p role="status">{copy.reportSuccess}</p>
             <div className="report-dialog-actions">
-              <button type="button" className="btn btn-primary" onClick={onClose}>
+              <button
+                ref={successCloseRef}
+                type="button"
+                className="btn btn-primary"
+                onClick={onClose}
+              >
                 {copy.reportClose}
               </button>
             </div>
@@ -108,6 +114,7 @@ const ReportIssueDialog: React.FC<ReportIssueDialogProps> = ({ cardId, cardName,
             <label htmlFor="report-message">{copy.reportMessageLabel}</label>
             <textarea
               id="report-message"
+              ref={messageRef}
               value={message}
               maxLength={MAX_LENGTH}
               rows={4}
