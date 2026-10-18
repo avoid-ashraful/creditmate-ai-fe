@@ -6,7 +6,8 @@ export type CategorySlug =
   | 'premium'
   | 'student'
   | 'business'
-  | 'no-annual-fee';
+  | 'no-annual-fee'
+  | 'islamic';
 
 export type CategoryFilters = CardFilterOptions & {
   ordering?: string;
@@ -147,6 +148,24 @@ export const CATEGORIES: Category[] = [
       'how-creditmate-handles-your-data',
     ],
     filters: { hasAnnualFee: false, ordering: 'annual_fee' },
+  },
+  {
+    slug: 'islamic',
+    name: 'Islamic',
+    badge: 'Islamic',
+    description:
+      'Cards marked as Islamic (Shariah-compliant) in published card data. Check each bank for the terms of the underlying contract.',
+    metaTitle: 'Islamic (Shariah) Credit Cards in Bangladesh | CreditMate AI',
+    metaDescription:
+      'Compare Islamic (Shariah-compliant) credit cards in Bangladesh from banks that publish them, with fees and eligibility.',
+    icon: '🕌',
+    relatedGuideSlugs: [
+      'choosing-your-first-credit-card',
+      'save-share-comparison',
+      'organize-cards-collections',
+      'advanced-search-filters',
+    ],
+    filters: { isIslamic: true, ordering: 'annual_fee' },
   },
 ];
 

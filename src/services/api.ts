@@ -266,6 +266,17 @@ class ApiService {
         params.append('has_fee_waiver', filters.hasFeeWaiver.toString());
       }
 
+      // Card detail filters
+      if (filters.cardNetworks && filters.cardNetworks.length > 0) {
+        params.append('card_network', filters.cardNetworks.join(','));
+      }
+      if (filters.isIslamic) params.append('is_islamic', 'true');
+      if (filters.isDualCurrency) params.append('is_dual_currency', 'true');
+      if (filters.maxMinMonthlyIncome !== undefined) {
+        params.append('max_min_monthly_income', filters.maxMinMonthlyIncome.toString());
+        if (filters.includeUnknownIncome ?? true) params.append('include_unknown_income', 'true');
+      }
+
       // Status filter
       if (filters.isActive !== undefined) {
         params.append('is_active', filters.isActive.toString());

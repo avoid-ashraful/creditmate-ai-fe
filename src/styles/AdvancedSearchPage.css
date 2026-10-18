@@ -386,6 +386,13 @@
   box-shadow: var(--shadow-focus);
 }
 
+/* Card network chips */
+.network-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
 /* Facet Count Badges */
 .facet-count-badge {
   display: inline-block;

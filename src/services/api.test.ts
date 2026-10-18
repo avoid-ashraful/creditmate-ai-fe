@@ -112,6 +112,38 @@ describe('getCreditCards request serialization', () => {
     expect(url).toContain('page_size=100');
   });
 
+  it('serializes card network, Islamic, dual-currency and income filters', async () => {
+    await apiService.getCreditCards({
+      cardNetworks: ['visa', 'mastercard'],
+      isIslamic: true,
+      isDualCurrency: true,
+      maxMinMonthlyIncome: 40000,
+    });
+    const params = new URL(fetchSpy.mock.calls[0][0] as string).searchParams;
+    expect(params.get('card_network')).toBe('visa,mastercard');
+    expect(params.get('is_islamic')).toBe('true');
+    expect(params.get('is_dual_currency')).toBe('true');
+    expect(params.get('max_min_monthly_income')).toBe('40000');
+    expect(params.get('include_unknown_income')).toBe('true');
+  });
+
+  it('honors includeUnknownIncome=false and omits income params when unset', async () => {
+    await apiService.getCreditCards({ maxMinMonthlyIncome: 0, includeUnknownIncome: false });
+    const withIncome = new URL(fetchSpy.mock.calls[0][0] as string).searchParams;
+    expect(withIncome.get('max_min_monthly_income')).toBe('0');
+    expect(withIncome.has('include_unknown_income')).toBe(false);
+
+    await apiService.getCreditCards({
+      includeUnknownIncome: true,
+      isIslamic: false,
+      cardNetworks: [],
+    });
+    const withoutIncome = new URL(fetchSpy.mock.calls[1][0] as string).searchParams;
+    ['max_min_monthly_income', 'include_unknown_income', 'is_islamic', 'card_network'].forEach(
+      key => expect(withoutIncome.has(key)).toBe(false)
+    );
+  });
+
   it('sends annual fee min-only ranges and search terms', async () => {
     await apiService.getCreditCards({ searchTerm: 'cashback', annualFeeRange: { min: 3000 } });
     const url = fetchSpy.mock.calls[0][0] as string;

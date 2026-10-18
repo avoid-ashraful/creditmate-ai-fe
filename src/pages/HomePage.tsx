@@ -1,5 +1,5 @@
 import { AnimatePresence } from 'framer-motion';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 
 import CardDetailsPopup from '../components/CardDetailsPopup';
@@ -184,6 +184,8 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const panelInitialFilters = useMemo(() => ({ searchTerm }), [searchTerm]);
+
   // Hero CTA text variants
   const heroCtaText =
     heroCtaVariant === 'treatment' ? common.homeHeroCtaTreatment : common.homeHeroCtaControl;
@@ -259,7 +261,7 @@ const HomePage: React.FC = () => {
           <FilterPanel
             banks={banks}
             onFilterChange={handleFilterChange}
-            initialFilters={{ searchTerm }}
+            initialFilters={panelInitialFilters}
           />
         </div>
 

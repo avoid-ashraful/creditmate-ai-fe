@@ -10,7 +10,13 @@ import { SkeletonCardGrid } from '../components/Skeleton';
 import Toast from '../components/Toast';
 import { useThemeContext } from '../hooks/ThemeProvider';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
-import { useLanguage, pickLang } from '../locales';
+import {
+  useLanguage,
+  pickLang,
+  getCommonCopy,
+  getCardDetailCopy,
+  getNetworkLabel,
+} from '../locales';
 import {
   advancedSearchService,
   AdvancedSearchUIState,
@@ -18,11 +24,12 @@ import {
   AdvancedSearchResponse,
   AdvancedSearchCategory,
   AdvancedSearchSortOption,
+  extractFacetCounts,
   uiStateToParams,
   searchParamsToUIState,
   transformAdvancedSearchCard,
 } from '../services/advancedSearch';
-import { CreditCard } from '../types';
+import { CardNetwork, CreditCard } from '../types';
 import { resetSeoMeta, setSeoMeta } from '../utils/seo';
 import '../styles/AdvancedSearchPage.css';
 
@@ -68,6 +75,16 @@ const DEFAULT_SORT_OPTIONS: AdvancedSearchSortOption[] = [
   { key: 'created', label: 'Oldest First', description: 'Sort by creation date ascending' },
 ];
 
+const CARD_NETWORKS: CardNetwork[] = [
+  'visa',
+  'mastercard',
+  'amex',
+  'unionpay',
+  'jcb',
+  'diners',
+  'other',
+];
+
 interface CategoryWithCount extends AdvancedSearchCategory {
   count: number;
   selected: boolean;
@@ -91,6 +108,8 @@ const AdvancedSearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { lang } = useLanguage();
   const { isDark } = useThemeContext();
+  const common = getCommonCopy(lang);
+  const detailCopy = getCardDetailCopy(lang);
 
   // State
   const [uiState, setUiState] = useState<AdvancedSearchUIState>(DEFAULT_UI_STATE);
@@ -460,6 +479,23 @@ const AdvancedSearchPage: React.FC = () => {
     return filters;
   }, [results, uiState, lang]);
 
+  // Facet counts for the card network / Islamic / dual-currency filters ("Visa (12)")
+  const detailFacetCounts = useMemo(() => extractFacetCounts(results?.facets ?? {}), [results]);
+
+  const handleNetworkToggle = useCallback((network: string) => {
+    setUiState(prev => ({
+      ...prev,
+      cardNetworks: prev.cardNetworks.includes(network)
+        ? prev.cardNetworks.filter(n => n !== network)
+        : [...prev.cardNetworks, network],
+      page: 1,
+    }));
+    analytics.track(ANALYTICS_EVENTS.filterApply, {
+      filterCount: 1,
+      filterKeys: [`card_network:${network}`],
+    });
+  }, []);
+
   // Sort options with localized labels
   const localizedSortOptions = useMemo(
     () =>
@@ -545,9 +581,42 @@ const AdvancedSearchPage: React.FC = () => {
         onRemove: () => handleFilterChange({ hasFeeWaiver: false }),
       });
     }
+    uiState.cardNetworks.forEach(network => {
+      chips.push({
+        label: getNetworkLabel(detailCopy, network) ?? network,
+        onRemove: () => handleNetworkToggle(network),
+      });
+    });
+    if (uiState.isIslamic) {
+      chips.push({
+        label: common.filterLabelIslamic,
+        onRemove: () => handleFilterChange({ isIslamic: false }),
+      });
+    }
+    if (uiState.isDualCurrency) {
+      chips.push({
+        label: common.filterLabelDualCurrency,
+        onRemove: () => handleFilterChange({ isDualCurrency: false }),
+      });
+    }
+    if (uiState.maxMinMonthlyIncome !== '') {
+      chips.push({
+        label: `${common.filterLabelMonthlyIncome}: ${uiState.maxMinMonthlyIncome}`,
+        onRemove: () => handleFilterChange({ maxMinMonthlyIncome: '' }),
+      });
+    }
 
     return chips;
-  }, [uiState, categories, lang, handleFilterChange, handleCategoryToggle]);
+  }, [
+    uiState,
+    categories,
+    lang,
+    common,
+    detailCopy,
+    handleFilterChange,
+    handleCategoryToggle,
+    handleNetworkToggle,
+  ]);
 
   // Render
   if (isLoading && !results) {
@@ -886,6 +955,89 @@ const AdvancedSearchPage: React.FC = () => {
                   )}
                 />
                 <span>{pickLang(lang, 'Fee Waiver Available', 'ফি ছাড় উপলব্ধ')}</span>
+              </label>
+            </div>
+          </section>
+
+          {/* Card Network */}
+          <section className="filter-section">
+            <h3 id="adv-network-heading">{common.filterSectionCardNetwork}</h3>
+            <div className="network-chip-group" role="group" aria-labelledby="adv-network-heading">
+              {CARD_NETWORKS.map(network => {
+                const count = detailFacetCounts[`card_network:${network}`];
+                const selected = uiState.cardNetworks.includes(network);
+                return (
+                  <button
+                    key={network}
+                    type="button"
+                    className={`preset-button ${selected ? 'active' : ''}`}
+                    aria-pressed={selected}
+                    onClick={() => handleNetworkToggle(network)}
+                  >
+                    {getNetworkLabel(detailCopy, network)}
+                    {count !== undefined && <span className="preset-count"> ({count})</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Card Type */}
+          <section className="filter-section">
+            <h3>{common.filterSectionCardType}</h3>
+            <div className="checkbox-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={uiState.isIslamic}
+                  onChange={e => handleFilterChange({ isIslamic: e.target.checked })}
+                />
+                <span>
+                  {common.filterLabelIslamic}
+                  {detailFacetCounts['is_islamic:true'] !== undefined &&
+                    ` (${detailFacetCounts['is_islamic:true']})`}
+                </span>
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={uiState.isDualCurrency}
+                  onChange={e => handleFilterChange({ isDualCurrency: e.target.checked })}
+                />
+                <span>
+                  {common.filterLabelDualCurrency}
+                  {detailFacetCounts['is_dual_currency:true'] !== undefined &&
+                    ` (${detailFacetCounts['is_dual_currency:true']})`}
+                </span>
+              </label>
+            </div>
+          </section>
+
+          {/* Income requirement */}
+          <section className="filter-section">
+            <h3>{common.filterSectionIncome}</h3>
+            <div className="range-input-pair">
+              <label htmlFor="max-min-income">{common.filterLabelMonthlyIncome}</label>
+              <input
+                id="max-min-income"
+                type="number"
+                min="0"
+                value={uiState.maxMinMonthlyIncome}
+                onChange={e =>
+                  handleFilterChange({
+                    maxMinMonthlyIncome: e.target.value === '' ? '' : Number(e.target.value),
+                  })
+                }
+              />
+            </div>
+            <div className="checkbox-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={uiState.includeUnknownIncome}
+                  onChange={e => handleFilterChange({ includeUnknownIncome: e.target.checked })}
+                />
+                <span>{common.filterLabelIncludeUnknownIncome}</span>
               </label>
             </div>
           </section>

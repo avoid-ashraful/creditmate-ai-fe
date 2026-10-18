@@ -55,6 +55,13 @@ export interface CommonCopy {
   filterLabelHasAdditionalFeatures: string;
   filterLabelFeatureSearch: string;
   filterLabelSearchTerm: string;
+  filterSectionCardNetwork: string;
+  filterSectionCardType: string;
+  filterSectionIncome: string;
+  filterLabelIslamic: string;
+  filterLabelDualCurrency: string;
+  filterLabelMonthlyIncome: string;
+  filterLabelIncludeUnknownIncome: string;
   filterErrorAnnualFeeFormat: string;
   filterErrorInterestRateFormat: string;
   filterApply: string;
@@ -392,6 +399,13 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     filterLabelHasAdditionalFeatures: 'Has Additional Features',
     filterLabelFeatureSearch: 'Search in features',
     filterLabelSearchTerm: 'Search by card name or features',
+    filterSectionCardNetwork: 'Card network',
+    filterSectionCardType: 'Card type',
+    filterSectionIncome: 'Income requirement',
+    filterLabelIslamic: 'Islamic (Shariah) cards only',
+    filterLabelDualCurrency: 'Dual-currency only',
+    filterLabelMonthlyIncome: 'My monthly income (BDT)',
+    filterLabelIncludeUnknownIncome: "Include cards whose income requirement isn't published",
     filterErrorAnnualFeeFormat:
       'Invalid annual fee range format. Please use "min,max" format (e.g., "0,200").',
     filterErrorInterestRateFormat:
@@ -757,6 +771,13 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     filterLabelHasAdditionalFeatures: 'অতিরিক্ত বৈশিষ্ট্য রয়েছে',
     filterLabelFeatureSearch: 'বৈশিষ্ট্যে সার্চ করুন',
     filterLabelSearchTerm: 'কার্ডের নাম বা বৈশিষ্ট্য দিয়ে খুঁজুন',
+    filterSectionCardNetwork: 'কার্ড নেটওয়ার্ক',
+    filterSectionCardType: 'কার্ডের ধরন',
+    filterSectionIncome: 'আয়ের শর্ত',
+    filterLabelIslamic: 'শুধু ইসলামিক (শরিয়াহ) কার্ড',
+    filterLabelDualCurrency: 'শুধু ডুয়াল-কারেন্সি কার্ড',
+    filterLabelMonthlyIncome: 'আমার মাসিক আয় (বিডিটি)',
+    filterLabelIncludeUnknownIncome: 'যেসব কার্ডের আয়ের শর্ত প্রকাশিত নয় সেগুলোও দেখান',
     filterErrorAnnualFeeFormat:
       'অবৈধ বার্ষিক ফি রেঞ্জ ফরম্যাট। অনুগ্রহ করে "ন্যূনতম,সর্বোচ্চ" ফরম্যাট ব্যবহার করুন (যেমন: "০,২০০")।',
     filterErrorInterestRateFormat:

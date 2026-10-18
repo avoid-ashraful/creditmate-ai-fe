@@ -1,6 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import React from 'react';
 
+import { LANGUAGE_STORAGE_KEY, LanguageProvider } from '../locales';
 import { Bank, CardFilterOptions } from '../types';
 
 import FilterPanel from './FilterPanel';
@@ -367,5 +368,108 @@ describe('FilterPanel Component', () => {
     // Check that the banks section is still rendered but empty
     expect(screen.getByText('Banks')).toBeInTheDocument();
     expect(screen.queryByLabelText(/Bank/)).not.toBeInTheDocument();
+  });
+
+  describe('card network, Islamic, dual-currency and income filters', () => {
+    const expand = (onFilterChange = jest.fn()) => {
+      render(<FilterPanel banks={mockBanks} onFilterChange={onFilterChange} />);
+      fireEvent.click(screen.getByText('Filter Options'));
+      return onFilterChange;
+    };
+
+    test('network chips are keyboard-operable toggle buttons that multi-select', () => {
+      const onFilterChange = expand();
+      const group = screen.getByRole('group', { name: 'Card network' });
+      const visa = within(group).getByRole('button', { name: 'Visa' });
+      const mastercard = within(group).getByRole('button', { name: 'Mastercard' });
+      expect(visa).toHaveAttribute('aria-pressed', 'false');
+
+      fireEvent.click(visa);
+      fireEvent.click(mastercard);
+      expect(visa).toHaveAttribute('aria-pressed', 'true');
+      expect(mastercard).toHaveAttribute('aria-pressed', 'true');
+
+      fireEvent.click(screen.getByText('Apply Filters'));
+      expect(onFilterChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ cardNetworks: ['visa', 'mastercard'] })
+      );
+
+      // Deselecting everything drops the key rather than sending an empty list.
+      fireEvent.click(visa);
+      fireEvent.click(mastercard);
+      fireEvent.click(screen.getByText('Apply Filters'));
+      expect(onFilterChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ cardNetworks: undefined })
+      );
+    });
+
+    test('Islamic and dual-currency toggles set true and unset to undefined', () => {
+      const onFilterChange = expand();
+      fireEvent.click(screen.getByLabelText('Islamic (Shariah) cards only'));
+      fireEvent.click(screen.getByLabelText('Dual-currency only'));
+      fireEvent.click(screen.getByText('Apply Filters'));
+      expect(onFilterChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isIslamic: true, isDualCurrency: true })
+      );
+
+      fireEvent.click(screen.getByLabelText('Islamic (Shariah) cards only'));
+      fireEvent.click(screen.getByText('Apply Filters'));
+      expect(onFilterChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isIslamic: undefined, isDualCurrency: true })
+      );
+    });
+
+    test('income input applies with "include unknown" checked by default', () => {
+      const onFilterChange = expand();
+      const unknown = screen.getByLabelText(
+        "Include cards whose income requirement isn't published"
+      ) as HTMLInputElement;
+      expect(unknown.checked).toBe(true);
+
+      fireEvent.change(screen.getByLabelText('My monthly income (BDT)'), {
+        target: { value: '40000' },
+      });
+      fireEvent.click(screen.getByText('Apply Filters'));
+      expect(onFilterChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ maxMinMonthlyIncome: 40000 })
+      );
+      // Untouched: the API layer treats a missing value as the checked default.
+      expect(onFilterChange.mock.calls[0][0].includeUnknownIncome).toBeUndefined();
+
+      fireEvent.click(unknown);
+      fireEvent.click(screen.getByText('Apply Filters'));
+      expect(onFilterChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ maxMinMonthlyIncome: 40000, includeUnknownIncome: false })
+      );
+    });
+
+    test('Reset clears the new filters', () => {
+      const onFilterChange = expand();
+      fireEvent.click(screen.getByRole('button', { name: 'Visa' }));
+      fireEvent.click(screen.getByLabelText('Islamic (Shariah) cards only'));
+      fireEvent.click(screen.getByText('Reset'));
+      expect(onFilterChange).toHaveBeenLastCalledWith({});
+      expect(screen.getByRole('button', { name: 'Visa' })).toHaveAttribute('aria-pressed', 'false');
+      expect(
+        (screen.getByLabelText('Islamic (Shariah) cards only') as HTMLInputElement).checked
+      ).toBe(false);
+    });
+
+    test('renders Bengali copy', () => {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, 'bn');
+      try {
+        render(
+          <LanguageProvider>
+            <FilterPanel banks={mockBanks} onFilterChange={jest.fn()} />
+          </LanguageProvider>
+        );
+        fireEvent.click(screen.getByRole('button', { name: 'বিস্তারিত' }));
+        expect(screen.getByRole('group', { name: 'কার্ড নেটওয়ার্ক' })).toBeInTheDocument();
+        expect(screen.getByLabelText('শুধু ইসলামিক (শরিয়াহ) কার্ড')).toBeInTheDocument();
+        expect(screen.getByLabelText('আমার মাসিক আয় (বিডিটি)')).toBeInTheDocument();
+      } finally {
+        window.localStorage.removeItem(LANGUAGE_STORAGE_KEY);
+      }
+    });
   });
 });

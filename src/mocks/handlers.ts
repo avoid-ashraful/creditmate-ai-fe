@@ -106,6 +106,29 @@ const paginated = <T>(results: T[]) => ({
   results,
 });
 
+// Mirrors the BE CardDetailFilterSet: card_network (comma-separated), is_islamic,
+// is_dual_currency, max_min_monthly_income (+ include_unknown_income).
+const filterByCardDetails = (cards: typeof testCards, params: URLSearchParams) => {
+  const networks = params.get('card_network')?.toLowerCase().split(',').filter(Boolean);
+  const isIslamic = params.get('is_islamic');
+  const isDualCurrency = params.get('is_dual_currency');
+  const maxIncome = params.get('max_min_monthly_income');
+  const includeUnknown = params.get('include_unknown_income') === 'true';
+
+  return cards.filter(card => {
+    if (networks && !networks.includes(card.card_network)) return false;
+    if (isIslamic !== null && card.is_islamic !== (isIslamic === 'true')) return false;
+    if (isDualCurrency !== null && card.is_dual_currency !== (isDualCurrency === 'true')) {
+      return false;
+    }
+    if (maxIncome !== null) {
+      if (card.min_monthly_income === null) return includeUnknown;
+      return parseFloat(card.min_monthly_income) <= parseFloat(maxIncome);
+    }
+    return true;
+  });
+};
+
 let storedRefreshToken = 'refresh-1';
 let storedAccessToken = 'access-1';
 
@@ -233,7 +256,7 @@ export const handlers = [
     const bankIds = req.url.searchParams.get('bank_ids')?.split(',').map(Number) || [];
     const hasLoungeAccess = req.url.searchParams.get('has_lounge_access');
 
-    let cards = testCards;
+    let cards = filterByCardDetails(testCards, req.url.searchParams);
     if (ids) {
       cards = cards.filter(card => ids.includes(card.id));
     }
@@ -384,7 +407,7 @@ export const handlers = [
     const pageSize = parseInt(req.url.searchParams.get('page_size') || '20', 10);
     const facets = req.url.searchParams.get('facets')?.split(',') || [];
 
-    let cards = [...testCards];
+    let cards = filterByCardDetails(testCards, req.url.searchParams);
 
     if (search) {
       const normalizedSearch = search.toLowerCase();
@@ -628,6 +651,28 @@ export const handlers = [
         ],
       };
     }
+    if (facets.includes('card_network')) {
+      const counts = new Map<string, number>();
+      cards.forEach(c => counts.set(c.card_network, (counts.get(c.card_network) ?? 0) + 1));
+      facetData.card_network = {
+        label: 'Card Network',
+        type: 'terms',
+        buckets: Array.from(counts).map(([key, count]) => ({ key: key || 'Unknown', count })),
+      };
+    }
+    (['is_islamic', 'is_dual_currency'] as const).forEach(name => {
+      if (!facets.includes(name)) return;
+      const yes = cards.filter(c => c[name] === true).length;
+      const no = cards.filter(c => c[name] === false).length;
+      facetData[name] = {
+        label: name === 'is_islamic' ? 'Islamic' : 'Dual Currency',
+        type: 'boolean',
+        buckets: [
+          { key: 'true', label: 'Yes', count: yes },
+          { key: 'false', label: 'No', count: no },
+        ],
+      };
+    });
 
     return res(
       ctx.status(200),

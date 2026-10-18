@@ -119,6 +119,11 @@ export interface AdvancedSearchParams {
   no_annual_fee?: boolean;
   has_additional_features?: boolean;
   has_fee_waiver?: boolean;
+  card_network?: string; // comma-separated networks
+  is_islamic?: boolean;
+  is_dual_currency?: boolean;
+  max_min_monthly_income?: number;
+  include_unknown_income?: 'true' | 'false'; // 'false' must reach the API, so not a boolean
   feature_search?: string;
   bank_ids?: number[];
   ordering?: string;
@@ -141,6 +146,11 @@ export interface AdvancedSearchUIState {
   hasAnnualFee: boolean;
   noAnnualFee: boolean;
   hasFeeWaiver: boolean;
+  cardNetworks: string[];
+  isIslamic: boolean;
+  isDualCurrency: boolean;
+  maxMinMonthlyIncome: number | '';
+  includeUnknownIncome: boolean;
   featureSearch: string;
   bankIds: number[];
   ordering: string;
@@ -158,6 +168,9 @@ export const DEFAULT_FACETS = [
   'lounge_access',
   'fee_waiver',
   'has_annual_fee',
+  'card_network',
+  'is_islamic',
+  'is_dual_currency',
 ].join(',');
 
 /** Default page size */
@@ -186,6 +199,13 @@ export function uiStateToParams(state: AdvancedSearchUIState): AdvancedSearchPar
   if (state.hasAnnualFee) params.has_annual_fee = true;
   if (state.noAnnualFee) params.no_annual_fee = true;
   if (state.hasFeeWaiver) params.has_fee_waiver = true;
+  if (state.cardNetworks.length > 0) params.card_network = state.cardNetworks.join(',');
+  if (state.isIslamic) params.is_islamic = true;
+  if (state.isDualCurrency) params.is_dual_currency = true;
+  if (state.maxMinMonthlyIncome !== '') {
+    params.max_min_monthly_income = state.maxMinMonthlyIncome;
+    params.include_unknown_income = state.includeUnknownIncome ? 'true' : 'false';
+  }
   if (state.featureSearch) params.feature_search = state.featureSearch;
   if (state.bankIds.length > 0) params.bank_ids = state.bankIds;
   if (state.ordering) params.ordering = state.ordering;
@@ -261,6 +281,23 @@ export function searchParamsToUIState(
   const hasFeeWaiver = searchParams.get('has_fee_waiver');
   if (hasFeeWaiver !== null) state.hasFeeWaiver = hasFeeWaiver === 'true';
 
+  const cardNetwork = searchParams.get('card_network');
+  if (cardNetwork) state.cardNetworks = cardNetwork.split(',').filter(Boolean);
+
+  const isIslamic = searchParams.get('is_islamic');
+  if (isIslamic !== null) state.isIslamic = isIslamic === 'true';
+
+  const isDualCurrency = searchParams.get('is_dual_currency');
+  if (isDualCurrency !== null) state.isDualCurrency = isDualCurrency === 'true';
+
+  const maxMinIncome = searchParams.get('max_min_monthly_income');
+  if (maxMinIncome && Number.isFinite(Number(maxMinIncome))) {
+    state.maxMinMonthlyIncome = Number(maxMinIncome);
+  }
+
+  const includeUnknownIncome = searchParams.get('include_unknown_income');
+  if (includeUnknownIncome !== null) state.includeUnknownIncome = includeUnknownIncome === 'true';
+
   const featureSearch = searchParams.get('feature_search');
   if (featureSearch) state.featureSearch = featureSearch;
 
@@ -303,6 +340,11 @@ export const DEFAULT_UI_STATE: AdvancedSearchUIState = {
   hasAnnualFee: false,
   noAnnualFee: false,
   hasFeeWaiver: false,
+  cardNetworks: [],
+  isIslamic: false,
+  isDualCurrency: false,
+  maxMinMonthlyIncome: '',
+  includeUnknownIncome: true,
   featureSearch: '',
   bankIds: [],
   ordering: 'relevance',
