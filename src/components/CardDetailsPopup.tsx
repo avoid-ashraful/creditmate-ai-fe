@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { backdropVariants, modalPanelVariants, usePrefersReducedMotion } from '../animations';
-import { dummyBanks } from '../dummy-data/credit-cards';
 import { useLanguage, getCommonCopy } from '../locales';
 import { CreditCard } from '../types';
 import { trapTabKey } from '../utils/focus';
@@ -51,13 +50,6 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
     if (dialogRef.current) {
       trapTabKey(event, dialogRef.current);
     }
-  };
-
-  const getBankName = (bankId: number | undefined): string => {
-    if (card.bankName) return card.bankName;
-    if (bankId === undefined) return common.unknown;
-    const bank = dummyBanks.find(b => b.id === bankId);
-    return bank?.name || common.bankIdLabel.replace('{id}', bankId.toString());
   };
 
   // Prevent clicks inside the popup from closing it
@@ -159,7 +151,7 @@ const CardDetailsPopup: React.FC<CardDetailsPopupProps> = ({
 
         <div className="popup-header">
           <h2 id="card-details-title">{card.name}</h2>
-          <span className="bank-name">{getBankName(card.bankId)}</span>
+          <span className="bank-name">{card.bankName || common.unknownBank}</span>
         </div>
 
         <div className="popup-content">
