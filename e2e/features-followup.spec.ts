@@ -147,7 +147,8 @@ test('page metadata includes title, canonical and parseable JSON-LD where provid
 });
 
 test('disabled experiments record no exposures', async ({ page }) => {
-  // Experiments are off until analytics and consent exist. (playwright.config seeds the anonymous id.)
+  // Experiments are off until analytics and consent exist.
+  // (playwright.config seeds the anonymous id, so only exposures are checked.)
   await mockApi(page);
   await page.goto('/');
   await page.reload();
