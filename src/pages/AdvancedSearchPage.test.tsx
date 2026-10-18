@@ -1,11 +1,12 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, useLocation, useNavigate, Link } from 'react-router-dom';
 
 import { ThemeProvider } from '../hooks/ThemeProvider';
 import { LanguageProvider } from '../locales';
 import { server } from '../mocks/jest.setup';
+import { advancedSearchService } from '../services/advancedSearch';
 
 import AdvancedSearchPage from './AdvancedSearchPage';
 
@@ -18,9 +19,23 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+const NavigationControls = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  return (
+    <>
+      <output data-testid="query">{location.search}</output>
+      <button onClick={() => navigate(-1)}>Back</button>
+      <button onClick={() => navigate(1)}>Forward</button>
+      <Link to="/search?is_islamic=true">Islamic search</Link>
+    </>
+  );
+};
+
 const renderAdvancedSearch = (initialUrl = '/search') => {
   return render(
     <MemoryRouter initialEntries={[initialUrl]}>
+      <NavigationControls />
       <ThemeProvider>
         <LanguageProvider>
           <Routes>
@@ -42,6 +57,127 @@ describe('AdvancedSearchPage', () => {
   it('renders page header', () => {
     renderAdvancedSearch();
     expect(screen.getByRole('heading', { level: 1, name: /Advanced Search/i })).toBeInTheDocument();
+  });
+
+  describe('URL synchronization', () => {
+    const advance = async (ms: number) => {
+      for (let elapsed = 0; elapsed < ms; elapsed += 50) {
+        await act(async () => {
+          jest.advanceTimersByTime(Math.min(50, ms - elapsed));
+        });
+      }
+    };
+
+    it.each([50, 350])(
+      'preserves income and checkbox edits %i ms apart without duplicate requests',
+      async delay => {
+        const search = jest.spyOn(advancedSearchService, 'search').mockResolvedValue({
+          total: 0,
+          page: 1,
+          page_size: 20,
+          results: [],
+          facets: {},
+          query: '',
+          took: 0,
+          source: 'database',
+          sort_options: [],
+          categories: [],
+          normalized_query: {},
+        });
+        try {
+          jest.useFakeTimers();
+          renderAdvancedSearch();
+          await advance(300);
+          expect(search).toHaveBeenCalledTimes(1);
+          search.mockClear();
+
+          const income = screen.getByLabelText(/monthly income/i, { selector: 'input' });
+          const includeUnknown = screen.getByLabelText(
+            "Include cards whose income requirement isn't published"
+          );
+          fireEvent.change(income, { target: { value: '30000' } });
+          await advance(delay);
+          fireEvent.click(includeUnknown);
+          await advance(1000);
+
+          expect(income).toHaveValue(30000);
+          expect(includeUnknown).not.toBeChecked();
+          const params = new URLSearchParams(screen.getByTestId('query').textContent || '');
+          expect(params.get('max_min_monthly_income')).toBe('30000');
+          expect(params.get('include_unknown_income')).toBe('false');
+          expect(search).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              max_min_monthly_income: 30000,
+              include_unknown_income: 'false',
+            })
+          );
+          expect(search).toHaveBeenCalledTimes(delay < 300 ? 1 : 2);
+        } finally {
+          search.mockRestore();
+        }
+      }
+    );
+
+    it('restores filters on back/forward and cancels edits pending during navigation', async () => {
+      const search = jest.spyOn(advancedSearchService, 'search').mockResolvedValue({
+        total: 0,
+        page: 1,
+        page_size: 20,
+        results: [],
+        facets: {},
+        query: '',
+        took: 0,
+        source: 'database',
+        sort_options: [],
+        categories: [],
+        normalized_query: {},
+      });
+      try {
+        jest.useFakeTimers();
+        renderAdvancedSearch('/search?max_min_monthly_income=30000&include_unknown_income=false');
+        await advance(300);
+        fireEvent.click(screen.getByRole('link', { name: 'Islamic search' }));
+        await advance(300);
+        const income = screen.getByLabelText(/monthly income/i, { selector: 'input' });
+        const islamic = screen.getByRole('checkbox', { name: /Islamic \(Shariah\) cards only/ });
+        const includeUnknown = screen.getByLabelText(
+          "Include cards whose income requirement isn't published"
+        );
+        expect(income).toHaveValue(null);
+        expect(islamic).toBeChecked();
+        expect(includeUnknown).toBeChecked();
+
+        // Leave an edit pending when navigating away from this history entry.
+        fireEvent.change(income, { target: { value: '50000' } });
+        await advance(50);
+        fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+        await advance(1000);
+        expect(income).toHaveValue(30000);
+        expect(islamic).not.toBeChecked();
+        expect(includeUnknown).not.toBeChecked();
+        expect(search).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            max_min_monthly_income: 30000,
+            include_unknown_income: 'false',
+          })
+        );
+        expect(screen.getByTestId('query')).toHaveTextContent('max_min_monthly_income=30000');
+
+        fireEvent.click(screen.getByRole('button', { name: 'Forward' }));
+        await advance(1000);
+        expect(income).toHaveValue(null);
+        expect(islamic).toBeChecked();
+        expect(includeUnknown).toBeChecked();
+        expect(screen.getByTestId('query')).not.toHaveTextContent('max_min_monthly_income');
+        expect(search).toHaveBeenLastCalledWith(expect.objectContaining({ is_islamic: true }));
+        expect(search.mock.calls[search.mock.calls.length - 1][0]).not.toHaveProperty(
+          'max_min_monthly_income'
+        );
+        expect(search).toHaveBeenCalledTimes(4);
+      } finally {
+        search.mockRestore();
+      }
+    });
   });
 
   describe('card network, Islamic, dual-currency and income filters', () => {
@@ -89,8 +225,6 @@ describe('AdvancedSearchPage', () => {
         ).checked
       ).toBe(true);
 
-      // Let the page's debounced URL sync settle; it re-reads the URL into state.
-      await new Promise(resolve => setTimeout(resolve, 700));
       await userEvent.click(
         screen.getByLabelText("Include cards whose income requirement isn't published")
       );
