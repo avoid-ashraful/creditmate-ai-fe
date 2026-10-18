@@ -139,6 +139,21 @@ button {
   border-radius: var(--radius-sm);
 }
 
+/* QA #14: the Bengali navigation labels run wider than the Latin ones, which
+   pushed the language/theme toggles and the Log in / Register links onto a
+   second header row at common laptop widths (~1366px). When the nav contains
+   Bengali links it gets a tighter gap, and the Bengali links tighter padding,
+   so the row stays on one line; the links, labels, focus outlines and hit
+   areas are otherwise unchanged. */
+.main-nav ul:has(a[lang='bn']) {
+  gap: 0.375rem;
+}
+
+.main-nav a[lang='bn'] {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
 .main-nav a:hover,
 .main-nav a.active {
   color: var(--primary-color);

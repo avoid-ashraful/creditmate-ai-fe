@@ -216,6 +216,8 @@ export interface CommonCopy {
   homeHeroSubtextControl: string;
   homeHeroSubtextTreatment: string;
   homeSearchPlaceholder: string;
+  /** Shorter placeholder that fits on narrow screens; aria-label keeps the full text */
+  homeSearchPlaceholderShort: string;
   homeSearchAriaLabel: string;
   homeStatsPartnerBanks: string;
   homeStatsCreditCards: string;
@@ -576,6 +578,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
       'Compare credit cards from top banks in Bangladesh and make informed financial decisions',
     homeHeroSubtextTreatment: "Compare top credit cards from Bangladesh's leading banks in seconds",
     homeSearchPlaceholder: 'Search by card name, bank, or features...',
+    homeSearchPlaceholderShort: 'Search cards or banks',
     homeSearchAriaLabel: 'Search credit cards by name, bank, or features',
     homeStatsPartnerBanks: 'Partner Banks',
     homeStatsCreditCards: 'Credit Cards',
@@ -951,6 +954,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
       'বাংলাদেশের শীর্ষ ব্যাংক থেকে ক্রেডিট কার্ড তুলনা করুন এবং সুনির্দিষ্ট আর্থিক সিদ্ধান্ত নিন',
     homeHeroSubtextTreatment: 'বাংলাদেশের আগ্রণী ব্যাংকদের শীর্ষ ক্রেডিট কার্ড সেকেন্ডে তুলনা করুন',
     homeSearchPlaceholder: 'কার্ডের নাম, ব্যাংক বা বৈশিষ্ট্য দিয়ে খুঁজুন…',
+    homeSearchPlaceholderShort: 'কার্ড বা ব্যাংক খুঁজুন',
     homeSearchAriaLabel: 'নাম, ব্যাংক বা বৈশিষ্ট্য অনুযায়ী ক্রেডিট কার্ড খুঁজুন',
     homeStatsPartnerBanks: 'সহযোগী ব্যাংক',
     homeStatsCreditCards: 'ক্রেডিট কার্ড',
