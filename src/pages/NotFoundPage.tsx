@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import { useSeoMeta } from '../hooks/useSeoMeta';
-import { getLegalCopy, LEGAL_PAGE_PATHS, useLanguage } from '../locales';
+import { useLanguage } from '../locales';
+import { getLegalCopy, LEGAL_PAGE_PATHS } from '../locales/legal';
 import '../styles/LegalPage.css';
 
 /** Catch-all 404 page with links to the places people most likely wanted. */

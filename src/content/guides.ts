@@ -1900,8 +1900,9 @@ const pairedGuide = (
   slug,
   title,
   description,
-  category: 'Getting started',
-  readingTime: '3 min read',
+  category: language === 'bn' ? 'শুরু করা' : 'Getting started',
+  // QA #14: Bengali guides must not carry an English reading-time label.
+  readingTime: language === 'bn' ? '৩ মিনিট পড়া' : '3 min read',
   updated: '2026-10-13',
   sections,
   faqs,
@@ -2247,3 +2248,27 @@ export const guideSlugs: string[] = guides.map(guide => guide.slug);
 
 export const getGuide = (slug: string | undefined): Guide | undefined =>
   guides.find(guide => guide.slug === slug);
+
+/** The language a guide is written in; guides without a marker are English. */
+export const guideLanguage = (guide: Guide): Guide['language'] => guide.language ?? 'en';
+
+/** Every guide in the given UI language. */
+export const guidesForLanguage = (lang: Guide['language']): Guide[] =>
+  guides.filter(guide => guideLanguage(guide) === lang);
+
+/**
+ * Resolve a guide slug for the selected language. Paired guides differ only by
+ * the `-bn` slug suffix, so a `/guides/<slug>` link followed while the app is
+ * in the other language shows that language's version of the same guide (fall
+ * back to the requested guide when there is no pair).
+ */
+export const getGuideForLanguage = (
+  lang: Guide['language'],
+  slug: string | undefined
+): Guide | undefined => {
+  const guide = getGuide(slug);
+  if (!guide || guideLanguage(guide) === lang) return guide;
+  const baseSlug = guide.slug.replace(/-bn$/, '');
+  const pairedSlug = lang === 'bn' ? `${baseSlug}-bn` : baseSlug;
+  return pairedSlug !== guide.slug ? getGuide(pairedSlug) : undefined;
+};

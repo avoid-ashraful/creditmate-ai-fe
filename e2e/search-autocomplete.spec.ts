@@ -57,7 +57,9 @@ test.describe('Search Autocomplete E2E', () => {
   });
 
   test('can type and see autocomplete suggestions', async () => {
-    const searchInput = page.getByPlaceholder(/Search by card name/i);
+    const searchInput = page.getByRole('combobox', {
+      name: /Search credit cards by name, bank, or features/i,
+    });
     await searchInput.click();
     await searchInput.fill('visa');
 
@@ -70,7 +72,9 @@ test.describe('Search Autocomplete E2E', () => {
   });
 
   test('can select a category suggestion and apply its slug filters', async () => {
-    const searchInput = page.getByPlaceholder(/Search by card name/i);
+    const searchInput = page.getByRole('combobox', {
+      name: /Search credit cards by name, bank, or features/i,
+    });
     await searchInput.click();
     await searchInput.fill('travel');
 
@@ -96,7 +100,9 @@ test.describe('Search Autocomplete E2E', () => {
   });
 
   test('can select a card suggestion', async () => {
-    const searchInput = page.getByPlaceholder(/Search by card name/i);
+    const searchInput = page.getByRole('combobox', {
+      name: /Search credit cards by name, bank, or features/i,
+    });
     await searchInput.click();
     await searchInput.fill('visa');
 
@@ -112,7 +118,9 @@ test.describe('Search Autocomplete E2E', () => {
   });
 
   test('respects debounce timing', async () => {
-    const searchInput = page.getByPlaceholder(/Search by card name/i);
+    const searchInput = page.getByRole('combobox', {
+      name: /Search credit cards by name, bank, or features/i,
+    });
     await searchInput.click();
     await searchInput.type('v');
 
@@ -124,7 +132,9 @@ test.describe('Search Autocomplete E2E', () => {
   });
 
   test('keyboard navigation works', async () => {
-    const searchInput = page.getByPlaceholder(/Search by card name/i);
+    const searchInput = page.getByRole('combobox', {
+      name: /Search credit cards by name, bank, or features/i,
+    });
     await searchInput.click();
     await searchInput.fill('travel');
 
@@ -143,7 +153,9 @@ test.describe('Search Autocomplete E2E', () => {
   });
 
   test('Escape key closes suggestions', async () => {
-    const searchInput = page.getByPlaceholder(/Search by card name/i);
+    const searchInput = page.getByRole('combobox', {
+      name: /Search credit cards by name, bank, or features/i,
+    });
     await searchInput.click();
     await searchInput.fill('travel');
 

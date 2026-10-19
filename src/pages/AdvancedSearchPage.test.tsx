@@ -190,8 +190,13 @@ describe('AdvancedSearchPage', () => {
       expect(visa).toHaveAttribute('aria-pressed', 'false');
 
       await userEvent.click(visa);
-      await waitFor(() => expect(screen.queryByText('Other Rewards Card')).not.toBeInTheDocument());
-      expect(screen.getByText('Test Credit Card')).toBeInTheDocument();
+      // Wait for the filtered state itself: "Other" is also absent while results reload.
+      await waitFor(() =>
+        expect({
+          other: Boolean(screen.queryByText('Other Rewards Card')),
+          visa: Boolean(screen.queryByText('Test Credit Card')),
+        }).toEqual({ other: false, visa: true })
+      );
       expect(within(group).getByRole('button', { name: /Visa/ })).toHaveAttribute(
         'aria-pressed',
         'true'
