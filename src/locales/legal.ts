@@ -7,15 +7,11 @@
  * `{email}` is replaced with CONTACT_EMAIL (src/config/site.ts).
  */
 
+import { LEGAL_NAV, type LegalPageKey } from './legalNav';
 import type { Language } from './types';
 
-export type LegalPageKey =
-  | 'privacy'
-  | 'terms'
-  | 'disclaimer'
-  | 'howWeMakeMoney'
-  | 'methodology'
-  | 'contact';
+export { LEGAL_PAGE_PATHS } from './legalNav';
+export type { LegalPageKey } from './legalNav';
 
 export interface LegalSection {
   heading: string;
@@ -47,21 +43,11 @@ export interface LegalCopy {
   footerLegalHeading: string;
 }
 
-/** Route for each page; keep in step with the routes in src/App.tsx and STATIC_PATHS. */
-export const LEGAL_PAGE_PATHS: Record<LegalPageKey, string> = {
-  privacy: '/privacy',
-  terms: '/terms',
-  disclaimer: '/disclaimer',
-  howWeMakeMoney: '/how-we-make-money',
-  methodology: '/methodology',
-  contact: '/contact',
-};
-
 export const LEGAL_COPY: Record<Language, LegalCopy> = {
   en: {
     draftBanner: 'Draft — pending legal review',
     contactEmailLabel: 'Email',
-    footerLegalHeading: 'Legal',
+    footerLegalHeading: LEGAL_NAV.en.footerLegalHeading,
     notFound: {
       title: 'Page not found',
       description:
@@ -75,7 +61,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
     },
     pages: {
       privacy: {
-        title: 'Privacy Policy',
+        title: LEGAL_NAV.en.titles.privacy,
         description:
           'What personal data CreditMate AI collects, why, how long we keep it, and your rights under Bangladesh’s Personal Data Protection Ordinance 2025.',
         sections: [
@@ -165,7 +151,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
         ],
       },
       terms: {
-        title: 'Terms of Service',
+        title: LEGAL_NAV.en.titles.terms,
         description:
           'The rules for using CreditMate AI: what the service is, your account, your reviews, and our limits of responsibility.',
         sections: [
@@ -225,7 +211,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
         ],
       },
       disclaimer: {
-        title: 'Disclaimer: data accuracy',
+        title: LEGAL_NAV.en.titles.disclaimer,
         description:
           'Where CreditMate AI card data comes from, why it may be out of date, and why you should verify with the bank before applying.',
         sections: [
@@ -268,7 +254,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
         ],
       },
       howWeMakeMoney: {
-        title: 'How We Make Money',
+        title: LEGAL_NAV.en.titles.howWeMakeMoney,
         description:
           'Our advertiser disclosure: CreditMate AI currently has no paid relationships with banks, and how we would label any in future.',
         sections: [
@@ -293,7 +279,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
         ],
       },
       methodology: {
-        title: 'Methodology',
+        title: LEGAL_NAV.en.titles.methodology,
         description:
           'How CreditMate AI lists cards, where the data comes from, how it is verified by people, how fee waivers and lounge data are read, and how to report errors.',
         sections: [
@@ -347,7 +333,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
         ],
       },
       contact: {
-        title: 'Contact',
+        title: LEGAL_NAV.en.titles.contact,
         description: 'How to reach CreditMate AI about errors, privacy requests, or anything else.',
         sections: [
           {
@@ -372,7 +358,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
   bn: {
     draftBanner: 'খসড়া — আইনি পর্যালোচনার অপেক্ষায়',
     contactEmailLabel: 'ইমেল',
-    footerLegalHeading: 'আইনগত',
+    footerLegalHeading: LEGAL_NAV.bn.footerLegalHeading,
     notFound: {
       title: 'পেজটি পাওয়া যায়নি',
       description:
@@ -386,7 +372,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
     },
     pages: {
       privacy: {
-        title: 'গোপনীয়তা নীতি',
+        title: LEGAL_NAV.bn.titles.privacy,
         description:
           'CreditMate AI কী ব্যক্তিগত তথ্য সংগ্রহ করে, কেন করে, কতদিন রাখে এবং ব্যক্তিগত উপাত্ত সুরক্ষা অধ্যাদেশ ২০২৫ অনুযায়ী আপনার অধিকার কী।',
         sections: [
@@ -476,7 +462,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
         ],
       },
       terms: {
-        title: 'সেবার শর্তাবলি',
+        title: LEGAL_NAV.bn.titles.terms,
         description:
           'CreditMate AI ব্যবহারের নিয়ম: সেবাটি কী, আপনার অ্যাকাউন্ট, আপনার রিভিউ এবং আমাদের দায়ের সীমা।',
         sections: [
@@ -536,7 +522,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
         ],
       },
       disclaimer: {
-        title: 'দাবিত্যাগ: তথ্যের নির্ভুলতা',
+        title: LEGAL_NAV.bn.titles.disclaimer,
         description:
           'CreditMate AI-এর কার্ড তথ্য কোথা থেকে আসে, কেন তা পুরনো হতে পারে, এবং আবেদনের আগে কেন ব্যাংকের কাছে যাচাই করা উচিত।',
         sections: [
@@ -579,7 +565,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
         ],
       },
       howWeMakeMoney: {
-        title: 'আমরা কীভাবে আয় করি',
+        title: LEGAL_NAV.bn.titles.howWeMakeMoney,
         description:
           'আমাদের বিজ্ঞাপনদাতা প্রকাশ: CreditMate AI-এর বর্তমানে কোনো ব্যাংকের সঙ্গে অর্থের বিনিময়ের সম্পর্ক নেই, এবং ভবিষ্যতে হলে আমরা কীভাবে তা চিহ্নিত করব।',
         sections: [
@@ -604,7 +590,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
         ],
       },
       methodology: {
-        title: 'কার্যপদ্ধতি',
+        title: LEGAL_NAV.bn.titles.methodology,
         description:
           'CreditMate AI কীভাবে কার্ড তালিকাভুক্ত করে, তথ্য কোথা থেকে আসে, কীভাবে মানুষ তা যাচাই করে, ফি মওকুফ ও লাউঞ্জ তথ্য কীভাবে পড়া হয়, এবং ভুল কীভাবে জানাবেন।',
         sections: [
@@ -658,7 +644,7 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
         ],
       },
       contact: {
-        title: 'যোগাযোগ',
+        title: LEGAL_NAV.bn.titles.contact,
         description:
           'ভুল তথ্য, গোপনীয়তা বিষয়ক অনুরোধ বা অন্য যেকোনো বিষয়ে CreditMate AI-এর সঙ্গে কীভাবে যোগাযোগ করবেন।',
         sections: [

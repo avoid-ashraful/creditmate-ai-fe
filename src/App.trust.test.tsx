@@ -6,7 +6,8 @@ import { AppContent } from './App';
 import { CONTACT_EMAIL } from './config/site';
 import { AuthProvider } from './hooks/AuthProvider';
 import { ThemeProvider } from './hooks/ThemeProvider';
-import { LanguageProvider, LEGAL_COPY, LEGAL_PAGE_PATHS, type LegalPageKey } from './locales';
+import { LanguageProvider } from './locales';
+import { LEGAL_COPY, LEGAL_PAGE_PATHS, type LegalPageKey } from './locales/legal';
 
 jest.mock('./services/api');
 

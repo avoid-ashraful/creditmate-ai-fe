@@ -15,7 +15,8 @@ export * from './alerts';
 export * from './reviews';
 export * from './cardDetail';
 export * from './categories';
-export * from './legal';
+// Full legal text is imported from './legal' by the lazy pages only (keeps it out of main).
+export * from './legalNav';
 export {
   LanguageProvider,
   LanguageContext,
