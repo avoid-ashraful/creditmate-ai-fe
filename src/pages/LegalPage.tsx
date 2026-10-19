@@ -3,13 +3,8 @@ import { useLocation } from 'react-router-dom';
 
 import { CONTACT_EMAIL } from '../config/site';
 import { useSeoMeta } from '../hooks/useSeoMeta';
-import {
-  fillCopy,
-  getLegalCopy,
-  LEGAL_PAGE_PATHS,
-  useLanguage,
-  type LegalPageKey,
-} from '../locales';
+import { fillCopy, useLanguage } from '../locales';
+import { getLegalCopy, LEGAL_PAGE_PATHS, type LegalPageKey } from '../locales/legal';
 import '../styles/LegalPage.css';
 
 const pageKeyForPath = (pathname: string): LegalPageKey | null => {

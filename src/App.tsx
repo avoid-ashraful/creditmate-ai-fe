@@ -17,7 +17,7 @@ import { AuthProvider } from './hooks/AuthProvider';
 import { ThemeProvider } from './hooks/ThemeProvider';
 import { ANALYTICS_EVENTS, analytics, getAnalyticsContextProperties } from './lib/analytics';
 import { isResultsViewEnabled } from './lib/experiments';
-import { LanguageProvider, LEGAL_PAGE_PATHS, getLegalCopy, useLanguage } from './locales';
+import { LanguageProvider, LEGAL_PAGE_PATHS, getLegalNav, useLanguage } from './locales';
 import type { LegalPageKey } from './locales';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
@@ -345,7 +345,7 @@ const PageViewTrackerWrapper: React.FC = () => {
 export const AppContent: React.FC = () => {
   const { lang, setLang } = useLanguage();
   const isBengali = lang === 'bn';
-  const legalCopy = getLegalCopy(lang);
+  const legalNav = getLegalNav(lang);
 
   // Prefetch lazy-loaded routes on hover/focus of nav links
   useNavLinkPrefetch();
@@ -425,13 +425,13 @@ export const AppContent: React.FC = () => {
           </nav>
           <nav aria-labelledby="footer-legal-heading" className="footer-section">
             <h2 id="footer-legal-heading" className="visually-hidden">
-              {legalCopy.footerLegalHeading}
+              {legalNav.footerLegalHeading}
             </h2>
             <ul>
               {FOOTER_LEGAL_KEYS.map(key => (
                 <li key={key}>
                   <Link to={LEGAL_PAGE_PATHS[key]} lang={isBengali ? 'bn' : 'en'}>
-                    {legalCopy.pages[key].title}
+                    {legalNav.titles[key]}
                   </Link>
                 </li>
               ))}
