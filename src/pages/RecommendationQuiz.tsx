@@ -5,7 +5,7 @@ import CardListItem from '../components/CardListItem';
 import ComparisonBar from '../components/ComparisonBar';
 import Toast from '../components/Toast';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
-import { useLanguage, getCommonCopy } from '../locales';
+import { fillCopy, toBanglaNumerals, useLanguage, getCommonCopy } from '../locales';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 import { fetchAllPages } from '../utils/fetchAllPages';
@@ -496,7 +496,11 @@ const RecommendationQuiz: React.FC = () => {
                       {common.quizResultRank}
                       {idx + 1}
                     </div>
-                    <div className="result-score">{score}</div>
+                    <div className="result-score">
+                      {fillCopy(common.quizResultScore, {
+                        score: lang === 'bn' ? toBanglaNumerals(score) : score,
+                      })}
+                    </div>
                     <CardListItem card={card} isSelected={false} onSelect={() => undefined} />
                     <div className="result-reason">
                       <strong>{common.quizResultReason}</strong> {reason}

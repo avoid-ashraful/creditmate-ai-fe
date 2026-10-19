@@ -308,6 +308,28 @@ describe('RecommendationQuiz', () => {
       expect(rankings.length).toBeGreaterThan(0);
     });
 
+    it('labels each result with a match score instead of a bare number', async () => {
+      renderQuiz();
+      const user = userEvent.setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
+      });
+
+      for (let i = 0; i < 5; i++) {
+        const btn = screen.getByRole('button', {
+          name: /Next|See Results/i,
+        });
+        await user.click(btn);
+      }
+
+      await screen.findByText(/Your Top Recommendations/i);
+      // The composite score is always labelled; digits use Bangla numerals in bn.
+      const scores = screen.queryAllByText(/^Match score: \d+$/);
+      expect(scores).toHaveLength(3);
+      expect(screen.queryByText(/^167$|^168$|^169$/)).not.toBeInTheDocument();
+    });
+
     it('shows action buttons on results step', async () => {
       renderQuiz();
       const user = userEvent.setup();

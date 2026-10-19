@@ -69,13 +69,18 @@ test('card detail popup supports image gallery navigation', async ({ page }) => 
   await expect(image).toHaveAttribute('src', '/mock-assets/cards/1-3.svg');
 });
 
-test('API down exposes the no-results state', async ({ page }) => {
+test('an unreachable API exposes the generic error state, not the category-not-found copy', async ({
+  page,
+}) => {
   await mockApi(page, { status: 503, cards: [] });
   await openHome(page);
 
   await page.locator('.search-form input').fill('visa');
   await page.locator('.search-form > button[type="submit"]').click();
-  await expect(page.locator('.no-results')).toBeVisible();
+  // QA #15: an unreachable API is a network error, not an empty category.
+  await expect(page.locator('.error-state')).toHaveText(
+    'Failed to load credit cards. Please try again later.'
+  );
   await expect(page.locator('.card-list-item')).toHaveCount(0);
 });
 

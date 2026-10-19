@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { rest } from 'msw';
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
@@ -49,17 +50,23 @@ afterAll(() => server.close());
 
 let consoleError: jest.SpyInstance;
 let consoleWarn: jest.SpyInstance;
+// Tests that exercise failure paths set this so afterEach tolerates the
+// component's console.error report.
+let allowConsoleErrors = false;
 
 beforeEach(() => {
   window.history.replaceState({}, '', '/');
+  allowConsoleErrors = false;
   consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
   consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
 });
 
 afterEach(() => {
   try {
-    expect(consoleError).not.toHaveBeenCalled();
-    expect(consoleWarn).not.toHaveBeenCalled();
+    if (!allowConsoleErrors) {
+      expect(consoleError).not.toHaveBeenCalled();
+      expect(consoleWarn).not.toHaveBeenCalled();
+    }
   } finally {
     consoleError.mockRestore();
     consoleWarn.mockRestore();
@@ -184,9 +191,45 @@ test('income filter includes unknown-income cards by default and excludes them w
   expect(await screen.findByText(/Category not found/i)).toBeInTheDocument();
 });
 
-test('searches cards through the mocked API', async () => {
+test('an unreachable API shows the generic load-failure state, not "Category not found"', async () => {
+  allowConsoleErrors = true;
+  server.use(
+    rest.get('*/api/v1/credit-cards/', (_req, res, ctx) => res(ctx.status(501))),
+    rest.get('*/api/v1/banks/', (_req, res, ctx) => res(ctx.status(501)))
+  );
   renderRoutes();
 
+  // QA #15: a dead API is a network error, not an empty category.
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'Failed to load credit cards. Please try again later.'
+  );
+  expect(screen.queryByText('Category not found')).not.toBeInTheDocument();
+});
+
+test('a failed filter request shows the generic load-failure state', async () => {
+  allowConsoleErrors = true;
+  renderRoutes();
+
+  expect(await screen.findByText(/Test Credit Card/i)).toBeInTheDocument();
+
+  // The unfiltered request succeeded; every later filtered request fails.
+  server.use(
+    rest.get('*/api/v1/credit-cards/', (_req, res, ctx) =>
+      res(ctx.status(503), ctx.body('Synthetic API failure'))
+    )
+  );
+
+  await userEvent.type(screen.getByPlaceholderText(/Search by card name/i), 'visa');
+  await userEvent.click(screen.getByRole('button', { name: /Search/i }));
+
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'Failed to load credit cards. Please try again later.'
+  );
+  expect(screen.queryByText('Category not found')).not.toBeInTheDocument();
+});
+
+test('searches cards through the mocked API', async () => {
+  renderRoutes();
   expect(await screen.findByText(/Test Credit Card/i)).toBeInTheDocument();
   await userEvent.type(screen.getByPlaceholderText(/Search by card name/i), 'other');
   await userEvent.click(screen.getByRole('button', { name: /Search/i }));
@@ -202,6 +245,38 @@ test('prefills the search box and filters from the ?search= URL parameter', asyn
   await screen.findByText(/Other Rewards Card/i);
   expect(screen.queryByText(/Test Credit Card/i)).not.toBeInTheDocument();
   expect(screen.getByPlaceholderText(/Search by card name/i)).toHaveValue('other');
+});
+
+test('shows the shorter search placeholder on narrow screens, full text as the accessible label', async () => {
+  const originalMatchMedia = window.matchMedia;
+  try {
+    const mediaQuery = {
+      matches: true,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    };
+    Object.defineProperty(window, 'matchMedia', {
+      value: jest.fn(() => mediaQuery),
+      configurable: true,
+      writable: true,
+    });
+
+    renderRoutes();
+
+    await screen.findByText(/Test Credit Card/i);
+    // QA #16: the full placeholder truncates below 480px; the shorter one fits.
+    expect(screen.getByPlaceholderText('Search cards or banks')).toBeInTheDocument();
+    // The accessible label still describes the full search scope.
+    expect(
+      screen.getByRole('combobox', { name: /Search credit cards by name, bank, or features/ })
+    ).toBeInTheDocument();
+  } finally {
+    Object.defineProperty(window, 'matchMedia', {
+      value: originalMatchMedia,
+      configurable: true,
+      writable: true,
+    });
+  }
 });
 
 test('selects cards and exposes compare navigation', async () => {

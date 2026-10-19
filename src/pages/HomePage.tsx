@@ -23,6 +23,10 @@ import '../styles/HomePage.css';
 
 const pageParam = (page: number) => (page > 1 ? { page } : {});
 
+// QA #16: below this width the full hero search placeholder truncates, so a
+// shorter one is shown. The accessible label always carries the full text.
+const NARROW_SEARCH_PLACEHOLDER_QUERY = '(max-width: 480px)';
+
 const HomePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   // One-off message from another page, e.g. after deleting the account.
@@ -41,9 +45,26 @@ const HomePage: React.FC = () => {
   const [filteredCards, setFilteredCards] = useState<CreditCard[]>([]);
   const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>(initialSearch);
   const [viewedCard, setViewedCard] = useState<CreditCard | null>(null);
   const [selectionMessage, setSelectionMessage] = useState<string>('');
+
+  // Placeholders: swap to a shorter one on the narrow viewport.
+  const [narrow, setNarrow] = useState<boolean>(
+    () =>
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia(NARROW_SEARCH_PLACEHOLDER_QUERY).matches
+  );
+  useEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') return;
+    const mediaQuery = window.matchMedia(NARROW_SEARCH_PLACEHOLDER_QUERY);
+    const update = () => setNarrow(mediaQuery.matches);
+    update();
+    mediaQuery.addEventListener('change', update);
+    return () => mediaQuery.removeEventListener('change', update);
+  }, []);
 
   useSeoMeta({
     title: 'Compare credit cards in Bangladesh | CreditMate AI',
@@ -60,6 +81,7 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       setIsLoading(true);
+      setLoadError(null);
       try {
         // Fetch banks and credit cards in parallel, plus the URL search if there is one
         const [banksResponse, cardsResponse, searchResponse] = await Promise.all([
@@ -90,14 +112,17 @@ const HomePage: React.FC = () => {
         );
       } catch (error) {
         console.error('Failed to fetch data:', error);
-        // Keep empty arrays as fallback
+        // QA #15: an unreachable API is a network error, not an empty category,
+        // so surface the generic load-failure state instead of the list's
+        // "category not found" copy.
+        setLoadError(common.categoryErrorLoading);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchInitialData();
-  }, [initialSearch]);
+  }, [common.categoryErrorLoading, initialSearch]);
 
   const handleCardSelect = (card: CreditCard) => {
     const isRemoving = selectedCardIds.includes(card.id);
@@ -154,6 +179,7 @@ const HomePage: React.FC = () => {
 
     try {
       setIsLoading(true);
+      setLoadError(null);
 
       // Use API filtering instead of client-side filtering
       const response = await fetchAllPages(page =>
@@ -164,8 +190,10 @@ const HomePage: React.FC = () => {
       setFilteredCards(transformedCards);
     } catch (error) {
       console.error('Failed to filter cards:', error);
-      // A failed filter request cannot safely reuse unfiltered results.
+      // A failed filter request cannot safely reuse unfiltered results, and an
+      // unreachable API is a network error rather than an empty category (QA #15).
       setFilteredCards([]);
+      setLoadError(common.categoryErrorLoading);
     } finally {
       setIsLoading(false);
     }
@@ -228,7 +256,9 @@ const HomePage: React.FC = () => {
               }}
               onSelectCategory={category => applyCategoryFilter(category.slug)}
               onSelectFacet={facet => applyCategoryFilter(facet.slug)}
-              placeholder={common.homeSearchPlaceholder}
+              placeholder={
+                narrow ? common.homeSearchPlaceholderShort : common.homeSearchPlaceholder
+              }
               ariaLabel={common.homeSearchAriaLabel}
             />
             <button type="submit">{common.filterSectionSearch}</button>
@@ -275,6 +305,10 @@ const HomePage: React.FC = () => {
         <div className="cards-content">
           {isLoading ? (
             <SkeletonCardGrid label={common.homeSkeletonLabel} />
+          ) : loadError ? (
+            <div className="error-state" role="alert">
+              {loadError}
+            </div>
           ) : (
             <>
               <CardList
