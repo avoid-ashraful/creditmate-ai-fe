@@ -211,8 +211,6 @@ export interface CardRewardEstimate {
   annualPoints: number | null;
   /** Estimated annual reward value in BDT; null if no value was computable without inventing. */
   annualValueBdt: number | null;
-
-  annualValueBdt: number | null;
   /** Whether the bank states a point redemption value. */
   hasStatedPointValue: boolean;
   /** Where the earn rates came from. */
