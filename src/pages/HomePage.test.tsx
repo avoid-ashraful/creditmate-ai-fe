@@ -219,7 +219,7 @@ test('a failed filter request shows the generic load-failure state', async () =>
     )
   );
 
-  await userEvent.type(screen.getByPlaceholderText(/Search by card name/i), 'visa');
+  await userEvent.type(screen.getByPlaceholderText('Search cards or banks'), 'visa');
   await userEvent.click(screen.getByRole('button', { name: /Search/i }));
 
   expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -231,7 +231,7 @@ test('a failed filter request shows the generic load-failure state', async () =>
 test('searches cards through the mocked API', async () => {
   renderRoutes();
   expect(await screen.findByText(/Test Credit Card/i)).toBeInTheDocument();
-  await userEvent.type(screen.getByPlaceholderText(/Search by card name/i), 'other');
+  await userEvent.type(screen.getByPlaceholderText('Search cards or banks'), 'other');
   await userEvent.click(screen.getByRole('button', { name: /Search/i }));
 
   await screen.findByText(/Other Rewards Card/i);
@@ -244,39 +244,18 @@ test('prefills the search box and filters from the ?search= URL parameter', asyn
 
   await screen.findByText(/Other Rewards Card/i);
   expect(screen.queryByText(/Test Credit Card/i)).not.toBeInTheDocument();
-  expect(screen.getByPlaceholderText(/Search by card name/i)).toHaveValue('other');
+  expect(screen.getByPlaceholderText('Search cards or banks')).toHaveValue('other');
 });
 
-test('shows the shorter search placeholder on narrow screens, full text as the accessible label', async () => {
-  const originalMatchMedia = window.matchMedia;
-  try {
-    const mediaQuery = {
-      matches: true,
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-    };
-    Object.defineProperty(window, 'matchMedia', {
-      value: jest.fn(() => mediaQuery),
-      configurable: true,
-      writable: true,
-    });
+test('shows the short search placeholder, full text as the accessible label', async () => {
+  renderRoutes();
 
-    renderRoutes();
-
-    await screen.findByText(/Test Credit Card/i);
-    // QA #16: the full placeholder truncates below 480px; the shorter one fits.
-    expect(screen.getByPlaceholderText('Search cards or banks')).toBeInTheDocument();
-    // The accessible label still describes the full search scope.
-    expect(
-      screen.getByRole('combobox', { name: /Search credit cards by name, bank, or features/ })
-    ).toBeInTheDocument();
-  } finally {
-    Object.defineProperty(window, 'matchMedia', {
-      value: originalMatchMedia,
-      configurable: true,
-      writable: true,
-    });
-  }
+  await screen.findByText(/Test Credit Card/i);
+  // The full hint truncated in the hero input (QA #16); the short one fits at every width.
+  expect(screen.getByPlaceholderText('Search cards or banks')).toBeInTheDocument();
+  expect(
+    screen.getByRole('combobox', { name: /Search credit cards by name, bank, or features/ })
+  ).toBeInTheDocument();
 });
 
 test('selects cards and exposes compare navigation', async () => {

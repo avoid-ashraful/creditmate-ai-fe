@@ -23,10 +23,6 @@ import '../styles/HomePage.css';
 
 const pageParam = (page: number) => (page > 1 ? { page } : {});
 
-// QA #16: below this width the full hero search placeholder truncates, so a
-// shorter one is shown. The accessible label always carries the full text.
-const NARROW_SEARCH_PLACEHOLDER_QUERY = '(max-width: 480px)';
-
 const HomePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   // One-off message from another page, e.g. after deleting the account.
@@ -49,22 +45,6 @@ const HomePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>(initialSearch);
   const [viewedCard, setViewedCard] = useState<CreditCard | null>(null);
   const [selectionMessage, setSelectionMessage] = useState<string>('');
-
-  // Placeholders: swap to a shorter one on the narrow viewport.
-  const [narrow, setNarrow] = useState<boolean>(
-    () =>
-      typeof window !== 'undefined' &&
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia(NARROW_SEARCH_PLACEHOLDER_QUERY).matches
-  );
-  useEffect(() => {
-    if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') return;
-    const mediaQuery = window.matchMedia(NARROW_SEARCH_PLACEHOLDER_QUERY);
-    const update = () => setNarrow(mediaQuery.matches);
-    update();
-    mediaQuery.addEventListener('change', update);
-    return () => mediaQuery.removeEventListener('change', update);
-  }, []);
 
   useSeoMeta({
     title: 'Compare credit cards in Bangladesh | CreditMate AI',
@@ -256,9 +236,9 @@ const HomePage: React.FC = () => {
               }}
               onSelectCategory={category => applyCategoryFilter(category.slug)}
               onSelectFacet={facet => applyCategoryFilter(facet.slug)}
-              placeholder={
-                narrow ? common.homeSearchPlaceholderShort : common.homeSearchPlaceholder
-              }
+              // The full hint truncates in the hero input at every width; the
+              // accessible label keeps the full text.
+              placeholder={common.homeSearchPlaceholderShort}
               ariaLabel={common.homeSearchAriaLabel}
             />
             <button type="submit">{common.filterSectionSearch}</button>
