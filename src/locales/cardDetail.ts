@@ -281,7 +281,7 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     rewardCategoryInternational: 'International',
     rewardCategoryOther: 'Other',
     /** Placeholders: {points}, {unit} */
-    rewardsEarnRuleSummary: '{points} points per BDT {unit}',
+    rewardsEarnRuleSummary: '{points} pts per BDT {unit}',
     /** Placeholder: {percent} */
     rewardsCashbackSummary: '{percent}% cashback',
 
