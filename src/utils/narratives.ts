@@ -6,6 +6,7 @@
 import { CreditCard } from '../types';
 
 import { parseRewardRates } from './rewardCalculator';
+import { summarizeCardText } from './summarizeCardText';
 
 /**
  * Comparison narrative for a single feature between two cards.
@@ -588,7 +589,7 @@ const generateLoungeComparisons = (
             type === 'international' ? 'International Lounge Access' : 'Domestic Lounge Access',
           text: `Both cards include ${
             type === 'international' ? 'international' : 'domestic'
-          } lounge access: ${firstVal}`,
+          } lounge access: ${summarizeCardText(firstVal, true)}`,
           winner: null,
           tie: true,
           unknown: false,
@@ -923,7 +924,9 @@ const formatLounge = (card: CreditCard): ComparisonNarrative[] => {
     narratives.push({
       key: 'international-lounge',
       label: 'International Lounge Access',
-      text: card.loungeAccessInternational || 'None',
+      text: card.loungeAccessInternational
+        ? summarizeCardText(card.loungeAccessInternational, true)
+        : 'None',
       winner: null,
       tie: false,
       unknown: false,
@@ -943,7 +946,7 @@ const formatLounge = (card: CreditCard): ComparisonNarrative[] => {
     narratives.push({
       key: 'domestic-lounge',
       label: 'Domestic Lounge Access',
-      text: card.loungeAccessDomestic || 'None',
+      text: card.loungeAccessDomestic ? summarizeCardText(card.loungeAccessDomestic, true) : 'None',
       winner: null,
       tie: false,
       unknown: false,

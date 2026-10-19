@@ -631,3 +631,15 @@
   color: var(--color-text-primary);
   text-decoration: underline;
 }
+
+.metric-details-link,
+.metric-details-link:hover {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  font-size: var(--typography-font-size-sm);
+  margin-top: var(--spacing-2xs);
+}
+
+.specs-table td[id] {
+  scroll-margin-top: 12rem;
+}

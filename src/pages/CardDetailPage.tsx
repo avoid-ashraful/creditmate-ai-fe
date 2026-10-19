@@ -13,6 +13,7 @@ import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import {
   useLanguage,
   getAuthCopy,
+  getCommonCopy,
   getAlertsCopy,
   getCardDetailCopy,
   getNetworkLabel,
@@ -27,6 +28,7 @@ import { describeFeeWaiverPolicy, FeeWaiverLabels } from '../utils/feeWaiver';
 import { getComparisonSummary } from '../utils/narratives';
 import { slugify } from '../utils/slugify';
 import { breadcrumbJsonLd } from '../utils/structuredData';
+import { summarizeCardText } from '../utils/summarizeCardText';
 import '../styles/CardDetailPage.css';
 
 const CARD_DETAIL_PAGE = 'card-detail-page';
@@ -55,6 +57,7 @@ const CardDetailPage: React.FC = () => {
   const authCopy = getAuthCopy(lang);
   const alertsCopy = getAlertsCopy(lang);
   const copy = getCardDetailCopy(lang);
+  const common = getCommonCopy(lang);
 
   const [card, setCard] = useState<CreditCard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -439,13 +442,23 @@ const CardDetailPage: React.FC = () => {
               {card.loungeAccessInternational && (
                 <div className={METRIC_CLASS}>
                   <span className={LABEL_CLASS}>{copy.internationalLounge}</span>
-                  <span className={VALUE_CLASS}>{card.loungeAccessInternational}</span>
+                  <span className={VALUE_CLASS}>
+                    {summarizeCardText(card.loungeAccessInternational, true)}
+                  </span>
+                  <a className="metric-details-link" href="#spec-international-lounge">
+                    {common.fullDetails}
+                  </a>
                 </div>
               )}
               {card.loungeAccessDomestic && (
                 <div className={METRIC_CLASS}>
                   <span className={LABEL_CLASS}>{copy.domesticLounge}</span>
-                  <span className={VALUE_CLASS}>{card.loungeAccessDomestic}</span>
+                  <span className={VALUE_CLASS}>
+                    {summarizeCardText(card.loungeAccessDomestic, true)}
+                  </span>
+                  <a className="metric-details-link" href="#spec-domestic-lounge">
+                    {common.fullDetails}
+                  </a>
                 </div>
               )}
             </div>
@@ -523,13 +536,15 @@ const CardDetailPage: React.FC = () => {
                   {card.loungeAccessInternational && (
                     <li>
                       {fillCopy(copy.proInternationalLounge, {
-                        value: card.loungeAccessInternational,
+                        value: summarizeCardText(card.loungeAccessInternational, true),
                       })}
                     </li>
                   )}
                   {card.loungeAccessDomestic && (
                     <li>
-                      {fillCopy(copy.proDomesticLounge, { value: card.loungeAccessDomestic })}
+                      {fillCopy(copy.proDomesticLounge, {
+                        value: summarizeCardText(card.loungeAccessDomestic, true),
+                      })}
                     </li>
                   )}
                   {card.annualFeeWaiverPolicy && <li>{copy.proFeeWaiver}</li>}
@@ -555,7 +570,7 @@ const CardDetailPage: React.FC = () => {
                   )}
                   {card.cashAdvanceFee && (
                     <li>
-                      {copy.conCashAdvanceFee} {card.cashAdvanceFee}
+                      {copy.conCashAdvanceFee} {summarizeCardText(card.cashAdvanceFee)}
                     </li>
                   )}
                   {!card.loungeAccessInternational && !card.loungeAccessDomestic && (
@@ -609,13 +624,17 @@ const CardDetailPage: React.FC = () => {
                   <th scope="row" className={SPEC_KEY_CLASS}>
                     {copy.specInternationalLounge}
                   </th>
-                  <td className={SPEC_VALUE_CLASS}>{loungeText(card.loungeAccessInternational)}</td>
+                  <td id="spec-international-lounge" tabIndex={-1} className={SPEC_VALUE_CLASS}>
+                    {loungeText(card.loungeAccessInternational)}
+                  </td>
                 </tr>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>
                     {copy.specDomesticLounge}
                   </th>
-                  <td className={SPEC_VALUE_CLASS}>{loungeText(card.loungeAccessDomestic)}</td>
+                  <td id="spec-domestic-lounge" tabIndex={-1} className={SPEC_VALUE_CLASS}>
+                    {loungeText(card.loungeAccessDomestic)}
+                  </td>
                 </tr>
                 <tr>
                   <th scope="row" className={SPEC_KEY_CLASS}>

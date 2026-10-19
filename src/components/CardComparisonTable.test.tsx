@@ -90,3 +90,37 @@ describe('CardComparisonTable', () => {
     expect(screen.getAllByRole('columnheader')).toHaveLength(6);
   });
 });
+
+describe('long bank terms', () => {
+  it('retains verbatim terms inside closed expanders in desktop and mobile cells', async () => {
+    const text =
+      'Complimentary Priority Pass; cardholders (primary & supplementary) max 8 free visits with total 8 guests per year to international lounges; USD 35 per visit beyond complimentary.';
+    renderWithLanguage(
+      <CardComparisonTable cards={[{ ...createCard(1), loungeAccessInternational: text }]} />
+    );
+    const desktop = screen.getByRole('region', { name: 'Compare card features' });
+    expect(
+      within(desktop).getByText('Complimentary Priority Pass: Up to 8 free visits/year')
+    ).toBeVisible();
+    expect(within(desktop).getByText(text)).not.toBeVisible();
+    await userEvent.click(within(desktop).getByText('more'));
+    expect(within(desktop).getByText(text)).toBeVisible();
+    const mobile = screen.getByRole('article');
+    await userEvent.click(within(mobile).getByText('Benefits'));
+    expect(within(mobile).getByText(text)).not.toBeVisible();
+    await userEvent.click(within(mobile).getByText('more'));
+    expect(within(mobile).getByText(text)).toBeVisible();
+  });
+
+  it('uses Bengali expansion labels', () => {
+    render(
+      <LanguageProvider initialLang="bn">
+        <CardComparisonTable
+          cards={[{ ...createCard(1), cashAdvanceFee: 'Cash advance terms '.repeat(10) }]}
+        />
+      </LanguageProvider>
+    );
+    const desktop = screen.getByRole('region', { name: 'Compare card features' });
+    expect(within(desktop).getByText('আরও')).toBeInTheDocument();
+  });
+});

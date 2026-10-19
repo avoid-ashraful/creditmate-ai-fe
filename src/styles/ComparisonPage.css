@@ -682,3 +682,18 @@
     min-width: 200px;
   }
 }
+
+.card-text-details > summary {
+  padding: 4px 0;
+  min-height: 32px;
+  font-size: var(--typography-font-size-sm);
+  font-weight: 400;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.card-text-details p {
+  margin: 4px 0;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
