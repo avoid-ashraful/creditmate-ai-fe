@@ -186,7 +186,7 @@ describe('AdvancedSearchPage', () => {
     it('shows network facet counts and filters when a network chip is toggled', async () => {
       renderAdvancedSearch();
       const group = await screen.findByRole('group', { name: 'Card network' });
-      const visa = await within(group).findByRole('button', { name: /Visa \(1\)/ });
+      const visa = await within(group).findByRole('button', { name: /Visa \(2\)/ });
       expect(visa).toHaveAttribute('aria-pressed', 'false');
 
       await userEvent.click(visa);

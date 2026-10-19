@@ -40,9 +40,7 @@ test('reward calculator ranks cards by estimated net annual value', async ({ pag
   ).toBeVisible();
   await page.getByLabel(/Dining/).fill('50000');
   await page.getByRole('button', { name: /Calculate best value cards/ }).click();
-  await expect(
-    page.getByRole('heading', { name: /Top \d+ cards by net annual value/ })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Top \d+ cards:/ })).toBeVisible();
   await expect(page.locator('.ranked-card')).toHaveCount(4);
   await expect(page.getByText('Net annual value').first()).toBeVisible();
 });
