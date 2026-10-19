@@ -18,10 +18,11 @@ import {
   getNetworkLabel,
   fillCopy,
   formatLocalizedDate,
+  CardDetailCopy,
 } from '../locales';
 import { alertsClient } from '../services/alerts';
 import { apiService } from '../services/api';
-import { CreditCard } from '../types';
+import { CreditCard, RewardCategory } from '../types';
 import { describeFeeWaiverPolicy, FeeWaiverLabels } from '../utils/feeWaiver';
 import { getComparisonSummary } from '../utils/narratives';
 import { slugify } from '../utils/slugify';
@@ -34,6 +35,18 @@ const LABEL_CLASS = 'label';
 const VALUE_CLASS = 'value';
 const SPEC_KEY_CLASS = 'spec-key';
 const SPEC_VALUE_CLASS = 'spec-value';
+
+/** Display label key per structured reward rule category. */
+const REWARD_CATEGORY_LABELS: Record<RewardCategory, keyof CardDetailCopy> = {
+  all: 'rewardCategoryAll',
+  dining: 'rewardCategoryDining',
+  travel: 'rewardCategoryTravel',
+  groceries: 'rewardCategoryGroceries',
+  fuel: 'rewardCategoryFuel',
+  online: 'rewardCategoryOnline',
+  international: 'rewardCategoryInternational',
+  other: 'rewardCategoryOther',
+};
 
 const CardDetailPage: React.FC = () => {
   const { bankSlug, cardSlug } = useParams<{ bankSlug: string; cardSlug: string }>();
@@ -733,6 +746,105 @@ const CardDetailPage: React.FC = () => {
               </tbody>
             </table>
           </section>
+
+          {/* Reward program details (structured fields; hidden when the bank publishes none) */}
+          {(() => {
+            const earnRules = card.rewardEarnRules ?? [];
+            const cashbackRules = card.cashbackRules ?? [];
+            const hasRewardDetails = Boolean(
+              card.rewardProgramName ||
+                earnRules.length ||
+                cashbackRules.length ||
+                card.rewardPointValueBdt != null ||
+                card.pointsExpiryText
+            );
+            if (!hasRewardDetails) return null;
+            const rewardCategoryLabel = (category: RewardCategory): string =>
+              copy[REWARD_CATEGORY_LABELS[category]] as string;
+            return (
+              <section className="rewards-section" aria-labelledby="rewards-heading">
+                <h2 id="rewards-heading">{copy.rewardsHeading}</h2>
+                <dl className="rewards-list">
+                  {card.rewardProgramName && (
+                    <div className="rewards-row">
+                      <dt className={SPEC_KEY_CLASS}>{copy.rewardsProgram}</dt>
+                      <dd className={SPEC_VALUE_CLASS}>{card.rewardProgramName}</dd>
+                    </div>
+                  )}
+                  {earnRules.length > 0 && (
+                    <div className="rewards-row">
+                      <dt className={SPEC_KEY_CLASS}>{copy.rewardsEarnRules}</dt>
+                      <dd className={SPEC_VALUE_CLASS}>
+                        <ul className="rewards-rule-list">
+                          {earnRules.map(rule => (
+                            <li key={`${rule.category}-${rule.text}`}>
+                              <strong>{rewardCategoryLabel(rule.category)}</strong>:{' '}
+                              {fillCopy(copy.rewardsEarnRuleSummary, {
+                                points: String(rule.pointsPerUnit),
+                                unit: String(rule.spendUnitBdt),
+                              })}
+                              {rule.text && (
+                                <span className="reward-rule-text"> — {rule.text}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </dd>
+                    </div>
+                  )}
+                  {cashbackRules.length > 0 && (
+                    <div className="rewards-row">
+                      <dt className={SPEC_KEY_CLASS}>{copy.rewardsCashbackRules}</dt>
+                      <dd className={SPEC_VALUE_CLASS}>
+                        <ul className="rewards-rule-list">
+                          {cashbackRules.map(rule => (
+                            <li key={`${rule.category}-${rule.text}`}>
+                              <strong>{rewardCategoryLabel(rule.category)}</strong>:{' '}
+                              {fillCopy(copy.rewardsCashbackSummary, {
+                                percent: String(rule.percent),
+                              })}
+                              {rule.capText && <span> ({rule.capText})</span>}
+                              {rule.text && (
+                                <span className="reward-rule-text"> — {rule.text}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </dd>
+                    </div>
+                  )}
+                  <div className="rewards-row">
+                    <dt className={SPEC_KEY_CLASS}>{copy.rewardsPointValue}</dt>
+                    <dd className={SPEC_VALUE_CLASS}>
+                      {card.rewardPointValueBdt != null
+                        ? `${copy.bdt} ${card.rewardPointValueBdt}`
+                        : copy.rewardsPointValueNone}
+                    </dd>
+                  </div>
+                  {card.pointsExpiryText && (
+                    <div className="rewards-row">
+                      <dt className={SPEC_KEY_CLASS}>{copy.rewardsExpiry}</dt>
+                      <dd className={SPEC_VALUE_CLASS}>{card.pointsExpiryText}</dd>
+                    </div>
+                  )}
+                  {card.rewardSourceUrl && (
+                    <div className="rewards-row">
+                      <dt className={SPEC_KEY_CLASS}>{copy.rewardsSourceLabel}</dt>
+                      <dd className={SPEC_VALUE_CLASS}>
+                        <a
+                          href={card.rewardSourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow"
+                        >
+                          {card.rewardSourceUrl}
+                        </a>
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </section>
+            );
+          })()}
 
           {/* Fee Waiver Calculator */}
           {feeWaiverThreshold && card.annualFee !== null && card.annualFee > 0 && (

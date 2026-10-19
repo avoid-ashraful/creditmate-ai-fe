@@ -202,6 +202,9 @@ export interface CommonCopy {
   calcErrorTitle: string;
   calcErrorDesc: string;
   calcResultsTitle: string;
+  calcRankedCardsSuffix: string;
+  calcValuedCardsHeading: string;
+  calcPointsOnlyHeading: string;
   calcResultAnnualFee: string;
   calcResultEstRewards: string;
   calcResultNetValue: string;
@@ -209,6 +212,20 @@ export interface CommonCopy {
   calcResultBreakEvenUnknown: string;
   calcExportCompare: string;
   calcLoading: string;
+  /** Structured-reward result copy */
+  calcCategoryAll: string;
+  calcCategoryOnline: string;
+  calcCategoryInternational: string;
+  calcPointsPerYear: string;
+  calcValueNotPublished: string;
+  calcFeeUnknown: string;
+  calcRulesApplied: string;
+  calcRuleEarnShort: string;
+  calcRuleCashbackShort: string;
+  calcBankRuleDetails: string;
+  calcSourceLink: string;
+  /** Placeholder: {value} */
+  calcPointValueStated: string;
 
   // HomePage
   homeHeroCtaControl: string;
@@ -552,17 +569,21 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     calcTotalSpend: 'Total monthly spend:',
     calcAssumptionsTitle: 'Assumptions',
     calcAssumption1:
-      "Reward earn rates are parsed only from each card's published reward policy text. Categories without an explicitly stated boost use the card's base earn rate.",
+      'Each category uses the bank\'s published earn or cashback rule for that category; categories without their own rule use the card\'s "all spending" rule.',
     calcAssumption2:
-      "To express rewards in BDT we conservatively assume 1 reward point = BDT 1. This is an estimate, not a bank-stated value; check each bank's redemption catalogue.",
+      "Points are converted to BDT only when the bank states a redemption value; points cards without a stated value show estimated points only and nothing is invented. Cashback uses the bank's stated percentage, capped as printed.",
     calcAssumption3: 'Lounge access, discounts and fee waivers are not monetised.',
     calcCalculateButton: 'Calculate best value cards',
     calcEmptyTitle: 'Enter your monthly spend',
     calcEmptyDesc:
       'Fill in your typical monthly spending above and we will rank the top cards by annual rewards minus annual fee.',
     calcErrorTitle: 'No cards to rank',
-    calcErrorDesc: 'No active cards with known fees and parseable reward policies were found.',
+    calcErrorDesc:
+      'No active cards with published reward rules, a stated point value or a stated cashback rate were found for this spending pattern.',
     calcResultsTitle: 'Top',
+    calcRankedCardsSuffix: 'cards:',
+    calcValuedCardsHeading: 'Cards with a bank-stated BDT value',
+    calcPointsOnlyHeading: 'Cards with estimated points only — the bank publishes no point value',
     calcResultAnnualFee: 'Annual fee',
     calcResultEstRewards: 'Est. annual rewards',
     calcResultNetValue: 'Net annual value',
@@ -570,6 +591,18 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     calcResultBreakEvenUnknown: 'Not computable with current allocation',
     calcExportCompare: 'Export to comparison',
     calcLoading: 'Loading credit cards...',
+    calcCategoryAll: 'All spending',
+    calcCategoryOnline: 'Online',
+    calcCategoryInternational: 'International',
+    calcPointsPerYear: 'Est. points/year',
+    calcValueNotPublished: 'Value not published by the bank',
+    calcFeeUnknown: 'Fee unknown',
+    calcRulesApplied: 'Rules applied:',
+    calcRuleEarnShort: '{points} pt / BDT {unit}',
+    calcRuleCashbackShort: '{percent}% cashback',
+    calcBankRuleDetails: "The bank's verbatim reward terms",
+    calcSourceLink: 'Reward terms source',
+    calcPointValueStated: 'The bank states a redemption value of 1 point = BDT {value}.',
 
     // HomePage
     homeHeroCtaControl: 'Find Your Perfect Credit Card',
@@ -927,9 +960,9 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     calcTotalSpend: 'মোট মাসিক খরচ:',
     calcAssumptionsTitle: 'ধারণা',
     calcAssumption1:
-      'রিওয়ার্ড আয়ের হার শুধুমাত্র প্রতিটি কার্ডের প্রকাশিত রিওয়ার্ড নীতির লেখা থেকে পার্স করা হয়। স্পষ্টভাবে উল্লিখিত বুস্ট নেই এমন বিভাগগুলো কার্ডের বেস আয়ের হারের অধীন।',
+      'প্রতিটি বিভাগে ব্যাংকের প্রকাশিত আর্ন বা ক্যাশব্যাক নিয়ম ব্যবহার হয়; নিজস্ব নিয়ম নেই এমন বিভাগে কার্ডের "সব খরচ" নিয়ম প্রযোজ্য হয়।',
     calcAssumption2:
-      'রিওয়ার্ডকে বিডিটি-তে প্রকাশ করার জন্য আমরা রক্ষণশীলভাবে ১ রিওয়ার্ড পয়েন্ট = ১ বিডিটি ধরে নিচ্ছি। এটি একটি অনুমান, ব্যাংক-ব্যাবসায় করা মান নয়; প্রতিটি ব্যাংকের রিডেমশন ক্যাটালগ যাচাই করুন।',
+      'ব্যাংক পয়েন্টের রিডেমশন মূল্য ঘোষণা করলেই কেবল পয়েন্টকে বিডিটিতে দেখানো হয়; ঘোষিত মূল্য নেই এমন কার্ডে শুধু আনুমানিক পয়েন্ট দেখানো হয়, কিছু বানানো হয় না। ক্যাশব্যাকে ব্যাংকের ঘোষিত শতাংশ ব্যবহার হয়, প্রকাশিত সীমা অনুযায়ী।',
     calcAssumption3: 'লাউঞ্জ অ্যাক্সেস, ছাড় এবং ফি মওকুফ আয়াত করানো হয়নি।',
     calcCalculateButton: 'সেরা মূল্যের কার্ডগুলো ক্যালকুলেট করুন',
     calcEmptyTitle: 'আপনার মাসিক খরচ লিখুন',
@@ -937,8 +970,8 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
       'উপর আপনার সাধারণ মাসিক খরচ বসান এবং আমরা বার্ষিক রিওয়ার্ড মাইনাস বার্ষিক ফি অনুযায়ী শীর্ষ কার্ডগুলো র‍্যাঙ্ক করব।',
     calcErrorTitle: 'র‍্যাঙ্ক করার কার্ড নেই',
     calcErrorDesc:
-      'প্রচলিত ফি এবং পার্সযোগ্য রিওয়ার্ড নীতিবালো কোনো সক্রিয় কার্ড পাওয়া যাচ্ছে না।',
-    calcResultsTitle: 'নিট অ্যানুয়াল ভ্যালু অনুযায়ী শীর্ষ',
+      'এই খরচের প্যাটার্নে প্রকাশিত রিওয়ার্ড নিয়ম, ঘোষিত পয়েন্ট মূল্য বা ঘোষিত ক্যাশব্যাক হারসহ কোনো সক্রিয় কার্ড পাওয়া যায়নি।',
+    calcResultsTitle: 'শীর্ষ',
     calcResultAnnualFee: 'বার্ষিক ফি',
     calcResultEstRewards: 'আনুমানিক বার্ষিক রিওয়ার্ড',
     calcResultNetValue: 'নিট বার্ষিক মূল্য',
@@ -946,6 +979,21 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     calcResultBreakEvenUnknown: 'বর্তমান বণ্টনে গণনা সম্ভব নয়',
     calcExportCompare: 'তুলনায় রপ্তানি করুন',
     calcLoading: 'ক্রেডিট কার্ড লোড হচ্ছে…',
+    calcRankedCardsSuffix: 'কার্ড:',
+    calcValuedCardsHeading: 'ব্যাংক-ঘোষিত বিডিটি মূল্যসহ কার্ড',
+    calcPointsOnlyHeading: 'শুধু আনুমানিক পয়েন্টসহ কার্ড – ব্যাংক পয়েন্টের মূল্য প্রকাশ করেনি',
+    calcCategoryAll: 'সব খরচ',
+    calcCategoryOnline: 'অনলাইন',
+    calcCategoryInternational: 'আন্তর্জাতিক',
+    calcPointsPerYear: 'আনুমানিক বার্ষিক পয়েন্ট',
+    calcValueNotPublished: 'ব্যাংক পয়েন্টের মূল্য প্রকাশ করেনি',
+    calcFeeUnknown: 'ফি অজানা',
+    calcRulesApplied: 'প্রয়োগ করা নিয়ম:',
+    calcRuleEarnShort: 'প্রতি বিডিটি {unit} খরচে {points} পয়েন্ট',
+    calcRuleCashbackShort: '{percent}% ক্যাশব্যাক',
+    calcBankRuleDetails: 'ব্যাংকের নিজস্ব রিওয়ার্ড শর্ত',
+    calcSourceLink: 'রিওয়ার্ড শর্তের উৎস',
+    calcPointValueStated: 'ব্যাংক ১ পয়েন্ট = বিডিটি {value} রিডেমশন মূল্য ঘোষণা করেছে।',
 
     // HomePage
     homeHeroCtaControl: 'আপনার সঠিক ক্রেডিট কার্ড খুঁজুন',

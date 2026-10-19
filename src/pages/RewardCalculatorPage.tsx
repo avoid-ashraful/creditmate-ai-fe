@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
-import { useLanguage, getCommonCopy } from '../locales';
+import { useLanguage, getCommonCopy, fillCopy } from '../locales';
 import { apiService } from '../services/api';
-import { CreditCard } from '../types';
+import { CreditCard, RewardCategory } from '../types';
 import { fetchAllPages } from '../utils/fetchAllPages';
 import {
+  AppliedRule,
   CategoryAllocation,
-  POINT_VALUE_BDT,
   rankCards,
   RankedCard,
   validateAllocation,
@@ -25,6 +25,18 @@ const CATEGORY_LABELS: Array<{ key: keyof CategoryAllocation; labelKey: string }
   { key: 'other', labelKey: 'calcCategoryOther' },
 ];
 
+/** Which common-copy key provides the display label for a rule category. */
+const RULE_CATEGORY_LABELS: Record<RewardCategory, string> = {
+  all: 'calcCategoryAll',
+  dining: 'calcCategoryDining',
+  travel: 'calcCategoryTravel',
+  groceries: 'calcCategoryGroceries',
+  fuel: 'calcCategoryFuel',
+  online: 'calcCategoryOnline',
+  international: 'calcCategoryInternational',
+  other: 'calcCategoryOther',
+};
+
 const EMPTY_ALLOCATION: CategoryAllocation = {
   dining: 0,
   travel: 0,
@@ -34,6 +46,36 @@ const EMPTY_ALLOCATION: CategoryAllocation = {
 };
 
 const formatBdt = (value: number): string => `BDT ${Math.round(value).toLocaleString()}`;
+
+/** Human label for a reward-terms source link: the host, or the raw URL when unparsable. */
+const rewardSourceLabel = (url: string): string => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+};
+
+/**
+ * Collapse the per-input-category applied-rule list into distinct rules: a
+ * single "all spending" rule applied to five categories is one rule, not five.
+ */
+const dedupeAppliedRules = (rules: AppliedRule[]): AppliedRule[] => {
+  const seen = new Set<string>();
+  const unique: AppliedRule[] = [];
+  rules.forEach(rule => {
+    const key =
+      rule.kind === 'earn' && rule.earn
+        ? `earn:${rule.ruleCategory}:${rule.earn.pointsPerUnit}:${rule.earn.spendUnitBdt}`
+        : rule.kind === 'cashback' && rule.cashback
+        ? `cash:${rule.ruleCategory}:${rule.cashback.percent}:${rule.cashback.capText ?? ''}`
+        : `${rule.kind}:${rule.ruleCategory}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    unique.push(rule);
+  });
+  return unique;
+};
 
 const RewardCalculatorPage: React.FC = () => {
   const { lang } = useLanguage();
@@ -130,6 +172,141 @@ const RewardCalculatorPage: React.FC = () => {
     allocation.fuel +
     allocation.other;
 
+  /** Short localized summary of one applied rule. */
+  const summarizeRule = (rule: AppliedRule): string => {
+    const label = common[RULE_CATEGORY_LABELS[rule.ruleCategory] as keyof typeof common] as string;
+    if (rule.kind === 'earn' && rule.earn) {
+      return `${label}: ${fillCopy(common.calcRuleEarnShort, {
+        points: String(rule.earn.pointsPerUnit),
+        unit: String(rule.earn.spendUnitBdt),
+      })}`;
+    }
+    if (rule.kind === 'cashback' && rule.cashback) {
+      const summary = `${label}: ${fillCopy(common.calcRuleCashbackShort, {
+        percent: String(rule.cashback.percent),
+      })}`;
+      return rule.cashback.capText ? `${summary} (${rule.cashback.capText})` : summary;
+    }
+    return label;
+  };
+
+  const rankedCardItem = (rankedCard: RankedCard, index: number) => {
+    const {
+      card,
+      estimate,
+      annualPoints,
+      annualRewardValue,
+      netAnnualValue,
+      breakEvenMonthlySpend,
+    } = rankedCard;
+    // A card is only shown with a BDT figure when the bank itself states a
+    // point value and/or publishes cashback; otherwise points stay unconverted.
+    const hasValue = estimate.annualValueBdt !== null;
+    return (
+      <li key={card.id} className="ranked-card">
+        <div className="ranked-card-main">
+          <span className="ranked-card-name">
+            {index + 1}. {card.name}
+          </span>
+          <span className="ranked-card-bank">{card.bankName ?? common.unknown}</span>
+          <dl className="ranked-card-metrics">
+            <div>
+              <dt>{common.calcResultAnnualFee}</dt>
+              <dd>{card.annualFee !== null ? formatBdt(card.annualFee) : common.calcFeeUnknown}</dd>
+            </div>
+            {annualPoints !== null && (
+              <div>
+                <dt>{common.calcPointsPerYear}</dt>
+                <dd>{Math.round(annualPoints).toLocaleString()}</dd>
+              </div>
+            )}
+            <div>
+              <dt>{common.calcResultEstRewards}</dt>
+              <dd>
+                {hasValue && annualRewardValue !== null
+                  ? formatBdt(annualRewardValue)
+                  : common.calcValueNotPublished}
+              </dd>
+            </div>
+            {hasValue && (
+              <div>
+                <dt>{common.calcResultNetValue}</dt>
+                <dd
+                  className={
+                    netAnnualValue === null
+                      ? undefined
+                      : netAnnualValue >= 0
+                      ? 'positive'
+                      : 'negative'
+                  }
+                >
+                  {netAnnualValue === null ? common.calcFeeUnknown : formatBdt(netAnnualValue)}
+                </dd>
+              </div>
+            )}
+            {hasValue && (
+              <div>
+                <dt>{common.calcResultBreakEven}</dt>
+                <dd>
+                  {breakEvenMonthlySpend === null
+                    ? common.calcResultBreakEvenUnknown
+                    : formatBdt(breakEvenMonthlySpend)}
+                </dd>
+              </div>
+            )}
+          </dl>
+          {estimate.appliedRules.length > 0 && (
+            <p className="ranked-card-rules-applied">
+              <strong>{common.calcRulesApplied}</strong>{' '}
+              <span>
+                {dedupeAppliedRules(estimate.appliedRules).map(summarizeRule).join(' · ')}
+              </span>
+            </p>
+          )}
+          <details className="ranked-card-rule-details">
+            <summary>{common.calcBankRuleDetails}</summary>
+            <ul className="ranked-card-rule-texts">
+              {estimate.ruleTexts.map((text, idx) => (
+                <li key={idx}>{text}</li>
+              ))}
+            </ul>
+            {card.rewardPointValueBdt != null && (
+              <p className="ranked-card-point-value-note">
+                {fillCopy(common.calcPointValueStated, {
+                  value: String(card.rewardPointValueBdt),
+                })}
+              </p>
+            )}
+            {card.rewardSourceUrl && (
+              <p className="ranked-card-reward-source">
+                {common.calcSourceLink}:{' '}
+                <a href={card.rewardSourceUrl} target="_blank" rel="noopener noreferrer nofollow">
+                  {rewardSourceLabel(card.rewardSourceUrl)}
+                </a>
+              </p>
+            )}
+          </details>
+          <button
+            type="button"
+            className="export-compare-button"
+            onClick={() => handleExportToComparison(card)}
+          >
+            {common.calcExportCompare}
+          </button>
+        </div>
+      </li>
+    );
+  };
+
+  const valuedCards = ranked.filter(
+    rankedCard =>
+      rankedCard.estimate.annualValueBdt !== null && rankedCard.estimate.annualValueBdt > 0
+  );
+  const pointsOnlyCards = ranked.filter(
+    rankedCard =>
+      !(rankedCard.estimate.annualValueBdt !== null && rankedCard.estimate.annualValueBdt > 0)
+  );
+
   return (
     <div className="reward-calculator-page">
       <section className="calculator-hero">
@@ -189,7 +366,7 @@ const RewardCalculatorPage: React.FC = () => {
           <h3>{common.calcAssumptionsTitle}</h3>
           <ul>
             <li>{common.calcAssumption1}</li>
-            <li>{common.calcAssumption2.replace('BDT 1', formatBdt(POINT_VALUE_BDT))}</li>
+            <li>{common.calcAssumption2}</li>
             <li>{common.calcAssumption3}</li>
           </ul>
         </div>
@@ -215,51 +392,24 @@ const RewardCalculatorPage: React.FC = () => {
         ) : (
           <>
             <h2>
-              {common.calcResultsTitle} {ranked.length} {common.cardsByNetAnnualValue}
+              {common.calcResultsTitle} {ranked.length} {common.calcRankedCardsSuffix}
             </h2>
-            <ol className="ranked-card-list">
-              {ranked.map(({ card, annualRewardValue, netAnnualValue, breakEvenMonthlySpend }) => (
-                <li key={card.id} className="ranked-card">
-                  <div className="ranked-card-main">
-                    <span className="ranked-card-name">{card.name}</span>
-                    <span className="ranked-card-bank">{card.bankName ?? common.unknown}</span>
-                    <dl className="ranked-card-metrics">
-                      <div>
-                        <dt>{common.calcResultAnnualFee}</dt>
-                        <dd>
-                          {card.annualFee !== null ? formatBdt(card.annualFee) : common.unknown}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>{common.calcResultEstRewards}</dt>
-                        <dd>{formatBdt(annualRewardValue)}</dd>
-                      </div>
-                      <div>
-                        <dt>{common.calcResultNetValue}</dt>
-                        <dd className={netAnnualValue >= 0 ? 'positive' : 'negative'}>
-                          {formatBdt(netAnnualValue)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>{common.calcResultBreakEven}</dt>
-                        <dd>
-                          {breakEvenMonthlySpend === null
-                            ? common.calcResultBreakEvenUnknown
-                            : formatBdt(breakEvenMonthlySpend)}
-                        </dd>
-                      </div>
-                    </dl>
-                    <button
-                      type="button"
-                      className="export-compare-button"
-                      onClick={() => handleExportToComparison(card)}
-                    >
-                      {common.calcExportCompare}
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            {valuedCards.length > 0 && (
+              <>
+                <h3 className="ranking-group-heading">{common.calcValuedCardsHeading}</h3>
+                <ol className="ranked-card-list">
+                  {valuedCards.map((rankedCard, index) => rankedCardItem(rankedCard, index))}
+                </ol>
+              </>
+            )}
+            {pointsOnlyCards.length > 0 && (
+              <>
+                <h3 className="ranking-group-heading">{common.calcPointsOnlyHeading}</h3>
+                <ol className="ranked-card-list">
+                  {pointsOnlyCards.map((rankedCard, index) => rankedCardItem(rankedCard, index))}
+                </ol>
+              </>
+            )}
           </>
         )}
       </section>

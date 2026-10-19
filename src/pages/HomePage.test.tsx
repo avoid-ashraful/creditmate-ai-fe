@@ -97,7 +97,7 @@ test('renders HomePage with credit card content from the mocked API', async () =
   expect(screen.getByText(/Other Rewards Card/i)).toBeInTheDocument();
   expect(screen.getByText(/Filter Options/i)).toBeInTheDocument();
   expect(
-    screen.getByText((_, node) => node?.textContent === 'Credit Cards (2)')
+    screen.getByText((_, node) => node?.textContent === 'Credit Cards (4)')
   ).toBeInTheDocument();
 });
 
@@ -321,6 +321,7 @@ test('mocked credit-cards fixture matches the Django list serializer fields', ()
     'apply_url',
     'bank_name',
     'card_network',
+    'cashback_rules',
     'foreign_transaction_fee',
     'has_annual_fee',
     'has_lounge_access',
@@ -333,6 +334,11 @@ test('mocked credit-cards fixture matches the Django list serializer fields', ()
     'lounge_access_international',
     'min_monthly_income',
     'name',
+    'points_expiry_text',
+    'reward_earn_rules',
+    'reward_point_value_bdt',
+    'reward_program_name',
+    'reward_source_url',
     'source_url',
     'supplementary_card_fee',
     'verification_status',

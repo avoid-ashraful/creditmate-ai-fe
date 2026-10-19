@@ -10,7 +10,7 @@ export const testBanks = [
     logo: '/test-logo.png',
     website: 'https://test.com',
     is_active: true,
-    credit_card_count: 2,
+    credit_card_count: 3,
     created: '2024-01-01T00:00:00Z',
     modified: '2024-01-01T00:00:00Z',
   },
@@ -28,7 +28,9 @@ export const testBanks = [
 
 // Matches the actual Django CreditCardListSerializer list response:
 // bank_name string (no nested bank object, no bank_id), decimal strings,
-// lounge counts as strings.
+// lounge counts as strings. Includes the structured reward fields: the four
+// cards cover the archetypes (points with a stated value, points without a
+// stated value, cashback with a cap, no rewards at all).
 export const testCards = [
   {
     id: 1,
@@ -51,6 +53,20 @@ export const testCards = [
     min_monthly_income: '50000.00',
     supplementary_card_fee: 'BDT 500',
     foreign_transaction_fee: '3%',
+    reward_program_name: 'Test Points',
+    reward_earn_rules: [
+      {
+        category: 'all',
+        points_per_unit: 1,
+        spend_unit_bdt: 50,
+        text: 'Earn 1 point for every BDT 50 spent.',
+      },
+    ],
+    cashback_rules: [],
+    // The bank states this redemption value; only then may points be converted.
+    reward_point_value_bdt: '1.0000',
+    points_expiry_text: '',
+    reward_source_url: 'https://test.com/reward-terms',
   },
   {
     id: 2,
@@ -73,6 +89,83 @@ export const testCards = [
     min_monthly_income: null,
     supplementary_card_fee: '',
     foreign_transaction_fee: '',
+    reward_program_name: 'Shariah Points',
+    reward_earn_rules: [
+      {
+        category: 'all',
+        points_per_unit: 2,
+        spend_unit_bdt: 100,
+        text: 'Earn 2 points for every BDT 100 spent.',
+      },
+    ],
+    cashback_rules: [],
+    // No bank-stated redemption value: estimated points only, never a BDT figure.
+    reward_point_value_bdt: null,
+    points_expiry_text: '',
+    reward_source_url: 'https://other.test/reward-terms',
+  },
+  {
+    id: 3,
+    bank_name: 'Test Bank',
+    name: 'Dining Cashback Card',
+    annual_fee: '800.00',
+    interest_rate_apr: '19.00',
+    lounge_access_international: '0',
+    lounge_access_domestic: '0',
+    has_lounge_access: false,
+    has_annual_fee: true,
+    is_active: true,
+    source_url: 'https://test.com/cashback-terms',
+    apply_url: '',
+    verification_status: 'verified',
+    verified_at: '2025-05-01T00:00:00Z',
+    card_network: 'mastercard',
+    is_islamic: false,
+    is_dual_currency: false,
+    min_monthly_income: null,
+    supplementary_card_fee: '',
+    foreign_transaction_fee: '',
+    reward_program_name: '',
+    reward_earn_rules: [],
+    cashback_rules: [
+      {
+        category: 'dining',
+        percent: 5,
+        cap_text: 'up to BDT 300 monthly',
+        text: '5% cashback up to BDT 300 monthly at participating restaurants.',
+      },
+    ],
+    reward_point_value_bdt: null,
+    points_expiry_text: '',
+    reward_source_url: 'https://test.com/cashback-terms',
+  },
+  {
+    id: 4,
+    bank_name: 'Test Bank',
+    name: 'No Rewards Card',
+    annual_fee: '500.00',
+    interest_rate_apr: '21.00',
+    lounge_access_international: '0',
+    lounge_access_domestic: '0',
+    has_lounge_access: false,
+    has_annual_fee: true,
+    is_active: true,
+    source_url: 'https://test.com/schedule-of-charges',
+    apply_url: '',
+    verification_status: 'verified',
+    verified_at: '2025-05-01T00:00:00Z',
+    card_network: 'visa',
+    is_islamic: false,
+    is_dual_currency: false,
+    min_monthly_income: null,
+    supplementary_card_fee: '',
+    foreign_transaction_fee: '',
+    reward_program_name: '',
+    reward_earn_rules: [],
+    cashback_rules: [],
+    reward_point_value_bdt: null,
+    points_expiry_text: '',
+    reward_source_url: 'https://test.com/reward-terms',
   },
 ];
 

@@ -99,6 +99,28 @@ export interface CardDetailCopy {
   waiverPeriodYearly: string;
   waiverPeriodMonthly: string;
 
+  // Structured rewards section
+  rewardsHeading: string;
+  rewardsProgram: string;
+  rewardsEarnRules: string;
+  rewardsCashbackRules: string;
+  rewardsPointValue: string;
+  rewardsPointValueNone: string;
+  rewardsExpiry: string;
+  rewardsSourceLabel: string;
+  rewardCategoryAll: string;
+  rewardCategoryDining: string;
+  rewardCategoryTravel: string;
+  rewardCategoryGroceries: string;
+  rewardCategoryFuel: string;
+  rewardCategoryOnline: string;
+  rewardCategoryInternational: string;
+  rewardCategoryOther: string;
+  /** Placeholders: {points}, {unit} */
+  rewardsEarnRuleSummary: string;
+  /** Placeholder: {percent} */
+  rewardsCashbackSummary: string;
+
   // Additional features / similar cards
   additionalFeaturesHeading: string;
   /** Placeholder: {bank} */
@@ -240,6 +262,28 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     waiverKeyPeriod: 'Period',
     waiverPeriodYearly: 'Yearly',
     waiverPeriodMonthly: 'Monthly',
+
+    // Structured rewards section
+    rewardsHeading: 'Rewards',
+    rewardsProgram: 'Reward program',
+    rewardsEarnRules: 'Points earn rules',
+    rewardsCashbackRules: 'Cashback rules',
+    rewardsPointValue: 'Point value (stated by the bank)',
+    rewardsPointValueNone: 'Not published by the bank',
+    rewardsExpiry: 'Points expiry',
+    rewardsSourceLabel: 'Reward terms source:',
+    rewardCategoryAll: 'All spending',
+    rewardCategoryDining: 'Dining',
+    rewardCategoryTravel: 'Travel',
+    rewardCategoryGroceries: 'Groceries',
+    rewardCategoryFuel: 'Fuel',
+    rewardCategoryOnline: 'Online',
+    rewardCategoryInternational: 'International',
+    rewardCategoryOther: 'Other',
+    /** Placeholders: {points}, {unit} */
+    rewardsEarnRuleSummary: '{points} pts per BDT {unit}',
+    /** Placeholder: {percent} */
+    rewardsCashbackSummary: '{percent}% cashback',
 
     additionalFeaturesHeading: 'Additional Features',
     similarCardsHeading: 'Similar Cards from {bank}',
@@ -391,6 +435,28 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     waiverKeyPeriod: 'মেয়াদ',
     waiverPeriodYearly: 'বার্ষিক',
     waiverPeriodMonthly: 'মাসিক',
+
+    // Structured rewards section
+    rewardsHeading: 'রিওয়ার্ড',
+    rewardsProgram: 'রিওয়ার্ড প্রোগ্রাম',
+    rewardsEarnRules: 'পয়েন্ট আর্ন নিয়ম',
+    rewardsCashbackRules: 'ক্যাশব্যাক নিয়ম',
+    rewardsPointValue: 'পয়েন্ট মূল্য (ব্যাংক-ঘোষিত)',
+    rewardsPointValueNone: 'ব্যাংক পয়েন্টের মূল্য প্রকাশ করেনি',
+    rewardsExpiry: 'পয়েন্টের মেয়াদোত্তীর্ণ',
+    rewardsSourceLabel: 'রিওয়ার্ড শর্তের উৎস:',
+    rewardCategoryAll: 'সব খরচ',
+    rewardCategoryDining: 'খাবার',
+    rewardCategoryTravel: 'ভ্রমণ',
+    rewardCategoryGroceries: 'কিরানা',
+    rewardCategoryFuel: 'ইঞ্জিন তেল',
+    rewardCategoryOnline: 'অনলাইন',
+    rewardCategoryInternational: 'আন্তর্জাতিক',
+    rewardCategoryOther: 'অন্যান্য',
+    /** Placeholders: {points}, {unit} */
+    rewardsEarnRuleSummary: 'প্রতি বিডিটি {unit} খরচে {points} পয়েন্ট',
+    /** Placeholder: {percent} */
+    rewardsCashbackSummary: '{percent}% ক্যাশব্যাক',
 
     additionalFeaturesHeading: 'অতিরিক্ত সুবিধা',
     similarCardsHeading: '{bank}-এর অন্যান্য কার্ড',

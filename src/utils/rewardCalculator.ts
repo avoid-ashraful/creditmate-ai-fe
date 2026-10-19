@@ -1,4 +1,4 @@
-import { CreditCard } from '../types';
+import { CashbackRule, CreditCard, RewardCategory, RewardEarnRule } from '../types';
 
 /**
  * Category allocation for monthly spend in BDT.
@@ -14,14 +14,12 @@ export type CategoryAllocation = {
 /**
  * Reward rates per category in "points per BDT spent".
  *
- * IMPORTANT (assumption guard): the backend card data (reward_points_policy)
- * is free text and does not provide an explicit, authoritative "points → BDT"
- * redemption value or per-category earn rates for every category. The rates
- * below are therefore DERIVED ONLY from the published policy text of each card.
- * Where the policy does not mention a category specifically, the card's base
- * earn rate is used (never a boosted rate). Where the policy text cannot be
- * parsed at all, no rate is assumed and the card is excluded from calcuation
- * rather than inventing a value.
+ * IMPORTANT (assumption guard): used only as the fallback for legacy free-text
+ * policies (reward_points_policy) when the structured reward_earn_rules and
+ * cashback_rules lists are both empty. The rates below are derived ONLY from
+ * the published policy text of each card, and they carry NO point value: a
+ * fallback card without a bank-stated redemption value is never converted into
+ * BDT (see computeCardEstimate).
  */
 export type RewardRates = {
   dining: number;
@@ -105,94 +103,328 @@ export const parseRewardRates = (policy: string): RewardRates => {
   return rates;
 };
 
-/**
- * Assumed value of one reward point in BDT.
- *
- * IMPORTANT (assumption guard): the published card data does NOT include an
- * explicit conversion from points to BDT value. To convert "points earned"
- * into a comparable monetary estimate, the calculator uses a conservative,
- * uniform assumption across all cards of 1 point = BDT 1.00. This assumption
- * is displayed to the user on the page so it can never be mistaken for a
- * bank-stated value.
- */
-export const POINT_VALUE_BDT = 1;
+const INPUT_CATEGORIES: ReadonlyArray<keyof CategoryAllocation> = [
+  'dining',
+  'travel',
+  'groceries',
+  'fuel',
+  'other',
+];
 
 /**
- * Estimated annual reward value (in BDT) for a card given a monthly category
- * allocation: monthlySpend × earnRate summed across categories × 12 months ×
- * the assumed point value.
+ * Which calculator input category a structured rule category spend feeds into
+ * ('all' rules are resolved separately as the generic fallback).
  */
-export const calculateAnnualRewardValue = (
-  card: CreditCard,
-  allocation: CategoryAllocation
-): number => {
-  const rates = parseRewardRates(card.rewardPointsPolicy || '');
-
-  const monthlyPoints =
-    allocation.dining * rates.dining +
-    allocation.travel * rates.travel +
-    allocation.groceries * rates.groceries +
-    allocation.fuel * rates.fuel +
-    allocation.other * rates.other;
-
-  return monthlyPoints * 12 * POINT_VALUE_BDT;
+const RULE_INPUT_CATEGORY: Record<Exclude<RewardCategory, 'all'>, keyof CategoryAllocation> = {
+  dining: 'dining',
+  travel: 'travel',
+  groceries: 'groceries',
+  fuel: 'fuel',
+  online: 'other',
+  international: 'travel',
+  other: 'other',
 };
 
 /**
- * Net annual value of a card: annual estimated reward value minus the annual
- * fee. Cards with an unknown (null) annual fee are excluded by returning
- * null rather than treating the fee as zero.
+ * Pick the most specific earn/cashback rule for an input category:
+ * the first rule whose (non-'all') category maps to the input category, else
+ * the first 'all' rule, else none. First match wins so the rule order in the
+ * bank data is preserved.
  */
-export const calculateNetAnnualValue = (
+const ruleForCategory = <T extends { category: RewardCategory }>(
+  rules: T[],
+  inputCategory: keyof CategoryAllocation
+): T | null => {
+  const specific = rules.find(
+    rule => rule.category !== 'all' && RULE_INPUT_CATEGORY[rule.category] === inputCategory
+  );
+  if (specific) return specific;
+  return rules.find(rule => rule.category === 'all') ?? null;
+};
+
+/** A numeric cap parsed from a bank's verbatim cap wording, or null. */
+export interface CashbackCap {
+  amount: number;
+  period: 'monthly' | 'yearly' | null;
+}
+
+/**
+ * Parse a numeric cashback cap only when the wording is unambiguous, e.g.
+ * "up to BDT 300 monthly". Note: "monthly" here means the calendar-month
+ * cap printed by the bank. Anything vague ("up to BDT 300" with no period,
+ * USD amounts, conditions embedded in the text) yields period = null or no
+ * cap at all: then the cap is shown as text but never applied numerically.
+ */
+export const parseCashbackCap = (capText: string | null): CashbackCap | null => {
+  if (!capText || !capText.trim()) return null;
+  const amountMatch = capText.match(/(?:BDT|৳|Tk\.?)\s*([\d,]+(?:\.\d+)?)/i);
+  if (!amountMatch) return null;
+  const amount = Number(amountMatch[1].replace(/,/g, ''));
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+
+  const lower = capText.toLowerCase();
+  let period: CashbackCap['period'] = null;
+  if (/monthly|per month|\/month|a month/.test(lower)) period = 'monthly';
+  else if (/yearly|per year|a year|annually|annual/.test(lower)) period = 'yearly';
+  // Without a stated period the cap is not applied numerically.
+  if (
+    /monthly|per month|\/month|a month/.test(lower) &&
+    /yearly|per year|a year|annually/.test(lower)
+  ) {
+    // Both keywords: ambiguous, refuse to apply.
+    period = null;
+  }
+
+  return { amount, period };
+};
+
+/**
+ * One rule that the estimate actually applied, kept structured so the UI can
+ * render short localized summaries plus the bank's verbatim text.
+ */
+export interface AppliedRule {
+  kind: 'earn' | 'cashback';
+  /** The category as published by the bank (may be 'all'). */
+  ruleCategory: RewardCategory;
+  /** The calculator input category the rule was applied to. */
+  inputCategory: keyof CategoryAllocation;
+  /** Verbatim wording from the bank. */
+  text: string;
+  /** Present for earn rules. */
+  earn?: { pointsPerUnit: number; spendUnitBdt: number };
+  /** Present for cashback rules; capPeriod null = text-only cap. */
+  cashback?: { percent: number; capText: string | null; capPeriod: 'monthly' | 'yearly' | null };
+}
+
+/**
+ * The full estimate for one card against a category allocation.
+ *
+ * Value guards:
+ *  - points are converted to BDT ONLY when the bank states a redemption value;
+ *  - cashback is bank-stated percentage, capped numerically only when the cap
+ *    wording is unambiguous;
+ *  - when no BDT value is computable, annualValueBdt stays null and the UI
+ *    shows the estimated points with "value not published by the bank".
+ */
+export interface CardRewardEstimate {
+  /** Estimated reward points per year; null when no points rule applies. */
+  annualPoints: number | null;
+  /** Estimated annual reward value in BDT; null if no value was computable without inventing. */
+  annualValueBdt: number | null;
+  /** Whether the bank states a point redemption value. */
+  hasStatedPointValue: boolean;
+  /** Where the earn rates came from. */
+  ruleMode: 'structured' | 'policy-fallback' | 'none';
+  /** Rules actually applied to the current allocation. */
+  appliedRules: AppliedRule[];
+  /** Verbatim bank texts for the details expander (earn + cashback rules, or the legacy policy). */
+  ruleTexts: string[];
+  /** Cashback cap wording shown to the user verbatim. */
+  capTexts: string[];
+  /**
+   * True when a numeric cap actually reduced the estimated cashback
+   * (break-even then depends on the cap, not spend).
+   */
+  capApplied: boolean;
+}
+
+const buildEstimate = (overrides: Partial<CardRewardEstimate>): CardRewardEstimate => ({
+  annualPoints: null,
+  annualValueBdt: null,
+  hasStatedPointValue: false,
+  ruleMode: 'none',
+  appliedRules: [],
+  ruleTexts: [],
+  capTexts: [],
+  capApplied: false,
+  ...overrides,
+});
+
+/**
+ * Estimate a card's annual points and BDT value for the given allocation.
+ *
+ * Points per year for a category = monthlySpend × 12 / spendUnit × pointsPerUnit.
+ * Cashback per year capped monthly = min(monthlySpend × percent/100, cap) × 12.
+ */
+export const computeCardEstimate = (
   card: CreditCard,
   allocation: CategoryAllocation
+): CardRewardEstimate => {
+  const earnRules = card.rewardEarnRules ?? [];
+  const cashbackRules = card.cashbackRules ?? [];
+  const pointValue = card.rewardPointValueBdt ?? null;
+  const hasStatedPointValue = pointValue !== null;
+
+  if (earnRules.length === 0 && cashbackRules.length === 0) {
+    // Fallback: legacy free-text policy. Rates give points only; a BDT value is
+    // shown only when the bank separately states a point redemption value.
+    // We NEVER assume a point value here.
+    const rates = parseRewardRates(card.rewardPointsPolicy || '');
+    const pointsPerMonth = INPUT_CATEGORIES.reduce(
+      (sum, key) => sum + allocation[key] * rates[key],
+      0
+    );
+    const annualPoints = pointsPerMonth * 12;
+    const hasRates =
+      rates.dining > 0 ||
+      rates.travel > 0 ||
+      rates.groceries > 0 ||
+      rates.fuel > 0 ||
+      rates.other > 0;
+    if (!hasRates) {
+      return buildEstimate({ ruleMode: 'none' });
+    }
+    return buildEstimate({
+      annualPoints,
+      annualValueBdt: hasStatedPointValue ? annualPoints * pointValue : null,
+      hasStatedPointValue,
+      ruleMode: 'policy-fallback',
+      ruleTexts: card.rewardPointsPolicy ? [card.rewardPointsPolicy] : [],
+    });
+  }
+
+  // Structured rules.
+  let annualPoints = 0;
+  let annualCashback = 0;
+  let annualPointsEarned = false;
+  let annualCashbackApply = false;
+  const appliedRules: AppliedRule[] = [];
+  const capTexts: string[] = [];
+  let capApplied = false;
+
+  INPUT_CATEGORIES.forEach(inputCategory => {
+    const spend = allocation[inputCategory];
+    if (!(spend > 0)) return;
+
+    const earnRule: RewardEarnRule | null = ruleForCategory(earnRules, inputCategory);
+    if (earnRule && earnRule.spendUnitBdt > 0 && earnRule.pointsPerUnit > 0) {
+      const monthly = (spend / earnRule.spendUnitBdt) * earnRule.pointsPerUnit;
+      annualPoints += monthly * 12;
+      annualPointsEarned = true;
+      appliedRules.push({
+        kind: 'earn',
+        ruleCategory: earnRule.category,
+        inputCategory,
+        text: earnRule.text,
+        earn: { pointsPerUnit: earnRule.pointsPerUnit, spendUnitBdt: earnRule.spendUnitBdt },
+      });
+    }
+
+    const cashbackRule: CashbackRule | null = ruleForCategory(cashbackRules, inputCategory);
+    if (cashbackRule && cashbackRule.percent > 0) {
+      const monthlyCashback = (spend * cashbackRule.percent) / 100;
+      const cap = parseCashbackCap(cashbackRule.capText);
+      const annualForRule =
+        cap && cap.period === 'monthly'
+          ? Math.min(monthlyCashback, cap.amount) * 12
+          : cap && cap.period === 'yearly'
+          ? Math.min(monthlyCashback * 12, cap.amount)
+          : monthlyCashback * 12;
+      if (cap && annualForRule < monthlyCashback * 12 - 1e-9) {
+        capApplied = true;
+      }
+      annualCashback += annualForRule;
+      annualCashbackApply = true;
+      if (cashbackRule.capText) capTexts.push(cashbackRule.capText);
+      appliedRules.push({
+        kind: 'cashback',
+        ruleCategory: cashbackRule.category,
+        inputCategory,
+        text: cashbackRule.text,
+        cashback: {
+          percent: cashbackRule.percent,
+          capText: cashbackRule.capText,
+          capPeriod: cap?.period ?? null,
+        },
+      });
+    }
+  });
+
+  const valueFromPoints = hasStatedPointValue ? annualPoints * pointValue : 0;
+  const annualValue = valueFromPoints + annualCashback;
+
+  return buildEstimate({
+    annualPoints: annualPointsEarned ? annualPoints : null,
+    annualValueBdt:
+      annualCashbackApply || (annualPointsEarned && hasStatedPointValue) ? annualValue : null,
+    hasStatedPointValue,
+    ruleMode: 'structured',
+    appliedRules,
+    ruleTexts: [...earnRules, ...cashbackRules].map(rule => rule.text).filter(Boolean),
+    capTexts,
+    capApplied,
+  });
+};
+
+/**
+ * Estimated BDT value of one unit of total monthly spend (the marginal value
+ * "slope" used for break-even). Returns null when the value is not proportional
+ * to spend (cap truncation) or relies on an unstated point value.
+ */
+const estimateValueSlope = (
+  card: CreditCard,
+  estimate: CardRewardEstimate,
+  allocation: CategoryAllocation
 ): number | null => {
-  if (card.annualFee === null) return null;
-  return calculateAnnualRewardValue(card, allocation) - card.annualFee;
+  if (estimate.capApplied) return null;
+
+  const totalSpend = INPUT_CATEGORIES.reduce((sum, key) => sum + allocation[key], 0);
+  if (totalSpend <= 0) return null;
+
+  const pointValue = card.rewardPointValueBdt ?? null;
+  const earnRules = card.rewardEarnRules ?? [];
+  const cashbackRules = card.cashbackRules ?? [];
+
+  if (estimate.ruleMode === 'policy-fallback') {
+    if (pointValue === null) return null;
+    const rates = parseRewardRates(card.rewardPointsPolicy || '');
+    const weightedRate = INPUT_CATEGORIES.reduce(
+      (sum, key) => sum + (allocation[key] / totalSpend) * rates[key],
+      0
+    );
+    return weightedRate * pointValue;
+  }
+
+  if (estimate.ruleMode !== 'structured') return null;
+
+  let slope = 0;
+  INPUT_CATEGORIES.forEach(inputCategory => {
+    const share = allocation[inputCategory] / totalSpend;
+    const earnRule = ruleForCategory(earnRules, inputCategory);
+    if (earnRule && earnRule.spendUnitBdt > 0) {
+      slope += share * (earnRule.pointsPerUnit / earnRule.spendUnitBdt) * (pointValue ?? 0);
+    }
+    const cashbackRule = ruleForCategory(cashbackRules, inputCategory);
+    if (cashbackRule) {
+      slope += share * (cashbackRule.percent / 100);
+    }
+  });
+  return slope;
 };
 
 /**
  * Break-even monthly spend (BDT/month, summed across all categories in the
  * user's current allocation proportions) at which the card's annual reward
- * value exactly offsets its annual fee:
- *   breakEvenTotalMonthlySpend × Σ(rate_c × share_c) × 12 = annualFee
- * so that:
- *   breakEvenTotalMonthlySpend = annualFee / (12 × Σ(rate_c × share_c))
- * where share_c is the fraction of total monthly spend in category c.
+ * value exactly offsets its annual fee.
  *
  * Returns:
  *  - 0 for cards with no annual fee,
- *  - null when the spend shares are all zero, the card has no parseable
- *    reward rate, or the fee is unknown (null) — in those cases a meaningful
- *    break-even cannot be computed and one must not be invented.
+ *  - null when the fee is unknown, the value is not computable/proportional,
+ *    or a cap truncates the value (no honest linear break-even exists).
  */
 export const calculateFeeBreakEvenSpend = (
   card: CreditCard,
+  estimate: CardRewardEstimate,
   allocation: CategoryAllocation
 ): number | null => {
   if (card.annualFee === null) return null;
   if (card.annualFee === 0) return 0;
+  if (estimate.annualValueBdt === null || estimate.annualValueBdt <= 0) return null;
 
-  const rates = parseRewardRates(card.rewardPointsPolicy || '');
-  const totalSpend =
-    allocation.dining +
-    allocation.travel +
-    allocation.groceries +
-    allocation.fuel +
-    allocation.other;
+  const slope = estimateValueSlope(card, estimate, allocation);
+  if (slope === null || slope <= 0) return null;
 
-  if (totalSpend <= 0) return null;
-
-  const weightedRate =
-    (allocation.dining / totalSpend) * rates.dining +
-    (allocation.travel / totalSpend) * rates.travel +
-    (allocation.groceries / totalSpend) * rates.groceries +
-    (allocation.fuel / totalSpend) * rates.fuel +
-    (allocation.other / totalSpend) * rates.other;
-
-  if (weightedRate <= 0) return null;
-
-  return card.annualFee / (12 * weightedRate * POINT_VALUE_BDT);
+  return card.annualFee / (12 * slope);
 };
 
 /**
@@ -200,15 +432,25 @@ export const calculateFeeBreakEvenSpend = (
  */
 export interface RankedCard {
   card: CreditCard;
-  annualRewardValue: number;
-  netAnnualValue: number;
+  estimate: CardRewardEstimate;
+  annualPoints: number | null;
+  annualRewardValue: number | null;
+  netAnnualValue: number | null;
   breakEvenMonthlySpend: number | null;
 }
 
+const hasRankingSignal = (estimate: CardRewardEstimate): boolean =>
+  (estimate.annualPoints !== null && estimate.annualPoints > 0) ||
+  (estimate.annualValueBdt !== null && estimate.annualValueBdt > 0);
+
 /**
- * Rank cards by net annual value (annual estimated rewards minus annual
- * fee), descending. Cards with unknown annual fees, unparseable reward
- * policies, or inactive status are excluded so that nothing is invented.
+ * Rank cards for display:
+ *  - cards with a computable annual BDT value (bank-stated point value and/or
+ *    cashback) rank above cards with estimated points but no published value;
+ *  - inside each group, cards with a known annual fee sort by net annual value
+ *    (rewards − fee) and unknown-fee cards follow at the bottom of the group;
+ *  - cards with no reward signal, unknown fee in the points-only group remain
+ *    visible but rank below anything with a value — a value is never invented.
  * Returns at most `limit` entries.
  */
 export const rankCards = (
@@ -217,24 +459,38 @@ export const rankCards = (
   limit = 5
 ): RankedCard[] => {
   return cards
-    .filter(card => {
-      if (!card || card.annualFee === null || !card.isActive) return false;
-      const rates = parseRewardRates(card.rewardPointsPolicy || '');
-      const hasParseablePolicy =
-        rates.dining > 0 ||
-        rates.travel > 0 ||
-        rates.groceries > 0 ||
-        rates.fuel > 0 ||
-        rates.other > 0;
-      return hasParseablePolicy;
+    .filter(card => Boolean(card) && card.isActive)
+    .map(card => {
+      const estimate = computeCardEstimate(card, allocation);
+      const netAnnualValue =
+        card.annualFee === null || estimate.annualValueBdt === null
+          ? null
+          : estimate.annualValueBdt - card.annualFee;
+      return {
+        card,
+        estimate,
+        annualPoints: estimate.annualPoints,
+        annualRewardValue: estimate.annualValueBdt,
+        netAnnualValue,
+        breakEvenMonthlySpend: calculateFeeBreakEvenSpend(card, estimate, allocation),
+      } as RankedCard;
     })
-    .map(card => ({
-      card,
-      annualRewardValue: calculateAnnualRewardValue(card, allocation),
-      netAnnualValue: calculateNetAnnualValue(card, allocation) as number,
-      breakEvenMonthlySpend: calculateFeeBreakEvenSpend(card, allocation),
-    }))
-    .sort((a, b) => b.netAnnualValue - a.netAnnualValue)
+    .filter(ranked => hasRankingSignal(ranked.estimate))
+    .sort((a, b) => {
+      // Group 0: cards with a positive annual BDT value; group 1: the rest.
+      const tierOf = (ranked: RankedCard): number =>
+        ranked.annualRewardValue !== null && ranked.annualRewardValue > 0 ? 0 : 1;
+      if (tierOf(a) !== tierOf(b)) return tierOf(a) - tierOf(b);
+      // Known fees first within a tier, then by net / value / points descending.
+      if ((a.netAnnualValue === null) !== (b.netAnnualValue === null)) {
+        return a.netAnnualValue === null ? 1 : -1;
+      }
+      const netDiff = (b.netAnnualValue ?? 0) - (a.netAnnualValue ?? 0);
+      if (netDiff !== 0) return netDiff;
+      const valueDiff = (b.annualRewardValue ?? 0) - (a.annualRewardValue ?? 0);
+      if (valueDiff !== 0) return valueDiff;
+      return (b.annualPoints ?? 0) - (a.annualPoints ?? 0);
+    })
     .slice(0, limit);
 };
 
