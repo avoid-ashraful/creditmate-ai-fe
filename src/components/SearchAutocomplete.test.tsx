@@ -397,7 +397,9 @@ describe('SearchAutocomplete – HomePage integration', () => {
   it('typing "other" into the hero search triggers typeahead and filters results on Enter', async () => {
     renderHomePage();
 
-    const searchInput = screen.getByPlaceholderText(/Search by card name/i);
+    const searchInput = screen.getByRole('combobox', {
+      name: /Search credit cards by name, bank, or features/,
+    });
     await userEvent.type(searchInput, 'other');
 
     await waitFor(() => {
@@ -417,7 +419,9 @@ describe('SearchAutocomplete – HomePage integration', () => {
   it('selecting a category suggestion from autocomplete applies the category filter', async () => {
     renderHomePage();
 
-    const searchInput = screen.getByPlaceholderText(/Search by card name/i);
+    const searchInput = screen.getByRole('combobox', {
+      name: /Search credit cards by name, bank, or features/,
+    });
     await userEvent.type(searchInput, 'tra');
 
     await waitFor(() => {
