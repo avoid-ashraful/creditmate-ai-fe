@@ -213,3 +213,43 @@
   box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);
   transform: translateY(-2px);
 }
+
+/* Ranked-result groups (bank-valued cards vs estimated points only) */
+.ranking-group-heading {
+  font-size: 1.05rem;
+  color: #1e293b;
+  margin: 1.25rem 0 0.75rem;
+}
+
+.ranked-card-rules-applied {
+  font-size: 0.85rem;
+  color: #475569;
+  margin: 0 0 0.5rem;
+}
+
+.ranked-card-rule-details {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.ranked-card-rule-details summary {
+  cursor: pointer;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.ranked-card-rule-texts {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ranked-card-point-value-note,
+.ranked-card-reward-source {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}

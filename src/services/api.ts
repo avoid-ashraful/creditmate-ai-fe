@@ -1,5 +1,14 @@
 import { ENV } from '../config/env';
-import { CreditCard, Bank, CardFilterOptions, CardNetwork, ReportIssueInput } from '../types';
+import {
+  CreditCard,
+  Bank,
+  CardFilterOptions,
+  CardNetwork,
+  CashbackRule,
+  ReportIssueInput,
+  RewardCategory,
+  RewardEarnRule,
+} from '../types';
 
 import { responseApiError, resilientFetch } from './apiError';
 export { ApiError } from './apiError';
@@ -29,6 +38,13 @@ export interface CreditCardApiResponse {
   late_payment_fee?: string;
   annual_fee_waiver_policy?: Record<string, unknown> | null;
   reward_points_policy?: string;
+  // Structured reward fields (DRF JSONField lists and DecimalField string)
+  reward_program_name?: string;
+  reward_earn_rules?: unknown;
+  cashback_rules?: unknown;
+  reward_point_value_bdt?: number | string | null;
+  points_expiry_text?: string;
+  reward_source_url?: string;
   additional_features?: unknown[];
   is_active: boolean;
   has_lounge_access?: boolean;
@@ -97,6 +113,63 @@ export const normalizeLoungeAccess = (value: string | number | null | undefined)
   }
   if (/^\d+\s+visits?$/i.test(trimmed)) return trimmed;
   return trimmed;
+};
+
+/** Reward rule categories mirrored from the backend validator. */
+const REWARD_CATEGORIES: ReadonlySet<RewardCategory> = new Set<RewardCategory>([
+  'all',
+  'dining',
+  'travel',
+  'groceries',
+  'fuel',
+  'online',
+  'international',
+  'other',
+]);
+
+const REWARD_TEXT_FALLBACK = '';
+
+/**
+ * Normalize the structured reward rules the backend sends as JSONField lists.
+ * Only structurally valid entries are kept; anything malformed, non-positive,
+ * or wrongly typed is dropped so the calculator never sees invented numbers.
+ * Empty or malformed input yields an empty list (never fabricated rules).
+ */
+const normalizeEarnRule = (value: unknown): RewardEarnRule | null => {
+  if (typeof value !== 'object' || value === null) return null;
+  const raw = value as Record<string, unknown>;
+  const category = String(raw.category ?? '') as RewardCategory;
+  if (!REWARD_CATEGORIES.has(category)) return null;
+  const pointsPerUnit = normalizeDecimal(raw.points_per_unit as number | string | null);
+  const spendUnitBdt = normalizeDecimal(raw.spend_unit_bdt as number | string | null);
+  if (pointsPerUnit === null || pointsPerUnit <= 0 || spendUnitBdt === null || spendUnitBdt <= 0) {
+    return null;
+  }
+  const text = typeof raw.text === 'string' ? raw.text : REWARD_TEXT_FALLBACK;
+  return { category, pointsPerUnit, spendUnitBdt, text };
+};
+
+const normalizeCashbackRule = (value: unknown): CashbackRule | null => {
+  if (typeof value !== 'object' || value === null) return null;
+  const raw = value as Record<string, unknown>;
+  const category = String(raw.category ?? '') as RewardCategory;
+  if (!REWARD_CATEGORIES.has(category)) return null;
+  const percent = normalizeDecimal(raw.percent as number | string | null);
+  if (percent === null || percent <= 0) return null;
+  const rawCap = raw.cap_text;
+  const capText =
+    rawCap === null || rawCap === undefined
+      ? null
+      : typeof rawCap === 'string' && rawCap.trim() !== ''
+      ? rawCap
+      : null;
+  const text = typeof raw.text === 'string' ? raw.text : REWARD_TEXT_FALLBACK;
+  return { category, percent, capText, text };
+};
+
+const normalizeRuleList = <T>(value: unknown, rule: (entry: unknown) => T | null): T[] => {
+  if (!Array.isArray(value)) return [];
+  return value.map(entry => rule(entry)).filter((r): r is T => r !== null);
 };
 
 /**
@@ -343,6 +416,13 @@ class ApiService {
       latePaymentFee: apiCard.late_payment_fee ?? '',
       annualFeeWaiverPolicy: apiCard.annual_fee_waiver_policy ?? null,
       rewardPointsPolicy: apiCard.reward_points_policy ?? '',
+      rewardProgramName: apiCard.reward_program_name ?? '',
+      rewardEarnRules: normalizeRuleList(apiCard.reward_earn_rules, normalizeEarnRule),
+      cashbackRules: normalizeRuleList(apiCard.cashback_rules, normalizeCashbackRule),
+      // Present only when the bank itself states a redemption value; never assumed.
+      rewardPointValueBdt: normalizeDecimal(apiCard.reward_point_value_bdt),
+      pointsExpiryText: apiCard.points_expiry_text ?? '',
+      rewardSourceUrl: apiCard.reward_source_url ?? '',
       additionalFeatures: apiCard.additional_features ?? [],
       isActive: apiCard.is_active,
       sourceUrl: apiCard.source_url || '',

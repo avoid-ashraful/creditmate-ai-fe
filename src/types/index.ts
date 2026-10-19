@@ -24,6 +24,44 @@ export type CardNetwork =
   | 'other'
   | '';
 
+/**
+ * Structured reward rule categories. Mirrors the backend validator
+ * (credit_cards.validators.validate_earn_rules); 'all' is the fallback rule
+ * that applies to every spend category.
+ */
+export type RewardCategory =
+  | 'all'
+  | 'dining'
+  | 'travel'
+  | 'groceries'
+  | 'fuel'
+  | 'online'
+  | 'international'
+  | 'other';
+
+/**
+ * One points-earn rule as published by the bank. `text` is the bank's
+ * verbatim wording; numbers are taken from the structured fields, never
+ * re-parsed from the text.
+ */
+export interface RewardEarnRule {
+  category: RewardCategory;
+  pointsPerUnit: number;
+  spendUnitBdt: number;
+  text: string;
+}
+
+/**
+ * One cashback rule as published by the bank. `capText` is the bank's
+ * verbatim cap wording (null when the bank publishes no cap).
+ */
+export interface CashbackRule {
+  category: RewardCategory;
+  percent: number;
+  capText: string | null;
+  text: string;
+}
+
 /** Body of POST /credit-cards/{id}/report-issue/ */
 export interface ReportIssueInput {
   field?: string;
@@ -52,6 +90,15 @@ export interface CreditCard {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   annualFeeWaiverPolicy: Record<string, any> | null; // Waiver policy structure varies by bank
   rewardPointsPolicy: string;
+  // Structured reward data (normalized in the API service; absent in older fixtures).
+  // Absent/null always means unknown, never 0, and a point value is only
+  // present when the bank itself states a redemption value.
+  rewardProgramName?: string;
+  rewardEarnRules?: RewardEarnRule[];
+  cashbackRules?: CashbackRule[];
+  rewardPointValueBdt?: number | null;
+  pointsExpiryText?: string;
+  rewardSourceUrl?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   additionalFeatures: any[]; // Using any as features can be of various types and structures
   sourceUrl: string; // bank schedule of charges ('' when unknown)
