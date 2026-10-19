@@ -7,6 +7,9 @@
 import type { Language } from './types';
 
 export interface CommonCopy {
+  fullDetails: string;
+  moreDetails: string;
+
   // ThemeToggle
   themeToggleAriaLabel: string;
   themeLight: string;
@@ -373,6 +376,8 @@ export interface CommonCopy {
 export const COMMON_COPY: Record<Language, CommonCopy> = {
   en: {
     // ThemeToggle
+    fullDetails: 'Full details',
+    moreDetails: 'more',
     themeToggleAriaLabel: 'Toggle dark mode',
     themeLight: 'Light',
     themeDark: 'Dark',
@@ -764,6 +769,8 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
   },
   bn: {
     // ThemeToggle
+    fullDetails: 'সম্পূর্ণ বিবরণ',
+    moreDetails: 'আরও',
     themeToggleAriaLabel: 'ডার্ক মোড টগল করুন',
     themeLight: 'লাইট',
     themeDark: 'ডার্ক',

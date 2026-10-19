@@ -4,6 +4,8 @@ import { useLanguage, getCommonCopy, getCardDetailCopy, getNetworkLabel } from '
 import { CreditCard } from '../types';
 import { getComparisonSummary } from '../utils/narratives';
 
+import CardTextSummary from './CardTextSummary';
+
 interface CardComparisonTableProps {
   cards: CreditCard[];
   highlightDifferences?: boolean;
@@ -49,46 +51,50 @@ const getFeatures = (
   {
     key: 'cash-advance-fee',
     label: common.cashAdvanceFeeLabel,
-    value: card => card.cashAdvanceFee,
+    value: card => <CardTextSummary text={card.cashAdvanceFee || common.unknown} />,
     differenceKey: 'cashAdvanceFee',
     group: 'Costs',
   },
   {
     key: 'late-payment-fee',
     label: common.latePaymentFeeLabel,
-    value: card => card.latePaymentFee,
+    value: card => <CardTextSummary text={card.latePaymentFee || common.unknown} />,
     differenceKey: 'latePaymentFee',
     group: 'Costs',
   },
   {
     key: 'supplementary-fee',
     label: detail.specSupplementaryFee,
-    value: card => card.supplementaryCardFee || common.unknown,
+    value: card => <CardTextSummary text={card.supplementaryCardFee || common.unknown} />,
     differenceKey: 'supplementaryCardFee',
     group: 'Costs',
   },
   {
     key: 'foreign-transaction-fee',
     label: detail.specForeignTransactionFee,
-    value: card => card.foreignTransactionFee || common.unknown,
+    value: card => <CardTextSummary text={card.foreignTransactionFee || common.unknown} />,
     differenceKey: 'foreignTransactionFee',
     group: 'Costs',
   },
   {
     key: 'fee-waiver',
     label: common.annualFeeWaiverLabel,
-    value: card => card.annualFeeWaiverPolicy?.conditions || common.unknown,
+    value: card => (
+      <CardTextSummary text={card.annualFeeWaiverPolicy?.conditions || common.unknown} />
+    ),
     group: 'Costs',
   },
   {
     key: 'international-lounge',
     label: common.filterLabelHasInternationalLounge,
     value: card =>
-      card.loungeAccessInternational === null
-        ? common.unknown
-        : card.loungeAccessInternational === ''
-        ? common.loungeNotListed
-        : card.loungeAccessInternational,
+      card.loungeAccessInternational === null ? (
+        common.unknown
+      ) : card.loungeAccessInternational === '' ? (
+        common.loungeNotListed
+      ) : (
+        <CardTextSummary text={card.loungeAccessInternational} lounge />
+      ),
     differenceKey: 'loungeAccessInternational',
     group: 'Benefits',
   },
@@ -96,18 +102,20 @@ const getFeatures = (
     key: 'domestic-lounge',
     label: common.filterLabelHasDomesticLounge,
     value: card =>
-      card.loungeAccessDomestic === null
-        ? common.unknown
-        : card.loungeAccessDomestic === ''
-        ? common.loungeNotListed
-        : card.loungeAccessDomestic,
+      card.loungeAccessDomestic === null ? (
+        common.unknown
+      ) : card.loungeAccessDomestic === '' ? (
+        common.loungeNotListed
+      ) : (
+        <CardTextSummary text={card.loungeAccessDomestic} lounge />
+      ),
     differenceKey: 'loungeAccessDomestic',
     group: 'Benefits',
   },
   {
     key: 'reward-points',
     label: common.cardRewards,
-    value: card => card.rewardPointsPolicy,
+    value: card => <CardTextSummary text={card.rewardPointsPolicy || common.unknown} />,
     group: 'Benefits',
   },
   {
@@ -117,7 +125,9 @@ const getFeatures = (
       card.additionalFeatures.length ? (
         <ul className="feature-list">
           {card.additionalFeatures.map((feature, index) => (
-            <li key={`${card.id}-feature-${index}`}>{feature}</li>
+            <li key={`${card.id}-feature-${index}`}>
+              <CardTextSummary text={feature} />
+            </li>
           ))}
         </ul>
       ) : (

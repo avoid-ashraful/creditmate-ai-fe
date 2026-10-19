@@ -5,6 +5,7 @@ import { useLanguage, getCommonCopy, getCardDetailCopy, getNetworkLabel } from '
 import { AnimatedCard, GradientButton } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
 import { slugify } from '../utils/slugify';
+import { summarizeCardText } from '../utils/summarizeCardText';
 
 interface CardListItemProps {
   card: CreditCard;
@@ -62,10 +63,10 @@ const CardListItem: React.FC<CardListItemProps> = ({
 
     const parts: string[] = [];
     if (intl !== null && intl !== '') {
-      parts.push(`${intl} ${common.intlSuffix}`);
+      parts.push(`${summarizeCardText(intl, true)} ${common.intlSuffix}`);
     }
     if (dom !== null && dom !== '') {
-      parts.push(`${dom} ${common.domesticSuffix}`);
+      parts.push(`${summarizeCardText(dom, true)} ${common.domesticSuffix}`);
     }
 
     if (parts.length === 0) {
@@ -123,14 +124,14 @@ const CardListItem: React.FC<CardListItemProps> = ({
 
       <div className="card-rewards">
         <h4>{common.cardRewards}</h4>
-        <p>{card.rewardPointsPolicy}</p>
+        <p>{summarizeCardText(card.rewardPointsPolicy || '')}</p>
       </div>
 
       <div className="card-features">
         <h4>{common.cardKeyFeatures}</h4>
         <ul className="feature-list">
           {card.additionalFeatures?.slice(0, 2).map((feature, index) => (
-            <li key={index}>{feature}</li>
+            <li key={index}>{summarizeCardText(feature)}</li>
           ))}
           {card.additionalFeatures && card.additionalFeatures.length > 2 && (
             <li className="more-features">
