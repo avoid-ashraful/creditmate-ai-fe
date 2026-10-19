@@ -170,6 +170,7 @@
 
 .pros-cons-section,
 .specs-section,
+.rewards-section,
 .fee-waiver-section,
 .features-section {
   background: var(--color-background-surface);
@@ -180,6 +181,7 @@
 
 .pros-cons-section h2,
 .specs-section h2,
+.rewards-section h2,
 .fee-waiver-section h2,
 .features-section h2,
 .similar-cards-section h2,
@@ -188,6 +190,25 @@
   font-weight: var(--typography-font-weight-semibold);
   margin: 0 0 var(--spacing-lg);
   color: var(--color-text-primary);
+}
+
+.rewards-list {
+  margin: 0;
+}
+
+.rewards-row + .rewards-row {
+  border-top: 1px solid var(--color-border-base);
+  padding-top: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.rewards-rule-list {
+  margin: 0;
+  padding-left: var(--spacing-lg, 1.25rem);
+}
+
+.reward-rule-text {
+  color: var(--color-text-secondary);
 }
 
 .pros-cons-grid {

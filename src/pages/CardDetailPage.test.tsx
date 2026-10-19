@@ -273,6 +273,72 @@ describe('CardDetailPage', () => {
     expect(screen.getByText('Rewards Policy')).toBeInTheDocument();
   });
 
+  test('renders the structured rewards section with program, rules, point value and source', async () => {
+    mockApiService.getCreditCards.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: mockCard.id,
+          bank_id: mockCard.bankId,
+          bank_name: mockCard.bankName,
+          name: mockCard.name,
+          annual_fee: mockCard.annualFee,
+          interest_rate_apr: mockCard.interestRateApr,
+          cash_advance_fee: mockCard.cashAdvanceFee,
+          late_payment_fee: mockCard.latePaymentFee,
+          annual_fee_waiver_policy: mockCard.annualFeeWaiverPolicy,
+          reward_points_policy: '',
+          reward_program_name: 'EBL Reward Points',
+          reward_earn_rules: [
+            {
+              category: 'all',
+              points_per_unit: 1,
+              spend_unit_bdt: 50,
+              text: 'Earn 1 point for every BDT 50 spent.',
+            },
+          ],
+          cashback_rules: [
+            {
+              category: 'dining',
+              percent: 5,
+              cap_text: 'up to BDT 300 monthly',
+              text: '5% cashback on dining, up to BDT 300 monthly.',
+            },
+          ],
+          reward_point_value_bdt: '0.3333',
+          points_expiry_text: 'Points expire 24 months after being earned.',
+          reward_source_url: 'https://www.ebl.com.bd/reward-terms',
+          additional_features: [],
+          source_url: mockCard.sourceUrl,
+          is_active: true,
+          modified: '2025-05-15',
+          images: mockCard.images,
+        },
+      ],
+    });
+
+    renderWithRouter();
+
+    const rewardsSection = (await screen.findByRole('heading', { name: 'Rewards' })).closest(
+      'section'
+    ) as HTMLElement;
+    expect(rewardsSection).not.toBeNull();
+    expect(rewardsSection).toHaveTextContent('EBL Reward Points');
+    expect(rewardsSection).toHaveTextContent('All spending');
+    expect(rewardsSection).toHaveTextContent('Earn 1 point for every BDT 50 spent.');
+    expect(rewardsSection).toHaveTextContent('5% cashback');
+    expect(rewardsSection).toHaveTextContent('up to BDT 300 monthly');
+    // The bank-stated point value is shown verbatim, not assumed.
+    expect(rewardsSection).toHaveTextContent('BDT 0.3333');
+    expect(rewardsSection).toHaveTextContent('Points expire 24 months after being earned.');
+    const sourceLink = rewardsSection.querySelector(
+      'a[href="https://www.ebl.com.bd/reward-terms"]'
+    );
+    expect(sourceLink).not.toBeNull();
+  });
+
   test('displays pros and cons derived from card data', async () => {
     renderWithRouter();
 
