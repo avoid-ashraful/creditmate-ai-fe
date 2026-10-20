@@ -367,16 +367,7 @@ describe('RecommendationQuiz', () => {
         answers,
       });
 
-      const mockLocation = {
-        ...window.location,
-        search: `?quiz_result=${encoded}`,
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      window.history.replaceState({}, '', `/?quiz_result=${encoded}`);
 
       renderQuiz();
 
@@ -398,16 +389,7 @@ describe('RecommendationQuiz', () => {
         answers,
       });
 
-      const mockLocation = {
-        ...window.location,
-        search: `?quiz_result=${encoded}`,
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      window.history.replaceState({}, '', `/?quiz_result=${encoded}`);
 
       renderQuiz();
 

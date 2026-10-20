@@ -1,8 +1,6 @@
 {
-  "projectId": "${CHROMATIC_PROJECT_ID}",
   "onlyChanged": true,
   "exitZeroOnChanges": true,
-  "autoAcceptChanges": "main",
   "buildScriptName": "build-storybook",
   "storybookBuildDir": "storybook-static",
   "exitOnceUploaded": true

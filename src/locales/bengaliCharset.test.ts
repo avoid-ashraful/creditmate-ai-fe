@@ -39,7 +39,7 @@ const isAllowed = (codePoint: number): boolean =>
   (codePoint >= 0x0980 && codePoint <= 0x09ff) || // Bengali block (includes ৳ U+09F3)
   ALLOWED_EXTRA.has(codePoint);
 
-export const disallowedCharacters = (line: string): string[] =>
+const disallowedCharacters = (line: string): string[] =>
   Array.from(line).filter(ch => !isAllowed(ch.codePointAt(0) as number));
 
 const sourceFiles = (dir: string): string[] =>

@@ -15,8 +15,8 @@ A comprehensive credit card comparison platform designed specifically for Bangla
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- npm or yarn package manager
+- Node.js 24 LTS (`nvm use`, using the committed `.nvmrc`)
+- npm 11 or newer; use the committed `package-lock.json`
 
 ### Installation
 
@@ -30,7 +30,7 @@ cd credit-mate-ai
 2. Install dependencies:
 
 ```bash
-npm install
+npm ci
 ```
 
 3. Start the development server:
@@ -44,7 +44,8 @@ npm start
 ## 🛠️ Available Scripts
 
 - `npm start` - Runs the app in development mode
-- `npm test` - Launches the test runner in interactive watch mode
+- `npm test` - Runs Jest once; `npm run test:watch` enables watch mode
+- `npm run test:ci` - Runs all unit tests with one worker for CI
 - `npm run build` - Builds the app for production
 - `npm run lint` - Runs ESLint to check code quality
 - `npm run format` - Formats code using Prettier
@@ -53,12 +54,12 @@ npm start
 ## 🏗️ Tech Stack
 
 - **Frontend**: React 18 with TypeScript
-- **Routing**: React Router DOM v6
+- **Routing**: React Router DOM v7
 - **Styling**: Styled Components + CSS
 - **Animations**: Framer Motion & React Spring
 - **Testing**: Jest & React Testing Library
 - **Code Quality**: ESLint, Prettier, Husky
-- **Build Tool**: Create React App
+- **Build Tool**: Vite 8; Jest 30 with Babel; TypeScript 5.9
 
 ## 📱 Pages
 
@@ -236,3 +237,32 @@ For questions, suggestions, or issues:
 ---
 
 **Made with ❤️ for the Bangladeshi financial community**
+
+## Frontend tooling and environment
+
+Use Node 24 and `npm ci` for a clean, reproducible installation. Vite serves development
+on port 3000 (`PORT` can override it), and `npm run build` writes `build/`. The bundle
+budget checks JavaScript files in `build/static/`; preview the build with `npm run preview`.
+Run `npm run check-types`, `npm run check-lint`, `npm run check-format`, and
+`npm run test:ci` before merging. Storybook has its own production check:
+`npm run storybook:build`.
+
+Existing `.env` / `.env.local` settings using `REACT_APP_*` remain supported, including
+`REACT_APP_API_BASE_URL` and the dynamic validation in `src/config/env.ts`. These are
+public browser configuration: never place credentials in `REACT_APP_*` or `VITE_*`
+variables. Vite injects only public prefixes, `NODE_ENV`, and `PUBLIC_URL`, rather than
+the server's full environment. `PUBLIC_URL=/credit/` sets the static asset base; manifest,
+icons, and the early theme script follow it. Application routes currently assume deployment
+at the domain root; a subdirectory deployment also needs a matching router basename.
+
+CI runs on pull requests and pushes to `master` using Node 24, pinned actions, locked
+installs, read-only permissions, and a synthetic API URL. It does not require production
+credentials or publish externally. See [Storybook publishing](docs/storybook-publishing.md)
+for an optional, explicitly initiated upload.
+
+The migration removes Create React App and its retired build pipeline. React 18 remains
+supported by Router 7; the application still uses its declarative router APIs. On 2026-10-20, `npm audit --omit=dev` reports zero production vulnerabilities. The full
+audit reports 38 development-inclusive findings (15 high, 22 moderate, 1 low), chiefly
+in Storybook and lint dependencies. Review `npm audit` and
+`npm audit --omit=dev` separately; upgrades to Storybook and lint tooling need their own
+compatibility checks rather than an unreviewed `npm audit fix --force`.
