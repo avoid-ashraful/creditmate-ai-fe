@@ -8,6 +8,7 @@ import ComparisonBar from '../components/ComparisonBar';
 import SearchAutocomplete, { AutocompleteSelection } from '../components/SearchAutocomplete';
 import { SkeletonCardGrid } from '../components/Skeleton';
 import Toast from '../components/Toast';
+import { CATEGORIES } from '../config/categories';
 import { useThemeContext } from '../hooks/ThemeProvider';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import {
@@ -16,6 +17,7 @@ import {
   getCommonCopy,
   getCardDetailCopy,
   getNetworkLabel,
+  getCategoryText,
 } from '../locales';
 import {
   advancedSearchService,
@@ -110,7 +112,6 @@ const AdvancedSearchPage: React.FC = () => {
   const navigate = useNavigate();
   const navigationType = useNavigationType();
   const { lang } = useLanguage();
-  const { isAuthenticated } = useAuth();
   const { isDark } = useThemeContext();
   const common = getCommonCopy(lang);
   const detailCopy = getCardDetailCopy(lang);
@@ -316,7 +317,11 @@ const AdvancedSearchPage: React.FC = () => {
   const handleFilterChange = useCallback((updates: Partial<AdvancedSearchUIState>) => {
     // Only reset page to 1 for actual filter changes, not for explicit pagination
     const isPagination = Object.keys(updates).length === 1 && 'page' in updates;
-    setUiState(prev => ({ ...prev, ...updates, page: isPagination ? updates.page : 1 }));
+    setUiState(prev => ({
+      ...prev,
+      ...updates,
+      page: isPagination ? updates.page ?? prev.page : 1,
+    }));
     const filterKeys = Object.keys(updates).filter(k => k !== 'page');
     if (filterKeys.length > 0) {
       analytics.track(ANALYTICS_EVENTS.filterApply, {
@@ -750,7 +755,12 @@ const AdvancedSearchPage: React.FC = () => {
                     onChange={() => cat.count > 0 && handleCategoryToggle(cat.slug)}
                     disabled={cat.count === 0}
                   />
-                  <span className="category-name">{getCategoryText(cat as any, lang).name}</span>
+                  <span className="category-name">
+                    {(() => {
+                      const category = CATEGORIES.find(item => item.slug === cat.slug);
+                      return category ? getCategoryText(category, lang).name : cat.name;
+                    })()}
+                  </span>
                   <span className="category-count" data-testid={`category-count-${cat.slug}`}>
                     {cat.count}
                   </span>
@@ -1268,30 +1278,32 @@ const AdvancedSearchPage: React.FC = () => {
                 const params = uiStateToParams(uiState);
                 const normalized = await advancedSearchService.normalize(params);
 
-                if (isAuthenticated) {
-                  // Save to user's saved searches via API
-                  // This would require a saved searches endpoint
-                  console.log('Save search for authenticated user:', normalized);
-                  // For now, show success toast
-                } else {
-                  // Save to localStorage for anonymous users
-                  const savedSearches = JSON.parse(localStorage.getItem('savedSearches') || '[]');
-                  savedSearches.push({
-                    ...normalized,
-                    savedAt: new Date().toISOString(),
-                  });
-                  localStorage.setItem('savedSearches', JSON.stringify(savedSearches));
-                }
+                const savedSearches = JSON.parse(localStorage.getItem('savedSearches') || '[]');
+                savedSearches.push({
+                  ...normalized,
+                  savedAt: new Date().toISOString(),
+                });
+                localStorage.setItem('savedSearches', JSON.stringify(savedSearches));
                 // Show success toast
                 // We'll use a simple alert for now
-                alert(pickLang(lang, 'Search saved successfully!', 'অনুসন্ধান সফলভাবে সংরক্ষিত!'));
+                alert(
+                  pickLang(
+                    lang,
+                    'Search saved on this device.',
+                    'এই ডিভাইসে অনুসন্ধান সংরক্ষিত হয়েছে।'
+                  )
+                );
               } catch (err) {
                 console.error('Failed to save search:', err);
                 alert(pickLang(lang, 'Failed to save search', 'অনুসন্ধান সংরক্ষণ ব্যর্থ'));
               }
             }}
           >
-            {pickLang(lang, '💾 Save Search', '💾 অনুসন্ধান সংরক্ষণ করুন')}
+            {pickLang(
+              lang,
+              '💾 Save Search on This Device',
+              '💾 এই ডিভাইসে অনুসন্ধান সংরক্ষণ করুন'
+            )}
           </button>
         </div>
       )}

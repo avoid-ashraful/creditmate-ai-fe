@@ -121,6 +121,26 @@ describe('SavedPage', () => {
     );
   });
 
+  it('publishes a collection and copies its anonymous collection URL', async () => {
+    await authenticated();
+    const user = userEvent.setup();
+    server.use(
+      rest.get('*/api/v1/saved/collections/', (_req, res, ctx) => res(ctx.json([collection]))),
+      rest.get('*/api/v1/saved/comparisons/', (_req, res, ctx) => res(ctx.json([]))),
+      rest.patch('*/api/v1/saved/collections/9/', async (req, res, ctx) => {
+        expect(await req.json()).toEqual({ is_public: true });
+        return res(ctx.json({ ...collection, is_public: true, slug: 'travel-cards' }));
+      })
+    );
+    renderWithAuth(routes, { route: '/saved' });
+    await user.click(await screen.findByRole('button', { name: 'Copy share link' }));
+    await waitFor(async () =>
+      expect(await navigator.clipboard.readText()).toMatch(
+        /\/saved\/shared\/collections\/travel-cards$/
+      )
+    );
+  });
+
   it('reports an API limit error when creating a collection', async () => {
     await authenticated();
     let shareUpdate: unknown;

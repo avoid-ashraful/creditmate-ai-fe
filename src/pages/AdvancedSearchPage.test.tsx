@@ -61,6 +61,56 @@ describe('AdvancedSearchPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: /Advanced Search/i })).toBeInTheDocument();
   });
 
+  it('saves normalized search terms on this device before confirming success', async () => {
+    const normalized = {
+      normalized_query: {},
+      query_hash: 'islamic',
+      canonical_string: 'is_islamic=true',
+    };
+    const normalize = jest.spyOn(advancedSearchService, 'normalize').mockResolvedValue(normalized);
+    const alert = jest.spyOn(window, 'alert').mockImplementation(() => undefined);
+    localStorage.removeItem('savedSearches');
+    try {
+      renderAdvancedSearch('/search?is_islamic=true');
+      await userEvent.click(
+        await screen.findByRole('button', { name: /save search on this device/i })
+      );
+      await waitFor(() => expect(alert).toHaveBeenCalledWith('Search saved on this device.'));
+      expect(normalize).toHaveBeenCalledWith(expect.objectContaining({ is_islamic: true }));
+      expect(JSON.parse(localStorage.getItem('savedSearches') || '[]')).toEqual([
+        { ...normalized, savedAt: expect.any(String) },
+      ]);
+    } finally {
+      normalize.mockRestore();
+      alert.mockRestore();
+      localStorage.removeItem('savedSearches');
+    }
+  });
+
+  it('reports storage failures without claiming the search was saved', async () => {
+    const normalize = jest
+      .spyOn(advancedSearchService, 'normalize')
+      .mockResolvedValue({ normalized_query: {}, query_hash: 'empty', canonical_string: '' });
+    const alert = jest.spyOn(window, 'alert').mockImplementation(() => undefined);
+    const write = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('Storage unavailable');
+    });
+    const log = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      renderAdvancedSearch();
+      await userEvent.click(
+        await screen.findByRole('button', { name: /save search on this device/i })
+      );
+      await waitFor(() => expect(alert).toHaveBeenCalledWith('Failed to save search'));
+      expect(alert).toHaveBeenCalledTimes(1);
+    } finally {
+      normalize.mockRestore();
+      alert.mockRestore();
+      write.mockRestore();
+      log.mockRestore();
+    }
+  });
+
   describe('URL synchronization', () => {
     const advance = async (ms: number) => {
       for (let elapsed = 0; elapsed < ms; elapsed += 50) {

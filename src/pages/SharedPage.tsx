@@ -5,16 +5,19 @@ import { getSavedCopy, useLanguage } from '../locales';
 import { savedService, SharedSavedItem } from '../services/saved';
 import '../styles/SavedPages.css';
 
-const SharedPage: React.FC = () => {
-  const { token = '' } = useParams();
+const SharedPage: React.FC<{ kind?: 'comparison' | 'collection' }> = ({ kind = 'comparison' }) => {
+  const { token = '', slug = '' } = useParams();
   const { lang } = useLanguage();
   const t = getSavedCopy(lang);
   const [item, setItem] = useState<SharedSavedItem | null>(null);
   const [missing, setMissing] = useState(false);
   useEffect(() => {
     let active = true;
-    savedService
-      .shared(token)
+    setItem(null);
+    setMissing(false);
+    const request =
+      kind === 'collection' ? savedService.sharedCollection(slug) : savedService.shared(token);
+    request
       .then(value => {
         if (active) setItem(value);
       })
@@ -24,7 +27,7 @@ const SharedPage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [token, slug, kind]);
   if (missing)
     return (
       <section className="saved-page">
