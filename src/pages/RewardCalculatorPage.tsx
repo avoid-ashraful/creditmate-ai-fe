@@ -136,6 +136,16 @@ const RewardCalculatorPage: React.FC = () => {
       if (submitted) {
         setSubmitted(false);
         setErrors({});
+      } else if (value < 0) {
+        // Show field error immediately for negative values
+        setErrors(prev => ({ ...prev, [key]: 'Enter a non-negative amount' }));
+      } else if (errors[key]) {
+        // Clear field error when value becomes valid
+        setErrors(prev => {
+          const next = { ...prev };
+          delete next[key];
+          return next;
+        });
       }
     };
 
@@ -321,7 +331,7 @@ const RewardCalculatorPage: React.FC = () => {
             return (
               <div className="input-group" key={key}>
                 <label htmlFor={`spend-${key}`}>
-                  {common[labelKey as keyof typeof common]} (BDT / month):
+                  {common[labelKey as keyof typeof common]} ({common.calcCurrencyPerMonth}):
                 </label>
                 <input
                   type="number"

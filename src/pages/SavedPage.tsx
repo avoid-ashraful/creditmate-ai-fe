@@ -43,7 +43,7 @@ const SavedPage: React.FC = () => {
         item.is_public && item.share_token
           ? item
           : await savedService.updateComparison(item.id, { is_public: true });
-      await copyLink(updated.share_token);
+      await copyLink(updated.share_token, 'comparison');
       await refresh();
     } catch (e) {
       setError(savedErrorMessage(e));
@@ -52,20 +52,27 @@ const SavedPage: React.FC = () => {
   const copyCollectionLink = async (item: SavedCollection) => {
     try {
       const updated =
-        item.is_public && item.share_token
+        item.is_public && item.slug
           ? item
           : await savedService.updateCollection(item.id, { is_public: true });
-      await copyLink(updated.share_token);
+      await copyLink(updated.slug);
       await refresh();
     } catch (e) {
       setError(savedErrorMessage(e));
     }
   };
-  const copyLink = async (token?: string | null) => {
-    if (!token) throw new Error('Share token was not returned');
-    await navigator.clipboard.writeText(
-      `${window.location.origin}/shared/${encodeURIComponent(token)}`
-    );
+  const copyLink = async (slugOrToken?: string | null, type?: 'collection' | 'comparison') => {
+    if (!slugOrToken) throw new Error('Share slug/token was not returned');
+    if (type === 'comparison') {
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/shared/${encodeURIComponent(slugOrToken)}`
+      );
+    } else {
+      // Collections use slug
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/saved/shared/collections/${encodeURIComponent(slugOrToken)}`
+      );
+    }
   };
   const createCollection = async (event: React.FormEvent) => {
     event.preventDefault();

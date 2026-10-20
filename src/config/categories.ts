@@ -45,7 +45,7 @@ export const CATEGORIES: Category[] = [
       'write-read-community-reviews',
       'advanced-search-filters',
     ],
-    filters: { hasLoungeAccess: true, ordering: '-lounge_access_international' },
+    filters: { hasLoungeAccess: true, ordering: '-lounge_entitlement' },
   },
   {
     slug: 'cashback',

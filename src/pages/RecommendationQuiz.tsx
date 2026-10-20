@@ -55,6 +55,16 @@ const RecommendationQuiz: React.FC = () => {
   const [apiError, setApiError] = useState<string | null>(null);
   const [shareMessage, setShareMessage] = useState<string>('');
 
+  // Steps in order for navigation
+  const steps: StepType[] = [
+    STEPS.spend,
+    STEPS.use,
+    STEPS.travel,
+    STEPS.fee,
+    STEPS.tier,
+    STEPS.results,
+  ];
+
   useEffect(() => {
     setSeoMeta({
       title: 'Smart Credit Card Finder Quiz',
@@ -150,6 +160,10 @@ const RecommendationQuiz: React.FC = () => {
     ];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
+      // Validate that an answer has been selected for the current step
+      if (!isStepAnswered(currentStep)) {
+        return; // Don't advance if no answer selected
+      }
       const nextStep = steps[currentIndex + 1];
       if (currentStep === STEPS.spend) {
         analytics.track(ANALYTICS_EVENTS.quizStart);
@@ -159,6 +173,23 @@ const RecommendationQuiz: React.FC = () => {
       if (nextStep === STEPS.results) {
         generateResults();
       }
+    }
+  };
+
+  const isStepAnswered = (step: StepType): boolean => {
+    switch (step) {
+      case STEPS.spend:
+        return quizState.monthlySpend > 0;
+      case STEPS.use:
+        return !!quizState.primaryUse;
+      case STEPS.travel:
+        return !!quizState.travelFrequency;
+      case STEPS.fee:
+        return !!quizState.feeTolerance;
+      case STEPS.tier:
+        return !!quizState.cardTier;
+      default:
+        return true;
     }
   };
 
@@ -296,7 +327,9 @@ const RecommendationQuiz: React.FC = () => {
         <div className="quiz-progress-bar">
           <div className="progress-fill" style={{ width: `${progress}%` }} />
           <div className="progress-label">
-            {common.quizProgressLabel} {stepIndex + 1} of {progressSteps.length}
+            {common.quizProgressLabel
+              .replace('{current}', String(stepIndex + 1))
+              .replace('{total}', String(progressSteps.length))}
           </div>
         </div>
       )}
@@ -551,6 +584,7 @@ const RecommendationQuiz: React.FC = () => {
             <button
               onClick={handleNext}
               className="nav-btn next-btn"
+              disabled={!isStepAnswered(steps[stepIndex])}
               aria-label={`${stepIndex === 4 ? common.quizNavSeeResults : common.quizNavNext}: ${
                 lang === 'bn' ? 'পরের ধাপ বা ফলাফল দেখুন' : 'Go to next step or see results'
               }`}

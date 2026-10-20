@@ -202,7 +202,7 @@ describe('RecommendationQuiz', () => {
 
     it('navigates through all 5 steps', async () => {
       renderQuiz();
-      const user = userEvent.setup();
+      const user = userEvent;
 
       await waitFor(() => {
         expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
@@ -241,7 +241,7 @@ describe('RecommendationQuiz', () => {
 
     it('enables previous button after first step', async () => {
       renderQuiz();
-      const user = userEvent.setup();
+      const user = userEvent;
 
       await waitFor(() => {
         expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
@@ -256,7 +256,7 @@ describe('RecommendationQuiz', () => {
   describe('Spending Selection', () => {
     it('updates spend value when slider changes', async () => {
       renderQuiz();
-      const user = userEvent.setup();
+      const user = userEvent;
 
       await waitFor(() => {
         const slider = screen.getByRole('slider', { name: /Monthly spending/i });
@@ -270,7 +270,7 @@ describe('RecommendationQuiz', () => {
 
     it('allows preset button selection', async () => {
       renderQuiz();
-      const user = userEvent.setup();
+      const user = userEvent;
 
       await waitFor(() => {
         expect(screen.getByText(/20k/)).toBeInTheDocument();
@@ -288,7 +288,7 @@ describe('RecommendationQuiz', () => {
   describe('Results Display', () => {
     it('renders recommended cards after quiz completion', async () => {
       renderQuiz();
-      const user = userEvent.setup();
+      const user = userEvent;
 
       await waitFor(() => {
         expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
@@ -310,7 +310,7 @@ describe('RecommendationQuiz', () => {
 
     it('labels each result with a match score instead of a bare number', async () => {
       renderQuiz();
-      const user = userEvent.setup();
+      const user = userEvent;
 
       await waitFor(() => {
         expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
@@ -332,7 +332,7 @@ describe('RecommendationQuiz', () => {
 
     it('shows action buttons on results step', async () => {
       renderQuiz();
-      const user = userEvent.setup();
+      const user = userEvent;
 
       await waitFor(() => {
         expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
@@ -439,7 +439,7 @@ describe('RecommendationQuiz', () => {
 
     it('supports keyboard navigation', async () => {
       renderQuiz();
-      const user = userEvent.setup();
+      const user = userEvent;
 
       await waitFor(() => {
         expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
@@ -471,7 +471,7 @@ describe('RecommendationQuiz', () => {
   describe('Share Functionality', () => {
     it('shows share button and is clickable', async () => {
       renderQuiz();
-      const user = userEvent.setup();
+      const user = userEvent;
 
       await waitFor(() => {
         expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
@@ -497,7 +497,7 @@ describe('RecommendationQuiz', () => {
   describe('Retake Quiz', () => {
     it('resets quiz to first step when retaking', async () => {
       renderQuiz();
-      const user = userEvent.setup();
+      const user = userEvent;
 
       await waitFor(() => {
         expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();

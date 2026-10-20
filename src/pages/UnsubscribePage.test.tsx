@@ -76,7 +76,7 @@ describe('UnsubscribePage', () => {
     (alertsClient.unsubscribe as jest.Mock).mockResolvedValue({
       detail: 'Unsubscribed successfully',
     });
-    const user = userEvent.setup();
+    const user = userEvent;
     renderUnsubscribePage();
 
     await user.click(await screen.findByRole('button', { name: 'Unsubscribe me' }));
@@ -105,7 +105,7 @@ describe('UnsubscribePage', () => {
 
   it('shows an error when confirming fails', async () => {
     (alertsClient.unsubscribe as jest.Mock).mockRejectedValue(new TypeError('Network error'));
-    const user = userEvent.setup();
+    const user = userEvent;
     renderUnsubscribePage();
 
     await user.click(await screen.findByRole('button', { name: 'Unsubscribe me' }));

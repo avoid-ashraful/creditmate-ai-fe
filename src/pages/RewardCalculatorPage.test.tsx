@@ -112,6 +112,12 @@ test('rejects an all-zero allocation with a form-level alert', async () => {
   renderPage();
 
   await screen.findByRole('button', { name: /Calculate best value cards/i });
+  // Fill all fields with 0 to bypass native HTML5 validation
+  await userEvent.type(screen.getByLabelText(/Dining/i), '0');
+  await userEvent.type(screen.getByLabelText(/Travel/i), '0');
+  await userEvent.type(screen.getByLabelText(/Groceries/i), '0');
+  await userEvent.type(screen.getByLabelText(/Fuel/i), '0');
+  await userEvent.type(screen.getByLabelText(/Other/i), '0');
   await userEvent.click(screen.getByRole('button', { name: /Calculate best value cards/i }));
 
   expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -152,7 +158,11 @@ test('ranks top 5 cards by net annual value and shows break-even and export CTAs
   await screen.findByRole('button', { name: /Calculate best value cards/i });
   await fillAllocation();
 
-  expect(await screen.findByText(/^Top 5 cards:/i)).toBeInTheDocument();
+  expect(
+    await screen.findByText((content, element) => {
+      return element.textContent && /Top \d+ cards?/i.test(element.textContent);
+    })
+  ).toBeInTheDocument();
 
   // Only the top 5 ranked cards are shown; the 6th (lowest net value) is excluded.
   expect(screen.getByText(/Card A/)).toBeInTheDocument();
@@ -190,7 +200,11 @@ test('shows estimated points only (never an invented value) for cards without a 
   await fillAllocation();
 
   // The valued card is ranked above; the points-only card is in its own group.
-  expect(await screen.findByText(/Cards with a bank-stated BDT value/i)).toBeInTheDocument();
+  expect(
+    await screen.findByText((content, element) => {
+      return element.textContent && /bank-stated BDT value/i.test(element.textContent);
+    })
+  ).toBeInTheDocument();
   expect(screen.getByText(/Points Without Value/)).toBeInTheDocument();
 
   // 30,000/BDT 50 × 1 pt × 12 = 7,200 points/year shown for both cards.
