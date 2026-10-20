@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import React, { useEffect, Suspense, lazy } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 
 import { MotionProvider, pageVariants, usePrefersReducedMotion } from './animations';
@@ -346,6 +346,7 @@ export const AppContent: React.FC = () => {
   const { lang, setLang } = useLanguage();
   const isBengali = lang === 'bn';
   const legalNav = getLegalNav(lang);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Prefetch lazy-loaded routes on hover/focus of nav links
   useNavLinkPrefetch();
@@ -364,7 +365,21 @@ export const AppContent: React.FC = () => {
               CreditMate AI
             </Link>
           </div>
-          <nav className="main-nav" aria-label={isBengali ? 'প্রধান নেভিগেশন' : 'Main navigation'}>
+          <button
+            type="button"
+            className="mobile-menu-toggle"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="main-navigation"
+            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          >
+            {isMobileMenuOpen ? '✕' : '☰'}
+          </button>
+          <nav
+            className={'main-nav' + (isMobileMenuOpen ? ' is-open' : '')}
+            id="main-navigation"
+            aria-label={isBengali ? 'প্রধান নেভিগেশন' : 'Main navigation'}
+          >
             <ul>
               {NAV_ITEMS.map(item => (
                 <li key={item.to}>

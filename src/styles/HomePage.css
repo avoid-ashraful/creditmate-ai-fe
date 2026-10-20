@@ -41,7 +41,7 @@
   line-height: 1.1;
 }
 
-.hero-section p {
+.hero-section .hero-content > p {
   font-size: 1.25rem;
   margin-bottom: var(--spacing-2xl);
   color: rgba(255, 255, 255, 0.9);
