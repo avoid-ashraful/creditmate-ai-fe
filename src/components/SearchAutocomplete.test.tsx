@@ -6,13 +6,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { server } from '../mocks/jest.setup';
 import HomePage from '../pages/HomePage';
 import { apiService } from '../services/api';
-import { parseTypeaheadResponse, highlightParts } from '../services/typeahead';
+import { parseDidYouMean, parseTypeaheadResponse, highlightParts } from '../services/typeahead';
 
 import SearchAutocomplete from './SearchAutocomplete';
-
-// Helper to test defensive parsing (non-exported function)
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { parseDidYouMean } = require('../services/typeahead');
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
@@ -69,7 +65,7 @@ const renderAutocomplete = (
 
 const renderHomePage = () =>
   render(
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/compare" element={<div />} />

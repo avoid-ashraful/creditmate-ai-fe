@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim AS build
+FROM node:24-bookworm-slim AS build
 
 WORKDIR /app
 
@@ -9,19 +9,20 @@ ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
 RUN node -e 'const url = new URL(process.env.REACT_APP_API_BASE_URL); const hostname = url.hostname.toLowerCase(); if (url.protocol !== "https:" || hostname === "localhost" || hostname.endsWith(".localhost") || hostname === "::1" || hostname.startsWith("127.")) { console.error("REACT_APP_API_BASE_URL must be a public HTTPS API base URL"); process.exit(1); }'
 
 COPY package.json package-lock.json ./
-RUN npm ci --legacy-peer-deps
+RUN npm ci
 
 COPY . .
 
 RUN npm run build
 
-FROM node:20-bookworm-slim AS runtime
+FROM node:24-bookworm-slim AS runtime
 
 WORKDIR /app
 ENV PORT=3000
 COPY --from=build /app/build ./build
-COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/package-lock.json ./package-lock.json
+RUN npm ci --omit=dev --ignore-scripts
 RUN useradd --create-home --shell /bin/bash app && chown -R app:app /app
 USER app
 EXPOSE 3000

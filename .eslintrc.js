@@ -18,13 +18,11 @@ module.exports = {
     },
   },
   extends: [
-    'react-app',
-    'react-app/jest',
     'plugin:react/recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
   ],
-  plugins: ['react', 'react-hooks', '@typescript-eslint', 'import'],
+  plugins: ['react', 'react-hooks', '@typescript-eslint', 'import', 'jest', 'testing-library'],
   rules: {
     // Basic rules
     'max-len': [
@@ -59,10 +57,14 @@ module.exports = {
   },
   overrides: [
     {
+      files: ['**/*.test.{js,jsx,ts,tsx}', '**/*.spec.{js,jsx,ts,tsx}'],
+      extends: ['plugin:jest/recommended', 'plugin:testing-library/react'],
+    },
+    {
       files: ['**/*.stories.js', '**/*.stories.jsx', '**/*.stories.ts', '**/*.stories.tsx'],
       rules: {
         // Story handlers are intentionally inert when rendering controls.
-        '@typescript-eslint/no-empty-function': 'off',
+        'no-empty-function': 'off',
         // Storybook's CSF contract uses the default export as story metadata.
         'import/no-anonymous-default-export': 'off',
       },

@@ -24,7 +24,7 @@ describe('shared API failure handling', () => {
   });
 
   it('retries GET server failures with exponential backoff, at most twice', async () => {
-    jest.useFakeTimers('legacy');
+    jest.useFakeTimers({ legacyFakeTimers: true });
     const fetchMock = jest
       .spyOn(global, 'fetch')
       .mockResolvedValueOnce(new Response('', { status: 500 }))
@@ -59,7 +59,7 @@ describe('shared API failure handling', () => {
   });
 
   it('returns the final 5xx after two GET retries', async () => {
-    jest.useFakeTimers('legacy');
+    jest.useFakeTimers({ legacyFakeTimers: true });
     const fetchMock = jest
       .spyOn(global, 'fetch')
       .mockResolvedValue(new Response('', { status: 503 }));
@@ -74,7 +74,7 @@ describe('shared API failure handling', () => {
   });
 
   it('stops a pending backoff when the caller aborts', async () => {
-    jest.useFakeTimers('legacy');
+    jest.useFakeTimers({ legacyFakeTimers: true });
     const fetchMock = jest
       .spyOn(global, 'fetch')
       .mockResolvedValue(new Response('', { status: 503 }));

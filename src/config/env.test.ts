@@ -1,4 +1,5 @@
 // Module marker: the file only uses require() so isolatedModules needs an export.
+// eslint-disable-next-line jest/no-export
 export {};
 
 const loadEnv = (nodeEnv: string, logging: string) => {
@@ -9,7 +10,7 @@ const loadEnv = (nodeEnv: string, logging: string) => {
   try {
     let loaded = {} as typeof import('./env');
     jest.isolateModules(() => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       loaded = require('./env');
     });
     return loaded.ENV;
@@ -28,5 +29,25 @@ describe('ENV.ENABLE_API_LOGGING', () => {
 
   it('stays off in development unless explicitly enabled', () => {
     expect(loadEnv('development', 'false').ENABLE_API_LOGGING).toBe(false);
+  });
+});
+
+describe('production API configuration validation', () => {
+  it.each([
+    { apiUrl: undefined, warnings: [['Missing environment variables: REACT_APP_API_BASE_URL']] },
+    { apiUrl: 'https://api.example.invalid/api/v1', warnings: [] },
+  ])('checks the dynamically named required variable for $apiUrl', ({ apiUrl, warnings }) => {
+    const previous = process.env.REACT_APP_API_BASE_URL;
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      if (apiUrl === undefined) delete process.env.REACT_APP_API_BASE_URL;
+      else process.env.REACT_APP_API_BASE_URL = apiUrl;
+      loadEnv('production', 'false');
+      expect(warn.mock.calls).toEqual(warnings);
+    } finally {
+      if (previous === undefined) delete process.env.REACT_APP_API_BASE_URL;
+      else process.env.REACT_APP_API_BASE_URL = previous;
+      warn.mockRestore();
+    }
   });
 });

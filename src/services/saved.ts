@@ -24,7 +24,7 @@ export interface SavedCollection {
   name: string;
   description: string;
   is_public: boolean;
-  share_token?: string | null;
+  slug?: string;
   cards?: SavedCollectionCard[];
 }
 
@@ -88,6 +88,11 @@ export const savedService = {
   },
   shared(token: string) {
     return authClient.requestApi<SharedSavedItem>(`${base}shared/${encodeURIComponent(token)}/`);
+  },
+  sharedCollection(slug: string) {
+    return authClient.requestApi<SharedSavedItem>(
+      `${base}shared/collections/${encodeURIComponent(slug)}/`
+    );
   },
 };
 

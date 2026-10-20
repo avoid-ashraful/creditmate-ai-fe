@@ -32,6 +32,9 @@ export type RewardRates = {
 /** Fallback when a policy cannot be parsed: no assumed rates. */
 const UNKNOWN_RATES: RewardRates = { dining: 0, travel: 0, groceries: 0, fuel: 0, other: 0 };
 
+/** Upper bound (BDT) for an average revolving balance input. */
+export const MAX_AVERAGE_REVOLVING_BALANCE = 100000000;
+
 /**
  * Parse a card's rewardPointsPolicy free text into per-category earn rates
  * (points per BDT). Only patterns actually present in the published data are
@@ -437,11 +440,45 @@ export interface RankedCard {
   annualRewardValue: number | null;
   netAnnualValue: number | null;
   breakEvenMonthlySpend: number | null;
+  /** Average revolving balance used for this ranking (BDT). */
+  averageRevolvingBalance: number;
+  /** Estimated annual interest; null when APR is unavailable for a positive balance. */
+  annualInterest: number | null;
+  /** Net annual value after interest; null when required published terms are unavailable. */
+  netAnnualValueAfterInterest: number | null;
+  /** Whether borrowing cost is known; fee and reward-value availability still apply. */
+  rankable: boolean;
 }
 
 const hasRankingSignal = (estimate: CardRewardEstimate): boolean =>
   (estimate.annualPoints !== null && estimate.annualPoints > 0) ||
   (estimate.annualValueBdt !== null && estimate.annualValueBdt > 0);
+
+/** Optional balance input must be a finite BDT amount within the supported range. */
+export const validateAverageRevolvingBalance = (
+  value: number
+): 'nonNegative' | 'tooLarge' | null => {
+  if (!Number.isFinite(value) || value < 0) return 'nonNegative';
+  if (value > MAX_AVERAGE_REVOLVING_BALANCE) return 'tooLarge';
+  return null;
+};
+
+/** Simple annual cost; missing or invalid APR stays unknown, including Islamic cards. */
+export const estimateAnnualInterest = (
+  card: CreditCard,
+  averageRevolvingBalance: number
+): number | null => {
+  if (validateAverageRevolvingBalance(averageRevolvingBalance)) {
+    throw new RangeError(
+      'Average revolving balance must be finite and between 0 and 100000000 BDT'
+    );
+  }
+  if (averageRevolvingBalance === 0) return 0;
+  const apr = card.interestRateApr;
+  if (apr === null || !Number.isFinite(apr) || apr < 0) return null;
+  const interest = averageRevolvingBalance * (apr / 100);
+  return Number.isFinite(interest) ? interest : null;
+};
 
 /**
  * Rank cards for display:
@@ -456,8 +493,15 @@ const hasRankingSignal = (estimate: CardRewardEstimate): boolean =>
 export const rankCards = (
   cards: CreditCard[],
   allocation: CategoryAllocation,
-  limit = 5
+  limit = 5,
+  averageRevolvingBalance = 0
 ): RankedCard[] => {
+  if (validateAverageRevolvingBalance(averageRevolvingBalance)) {
+    throw new RangeError(
+      'Average revolving balance must be finite and between 0 and 100000000 BDT'
+    );
+  }
+
   return cards
     .filter(card => Boolean(card) && card.isActive)
     .map(card => {
@@ -466,6 +510,10 @@ export const rankCards = (
         card.annualFee === null || estimate.annualValueBdt === null
           ? null
           : estimate.annualValueBdt - card.annualFee;
+      const annualInterest = estimateAnnualInterest(card, averageRevolvingBalance);
+      const rankable = annualInterest !== null;
+      const netAnnualValueAfterInterest =
+        netAnnualValue === null || annualInterest === null ? null : netAnnualValue - annualInterest;
       return {
         card,
         estimate,
@@ -473,19 +521,27 @@ export const rankCards = (
         annualRewardValue: estimate.annualValueBdt,
         netAnnualValue,
         breakEvenMonthlySpend: calculateFeeBreakEvenSpend(card, estimate, allocation),
-      } as RankedCard;
+        averageRevolvingBalance,
+        annualInterest,
+        netAnnualValueAfterInterest,
+        rankable,
+      };
     })
     .filter(ranked => hasRankingSignal(ranked.estimate))
     .sort((a, b) => {
+      // Unrankable (unknown APR with a positive balance) never outrank rankable cards.
+      if (a.rankable !== b.rankable) return a.rankable ? -1 : 1;
       // Group 0: cards with a positive annual BDT value; group 1: the rest.
       const tierOf = (ranked: RankedCard): number =>
         ranked.annualRewardValue !== null && ranked.annualRewardValue > 0 ? 0 : 1;
       if (tierOf(a) !== tierOf(b)) return tierOf(a) - tierOf(b);
-      // Known fees first within a tier, then by net / value / points descending.
-      if ((a.netAnnualValue === null) !== (b.netAnnualValue === null)) {
-        return a.netAnnualValue === null ? 1 : -1;
+      // Known fees first within a tier, then by net (after interest when applicable) descending.
+      const netA = a.netAnnualValueAfterInterest ?? a.netAnnualValue;
+      const netB = b.netAnnualValueAfterInterest ?? b.netAnnualValue;
+      if ((netA === null) !== (netB === null)) {
+        return netA === null ? 1 : -1;
       }
-      const netDiff = (b.netAnnualValue ?? 0) - (a.netAnnualValue ?? 0);
+      const netDiff = (netB ?? 0) - (netA ?? 0);
       if (netDiff !== 0) return netDiff;
       const valueDiff = (b.annualRewardValue ?? 0) - (a.annualRewardValue ?? 0);
       if (valueDiff !== 0) return valueDiff;

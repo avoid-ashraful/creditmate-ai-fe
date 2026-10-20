@@ -150,6 +150,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/category/:slug" element={<CategoryPage />} />
         <Route path="/compare" element={<ComparisonPage />} />
         <Route path="/shared/:token" element={<SharedPage />} />
+        <Route path="/saved/shared/collections/:slug" element={<SharedPage kind="collection" />} />
         <Route
           path="/saved"
           element={

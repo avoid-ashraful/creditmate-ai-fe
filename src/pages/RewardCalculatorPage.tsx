@@ -10,9 +10,11 @@ import { fetchAllPages } from '../utils/fetchAllPages';
 import {
   AppliedRule,
   CategoryAllocation,
+  MAX_AVERAGE_REVOLVING_BALANCE,
   rankCards,
   RankedCard,
   validateAllocation,
+  validateAverageRevolvingBalance,
 } from '../utils/rewardCalculator';
 
 import './RewardCalculatorPage.css';
@@ -99,6 +101,8 @@ const RewardCalculatorPage: React.FC = () => {
   );
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [ranked, setRanked] = useState<RankedCard[]>([]);
+  const [averageRevolvingBalance, setAverageRevolvingBalance] = useState<number>(0);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -149,19 +153,32 @@ const RewardCalculatorPage: React.FC = () => {
       }
     };
 
+  const handleBalanceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = event.target.value;
+    const value = raw === '' ? 0 : Number(raw);
+    setAverageRevolvingBalance(value);
+    if (submitted) {
+      setSubmitted(false);
+      setRanked([]);
+    }
+    setBalanceError(validateAverageRevolvingBalance(value));
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const validationErrors = validateAllocation(allocation);
     setErrors(validationErrors);
+    const borrowingError = validateAverageRevolvingBalance(averageRevolvingBalance);
+    setBalanceError(borrowingError);
 
-    if (Object.keys(validationErrors).length > 0) {
+    if (Object.keys(validationErrors).length > 0 || borrowingError) {
       setSubmitted(false);
       setRanked([]);
       return;
     }
 
     setSubmitted(true);
-    const rankedCards = rankCards(cards, allocation, 5);
+    const rankedCards = rankCards(cards, allocation, 5, averageRevolvingBalance);
     setRanked(rankedCards);
     analytics.track(ANALYTICS_EVENTS.calculatorUse);
   };
@@ -208,6 +225,9 @@ const RewardCalculatorPage: React.FC = () => {
       annualRewardValue,
       netAnnualValue,
       breakEvenMonthlySpend,
+      annualInterest,
+      netAnnualValueAfterInterest,
+      rankable,
     } = rankedCard;
     // A card is only shown with a BDT figure when the bank itself states a
     // point value and/or publishes cashback; otherwise points stay unconverted.
@@ -215,8 +235,10 @@ const RewardCalculatorPage: React.FC = () => {
     return (
       <li key={card.id} className="ranked-card">
         <div className="ranked-card-main">
+          {!rankable && <p role="status">{common.calcUnrankableApr}</p>}
           <span className="ranked-card-name">
-            {index + 1}. {card.name}
+            {rankable ? `${index + 1}. ` : ''}
+            {card.name}
           </span>
           <span className="ranked-card-bank">{card.bankName ?? common.unknown}</span>
           <dl className="ranked-card-metrics">
@@ -251,6 +273,34 @@ const RewardCalculatorPage: React.FC = () => {
                   }
                 >
                   {netAnnualValue === null ? common.calcFeeUnknown : formatBdt(netAnnualValue)}
+                </dd>
+              </div>
+            )}
+            {averageRevolvingBalance > 0 && (
+              <div>
+                <dt>{common.calcResultAnnualInterest}</dt>
+                <dd>
+                  {annualInterest === null ? common.calcInterestUnknown : formatBdt(annualInterest)}
+                </dd>
+              </div>
+            )}
+            {hasValue && averageRevolvingBalance > 0 && (
+              <div>
+                <dt>{common.calcResultNetValueAfterInterest}</dt>
+                <dd
+                  className={
+                    netAnnualValueAfterInterest === null
+                      ? undefined
+                      : netAnnualValueAfterInterest >= 0
+                      ? 'positive'
+                      : 'negative'
+                  }
+                >
+                  {netAnnualValueAfterInterest === null
+                    ? annualInterest === null
+                      ? common.calcInterestUnknown
+                      : common.calcFeeUnknown
+                    : formatBdt(netAnnualValueAfterInterest)}
                 </dd>
               </div>
             )}
@@ -310,12 +360,17 @@ const RewardCalculatorPage: React.FC = () => {
 
   const valuedCards = ranked.filter(
     rankedCard =>
-      rankedCard.estimate.annualValueBdt !== null && rankedCard.estimate.annualValueBdt > 0
+      rankedCard.rankable &&
+      rankedCard.estimate.annualValueBdt !== null &&
+      rankedCard.estimate.annualValueBdt > 0
   );
   const pointsOnlyCards = ranked.filter(
     rankedCard =>
+      rankedCard.rankable &&
       !(rankedCard.estimate.annualValueBdt !== null && rankedCard.estimate.annualValueBdt > 0)
   );
+
+  const unrankableCards = ranked.filter(rankedCard => !rankedCard.rankable);
 
   return (
     <div className="reward-calculator-page">
@@ -363,6 +418,36 @@ const RewardCalculatorPage: React.FC = () => {
             </p>
           )}
 
+          <div className="input-group">
+            <label htmlFor="avg-revolving-balance">
+              {common.calcAverageRevolvingBalance} ({common.calcCurrencyBdt}):
+            </label>
+            <input
+              type="number"
+              id="avg-revolving-balance"
+              name="averageRevolvingBalance"
+              min="0"
+              max={MAX_AVERAGE_REVOLVING_BALANCE}
+              step="any"
+              value={averageRevolvingBalance || ''}
+              onChange={handleBalanceChange}
+              aria-invalid={Boolean(balanceError)}
+              aria-describedby={`avg-revolving-balance-hint${
+                balanceError ? ' avg-revolving-balance-error' : ''
+              }`}
+            />
+            <p className="field-hint" id="avg-revolving-balance-hint">
+              {common.calcAverageRevolvingBalanceHint}
+            </p>
+            {balanceError && (
+              <p className="field-error" id="avg-revolving-balance-error" role="alert">
+                {balanceError === 'tooLarge'
+                  ? common.calcBalanceTooLarge
+                  : common.calcBalanceNonNegative}
+              </p>
+            )}
+          </div>
+
           <button
             type="submit"
             className="calculate-button"
@@ -378,6 +463,8 @@ const RewardCalculatorPage: React.FC = () => {
             <li>{common.calcAssumption1}</li>
             <li>{common.calcAssumption2}</li>
             <li>{common.calcAssumption3}</li>
+            <li>{common.calcAssumption4}</li>
+            <li>{common.calcAssumption5}</li>
           </ul>
         </div>
       </section>
@@ -402,7 +489,9 @@ const RewardCalculatorPage: React.FC = () => {
         ) : (
           <>
             <h2>
-              {common.calcResultsTitle} {ranked.length} {common.calcRankedCardsSuffix}
+              {averageRevolvingBalance > 0
+                ? common.calcBorrowingResultsTitle
+                : `${common.calcResultsTitle} ${ranked.length} ${common.calcRankedCardsSuffix}`}
             </h2>
             {valuedCards.length > 0 && (
               <>
@@ -418,6 +507,14 @@ const RewardCalculatorPage: React.FC = () => {
                 <ol className="ranked-card-list">
                   {pointsOnlyCards.map((rankedCard, index) => rankedCardItem(rankedCard, index))}
                 </ol>
+              </>
+            )}
+            {unrankableCards.length > 0 && (
+              <>
+                <h3 className="ranking-group-heading">{common.calcUnknownAprHeading}</h3>
+                <ul className="ranked-card-list">
+                  {unrankableCards.map((rankedCard, index) => rankedCardItem(rankedCard, index))}
+                </ul>
               </>
             )}
           </>

@@ -64,7 +64,9 @@ beforeEach(() => {
 afterEach(() => {
   try {
     if (!allowConsoleErrors) {
+      // eslint-disable-next-line jest/no-standalone-expect
       expect(consoleError).not.toHaveBeenCalled();
+      // eslint-disable-next-line jest/no-standalone-expect
       expect(consoleWarn).not.toHaveBeenCalled();
     }
   } finally {
@@ -77,7 +79,7 @@ const renderRoutes = () =>
   render(
     <LanguageProvider>
       <AuthProvider>
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/compare" element={<ComparisonPage />} />

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* eslint-disable no-console, @typescript-eslint/no-var-requires */
+/* eslint-disable no-console, @typescript-eslint/no-require-imports */
 /**
  * Bundle Size Budget Check Script
  *
@@ -57,7 +57,7 @@ Environment variables:
   BUNDLE_BUDGET_KB    Same as --budget
   BUILD_DIR           Same as --build-dir
 
-The script checks all *.js files in the build/static/js directory
+The script checks all *.js files in the build/static directory
 and their gzipped sizes against the budget.
 `);
 }
@@ -81,7 +81,7 @@ function formatBytes(bytes) {
 
 function checkBundleBudget(config) {
   const buildDir = path.resolve(config.buildDir);
-  const jsDir = path.join(buildDir, 'static', 'js');
+  const jsDir = path.join(buildDir, 'static');
 
   if (!fs.existsSync(jsDir)) {
     console.error(`❌ Build directory not found: ${jsDir}`);
