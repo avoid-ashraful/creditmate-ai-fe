@@ -1,9 +1,10 @@
 /* eslint-disable testing-library/no-node-access */
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
+import { getCommonCopy, LanguageProvider } from '../locales';
 import { apiService } from '../services/api';
 import { CreditCard } from '../types';
 
@@ -158,11 +159,7 @@ test('ranks top 5 cards by net annual value and shows break-even and export CTAs
   await screen.findByRole('button', { name: /Calculate best value cards/i });
   await fillAllocation();
 
-  expect(
-    await screen.findByText((content, element) => {
-      return element.textContent && /Top \d+ cards?/i.test(element.textContent);
-    })
-  ).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: /Top \d+ cards?/i })).toBeInTheDocument();
 
   // Only the top 5 ranked cards are shown; the 6th (lowest net value) is excluded.
   expect(screen.getByText(/Card A/)).toBeInTheDocument();
@@ -201,9 +198,7 @@ test('shows estimated points only (never an invented value) for cards without a 
 
   // The valued card is ranked above; the points-only card is in its own group.
   expect(
-    await screen.findByText((content, element) => {
-      return element.textContent && /bank-stated BDT value/i.test(element.textContent);
-    })
+    await screen.findByRole('heading', { name: /bank-stated BDT value/i })
   ).toBeInTheDocument();
   expect(screen.getByText(/Points Without Value/)).toBeInTheDocument();
 
@@ -272,3 +267,74 @@ test('caps cashback at the bank-stated monthly cap and skips the break-even', as
   expect(item).toHaveTextContent('Not computable with current allocation');
   expect(item).toHaveTextContent('5% cashback up to BDT 300 monthly.');
 });
+
+test('shows borrowing cost and updates ranking for a carried balance', async () => {
+  getCardsSpy.mockResolvedValue(
+    apiResponse([
+      { ...baseCard, id: 1, name: 'Higher APR', annualFee: 0, interestRateApr: 30 },
+      { ...baseCard, id: 2, name: 'Lower APR', annualFee: 1000, interestRateApr: 10 },
+    ])
+  );
+  const { container } = renderPage();
+  await screen.findByRole('button', { name: /Calculate best value cards/i });
+  await fillAllocation();
+  expect(rankedCardItems(container)[0]).toHaveTextContent('Higher APR');
+  const balance = screen.getByRole('spinbutton', { name: /Average revolving balance/i });
+  expect(balance).toHaveAccessibleDescription(/balance you usually carry/);
+  await userEvent.type(balance, '20000');
+  expect(screen.queryByText('Higher APR')).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: /Calculate best value cards/i }));
+  const firstCard = rankedCardItems(container)[0];
+  expect(firstCard).toHaveTextContent('Lower APR');
+  expect(within(firstCard).getByText('BDT 2,000')).toBeInTheDocument();
+  expect(within(firstCard).getByText('BDT 4,200')).toBeInTheDocument();
+  expect(within(firstCard).getByText('Net annual value after interest')).toBeInTheDocument();
+});
+
+test('separates unknown APR cards from ranked cards when borrowing', async () => {
+  getCardsSpy.mockResolvedValue(
+    apiResponse([{ ...baseCard, name: 'Islamic Card', interestRateApr: null }])
+  );
+  renderPage();
+  await screen.findByRole('button', { name: /Calculate best value cards/i });
+  await userEvent.type(screen.getByLabelText(/Dining/i), '10000');
+  await userEvent.type(screen.getByLabelText(/Average revolving balance/i), '10000');
+  await userEvent.click(screen.getByRole('button', { name: /Calculate best value cards/i }));
+  expect(
+    screen.getByRole('heading', { name: /APR unavailable — excluded from ranking/i })
+  ).toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('Cannot be ranked: APR unavailable');
+  expect(screen.getByText('Islamic Card')).toBeInTheDocument();
+  expect(screen.queryByText('1. Islamic Card')).not.toBeInTheDocument();
+});
+
+test.each(['en', 'bn'] as const)(
+  'localizes accessible borrowing errors and assumptions in %s',
+  async lang => {
+    getCardsSpy.mockResolvedValue(apiResponse([baseCard]));
+    const copy = getCommonCopy(lang);
+    render(
+      <BrowserRouter>
+        <LanguageProvider initialLang={lang}>
+          <RewardCalculatorPage />
+        </LanguageProvider>
+      </BrowserRouter>
+    );
+    const button = await screen.findByRole('button', { name: copy.calcCalculateButton });
+    const balance = screen.getByRole('spinbutton', {
+      name: `${copy.calcAverageRevolvingBalance} (${copy.calcCurrencyBdt}):`,
+    });
+    await userEvent.type(screen.getByLabelText(new RegExp(copy.calcCategoryDining)), '10000');
+    fireEvent.change(balance, { target: { value: '-1' } });
+    expect(balance).toHaveAttribute('aria-invalid', 'true');
+    expect(balance).toHaveAccessibleDescription(
+      expect.stringContaining(copy.calcBalanceNonNegative)
+    );
+    fireEvent.change(balance, { target: { value: '100000001' } });
+    expect(screen.getByRole('alert')).toHaveTextContent(copy.calcBalanceTooLarge);
+    await userEvent.click(button);
+    expect(screen.getByRole('alert')).toHaveTextContent(copy.calcBalanceTooLarge);
+    expect(screen.getByText(copy.calcAssumption4)).toBeInTheDocument();
+    expect(screen.getByText(copy.calcAssumption5)).toBeInTheDocument();
+  }
+);

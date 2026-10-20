@@ -4,10 +4,13 @@ import {
   calculateFeeBreakEvenSpend,
   CategoryAllocation,
   computeCardEstimate,
+  estimateAnnualInterest,
+  MAX_AVERAGE_REVOLVING_BALANCE,
   parseCashbackCap,
   parseRewardRates,
   rankCards,
   validateAllocation,
+  validateAverageRevolvingBalance,
 } from './rewardCalculator';
 
 const buildCard = (overrides: Partial<CreditCard>): CreditCard => ({
@@ -474,5 +477,86 @@ describe('validateAllocation', () => {
   it('rejects non-finite values', () => {
     const errors = validateAllocation({ ...SPEND, fuel: NaN });
     expect(errors.fuel).toBe('Enter a non-negative amount');
+  });
+});
+
+describe('borrowing cost scenario', () => {
+  const valuedCard = (overrides: Partial<CreditCard> = {}) =>
+    buildCard({
+      annualFee: 0,
+      rewardEarnRules: [allRule()],
+      rewardPointValueBdt: 1,
+      ...overrides,
+    });
+
+  it('changes the ranking when interest outweighs higher rewards', () => {
+    const highReward = valuedCard({ id: 1, interestRateApr: 30 });
+    const lowerApr = valuedCard({
+      id: 2,
+      interestRateApr: 10,
+      annualFee: 1000,
+    });
+    expect(rankCards([highReward, lowerApr], SPEND).map(r => r.card.id)).toEqual([1, 2]);
+    const ranked = rankCards([highReward, lowerApr], SPEND, 5, 20000);
+    expect(ranked.map(r => r.card.id)).toEqual([2, 1]);
+    expect(ranked[0].annualInterest).toBe(2000);
+    expect(ranked[0].netAnnualValueAfterInterest).toBe(4200);
+    expect(ranked[1].netAnnualValueAfterInterest).toBe(1200);
+  });
+
+  it('preserves the existing order and net values when balance is zero', () => {
+    const cards = [valuedCard({ id: 1, interestRateApr: null }), valuedCard({ id: 2 })];
+    expect(rankCards(cards, SPEND)).toEqual(rankCards(cards, SPEND, 5, 0));
+    rankCards(cards, SPEND).forEach(result => {
+      expect(result.annualInterest).toBe(0);
+      expect(result.netAnnualValueAfterInterest).toBe(result.netAnnualValue);
+    });
+  });
+
+  it('respects published zero APR and zero annual fee', () => {
+    const result = rankCards([valuedCard({ interestRateApr: 0 })], SPEND, 5, 100000)[0];
+    expect(result.annualInterest).toBe(0);
+    expect(result.netAnnualValueAfterInterest).toBe(7200);
+    expect(result.rankable).toBe(true);
+  });
+
+  it.each([null, NaN, Infinity, -10])('keeps unavailable or invalid APR %p unrankable', apr => {
+    const unknown = valuedCard({ id: 1, interestRateApr: apr });
+    const known = valuedCard({ id: 2, annualFee: 20000 });
+    const results = rankCards([unknown, known], SPEND, 5, 10000);
+    expect(results.map(r => r.card.id)).toEqual([2, 1]);
+    expect(results[1].rankable).toBe(false);
+    expect(results[1].annualInterest).toBeNull();
+    expect(results[1].netAnnualValueAfterInterest).toBeNull();
+  });
+
+  it('does not infer free borrowing for an Islamic card without APR', () => {
+    const card = valuedCard({ name: 'Islamic Card', interestRateApr: null });
+    expect(estimateAnnualInterest(card, 10000)).toBeNull();
+    expect(rankCards([card], SPEND, 5, 10000)[0].rankable).toBe(false);
+  });
+
+  it('keeps unknown fees and point values unknown after interest', () => {
+    expect(
+      rankCards([valuedCard({ annualFee: null })], SPEND, 5, 10000)[0].netAnnualValueAfterInterest
+    ).toBeNull();
+    expect(
+      rankCards([valuedCard({ rewardPointValueBdt: null })], SPEND, 5, 10000)[0]
+        .netAnnualValueAfterInterest
+    ).toBeNull();
+  });
+
+  it.each([-1, NaN, Infinity, MAX_AVERAGE_REVOLVING_BALANCE + 1])(
+    'rejects invalid balance %p rather than silently changing the scenario',
+    balance => {
+      expect(validateAverageRevolvingBalance(balance)).not.toBeNull();
+      expect(() => estimateAnnualInterest(valuedCard(), balance)).toThrow(RangeError);
+      expect(() => rankCards([], SPEND, 5, balance)).toThrow(RangeError);
+    }
+  );
+
+  it('accepts the bounded balance endpoints', () => {
+    expect(validateAverageRevolvingBalance(0)).toBeNull();
+    expect(validateAverageRevolvingBalance(MAX_AVERAGE_REVOLVING_BALANCE)).toBeNull();
   });
 });

@@ -194,6 +194,7 @@ export interface CommonCopy {
   calcCategoryGroceries: string;
   calcCategoryFuel: string;
   calcCategoryOther: string;
+  calcCurrencyPerMonth: string;
   calcTotalSpend: string;
   calcAssumptionsTitle: string;
   calcAssumption1: string;
@@ -229,6 +230,21 @@ export interface CommonCopy {
   calcSourceLink: string;
   /** Placeholder: {value} */
   calcPointValueStated: string;
+
+  // Borrowing cost scenario
+  calcAverageRevolvingBalance: string;
+  calcAverageRevolvingBalanceHint: string;
+  calcCurrencyBdt: string;
+  calcResultAnnualInterest: string;
+  calcResultNetValueAfterInterest: string;
+  calcInterestUnknown: string;
+  calcUnrankableApr: string;
+  calcUnknownAprHeading: string;
+  calcBorrowingResultsTitle: string;
+  calcBalanceNonNegative: string;
+  calcBalanceTooLarge: string;
+  calcAssumption4: string;
+  calcAssumption5: string;
 
   // HomePage
   homeHeroCtaControl: string;
@@ -571,6 +587,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     calcCategoryGroceries: 'Groceries',
     calcCategoryFuel: 'Fuel',
     calcCategoryOther: 'Other',
+    calcCurrencyPerMonth: 'BDT/month',
     calcTotalSpend: 'Total monthly spend:',
     calcAssumptionsTitle: 'Assumptions',
     calcAssumption1:
@@ -608,6 +625,23 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     calcBankRuleDetails: "The bank's verbatim reward terms",
     calcSourceLink: 'Reward terms source',
     calcPointValueStated: 'The bank states a redemption value of 1 point = BDT {value}.',
+
+    calcBalanceNonNegative: 'Enter a finite, non-negative balance',
+    calcBalanceTooLarge: 'Enter a balance up to BDT 100,000,000',
+    calcAverageRevolvingBalance: 'Average revolving balance',
+    calcAverageRevolvingBalanceHint:
+      'Optional: enter the balance you usually carry month to month. Leave 0 to compare without borrowing costs.',
+    calcCurrencyBdt: 'BDT',
+    calcResultAnnualInterest: 'Est. annual interest',
+    calcResultNetValueAfterInterest: 'Net annual value after interest',
+    calcInterestUnknown: 'APR unknown — interest not estimated',
+    calcUnrankableApr: 'Cannot be ranked: APR unavailable',
+    calcUnknownAprHeading: 'APR unavailable — excluded from ranking',
+    calcBorrowingResultsTitle: 'Comparison with estimated borrowing costs',
+    calcAssumption4:
+      'Borrowing cost uses a simple estimate: average balance × annual APR / 100. It excludes compounding, fees, penalties and cash-advance rates. Break-even spend covers the annual fee only.',
+    calcAssumption5:
+      'Cards without a published APR are never treated as 0% APR and are not given a definitive best ranking when a balance is entered.',
 
     // HomePage
     homeHeroCtaControl: 'Find Your Perfect Credit Card',
@@ -964,6 +998,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     calcCategoryGroceries: 'কিরানা',
     calcCategoryFuel: 'ইঞ্জিন তেল',
     calcCategoryOther: 'অন্যান্য',
+    calcCurrencyPerMonth: 'বিডিটি/মাস',
     calcTotalSpend: 'মোট মাসিক খরচ:',
     calcAssumptionsTitle: 'ধারণা',
     calcAssumption1:
@@ -1001,6 +1036,23 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     calcBankRuleDetails: 'ব্যাংকের নিজস্ব রিওয়ার্ড শর্ত',
     calcSourceLink: 'রিওয়ার্ড শর্তের উৎস',
     calcPointValueStated: 'ব্যাংক ১ পয়েন্ট = বিডিটি {value} রিডেমশন মূল্য ঘোষণা করেছে।',
+
+    calcBalanceNonNegative: 'শূন্য বা তার বেশি একটি সসীম ব্যালেন্স লিখুন',
+    calcBalanceTooLarge: 'সর্বোচ্চ বিডিটি ১০,০০,০০,০০০ ব্যালেন্স লিখুন',
+    calcAverageRevolvingBalance: 'গড় আবর্তনশীল ব্যালেন্স',
+    calcAverageRevolvingBalanceHint:
+      'ঐচ্ছিক: মাসে মাসে যে ব্যালেন্স বহন করেন তা লিখুন। ধারের খরচ ছাড়া তুলনা করতে ০ রাখুন।',
+    calcCurrencyBdt: 'বিডিটি',
+    calcResultAnnualInterest: 'আনুমানিক বার্ষিক সুদ',
+    calcResultNetValueAfterInterest: 'সুদের পরে নিট বার্ষিক মূল্য',
+    calcInterestUnknown: 'এপিআর অজানা — সুদ অনুমান করা হয়নি',
+    calcUnrankableApr: 'র‍্যাঙ্ক করা যায়নি: এপিআর পাওয়া যায়নি',
+    calcUnknownAprHeading: 'এপিআর পাওয়া যায়নি — র‍্যাঙ্কিং থেকে বাদ',
+    calcBorrowingResultsTitle: 'আনুমানিক ধারের খরচসহ তুলনা',
+    calcAssumption4:
+      'ধারের খরচ সরল অনুমান: গড় ব্যালেন্স × বার্ষিক এপিআর / ১০০। এতে চক্রবৃদ্ধি, ফি, জরিমানা ও ক্যাশ-অ্যাডভান্স হার অন্তর্ভুক্ত নয়। ব্রেক-ইভেন খরচে শুধু বার্ষিক ফি ধরা হয়।',
+    calcAssumption5:
+      'প্রকাশিত এপিআর নেই এমন কার্ডকে কখনো ০% এপিআর হিসেবে গণ্য করা হয় না এবং ব্যালেন্স লেখা থাকলে সেগুলোকে নিশ্চিত সেরা র‍্যাঙ্কিং দেওয়া হয় না।',
 
     // HomePage
     homeHeroCtaControl: 'আপনার সঠিক ক্রেডিট কার্ড খুঁজুন',
