@@ -70,6 +70,16 @@ export interface ReportIssueInput {
   contact_email?: string;
 }
 
+/** One component of a CreditMate Score breakdown, as scored by the backend. */
+export interface CreditMateScoreComponent {
+  points: number;
+  max: number;
+  reason: string;
+}
+
+/** Per-component CreditMate Score breakdown, keyed by component name. */
+export type CreditMateScoreBreakdown = Record<string, CreditMateScoreComponent>;
+
 /**
  * Credit Card entity with complete product information
  * Note: annualFee and interestRateApr can be null if data is not available from source
@@ -113,6 +123,9 @@ export interface CreditCard {
   minMonthlyIncome?: number | null;
   supplementaryCardFee?: string;
   foreignTransactionFee?: string;
+  /** CreditMate Score (0-10) from the backend; undefined/null when not scored. */
+  creditmateScore?: number | null;
+  creditmateScoreBreakdown?: CreditMateScoreBreakdown | null;
   isActive: boolean;
   lastUpdated: Date | null; // null when API omits the modified date - freshness stays unknown
   images: {

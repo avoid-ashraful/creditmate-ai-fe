@@ -35,6 +35,10 @@ import '../styles/CardDetailPage.css';
 // bundle; they render below the fold on this page.
 const CardTrustSections = React.lazy(() => import('../components/CardTrustSections'));
 
+// The CreditMate Score section is likewise below the fold; lazy-load it
+// to keep the main bundle inside its budget.
+const ScoreSection = React.lazy(() => import('../components/ScoreSection'));
+
 const CARD_DETAIL_PAGE = 'card-detail-page';
 const METRIC_CLASS = 'metric';
 const LABEL_CLASS = 'label';
@@ -775,6 +779,11 @@ const CardDetailPage: React.FC = () => {
               </tbody>
             </table>
           </section>
+
+          {/* CreditMate Score with its per-component breakdown */}
+          <Suspense fallback={null}>
+            <ScoreSection card={card} />
+          </Suspense>
 
           {/* Data source, verification status and recorded field changes */}
           <Suspense fallback={null}>
