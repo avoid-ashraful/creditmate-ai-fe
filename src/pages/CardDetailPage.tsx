@@ -402,7 +402,13 @@ const CardDetailPage: React.FC = () => {
       <nav aria-label={copy.breadcrumbLabel} className="breadcrumb">
         <Link to="/">{copy.breadcrumbHome}</Link>
         <span aria-hidden="true"> / </span>
-        <span className="breadcrumb-item">{card.bankName}</span>
+        {card.bankName ? (
+          <Link className="breadcrumb-item" to={`/bank/${slugify(card.bankName)}`}>
+            {card.bankName}
+          </Link>
+        ) : (
+          <span className="breadcrumb-item">{card.bankName}</span>
+        )}
         <span aria-hidden="true"> / </span>
         <span className="breadcrumb-item" aria-current="page">
           {card.name}

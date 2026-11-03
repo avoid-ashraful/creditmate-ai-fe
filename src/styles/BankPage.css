@@ -1,0 +1,131 @@
+.bank-breadcrumb {
+  margin-bottom: 1rem;
+}
+
+.bank-logo {
+  max-height: 72px;
+  max-width: 220px;
+  object-fit: contain;
+}
+
+.bank-website {
+  margin-top: 0.5rem;
+}
+
+.bank-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin: 0 auto 2rem;
+}
+
+.bank-stat {
+  min-width: 140px;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border-base, #e2e2e2);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.bank-stat dt {
+  font-size: 0.85rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.bank-stat dd {
+  margin: 0.35rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.bank-cards-heading {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.bank-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.banks-search {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.banks-search input {
+  width: min(420px, 100%);
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--color-border-base, #ccc);
+  border-radius: 999px;
+  font-size: 1rem;
+}
+
+.banks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bank-tile-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 1.25rem 1rem;
+  border: 1px solid var(--color-border-base, #e2e2e2);
+  border-radius: 12px;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.bank-tile-link:hover,
+.bank-tile-link:focus-visible {
+  border-color: var(--color-brand-gradient-from, #6c4bd8);
+}
+
+.bank-tile-logo {
+  height: 48px;
+  max-width: 140px;
+  object-fit: contain;
+}
+
+.bank-tile-logo-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-gradient-from) 0%,
+    var(--color-brand-gradient-to) 100%
+  );
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.bank-tile-name {
+  font-weight: 600;
+}
+
+.bank-tile-count {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.banks-no-results {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #666;
+}

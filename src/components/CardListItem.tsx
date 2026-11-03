@@ -94,7 +94,17 @@ const CardListItem: React.FC<CardListItemProps> = ({
 
       <div className="card-header">
         <h3 className="card-name">{card.name}</h3>
-        <span className="bank-name">{card.bankName || common.unknownBank}</span>
+        {card.bankName ? (
+          <a
+            className="bank-name"
+            href={`/bank/${slugify(card.bankName)}`}
+            onClick={event => event.stopPropagation()}
+          >
+            {card.bankName}
+          </a>
+        ) : (
+          <span className="bank-name">{common.unknownBank}</span>
+        )}
         {(networkLabel || card.isIslamic) && (
           <span className="card-badges">
             {networkLabel && <span className="card-badge card-badge-network">{networkLabel}</span>}
