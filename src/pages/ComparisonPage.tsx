@@ -31,6 +31,7 @@ const ComparisonPage: React.FC = () => {
   const [comparisonId, setComparisonId] = useState<string>('');
   const [shareMessage, setShareMessage] = useState<string>('');
   const [saveMessage, setSaveMessage] = useState<string>('');
+  const [differencesOnly, setDifferencesOnly] = useState<boolean>(false);
 
   const saveComparison = async () => {
     if (status !== AUTH_STATUS.authenticated) {
@@ -197,7 +198,25 @@ const ComparisonPage: React.FC = () => {
               </div>
             </div>
 
-            <CardComparisonTable cards={selectedCards} highlightDifferences={true} />
+            <div className="comparison-toolbar">
+              <label className="differences-toggle">
+                <input
+                  type="checkbox"
+                  checked={differencesOnly}
+                  onChange={event => setDifferencesOnly(event.target.checked)}
+                />
+                {common.comparisonDifferencesOnlyLabel}
+              </label>
+              <button className="print-button" onClick={() => window.print()}>
+                {common.comparisonPrintButton}
+              </button>
+            </div>
+
+            <CardComparisonTable
+              cards={selectedCards}
+              highlightDifferences={true}
+              differencesOnly={differencesOnly}
+            />
 
             <div className="comparison-footer">
               <div className="footer-actions">

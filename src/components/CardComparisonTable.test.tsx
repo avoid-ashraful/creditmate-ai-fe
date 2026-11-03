@@ -5,7 +5,7 @@ import React from 'react';
 import { LanguageProvider } from '../locales/LanguageContext';
 import { CreditCard } from '../types';
 
-import CardComparisonTable from './CardComparisonTable';
+import CardComparisonTable, { filterToDiffering } from './CardComparisonTable';
 
 const createCard = (id: number): CreditCard => ({
   id,
@@ -88,6 +88,112 @@ describe('CardComparisonTable', () => {
 
     expect(screen.getAllByRole('article')).toHaveLength(5);
     expect(screen.getAllByRole('columnheader')).toHaveLength(6);
+  });
+});
+
+describe('filterToDiffering (row-filtering logic)', () => {
+  /** Whether a single row with these per-card values survives the filter. */
+  const differs = (values: unknown[]): boolean =>
+    filterToDiffering(['row'], values, (_row, value) => value).length === 1;
+
+  it('treats repeated primitives as identical and mixed null/empty as different', () => {
+    expect(differs([])).toBe(false);
+    expect(differs([1000])).toBe(false);
+    expect(differs([20, 20, 20])).toBe(false);
+    expect(differs([null, null])).toBe(false);
+    expect(differs(['3%', '3%'])).toBe(false);
+    expect(differs([null, ''])).toBe(true);
+    expect(differs([false, true])).toBe(true);
+    expect(differs([1000, 1000, 0, 1000])).toBe(true);
+  });
+
+  it('uses reference identity for objects, like the table highlighting does', () => {
+    const shared = { conditions: 'waived' };
+    expect(differs([shared, shared])).toBe(false);
+    expect(differs([shared, { conditions: 'waived' }])).toBe(true);
+  });
+
+  it('keeps only rows whose values differ across the cards', () => {
+    interface Row {
+      key: string;
+      pick: (card: { fee: number; apr: number }) => unknown;
+    }
+    const rows: Row[] = [
+      { key: 'fee', pick: card => card.fee },
+      { key: 'apr', pick: card => card.apr },
+    ];
+    const pick = (row: Row, card: { fee: number; apr: number }) => row.pick(card);
+    const cards = [
+      { fee: 1000, apr: 20 },
+      { fee: 0, apr: 20 },
+      { fee: 500, apr: 20 },
+    ];
+    expect(filterToDiffering(rows, cards, pick).map(row => row.key)).toEqual(['fee']);
+    expect(filterToDiffering(rows, [], pick)).toEqual([]);
+    expect(filterToDiffering(rows, [{ fee: 1, apr: 1 }], pick)).toEqual([]);
+  });
+});
+
+describe('differencesOnly', () => {
+  const region = () => screen.getByRole('region', { name: 'Compare card features' });
+
+  it('shows every feature row by default', () => {
+    renderWithLanguage(<CardComparisonTable cards={[createCard(1), createCard(2)]} />);
+
+    // 16 feature rows plus the header row.
+    expect(within(region()).getAllByRole('row')).toHaveLength(17);
+    expect(
+      within(region()).getByRole('rowheader', { name: 'Interest Rate (APR)' })
+    ).toBeInTheDocument();
+  });
+
+  it('hides rows where all cards agree and keeps differing rows highlighted', () => {
+    renderWithLanguage(
+      <CardComparisonTable cards={[createCard(1), createCard(2)]} differencesOnly />
+    );
+
+    // Annual fee differs (1000 vs 2000); APR, cash advance and late fees match.
+    expect(within(region()).getByRole('rowheader', { name: 'Annual fee' })).toBeInTheDocument();
+    expect(
+      within(region()).queryByRole('rowheader', { name: 'Interest Rate (APR)' })
+    ).not.toBeInTheDocument();
+    expect(
+      within(region()).queryByRole('rowheader', { name: 'Cash Advance Fee' })
+    ).not.toBeInTheDocument();
+    const feeRow = within(region()).getByRole('row', {
+      name: name => name.startsWith('Annual fee'),
+    });
+    expect(feeRow).toHaveClass('highlight-difference');
+
+    // The mobile stacks are filtered the same way.
+    const mobile = screen.getAllByRole('article')[0];
+    expect(within(mobile).getByText('Annual fee')).toBeInTheDocument();
+    expect(within(mobile).queryByText('Interest Rate (APR)')).not.toBeInTheDocument();
+  });
+
+  it('filters correctly for three and four cards', () => {
+    const three = [createCard(1), createCard(2), createCard(3)];
+    const { unmount } = renderWithLanguage(<CardComparisonTable cards={three} differencesOnly />);
+    expect(
+      within(region()).queryByRole('rowheader', { name: 'Interest Rate (APR)' })
+    ).not.toBeInTheDocument();
+    expect(within(region()).getByRole('rowheader', { name: 'Annual fee' })).toBeInTheDocument();
+    unmount();
+
+    renderWithLanguage(<CardComparisonTable cards={[...three, createCard(4)]} differencesOnly />);
+    expect(within(region()).getAllByRole('columnheader')).toHaveLength(5);
+    expect(
+      within(region()).queryByRole('rowheader', { name: 'Interest Rate (APR)' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows an explanatory note instead of a table when every row is identical', () => {
+    const twin: CreditCard = { ...createCard(1), id: 2, name: 'Card 1 Twin' };
+    renderWithLanguage(<CardComparisonTable cards={[createCard(1), twin]} differencesOnly />);
+
+    expect(screen.getByText(/all features match/)).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(screen.queryAllByRole('article')).toHaveLength(0);
   });
 });
 

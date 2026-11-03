@@ -135,6 +135,9 @@ export interface CommonCopy {
   comparisonAddCard: string;
   comparisonSelectedLabel: string;
   comparisonFeatureLabel: string;
+  comparisonDifferencesOnlyLabel: string;
+  comparisonAllIdentical: string;
+  comparisonPrintButton: string;
 
   // CardDetailsPopup / CardListItem
   cardRewards: string;
@@ -536,6 +539,9 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     comparisonAddCard: 'Add a card',
     comparisonSelectedLabel: 'Selected: {count} of {max}',
     comparisonFeatureLabel: 'Feature',
+    comparisonDifferencesOnlyLabel: 'Differences only',
+    comparisonAllIdentical: 'No differences: all features match.',
+    comparisonPrintButton: 'Print / Save as PDF',
 
     // CardDetailsPopup / CardListItem
     cardRewards: 'Rewards',
@@ -955,6 +961,9 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     comparisonAddCard: 'একটি কার্ড যোগ করুন',
     comparisonSelectedLabel: 'নির্বাচিত: {count} / {max}',
     comparisonFeatureLabel: 'বৈশিষ্ট্য',
+    comparisonDifferencesOnlyLabel: 'শুধু পার্থক্য',
+    comparisonAllIdentical: 'সব বৈশিষ্ট্যেই মান একই, কোনো পার্থক্য নেই।',
+    comparisonPrintButton: 'প্রিন্ট / PDF সংরক্ষণ',
 
     // CardDetailsPopup / CardListItem
     cardRewards: 'রিওয়ার্ড',

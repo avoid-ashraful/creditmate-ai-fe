@@ -683,6 +683,140 @@
   }
 }
 
+/* Comparison toolbar: differences-only toggle + print/export */
+.comparison-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.differences-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 999px;
+  font-weight: 600;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.differences-toggle input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-brand-gradient-from);
+  cursor: pointer;
+}
+
+.differences-toggle:has(input:checked) {
+  border-color: var(--color-brand-gradient-from);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+.print-button {
+  background: transparent;
+  border: 2px solid #e2e8f0;
+  color: var(--text-color);
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.print-button:hover {
+  border-color: var(--color-brand-gradient-from);
+  color: var(--color-brand-gradient-from);
+}
+
+.comparison-all-identical {
+  padding: 48px 32px;
+  margin: 0;
+  text-align: center;
+  font-size: 1.05rem;
+  color: var(--text-light);
+}
+
+/* Print: only the comparison table (with the card names in its header).
+   Screen layout rules above are untouched; everything here is print-only. */
+@media print {
+  .app > header,
+  .app > footer,
+  .skip-link,
+  .comparison-hero,
+  .selected-cards-summary,
+  .comparison-toolbar,
+  .comparison-footer,
+  .comparison-insight,
+  .comparison-mobile-cards {
+    display: none !important;
+  }
+
+  .comparison-page {
+    min-height: auto;
+    background: white;
+  }
+
+  .comparison-content {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .comparison-table-container {
+    box-shadow: none;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    margin: 0;
+  }
+
+  .comparison-table-scroll {
+    display: block !important;
+    overflow: visible;
+  }
+
+  .comparison-table {
+    min-width: 0;
+  }
+
+  .comparison-table th,
+  .comparison-table td {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  .comparison-table th {
+    position: static;
+  }
+
+  .feature-column,
+  .feature-name {
+    position: static;
+    background: white !important;
+    color: var(--text-color) !important;
+  }
+
+  .highlight-difference {
+    background: white;
+  }
+
+  .highlight-difference::before {
+    display: none;
+  }
+
+  @page {
+    margin: 12mm;
+  }
+}
+
 .card-text-details > summary {
   padding: 4px 0;
   min-height: 32px;

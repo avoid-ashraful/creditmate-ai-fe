@@ -21,7 +21,6 @@ import { LanguageProvider, LEGAL_PAGE_PATHS, getLegalNav, useLanguage } from './
 import type { LegalPageKey } from './locales';
 import CardDetailPage from './pages/CardDetailPage';
 import CategoryPage from './pages/CategoryPage';
-import ComparisonPage from './pages/ComparisonPage';
 import HomePage from './pages/HomePage';
 import SharedPage from './pages/SharedPage';
 import './styles/App.css';
@@ -72,6 +71,7 @@ const AccountPage = lazyLoad(() => import('./pages/AccountPage'));
 const AdvancedSearchPage = lazyLoad(() => import('./pages/AdvancedSearchPage'));
 const AlertsPage = lazyLoad(() => import('./pages/AlertsPage'));
 const CollectionPage = lazyLoad(() => import('./pages/CollectionPage'));
+const ComparisonPage = lazyLoad(() => import('./pages/ComparisonPage'));
 const ExperimentResults = lazyLoad(() => import('./pages/ExperimentResults/ExperimentResults'));
 const ForgotPasswordPage = lazyLoad(() => import('./pages/ForgotPasswordPage'));
 const GlossaryPage = lazyLoad(() => import('./pages/GlossaryPage'));
@@ -88,7 +88,9 @@ const UnsubscribePage = lazyLoad(() => import('./pages/UnsubscribePage'));
 const VerifyEmailPage = lazyLoad(() => import('./pages/VerifyEmailPage'));
 
 // Critical path pages - eager loaded
-// HomePage, CardDetailPage, CategoryPage, ComparisonPage, SharedPage
+// HomePage, CardDetailPage, CategoryPage, SharedPage
+// (ComparisonPage moved to lazyLoad above: the main chunk was at its size
+// budget, and /compare is reached by an explicit user action, not on landing.)
 
 interface NavItem {
   to: string;
@@ -167,7 +169,14 @@ export const AppRoutes: React.FC = () => {
           }
         />
         <Route path="/category/:slug" element={<CategoryPage />} />
-        <Route path="/compare" element={<ComparisonPage />} />
+        <Route
+          path="/compare"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading comparison..." />}>
+              <ComparisonPage />
+            </Suspense>
+          }
+        />
         <Route path="/shared/:token" element={<SharedPage />} />
         <Route
           path="/saved"
