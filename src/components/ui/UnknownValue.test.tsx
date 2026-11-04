@@ -21,9 +21,21 @@ describe('UnknownValue', () => {
     expect(screen.getByText('Derived')).toBeInTheDocument();
   });
 
-  it('renders an estimated range as-is', () => {
+  it('renders preformatted estimated-range children with an Estimated range badge', () => {
     render(<UnknownValue kind="estimated-range">৳12,000 – ৳18,500</UnknownValue>);
     expect(screen.getByText('৳12,000 – ৳18,500')).toBeInTheDocument();
+    expect(screen.getByText('Estimated range')).toBeInTheDocument();
+  });
+
+  it('renders min/max bounds via formatTakaRange, both ends always shown', () => {
+    render(<UnknownValue kind="estimated-range" min={100000} max={500000} />);
+    expect(screen.getByText('৳1,00,000 – ৳5,00,000')).toBeInTheDocument();
+    expect(screen.getByText('Estimated range')).toBeInTheDocument();
+  });
+
+  it('honours decimals for min/max ranges', () => {
+    render(<UnknownValue kind="estimated-range" min={1200.5} max={1850.75} decimals={2} />);
+    expect(screen.getByText('৳1,200.50 – ৳1,850.75')).toBeInTheDocument();
   });
 
   it('exposes the note to assistive technology only', () => {

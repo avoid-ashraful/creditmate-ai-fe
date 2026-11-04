@@ -3,7 +3,8 @@
   font-size: var(--typography-font-size-sm);
 }
 
-.cm-unknown-derived-badge {
+.cm-unknown-derived-badge,
+.cm-unknown-range-badge {
   display: inline-block;
   margin-left: var(--spacing-sm);
   padding: var(--spacing-2xs) var(--spacing-sm);

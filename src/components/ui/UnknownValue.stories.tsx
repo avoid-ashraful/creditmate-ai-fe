@@ -29,9 +29,27 @@ export const AllKinds = () => (
     </dd>
     <dt>Interest you may pay</dt>
     <dd>
-      <UnknownValue kind="estimated-range">৳12,000 – ৳18,500</UnknownValue>
+      <UnknownValue kind="estimated-range" min={12000} max={18500} />
     </dd>
   </dl>
+);
+
+/* Bengali content renders in Hind Siliguri via the :lang(bn) rule
+   (src/styles/fonts.css, loaded by .storybook/preview.tsx). */
+export const Bengali = () => (
+  <div lang="bn">
+    <p>ক্রেডিট কার্ডের বার্ষিক ফি ও সুদের হার তুলনা করুন।</p>
+    <dl>
+      <dt>বার্ষিক ফি</dt>
+      <dd>
+        <UnknownValue kind="not-published" />
+      </dd>
+      <dt>আনুমানিক খরচ</dt>
+      <dd>
+        <UnknownValue kind="estimated-range" min={12000} max={18500} />
+      </dd>
+    </dl>
+  </div>
 );
 
 export const NotPublished = { args: { kind: 'not-published' } };
