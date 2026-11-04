@@ -1,0 +1,179 @@
+.deposits-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.deposits-hero h1 {
+  margin-bottom: 0.5rem;
+}
+
+.deposits-hero p {
+  max-width: 720px;
+  color: var(--text-secondary, #555);
+}
+
+.deposits-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.deposits-tab {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.deposits-tab-active {
+  background: var(--primary-color, #1a56db);
+  color: #fff;
+}
+
+.deposits-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 2rem;
+}
+
+.deposits-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.deposits-field input,
+.deposits-field select {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.deposits-checkbox {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: 0.95rem;
+}
+
+.deposits-run {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary-color, #1a56db);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.deposits-table-wrap {
+  overflow-x: auto;
+}
+
+.deposits-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.deposits-table th,
+.deposits-table td {
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--border-color, #e2e2e2);
+  text-align: left;
+  vertical-align: top;
+}
+
+.deposits-net {
+  font-weight: 700;
+}
+
+.deposits-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--badge-bg, #eef2ff);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.deposits-badge-derived {
+  background: var(--badge-derived-bg, #fff4e5);
+}
+
+.deposits-rate-kind {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #666);
+}
+
+.deposits-rate-note {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #666);
+  max-width: 420px;
+}
+
+.deposits-benchmarks {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px dashed var(--border-color, #999);
+  border-radius: 12px;
+}
+
+.deposits-benchmarks-note {
+  color: var(--text-secondary, #555);
+  max-width: 760px;
+}
+
+.deposits-excluded {
+  color: var(--text-secondary, #555);
+  font-size: 0.9rem;
+}
+
+.deposits-detail-bank {
+  font-size: 1.1rem;
+}
+
+.deposits-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem 2rem;
+}
+
+.deposits-facts dt {
+  font-weight: 600;
+}
+
+.deposits-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.deposits-history-list {
+  list-style: none;
+  padding: 0;
+}
+
+.deposits-history-list li {
+  display: flex;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border-color, #e2e2e2);
+  flex-wrap: wrap;
+}
+
+.deposits-history-field {
+  font-weight: 600;
+  min-width: 180px;
+}
+
+.deposits-back {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+}

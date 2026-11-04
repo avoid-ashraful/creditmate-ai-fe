@@ -73,6 +73,41 @@ export interface CalculatorsCopy {
   errorPayment: string;
   noteHeading: string;
   noteBody: string;
+  tabFd: string;
+  tabDps: string;
+  fdHeading: string;
+  fdIntro: string;
+  dpsHeading: string;
+  dpsIntro: string;
+  depositProductLabel: string;
+  customDepositRateOption: string;
+  depositRateLabel: string;
+  /** Placeholders: {product} */
+  noRateForTenureNotice: string;
+  fdAmountLabel: string;
+  fdMonthsLabel: string;
+  calculateFd: string;
+  fdGross: string;
+  fdInterest: string;
+  fdTax: string;
+  fdNet: string;
+  dpsInstalmentLabel: string;
+  dpsMonthsLabel: string;
+  dpsModeMaturity: string;
+  dpsModeGoal: string;
+  dpsTargetLabel: string;
+  calculateDps: string;
+  dpsGross: string;
+  dpsContributed: string;
+  dpsRequiredInstalment: string;
+  hasTinLabel: string;
+  errorDepositRate: string;
+  errorTarget: string;
+  /** Placeholders: {rate}, {product} */
+  depositRateSourceProduct: string;
+  /** Placeholders: {rate} */
+  depositRateSourceCustom: string;
+  derivedRateSuffix: string;
 }
 
 const en: CalculatorsCopy = {
@@ -135,6 +170,41 @@ const en: CalculatorsCopy = {
   noteHeading: 'How these numbers are calculated',
   noteBody:
     'EMI uses the standard amortising formula with a monthly rate of APR ÷ 12. The payoff estimate applies your payment each month after that month’s interest. Annual fees, processing fees, VAT and late fees are not included, and banks may round instalments differently — treat the results as a close estimate, not a bank quote.',
+  tabFd: 'FD calculator',
+  tabDps: 'DPS calculator',
+  fdHeading: 'Fixed deposit (FD) calculator',
+  fdIntro:
+    'Work out what a lump-sum deposit grows to. Pick a real product to use its published rate for your amount and tenure, or enter your own rate.',
+  dpsHeading: 'DPS calculator',
+  dpsIntro:
+    'Work out what a monthly DPS grows to — or, in goal mode, the monthly instalment needed to reach a target amount.',
+  depositProductLabel: 'Deposit product (uses its published rate)',
+  customDepositRateOption: 'Custom rate — enter a rate',
+  depositRateLabel: 'Rate (% per year)',
+  noRateForTenureNotice:
+    '“{product}” publishes no rate for this amount and tenure, so enter your own rate below — we never invent a rate.',
+  fdAmountLabel: 'Deposit amount (BDT)',
+  fdMonthsLabel: 'Tenure (months)',
+  calculateFd: 'Calculate maturity',
+  fdGross: 'Maturity (before tax)',
+  fdInterest: 'Interest / expected profit earned',
+  fdTax: 'Source tax on interest',
+  fdNet: 'You receive (after tax)',
+  dpsInstalmentLabel: 'Monthly instalment (BDT)',
+  dpsMonthsLabel: 'Tenure (months)',
+  dpsModeMaturity: 'Instalment → maturity',
+  dpsModeGoal: 'Goal → instalment',
+  dpsTargetLabel: 'Target amount at maturity (BDT)',
+  calculateDps: 'Calculate',
+  dpsGross: 'Maturity (before tax)',
+  dpsContributed: 'You pay in total',
+  dpsRequiredInstalment: 'Required monthly instalment',
+  hasTinLabel: 'I have a TIN (source tax 10% instead of 15%)',
+  errorDepositRate: 'Enter a rate of 0% or more.',
+  errorTarget: 'Enter a target amount greater than zero.',
+  depositRateSourceProduct: 'Rate {rate}% — {product}',
+  depositRateSourceCustom: 'Custom rate {rate}%',
+  derivedRateSuffix: ' (derived from the bank’s published maturity table)',
 };
 
 const bn: CalculatorsCopy = {
@@ -197,6 +267,41 @@ const bn: CalculatorsCopy = {
   noteHeading: 'এই সংখ্যাগুলো যেভাবে হিসাব করা হয়',
   noteBody:
     'ইএমআই প্রমিত অ্যামোর্টাইজিং সূত্রে হিসাব করা হয়, যেখানে মাসিক হার = এপিআর ভাগ ১২। পরিশোধের অনুমানে প্রতি মাসের সুদের পর আপনার পেমেন্ট প্রয়োগ করা হয়। বার্ষিক ফি, প্রসেসিং ফি, ভ্যাট ও লেট ফি এতে অন্তর্ভুক্ত নয়, এবং ব্যাংক কিস্তি অন্যভাবে রাউন্ড করতে পারে — ফলাফলকে ব্যাংকের কোট নয়, কাছাকাছি অনুমান হিসেবে নিন।',
+  tabFd: 'এফডি ক্যালকুলেটর',
+  tabDps: 'ডিপিএস ক্যালকুলেটর',
+  fdHeading: 'স্থায়ী আমানত (এফডি) ক্যালকুলেটর',
+  fdIntro:
+    'এককালীন আমানত কত হবে হিসাব করুন। আপনার পরিমাণ ও মেয়াদের জন্য প্রকৃত পণ্যের প্রকাশিত হার ব্যবহার করতে একটি পণ্য বেছে নিন, অথবা নিজের হার লিখুন।',
+  dpsHeading: 'ডিপিএস ক্যালকুলেটর',
+  dpsIntro:
+    'মাসিক ডিপিএস কত হবে হিসাব করুন — অথবা গোল মোডে, লক্ষ্য পরিমাণে পৌঁছাতে প্রয়োজনীয় মাসিক কিস্তি বের করুন।',
+  depositProductLabel: 'আমানত পণ্য (এর প্রকাশিত হার ব্যবহৃত হবে)',
+  customDepositRateOption: 'কাস্টম হার — নিজে হার লিখুন',
+  depositRateLabel: 'হার (বার্ষিক %)',
+  noRateForTenureNotice:
+    "'{product}' এই পরিমাণ ও মেয়াদের জন্য কোনো হার প্রকাশ করে না, তাই নিচে নিজের হার লিখুন — আমরা কখনো হার অনুমান করি না।",
+  fdAmountLabel: 'আমানতের পরিমাণ (টাকা)',
+  fdMonthsLabel: 'মেয়াদ (মাস)',
+  calculateFd: 'মেয়াদপূর্তি হিসাব করুন',
+  fdGross: 'মেয়াদপূর্তি (করের আগে)',
+  fdInterest: 'অর্জিত সুদ / প্রত্যাশিত মুনাফা',
+  fdTax: 'সুদের উপর উৎস কর',
+  fdNet: 'আপনি পাবেন (করের পর)',
+  dpsInstalmentLabel: 'মাসিক কিস্তি (টাকা)',
+  dpsMonthsLabel: 'মেয়াদ (মাস)',
+  dpsModeMaturity: 'কিস্তি থেকে মেয়াদপূর্তি',
+  dpsModeGoal: 'লক্ষ্যের জন্য কিস্তি',
+  dpsTargetLabel: 'মেয়াদপূর্তিতে লক্ষ্য পরিমাণ (টাকা)',
+  calculateDps: 'হিসাব করুন',
+  dpsGross: 'মেয়াদপূর্তি (করের আগে)',
+  dpsContributed: 'আপনার মোট জমা',
+  dpsRequiredInstalment: 'প্রয়োজনীয় মাসিক কিস্তি',
+  hasTinLabel: 'আমার টিন আছে (উৎস কর ১৫%-এর বদলে ১০%)',
+  errorDepositRate: '০% বা তার বেশি হার লিখুন।',
+  errorTarget: 'শূন্যের বেশি লক্ষ্য পরিমাণ লিখুন।',
+  depositRateSourceProduct: 'হার {rate}% — {product}',
+  depositRateSourceCustom: 'কাস্টম হার {rate}%',
+  derivedRateSuffix: ' (ব্যাংকের প্রকাশিত মেয়াদপূর্তি সারণি থেকে নির্ণীত)',
 };
 
 export const CALCULATORS_COPY: Record<Language, CalculatorsCopy> = { en, bn };
