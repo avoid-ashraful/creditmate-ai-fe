@@ -35,7 +35,11 @@ export interface LoansCopy {
   runScenario: string;
   running: string;
   amountRequired: string;
+  amountNotInteger: string;
   tenureRequired: string;
+  tenureInvalid: string;
+  incomeInvalid: string;
+  scenarioError: string;
   segmentFilterLabel: string;
   segmentAll: string;
   catalogueHeading: string;
@@ -56,6 +60,8 @@ export interface LoansCopy {
   bandFromSoc: string;
   bandFromManual: string;
   bandChartNote: string;
+  bandChartConsumerCredit: string;
+  bandChartHousing: string;
   noBandNote: string;
   simpleInterestBadge: string;
   islamicBadge: string;
@@ -86,6 +92,8 @@ export interface LoansCopy {
   ltv: string;
   gracePeriod: string;
   processingFee: string;
+  processingFeeCap: string;
+  supervisionNotInTotal: string;
   earlySettlement: string;
   partialPrepayment: string;
   penalCharge: string;
@@ -106,6 +114,26 @@ export interface LoansCopy {
   capFlagsHeading: string;
   rateBasis: string;
   calculatorsLinkText: string;
+  sectionTypeSpecific: string;
+  yesLabel: string;
+  propertyTypes: string;
+  takeoverAllowed: string;
+  nrbEligible: string;
+  maxAmountByPurpose: string;
+  vehicleConditions: string;
+  ltvByVehicleType: string;
+  brtaRegistrationRequired: string;
+  registrationCostIncluded: string;
+  unsecuredMax: string;
+  incomeMultiple: string;
+  securedBy: string;
+  depositType: string;
+  ltvOfDeposit: string;
+  insuranceRequiredLabel: string;
+  insuranceBundledLabel: string;
+  insuranceNotesLabel: string;
+  disbursementModeLabel: string;
+  jointApplication: string;
 }
 
 const en: LoansCopy = {
@@ -133,7 +161,11 @@ const en: LoansCopy = {
   runScenario: 'Compare this scenario',
   running: 'Comparing…',
   amountRequired: 'Enter an amount above 0.',
+  amountNotInteger: 'Enter the amount as a whole number of taka (no decimals).',
   tenureRequired: 'Enter a tenure of at least 1 month.',
+  tenureInvalid: 'Enter the tenure as a whole number of months, between 1 and 600.',
+  incomeInvalid: 'Enter monthly income as a number of 0 or more — or leave it blank.',
+  scenarioError: 'We could not run this comparison just now. Please try again.',
   segmentFilterLabel: 'Segment',
   segmentAll: 'All segments',
   catalogueHeading: 'Published products',
@@ -155,6 +187,8 @@ const en: LoansCopy = {
   bandFromManual: 'Published scheme terms',
   bandChartNote:
     'Band from the Bangladesh Bank lending chart for this bank — the product page publishes no rate.',
+  bandChartConsumerCredit: "Bank's announced consumer-credit band (Bangladesh Bank chart)",
+  bandChartHousing: "Bank's announced housing band (Bangladesh Bank chart)",
   noBandNote: 'This lender publishes no usable rate band, so no payment estimate is shown.',
   simpleInterestBadge: 'Simple interest',
   islamicBadge: 'Islamic',
@@ -187,6 +221,8 @@ const en: LoansCopy = {
   ltv: 'Loan-to-value (LTV)',
   gracePeriod: 'Grace period',
   processingFee: 'Processing fee',
+  processingFeeCap: 'cap',
+  supervisionNotInTotal: 'not included in total cost',
   earlySettlement: 'Early settlement',
   partialPrepayment: 'Partial prepayment',
   penalCharge: 'Penal / late charge',
@@ -208,6 +244,26 @@ const en: LoansCopy = {
   rateBasis: 'How the rate is set',
   calculatorsLinkText:
     'Comparing real loan products? See live bands and total costs in Loan Comparison.',
+  sectionTypeSpecific: 'Product-specific terms',
+  yesLabel: 'Yes',
+  propertyTypes: 'Eligible property types',
+  takeoverAllowed: 'Loan takeover allowed',
+  nrbEligible: 'NRB applicants eligible',
+  maxAmountByPurpose: 'Maximum amount by purpose',
+  vehicleConditions: 'Eligible vehicle conditions',
+  ltvByVehicleType: 'LTV by vehicle type',
+  brtaRegistrationRequired: 'BRTA registration required',
+  registrationCostIncluded: 'Registration cost included',
+  unsecuredMax: 'Maximum unsecured amount',
+  incomeMultiple: 'Maximum income multiple',
+  securedBy: 'Secured by',
+  depositType: 'Pledged deposit type',
+  ltvOfDeposit: 'LTV against deposit',
+  insuranceRequiredLabel: 'Insurance required',
+  insuranceBundledLabel: 'Insurance bundled',
+  insuranceNotesLabel: 'Insurance notes',
+  disbursementModeLabel: 'Disbursement mode',
+  jointApplication: 'Joint application allowed',
 };
 
 const bn: LoansCopy = {
@@ -235,7 +291,11 @@ const bn: LoansCopy = {
   runScenario: 'এই হিসাবে তুলনা করুন',
   running: 'তুলনা করা হচ্ছে…',
   amountRequired: '০-এর বেশি পরিমাণ লিখুন।',
+  amountNotInteger: 'পরিমাণ পূর্ণ সংখ্যায় টাকায় লিখুন (দশমিক নয়)।',
   tenureRequired: 'কমপক্ষে ১ মাসের মেয়াদ লিখুন।',
+  tenureInvalid: 'মেয়াদ ১ থেকে ৬০০ মাসের মধ্যে পূর্ণ সংখ্যায় লিখুন।',
+  incomeInvalid: 'মাসিক আয় ০ বা তার বেশি সংখ্যায় লিখুন — অথবা খালি রাখুন।',
+  scenarioError: 'এই মুহূর্তে তুলনাটি চালানো যায়নি। আবার চেষ্টা করুন।',
   segmentFilterLabel: 'বিভাগ',
   segmentAll: 'সব বিভাগ',
   catalogueHeading: 'প্রকাশিত পণ্য',
@@ -257,6 +317,8 @@ const bn: LoansCopy = {
   bandFromManual: 'প্রকাশিত স্কিম শর্ত',
   bandChartNote:
     'এই ব্যাংকের জন্য বাংলাদেশ ব্যাংক ঋণ চার্ট থেকে ব্যান্ড — পণ্যের পৃষ্ঠায় হার প্রকাশিত নয়।',
+  bandChartConsumerCredit: 'ব্যাংকের ঘোষিত ভোক্তা-ঋণ ব্যান্ড (বাংলাদেশ ব্যাংক চার্ট)',
+  bandChartHousing: 'ব্যাংকের ঘোষিত গৃহঋণ ব্যান্ড (বাংলাদেশ ব্যাংক চার্ট)',
   noBandNote: 'এই ঋণদাতা ব্যবহারযোগ্য হার ব্যান্ড প্রকাশ করে না, তাই কিস্তির অনুমান দেখানো হয়নি।',
   simpleInterestBadge: 'সরল সুদ',
   islamicBadge: 'ইসলামি',
@@ -289,6 +351,8 @@ const bn: LoansCopy = {
   ltv: 'ঋণ-মূল্য অনুপাত (এলটিভি)',
   gracePeriod: 'গ্রেস পিরিয়ড',
   processingFee: 'প্রসেসিং ফি',
+  processingFeeCap: 'সর্বোচ্চ সীমা',
+  supervisionNotInTotal: 'মোট খরচে অন্তর্ভুক্ত নয়',
   earlySettlement: 'আগাম পরিশোধ',
   partialPrepayment: 'আংশিক আগাম পরিশোধ',
   penalCharge: 'জরিমানা / বিলম্ব চার্জ',
@@ -309,26 +373,75 @@ const bn: LoansCopy = {
   capFlagsHeading: 'নিয়ন্ত্রক সীমা সংক্রান্ত নোট',
   rateBasis: 'হার নির্ধারণের পদ্ধতি',
   calculatorsLinkText: 'আসল ঋণ পণ্য তুলনা করছেন? ঋণ তুলনায় লাইভ ব্যান্ড ও মোট খরচ দেখুন।',
+  sectionTypeSpecific: 'পণ্য-নির্দিষ্ট শর্ত',
+  yesLabel: 'হ্যাঁ',
+  propertyTypes: 'যোগ্য সম্পত্তির ধরন',
+  takeoverAllowed: 'ঋণ হস্তান্তর (টেকওভার) অনুমোদিত',
+  nrbEligible: 'প্রবাসী আবেদনকারী যোগ্য',
+  maxAmountByPurpose: 'উদ্দেশ্য অনুযায়ী সর্বোচ্চ পরিমাণ',
+  vehicleConditions: 'যোগ্য গাড়ির অবস্থা',
+  ltvByVehicleType: 'গাড়ির ধরন অনুযায়ী এলটিভি',
+  brtaRegistrationRequired: 'বিআরটিএ নিবন্ধন প্রয়োজন',
+  registrationCostIncluded: 'নিবন্ধন খরচ অন্তর্ভুক্ত',
+  unsecuredMax: 'সর্বোচ্চ জামানতহীন পরিমাণ',
+  incomeMultiple: 'সর্বোচ্চ আয়-গুণিতক',
+  securedBy: 'জামানত',
+  depositType: 'জামানত আমানতের ধরন',
+  ltvOfDeposit: 'আমানতের বিপরীতে এলটিভি',
+  insuranceRequiredLabel: 'বিমা প্রয়োজন',
+  insuranceBundledLabel: 'বিমা অন্তর্ভুক্ত',
+  insuranceNotesLabel: 'বিমা সংক্রান্ত নোট',
+  disbursementModeLabel: 'অর্থ ছাড়ের পদ্ধতি',
+  jointApplication: 'যৌথ আবেদন অনুমোদিত',
 };
 
 export const LOANS_COPY: Record<Language, LoansCopy> = { en, bn };
 
 export const getLoansCopy = (lang: Language): LoansCopy => LOANS_COPY[lang];
 
-/** Human labels for the segment tags used across the catalogue. */
+/**
+ * Human labels for the segment tags used across the catalogue.
+ * Keys mirror the backend's canonical SEGMENT_TAGS (loans/constants.py).
+ */
 export const SEGMENT_LABELS: Record<string, { en: string; bn: string }> = {
   salaried: { en: 'Salaried', bn: 'চাকরিজীবী' },
   professional: { en: 'Professional', bn: 'পেশাজীবী' },
+  professional_doctor: { en: 'Doctors', bn: 'চিকিৎসক' },
   business: { en: 'Business', bn: 'ব্যবসায়ী' },
+  self_employed: { en: 'Self-employed', bn: 'স্ব-কর্মসংস্থান' },
   landlord: { en: 'Landlord', bn: 'বাড়িওয়ালা' },
   women: { en: 'Women', bn: 'নারী' },
   nrb: { en: 'NRB', bn: 'প্রবাসী' },
-  doctors: { en: 'Doctors', bn: 'চিকিৎসক' },
+  government_employee: { en: 'Government employee', bn: 'সরকারি চাকরিজীবী' },
+  teacher: { en: 'Teacher', bn: 'শিক্ষক' },
+  salary_account: { en: 'Salary account holders', bn: 'বেতন অ্যাকাউন্টধারী' },
+  senior_citizen: { en: 'Senior citizens', bn: 'প্রবীণ নাগরিক' },
+  student_guardian: { en: 'Student guardians', bn: 'শিক্ষার্থীর অভিভাবক' },
   education: { en: 'Education', bn: 'শিক্ষা' },
-  salary: { en: 'Salary', bn: 'বেতন' },
-  ev: { en: 'EV / Hybrid', bn: 'ইভি / হাইব্রিড' },
-  self_employed: { en: 'Self-employed', bn: 'স্ব-কর্মসংস্থান' },
 };
 
 export const segmentLabel = (tag: string, lang: Language): string =>
   SEGMENT_LABELS[tag]?.[lang] ?? tag.replace(/_/g, ' ');
+
+/** Human labels for the backend CollateralType enum values. */
+export const COLLATERAL_LABELS: Record<string, { en: string; bn: string }> = {
+  none: { en: 'None (unsecured)', bn: 'নেই (জামানতহীন)' },
+  personal_guarantee: { en: 'Personal guarantee', bn: 'ব্যক্তিগত জামিন' },
+  mortgage: { en: 'Registered mortgage of property', bn: 'সম্পত্তির নিবন্ধিত বন্ধক' },
+  hypothecation: { en: 'Hypothecation of vehicle', bn: 'গাড়ির হাইপোথিকেশন' },
+  lien_deposit: { en: 'Lien on deposit / security', bn: 'আমানত / সিকিউরিটির উপর লিয়েন' },
+  other: { en: 'Other security', bn: 'অন্যান্য জামানত' },
+};
+
+export const collateralLabel = (type: string, lang: Language): string =>
+  COLLATERAL_LABELS[type]?.[lang] ?? type.replace(/_/g, ' ');
+
+/** Human labels for the backend DisbursementMode enum values. */
+export const DISBURSEMENT_LABELS: Record<string, { en: string; bn: string }> = {
+  lump_sum: { en: 'Lump sum', bn: 'এককালীন' },
+  phased: { en: 'Phased / instalment-wise', bn: 'ধাপে ধাপে / কিস্তিভিত্তিক' },
+  seller_payee: { en: 'Payee to seller / developer', bn: 'বিক্রেতা / ডেভেলপারকে পরিশোধ' },
+};
+
+export const disbursementLabel = (mode: string, lang: Language): string =>
+  DISBURSEMENT_LABELS[mode]?.[lang] ?? mode.replace(/_/g, ' ');

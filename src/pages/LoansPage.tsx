@@ -40,6 +40,20 @@ const bandSourceLabel = (copy: LoansCopy, source: RateSource): string =>
     none: '',
   }[source]);
 
+/**
+ * For a Bangladesh Bank chart fallback band, the chart column it came from
+ * matters: a "consumer credit" band is not a product-specific price. Returns
+ * the category label for bb_chart bands, or null when it doesn't apply.
+ */
+const bandCategoryLabel = (
+  copy: LoansCopy,
+  source: RateSource,
+  category: 'consumer_credit' | 'housing' | null
+): string | null => {
+  if (source !== 'bb_chart' || !category) return null;
+  return category === 'consumer_credit' ? copy.bandChartConsumerCredit : copy.bandChartHousing;
+};
+
 const LoansPage: React.FC = () => {
   const { lang } = useLanguage();
   const copy = getLoansCopy(lang);
@@ -71,6 +85,14 @@ const LoansPage: React.FC = () => {
     if (value === null || value === undefined || !Number.isFinite(value)) return copy.notPublished;
     const text = `${value}`;
     return isBn ? `${toBanglaNumerals(text)}%` : `${text}%`;
+  };
+
+  /** Half-published ranges show the single published bound, not "Not published – X". */
+  const formatAmountRange = (min: number | null, max: number | null): string => {
+    if (min !== null && max !== null) return `${formatMoney(min)} – ${formatMoney(max)}`;
+    if (min !== null) return formatMoney(min);
+    if (max !== null) return formatMoney(max);
+    return copy.notPublished;
   };
 
   const loadCatalogue = useCallback(async () => {
@@ -120,20 +142,39 @@ const LoansPage: React.FC = () => {
       setFormError(copy.amountRequired);
       return;
     }
+    // The backend takes a whole-taka amount; a decimal would be rejected.
+    if (!Number.isInteger(parsedAmount)) {
+      setFormError(copy.amountNotInteger);
+      return;
+    }
     if (!Number.isFinite(parsedTenure) || parsedTenure < 1) {
       setFormError(copy.tenureRequired);
       return;
     }
+    // The backend caps tenure at 600 months and takes whole months only.
+    if (!Number.isInteger(parsedTenure) || parsedTenure > 600) {
+      setFormError(copy.tenureInvalid);
+      return;
+    }
+    // Income is optional, but a non-blank value must be a valid number —
+    // never silently drop it and run without the income flags.
+    let parsedIncome: number | undefined;
+    if (income.trim() !== '') {
+      const parsed = Number(income);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        setFormError(copy.incomeInvalid);
+        return;
+      }
+      parsedIncome = parsed;
+    }
     setFormError(null);
     setScenarioState('loading');
     try {
-      const parsedIncome = income.trim() === '' ? undefined : Number(income);
       const response = await runLoanScenario({
         loanType,
         amount: parsedAmount,
-        tenureMonths: Math.round(parsedTenure),
-        monthlyIncome:
-          parsedIncome !== undefined && Number.isFinite(parsedIncome) ? parsedIncome : undefined,
+        tenureMonths: parsedTenure,
+        monthlyIncome: parsedIncome,
         islamicOnly,
       });
       setScenario(response);
@@ -147,7 +188,8 @@ const LoansPage: React.FC = () => {
     if (!item.effectiveRate) {
       return <span className="loans-muted">{copy.noBandNote}</span>;
     }
-    const { min, max, source, label } = item.effectiveRate;
+    const { min, max, source, label, category } = item.effectiveRate;
+    const categoryText = bandCategoryLabel(copy, source, category);
     return (
       <>
         <span>
@@ -157,7 +199,11 @@ const LoansPage: React.FC = () => {
           {label === 'expected_profit' ? copy.expectedProfit : copy.interest} ·{' '}
           {bandSourceLabel(copy, source)}
         </span>
-        {source === 'bb_chart' && <span className="loans-band-source">{copy.bandChartNote}</span>}
+        {categoryText ? (
+          <span className="loans-band-source">{categoryText}</span>
+        ) : (
+          source === 'bb_chart' && <span className="loans-band-source">{copy.bandChartNote}</span>
+        )}
       </>
     );
   };
@@ -193,7 +239,10 @@ const LoansPage: React.FC = () => {
 
       <section className="loans-form-section" aria-labelledby="loans-form-heading">
         <h2 id="loans-form-heading">{copy.formHeading}</h2>
-        <form onSubmit={handleScenario} className="loans-form">
+        {/* Validation lives in handleScenario (whole-taka amounts, tenure
+            1–600, income ≥ 0) so it matches the backend exactly — native
+            bubbles would only duplicate it inconsistently. */}
+        <form onSubmit={handleScenario} className="loans-form" noValidate>
           <label>
             {copy.amountLabel}
             <input
@@ -277,6 +326,12 @@ const LoansPage: React.FC = () => {
         </div>
       )}
 
+      {scenarioState === 'error' && (
+        <p className="loans-form-error" role="alert">
+          {copy.scenarioError}
+        </p>
+      )}
+
       {scenario && scenarioState === 'done' ? (
         <section aria-labelledby="loans-results-heading">
           <h2 id="loans-results-heading">{copy.resultsHeading}</h2>
@@ -337,6 +392,11 @@ const LoansPage: React.FC = () => {
                                 : copy.interest}{' '}
                               · {bandSourceLabel(copy, result.band.source)}
                             </span>
+                            {bandCategoryLabel(copy, result.band.source, result.band.category) && (
+                              <span className="loans-band-source">
+                                {bandCategoryLabel(copy, result.band.source, result.band.category)}
+                              </span>
+                            )}
                           </>
                         ) : (
                           <span className="loans-muted">{copy.noBandNote}</span>
@@ -360,6 +420,12 @@ const LoansPage: React.FC = () => {
                         {result.processingFeeInclVat !== null
                           ? formatMoney(result.processingFeeInclVat)
                           : copy.notPublished}
+                        {result.supervisionCharge !== null && (
+                          <span className="loans-band-source">
+                            {copy.supervisionCharge}: {formatMoney(result.supervisionCharge)} (
+                            {copy.supervisionNotInTotal})
+                          </span>
+                        )}
                       </td>
                       <td>{result.eligible ? copy.statusFits : copy.statusCheck}</td>
                     </tr>
@@ -419,13 +485,7 @@ const LoansPage: React.FC = () => {
                         </td>
                         <td>{product.lenderName}</td>
                         <td>{bandCell(product)}</td>
-                        <td>
-                          {product.amountMinBdt !== null || product.amountMaxBdt !== null
-                            ? `${formatMoney(product.amountMinBdt)} – ${formatMoney(
-                                product.amountMaxBdt
-                              )}`
-                            : copy.notPublished}
-                        </td>
+                        <td>{formatAmountRange(product.amountMinBdt, product.amountMaxBdt)}</td>
                         <td>
                           {product.tenureMaxMonths !== null
                             ? `${product.tenureMinMonths ?? '—'} – ${product.tenureMaxMonths} ${

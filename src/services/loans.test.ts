@@ -39,15 +39,21 @@ const apiProduct = {
   rate_source: 'none',
   spread_over_deposit_rate: null,
   uses_simple_interest: false,
-  effective_rate: { min: '9.72', max: '11.72', source: 'bb_chart', label: 'interest' },
-  amount_min_bdt: '100000.00',
-  amount_max_bdt: '4000000.00',
+  effective_rate: {
+    min: '9.72',
+    max: '11.72',
+    source: 'bb_chart',
+    label: 'interest',
+    category: 'consumer_credit',
+  },
+  amount_min_bdt: 100000,
+  amount_max_bdt: 4000000,
   tenure_min_months: 12,
   tenure_max_months: 60,
   ltv_percent: null,
   processing_fee_percent: '0.50',
   processing_fee_percent_max: null,
-  processing_fee_cap_bdt: '15000.00',
+  processing_fee_cap_bdt: 15000,
   min_income_by_segment: {},
   income_metric: 'gross',
   source_url: 'https://www.bracbank.com/en/retail/loans/personal-loan',
@@ -68,6 +74,7 @@ describe('fetchLoanProducts', () => {
       max: 11.72,
       source: 'bb_chart',
       label: 'interest',
+      category: 'consumer_credit',
     });
     expect(items[0].amountMaxBdt).toBe(4000000);
     const url = String(mockFetch.mock.calls[0][0]);
@@ -83,32 +90,32 @@ describe('runLoanScenario', () => {
     mockFetch.mockReturnValue(
       okResponse({
         loan_type: 'personal',
-        amount: '1000000',
+        amount: 1000000,
         tenure_months: 60,
-        monthly_income: '80000',
+        monthly_income: 80000,
         results: [
           {
             product: apiProduct,
             eligible: true,
             flags: [],
             warnings: [],
-            band: { min: '9.72', max: '11.72', source: 'bb_chart' },
+            band: { min: 9.72, max: 11.72, source: 'bb_chart', category: 'consumer_credit' },
             rate_label: 'interest',
             uses_simple_interest: false,
-            processing_fee: '5000.00',
-            processing_fee_incl_vat: '5750.00',
+            processing_fee: 5000,
+            processing_fee_incl_vat: 5750,
             supervision_charge: null,
             at_min_rate: {
-              rate: '9.72',
-              emi: '21109.54',
-              total_interest: '266572.12',
-              total_cost: '1272322.12',
+              rate: 9.72,
+              emi: 21109.54,
+              total_interest_or_profit: 266572.12,
+              total_cost: 1272322.12,
             },
             at_max_rate: {
-              rate: '11.72',
-              emi: '22103.21',
-              total_interest: '326192.80',
-              total_cost: '1331942.80',
+              rate: 11.72,
+              emi: 22103.21,
+              total_interest_or_profit: 326192.8,
+              total_cost: 1331942.8,
             },
             note: null,
           },
@@ -132,6 +139,8 @@ describe('runLoanScenario', () => {
     });
     expect(response.results[0].atMinRate?.emi).toBeCloseTo(21109.54);
     expect(response.results[0].atMaxRate?.emi).toBeCloseTo(22103.21);
+    expect(response.results[0].atMinRate?.totalInterestOrProfit).toBeCloseTo(266572.12);
     expect(response.results[0].band?.source).toBe('bb_chart');
+    expect(response.results[0].band?.category).toBe('consumer_credit');
   });
 });

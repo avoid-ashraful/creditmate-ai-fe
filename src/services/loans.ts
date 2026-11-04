@@ -26,12 +26,16 @@ export type RateSource =
   | 'manual'
   | 'none';
 export type RateLabel = 'interest' | 'expected_profit';
+/** Bangladesh Bank lending-chart column a fallback band was taken from. */
+export type BandCategory = 'consumer_credit' | 'housing';
 
 export interface EffectiveRate {
   min: number;
   max: number;
   source: RateSource;
   label: RateLabel;
+  /** Set only for bb_chart fallback bands: which chart column priced this. */
+  category: BandCategory | null;
 }
 
 export interface LoanProductListItem {
@@ -142,7 +146,7 @@ export interface ScenarioFlag {
 export interface ScenarioCostAtRate {
   rate: number;
   emi: number;
-  totalInterest: number;
+  totalInterestOrProfit: number;
   totalCost: number;
 }
 
@@ -151,7 +155,7 @@ export interface ScenarioResultItem {
   eligible: boolean;
   flags: ScenarioFlag[];
   warnings: ScenarioFlag[];
-  band: { min: number; max: number; source: RateSource } | null;
+  band: { min: number; max: number; source: RateSource; category: BandCategory | null } | null;
   rateLabel: RateLabel;
   usesSimpleInterest: boolean;
   processingFee: number | null;
@@ -187,6 +191,9 @@ const num = (value: unknown): number | null => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const mapBandCategory = (value: unknown): BandCategory | null =>
+  value === 'consumer_credit' || value === 'housing' ? value : null;
+
 const mapEffectiveRate = (raw: Record<string, unknown> | null): EffectiveRate | null => {
   if (!raw) return null;
   const min = num(raw.min);
@@ -197,6 +204,7 @@ const mapEffectiveRate = (raw: Record<string, unknown> | null): EffectiveRate | 
     max,
     source: (raw.source as RateSource) ?? 'none',
     label: (raw.label as RateLabel) ?? 'interest',
+    category: mapBandCategory(raw.category),
   };
 };
 
@@ -377,10 +385,11 @@ const mapCostAtRate = (raw: Record<string, unknown> | null): ScenarioCostAtRate 
   if (!raw) return null;
   const rate = num(raw.rate);
   const emi = num(raw.emi);
-  const totalInterest = num(raw.total_interest);
+  const totalInterestOrProfit = num(raw.total_interest_or_profit);
   const totalCost = num(raw.total_cost);
-  if (rate === null || emi === null || totalInterest === null || totalCost === null) return null;
-  return { rate, emi, totalInterest, totalCost };
+  if (rate === null || emi === null || totalInterestOrProfit === null || totalCost === null)
+    return null;
+  return { rate, emi, totalInterestOrProfit, totalCost };
 };
 
 /** Run the scenario: cost every product of a type at both band ends. */
@@ -413,6 +422,7 @@ export const runLoanScenario = async (input: LoanScenarioInput): Promise<LoanSce
             min: num((item.band as Record<string, unknown>).min) ?? 0,
             max: num((item.band as Record<string, unknown>).max) ?? 0,
             source: ((item.band as Record<string, unknown>).source as RateSource) ?? 'none',
+            category: mapBandCategory((item.band as Record<string, unknown>).category),
           },
     rateLabel: (item.rate_label as RateLabel) ?? 'interest',
     usesSimpleInterest: Boolean(item.uses_simple_interest),

@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { toBanglaNumerals, useLanguage } from '../locales';
-import { getLoansCopy, segmentLabel } from '../locales/loans';
+import { collateralLabel, disbursementLabel, getLoansCopy, segmentLabel } from '../locales/loans';
 import { authClient } from '../services/auth';
 import {
   fetchLoanFieldHistory,
@@ -66,6 +66,16 @@ const LoanDetailPage: React.FC = () => {
     return isBn ? `${toBanglaNumerals(text)}${suffix}` : `${text}${suffix}`;
   };
 
+  /** Half-published ranges show the single published bound, not "Not published – X". */
+  const formatAmountRange = (min: number | null, max: number | null): string => {
+    if (min !== null && max !== null) return `${formatMoney(min)} – ${formatMoney(max)}`;
+    if (min !== null) return formatMoney(min);
+    if (max !== null) return formatMoney(max);
+    return copy.notPublished;
+  };
+
+  const humanizeKey = (key: string): string => key.replace(/_/g, ' ');
+
   if (state === 'loading') {
     return (
       <main className="loans-page">
@@ -91,6 +101,155 @@ const LoanDetailPage: React.FC = () => {
       ? copy.incomeMetricMixed
       : copy.incomeMetricGross;
   const incomeEntries = Object.entries(product.minIncomeBySegment);
+
+  // Type-specific terms the service maps but a generic terms table can't
+  // show: property/vehicle eligibility, per-vehicle LTV, takeover, the
+  // unsecured ceiling on personal loans, what secures a deposit-backed loan.
+  const typeSpecificRows: Array<{ key: string; label: string; value: React.ReactNode }> = [];
+  if (product.loanType === 'home') {
+    if (product.propertyTypes.length > 0) {
+      typeSpecificRows.push({
+        key: 'propertyTypes',
+        label: copy.propertyTypes,
+        value: product.propertyTypes.join(', '),
+      });
+    }
+    if (Object.keys(product.maxAmountByPurpose).length > 0) {
+      typeSpecificRows.push({
+        key: 'maxAmountByPurpose',
+        label: copy.maxAmountByPurpose,
+        value: Object.entries(product.maxAmountByPurpose).map(([purpose, value]) => (
+          <div key={purpose}>
+            {humanizeKey(purpose)}: {typeof value === 'number' ? formatMoney(value) : String(value)}
+          </div>
+        )),
+      });
+    }
+    if (product.takeoverAllowed) {
+      typeSpecificRows.push({
+        key: 'takeoverAllowed',
+        label: copy.takeoverAllowed,
+        value: copy.yesLabel,
+      });
+    }
+    if (product.nrbEligible) {
+      typeSpecificRows.push({
+        key: 'nrbEligible',
+        label: copy.nrbEligible,
+        value: copy.yesLabel,
+      });
+    }
+  }
+  if (product.loanType === 'car') {
+    if (product.vehicleConditions.length > 0) {
+      typeSpecificRows.push({
+        key: 'vehicleConditions',
+        label: copy.vehicleConditions,
+        value: product.vehicleConditions.join(', '),
+      });
+    }
+    if (Object.keys(product.ltvByVehicleType).length > 0) {
+      typeSpecificRows.push({
+        key: 'ltvByVehicleType',
+        label: copy.ltvByVehicleType,
+        value: Object.entries(product.ltvByVehicleType).map(([vehicleType, ltv]) => (
+          <div key={vehicleType}>
+            {humanizeKey(vehicleType)}: {formatPercent(ltv)}
+          </div>
+        )),
+      });
+    }
+    if (product.brtaRegistrationRequired) {
+      typeSpecificRows.push({
+        key: 'brtaRegistrationRequired',
+        label: copy.brtaRegistrationRequired,
+        value: copy.yesLabel,
+      });
+    }
+    if (product.registrationCostIncluded) {
+      typeSpecificRows.push({
+        key: 'registrationCostIncluded',
+        label: copy.registrationCostIncluded,
+        value: copy.yesLabel,
+      });
+    }
+  }
+  if (product.loanType === 'personal') {
+    if (product.unsecuredMaxBdt !== null) {
+      typeSpecificRows.push({
+        key: 'unsecuredMax',
+        label: copy.unsecuredMax,
+        value: formatMoney(product.unsecuredMaxBdt),
+      });
+    }
+    if (product.incomeMultipleMax !== null) {
+      typeSpecificRows.push({
+        key: 'incomeMultiple',
+        label: copy.incomeMultiple,
+        value: `${
+          isBn ? toBanglaNumerals(String(product.incomeMultipleMax)) : product.incomeMultipleMax
+        }×`,
+      });
+    }
+  }
+  if (product.loanType === 'secured_against_deposit') {
+    if (product.securedBy) {
+      typeSpecificRows.push({
+        key: 'securedBy',
+        label: copy.securedBy,
+        value: product.securedBy,
+      });
+    }
+    if (product.depositType) {
+      typeSpecificRows.push({
+        key: 'depositType',
+        label: copy.depositType,
+        value: product.depositType,
+      });
+    }
+    if (product.ltvOfDepositPercent !== null) {
+      typeSpecificRows.push({
+        key: 'ltvOfDeposit',
+        label: copy.ltvOfDeposit,
+        value: formatPercent(product.ltvOfDepositPercent),
+      });
+    }
+  }
+  if (product.disbursementMode) {
+    typeSpecificRows.push({
+      key: 'disbursementMode',
+      label: copy.disbursementModeLabel,
+      value: disbursementLabel(product.disbursementMode, lang),
+    });
+  }
+  if (product.jointApplicationAllowed) {
+    typeSpecificRows.push({
+      key: 'jointApplication',
+      label: copy.jointApplication,
+      value: copy.yesLabel,
+    });
+  }
+  if (product.insuranceRequired) {
+    typeSpecificRows.push({
+      key: 'insuranceRequired',
+      label: copy.insuranceRequiredLabel,
+      value: copy.yesLabel,
+    });
+  }
+  if (product.insuranceBundled) {
+    typeSpecificRows.push({
+      key: 'insuranceBundled',
+      label: copy.insuranceBundledLabel,
+      value: copy.yesLabel,
+    });
+  }
+  if (product.insuranceNotes) {
+    typeSpecificRows.push({
+      key: 'insuranceNotes',
+      label: copy.insuranceNotesLabel,
+      value: product.insuranceNotes,
+    });
+  }
 
   return (
     <main className="loans-page">
@@ -134,11 +293,23 @@ const LoanDetailPage: React.FC = () => {
               {copy.colBand} ({rateWord})
             </dt>
             <dd>
-              {product.effectiveRate
-                ? `${formatPercent(product.effectiveRate.min)} – ${formatPercent(
+              {product.effectiveRate ? (
+                <>
+                  {`${formatPercent(product.effectiveRate.min)} – ${formatPercent(
                     product.effectiveRate.max
-                  )}`
-                : copy.noBandNote}
+                  )}`}
+                  {product.effectiveRate.source === 'bb_chart' &&
+                    product.effectiveRate.category && (
+                      <span className="loans-band-source">
+                        {product.effectiveRate.category === 'consumer_credit'
+                          ? copy.bandChartConsumerCredit
+                          : copy.bandChartHousing}
+                      </span>
+                    )}
+                </>
+              ) : (
+                copy.noBandNote
+              )}
             </dd>
           </div>
           {product.rateBasisText && (
@@ -149,11 +320,7 @@ const LoanDetailPage: React.FC = () => {
           )}
           <div>
             <dt>{copy.amountRange}</dt>
-            <dd>
-              {product.amountMinBdt !== null || product.amountMaxBdt !== null
-                ? `${formatMoney(product.amountMinBdt)} – ${formatMoney(product.amountMaxBdt)}`
-                : copy.notPublished}
-            </dd>
+            <dd>{formatAmountRange(product.amountMinBdt, product.amountMaxBdt)}</dd>
           </div>
           <div>
             <dt>{copy.tenureRange}</dt>
@@ -187,6 +354,20 @@ const LoanDetailPage: React.FC = () => {
         {product.notes && <p className="loans-muted">{product.notes}</p>}
       </section>
 
+      {typeSpecificRows.length > 0 && (
+        <section className="loan-detail-section" aria-labelledby="loan-type-specific-heading">
+          <h2 id="loan-type-specific-heading">{copy.sectionTypeSpecific}</h2>
+          <dl className="loan-detail-terms">
+            {typeSpecificRows.map(row => (
+              <div key={row.key}>
+                <dt>{row.label}</dt>
+                <dd>{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+
       <section className="loan-detail-section" aria-labelledby="loan-fees-heading">
         <h2 id="loan-fees-heading">{copy.sectionFees}</h2>
         <dl className="loan-detail-terms">
@@ -200,7 +381,7 @@ const LoanDetailPage: React.FC = () => {
                       : ''
                   }${
                     product.processingFeeCapBdt !== null
-                      ? ` (${copy.processingFee}: ${formatMoney(product.processingFeeCapBdt)})`
+                      ? ` (${copy.processingFeeCap}: ${formatMoney(product.processingFeeCapBdt)})`
                       : ''
                   }`
                 : copy.notPublished}
@@ -290,7 +471,7 @@ const LoanDetailPage: React.FC = () => {
             <div>
               <dt>{copy.collateral}</dt>
               <dd>
-                {product.collateralType}
+                {collateralLabel(product.collateralType, lang)}
                 {product.collateralRules ? ` — ${product.collateralRules}` : ''}
               </dd>
             </div>

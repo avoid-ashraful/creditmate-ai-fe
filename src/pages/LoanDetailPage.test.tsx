@@ -39,7 +39,13 @@ const islamicDetail: LoanProductDetail = {
   rateSource: 'product_page',
   spreadOverDepositRate: null,
   usesSimpleInterest: false,
-  effectiveRate: { min: 14.5, max: 16.5, source: 'product_page', label: 'expected_profit' },
+  effectiveRate: {
+    min: 14.5,
+    max: 16.5,
+    source: 'product_page',
+    label: 'expected_profit',
+    category: null,
+  },
   amountMinBdt: 50000,
   amountMaxBdt: 1000000,
   tenureMinMonths: 12,
@@ -121,5 +127,18 @@ describe('LoanDetailPage', () => {
     const text = document.body.textContent ?? '';
     expect(text).not.toMatch(/pre-approved/i);
     expect(text).not.toMatch(/guaranteed/i);
+  });
+
+  it('renders the type-specific terms block (personal: income multiple)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/loans/sibl-islamic-consumer-finance']}>
+        <Routes>
+          <Route path="/loans/:slug" element={<LoanDetailPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(await screen.findByText('Product-specific terms')).toBeInTheDocument();
+    expect(screen.getByText('Maximum income multiple')).toBeInTheDocument();
+    expect(screen.getByText('12×')).toBeInTheDocument();
   });
 });
