@@ -15,15 +15,12 @@ COPY . .
 
 RUN npm run build
 
-FROM node:24-bookworm-slim AS runtime
+# Runtime: unprivileged nginx serving the static build, mirroring the
+# Kubernetes frontend. (Previously this stage ran `serve`, whose
+# serve-handler -> minimatch chain carries an unpatched moderate DoS
+# advisory, GHSA-g3hv-75wg-m249; nginx removes that dependency entirely.)
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
 
-WORKDIR /app
-ENV PORT=3000
-COPY --from=build /app/build ./build
-COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/package-lock.json ./package-lock.json
-RUN npm ci --omit=dev --ignore-scripts
-RUN useradd --create-home --shell /bin/bash app && chown -R app:app /app
-USER app
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/build /usr/share/nginx/html
 EXPOSE 3000
-CMD ["npx", "serve", "-s", "build", "-l", "3000"]
