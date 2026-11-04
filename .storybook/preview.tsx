@@ -1,11 +1,40 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { Preview } from '@storybook/react';
 import { ThemeProvider } from '../src/hooks/ThemeProvider';
 import { LanguageProvider } from '../src/locales';
 import { MotionProvider } from '../src/animations/MotionProvider';
 
+import '../src/styles/fonts.css';
 import '../src/styles/index.css';
 import '../src/styles/tokens.css';
+
+/**
+ * Drives the app's real theme mechanism from the Storybook theme toolbar.
+ * Tokens switch on the `:root.dark` / `:root.light` classes in
+ * src/styles/tokens.css — the same classes ThemeProvider applies in the app.
+ * This wrapper is the decorator's outermost element, so on mount its effect
+ * runs after ThemeProvider's own localStorage/system resolution and the
+ * toolbar choice wins; on unmount it restores the classes that were there
+ * before, so the app preview state does not leak between stories.
+ */
+const StorybookThemeSync: React.FC<{ theme: string; children: React.ReactNode }> = ({
+  theme,
+  children,
+}) => {
+  useEffect(() => {
+    const root = document.documentElement;
+    const hadDark = root.classList.contains('dark');
+    const hadLight = root.classList.contains('light');
+    root.classList.toggle('dark', theme === 'dark');
+    root.classList.toggle('light', theme !== 'dark');
+    return () => {
+      root.classList.toggle('dark', hadDark);
+      root.classList.toggle('light', hadLight);
+    };
+  }, [theme]);
+
+  return <>{children}</>;
+};
 
 const preview: Preview = {
   parameters: {
@@ -68,15 +97,17 @@ const preview: Preview = {
       const locale = context.globals.locale;
 
       return (
-        <ThemeProvider>
-          <LanguageProvider initialLang={locale}>
-            <MotionProvider>
-              <div data-theme={theme} style={{ minHeight: '100vh' }}>
-                <Story />
-              </div>
-            </MotionProvider>
-          </LanguageProvider>
-        </ThemeProvider>
+        <StorybookThemeSync theme={theme}>
+          <ThemeProvider>
+            <LanguageProvider initialLang={locale}>
+              <MotionProvider>
+                <div style={{ minHeight: '100vh' }}>
+                  <Story />
+                </div>
+              </MotionProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </StorybookThemeSync>
       );
     },
   ],
