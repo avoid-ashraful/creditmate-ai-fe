@@ -71,6 +71,11 @@ const getFeatures = (
     label: common.filterSectionInterestRate,
     value: card => formatInterestRate(card, common),
     differenceKey: 'interestRateApr',
+    // A null APR displays differently for Islamic cards ("No interest
+    // (Islamic)") than for other cards ("Unknown"), so the raw field alone
+    // would wrongly treat those two cards as identical on this row.
+    identityValue: card =>
+      card.interestRateApr ?? (card.isIslamic ? 'no-apr-islamic' : 'no-apr-unknown'),
     group: 'Costs',
   },
   {
@@ -229,10 +234,14 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
     return new Set(cards.map(card => card[key])).size > 1;
   };
 
-  const visibleFeatures = differencesOnly
-    ? filterToDiffering(features, cards, featureIdentityValue)
-    : features;
-  const noDifferences = differencesOnly && visibleFeatures.length === 0;
+  // With a single card nothing can differ, so filtering would leave an
+  // empty table and the "all features match" note would hide the card
+  // entirely. The filter (and the note) only apply to 2+ cards.
+  const visibleFeatures =
+    differencesOnly && cards.length > 1
+      ? filterToDiffering(features, cards, featureIdentityValue)
+      : features;
+  const noDifferences = differencesOnly && cards.length > 1 && visibleFeatures.length === 0;
 
   const groups = Array.from(new Set(visibleFeatures.map(feature => feature.group)));
   const comparisonSummary = cards.length > 1 ? getComparisonSummary(cards) : null;

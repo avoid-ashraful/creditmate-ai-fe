@@ -195,6 +195,43 @@ describe('differencesOnly', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
     expect(screen.queryAllByRole('article')).toHaveLength(0);
   });
+
+  it('keeps the APR row when a null-APR Islamic card is compared with a null-APR non-Islamic card', () => {
+    const islamic: CreditCard = { ...createCard(1), interestRateApr: null, isIslamic: true };
+    const conventional: CreditCard = { ...createCard(2), interestRateApr: null };
+    renderWithLanguage(<CardComparisonTable cards={[islamic, conventional]} differencesOnly />);
+
+    // Both raw APRs are null, but the cells display different text, so the
+    // row must survive the differences-only filter.
+    const aprRow = within(region()).getByRole('row', {
+      name: name => name.startsWith('Interest Rate (APR)'),
+    });
+    expect(within(aprRow).getByText('No interest (Islamic)')).toBeInTheDocument();
+    expect(within(aprRow).getByText('Unknown')).toBeInTheDocument();
+  });
+
+  it('hides the APR row when both compared cards have a null non-Islamic APR', () => {
+    const first: CreditCard = { ...createCard(1), interestRateApr: null };
+    const second: CreditCard = { ...createCard(2), interestRateApr: null };
+    renderWithLanguage(<CardComparisonTable cards={[first, second]} differencesOnly />);
+
+    // The table still renders (annual fee differs); only the APR row is gone.
+    expect(within(region()).getByRole('rowheader', { name: 'Annual fee' })).toBeInTheDocument();
+    expect(
+      within(region()).queryByRole('rowheader', { name: 'Interest Rate (APR)' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the full table for a single card even with differencesOnly on', () => {
+    renderWithLanguage(<CardComparisonTable cards={[createCard(1)]} differencesOnly />);
+
+    expect(screen.queryByText(/all features match/)).not.toBeInTheDocument();
+    // 16 feature rows plus the header row.
+    expect(within(region()).getAllByRole('row')).toHaveLength(17);
+    expect(
+      within(region()).getByRole('rowheader', { name: 'Interest Rate (APR)' })
+    ).toBeInTheDocument();
+  });
 });
 
 describe('long bank terms', () => {

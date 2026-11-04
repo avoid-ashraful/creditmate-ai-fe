@@ -812,6 +812,17 @@
     display: none;
   }
 
+  /* Long bank terms sit behind a closed "More details" expander on screen,
+     and closed details content does not print. Force the full text into the
+     printout and drop the now-pointless toggle. */
+  .card-text-details > summary {
+    display: none !important;
+  }
+
+  .card-text-details > p {
+    display: block !important;
+  }
+
   @page {
     margin: 12mm;
   }
