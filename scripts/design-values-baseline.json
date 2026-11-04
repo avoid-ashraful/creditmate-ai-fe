@@ -67,9 +67,6 @@
       "raw-spacing": 1,
       "transition-all": 1
     },
-    "src/styles/AuthPages.css": {
-      "color-function": 2
-    },
     "src/styles/BankPage.css": {
       "hex-color": 8
     },
