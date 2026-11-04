@@ -40,6 +40,14 @@ export interface DiscoveryCopy {
   linkCopied: string;
   scenarioHeading: string;
   fromProfile: string;
+  cardsHeading: string;
+  cardsIntro: string;
+  cardSearchLabel: string;
+  cardSearchPlaceholder: string;
+  featureSearchLabel: string;
+  featureSearchPlaceholder: string;
+  saveSearchNameLabel: string;
+  categoryHeading: string;
   islamicOnly: string;
   allBanks: string;
   viewDetails: string;
@@ -80,6 +88,15 @@ const en: DiscoveryCopy = {
   copyLink: 'Copy link',
   linkCopied: 'Link copied — anyone with it sees this search.',
   scenarioHeading: 'Your scenario',
+  cardsHeading: 'Credit cards',
+  cardsIntro:
+    'Every card ranked by the CreditMate Score by default. Filters, sort and page are all in the URL — copy it to share this exact view.',
+  cardSearchLabel: 'Search cards',
+  cardSearchPlaceholder: 'Card name, bank, or feature…',
+  featureSearchLabel: 'Feature search',
+  featureSearchPlaceholder: 'Search within card features…',
+  saveSearchNameLabel: 'Name this search',
+  categoryHeading: 'Category',
   fromProfile: 'From your profile',
   islamicOnly: 'Islamic only',
   allBanks: 'All banks',
@@ -121,6 +138,15 @@ const bn: DiscoveryCopy = {
   copyLink: 'লিংক কপি করুন',
   linkCopied: 'লিংক কপি হয়েছে — যার কাছে থাকবে সে এই অনুসন্ধান দেখতে পাবে।',
   scenarioHeading: 'আপনার হিসাব',
+  cardsHeading: 'ক্রেডিট কার্ড',
+  cardsIntro:
+    'প্রতিটি কার্ড ডিফল্টভাবে CreditMate স্কোর অনুযায়ী সাজানো। ফিল্টার, সর্ট ও পৃষ্ঠা সবই URL-এ থাকে — এই একই দৃশ্য শেয়ার করতে লিংকটি কপি করুন।',
+  cardSearchLabel: 'কার্ড খুঁজুন',
+  cardSearchPlaceholder: 'কার্ডের নাম, ব্যাংক বা বৈশিষ্ট্য…',
+  featureSearchLabel: 'বৈশিষ্ট্য অনুসন্ধান',
+  featureSearchPlaceholder: 'কার্ডের বৈশিষ্ট্যে খুঁজুন…',
+  saveSearchNameLabel: 'এই অনুসন্ধানের নাম দিন',
+  categoryHeading: 'বিভাগ',
   fromProfile: 'আপনার প্রোফাইল থেকে',
   islamicOnly: 'শুধু ইসলামিক',
   allBanks: 'সব ব্যাংক',

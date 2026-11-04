@@ -1,8 +1,40 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+/**
+ * Loans discovery (redesign plan Section 4.5).
+ *
+ * Catalogue and scenario now coexist: the catalogue never disappears.
+ * The scenario (amount, tenure, optional income, Islamic-only) reprices
+ * the same products in place, ranked by total cost at the band's UPPER
+ * end — and the ranking label says exactly that. Bands stay bands: the
+ * hero is the EMI range across the band, never a single invented rate.
+ * All state lives in the URL; the scenario re-runs as inputs change.
+ * Costing maths is the backend's, unchanged.
+ */
 
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+
+import {
+  DiscoveryError,
+  DiscoveryLayout,
+  DiscoverySkeleton,
+  FilterChips,
+} from '../components/discovery';
+import {
+  Badge,
+  Button,
+  Checkbox,
+  Input,
+  Money,
+  MoneyInput,
+  ResultCard,
+  TrustChip,
+  UnknownValue,
+  useToast,
+} from '../components/ui';
+import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
-import { toBanglaNumerals, useLanguage } from '../locales';
+import { useProfile } from '../lib/profile';
+import { fillCopy, getDiscoveryCopy, getShellCopy, useLanguage } from '../locales';
 import { getLoansCopy, segmentLabel } from '../locales/loans';
 import type { LoansCopy } from '../locales/loans';
 import {
@@ -14,11 +46,8 @@ import {
   RateSource,
   RegulatoryCap,
   runLoanScenario,
+  ScenarioResultItem,
 } from '../services/loans';
-
-import './LoansPage.css';
-
-type LoadState = 'idle' | 'loading' | 'error' | 'done';
 
 const LOAN_TYPES: LoanType[] = ['personal', 'home', 'car', 'secured_against_deposit'];
 
@@ -40,11 +69,6 @@ const bandSourceLabel = (copy: LoansCopy, source: RateSource): string =>
     none: '',
   }[source]);
 
-/**
- * For a Bangladesh Bank chart fallback band, the chart column it came from
- * matters: a "consumer credit" band is not a product-specific price. Returns
- * the category label for bb_chart bands, or null when it doesn't apply.
- */
 const bandCategoryLabel = (
   copy: LoansCopy,
   source: RateSource,
@@ -57,43 +81,39 @@ const bandCategoryLabel = (
 const LoansPage: React.FC = () => {
   const { lang } = useLanguage();
   const copy = getLoansCopy(lang);
-  const isBn = lang === 'bn';
-
-  const [loanType, setLoanType] = useState<LoanType>('personal');
-  const [segment, setSegment] = useState<string>('');
-  const [products, setProducts] = useState<LoanProductListItem[]>([]);
-  const [caps, setCaps] = useState<RegulatoryCap[]>([]);
-  const [catalogueState, setCatalogueState] = useState<LoadState>('idle');
-
-  const [amount, setAmount] = useState<string>('1000000');
-  const [tenure, setTenure] = useState<string>('60');
-  const [income, setIncome] = useState<string>('');
-  const [islamicOnly, setIslamicOnly] = useState<boolean>(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [scenarioState, setScenarioState] = useState<LoadState>('idle');
-  const [scenario, setScenario] = useState<LoanScenarioResponse | null>(null);
+  const discoveryCopy = getDiscoveryCopy(lang);
+  const shellCopy = getShellCopy(lang);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
+  const shortlist = useShortlist();
+  const { profile } = useProfile();
 
   useSeoMeta({ title: copy.seoTitle, description: copy.seoDescription, canonicalPath: '/loans' });
 
-  const formatMoney = (value: number | null | undefined): string => {
-    if (value === null || value === undefined || !Number.isFinite(value)) return copy.notPublished;
-    const text = Math.round(value).toLocaleString('en-US');
-    return isBn ? `৳${toBanglaNumerals(text)}` : `BDT ${text}`;
-  };
+  const initialType = (LOAN_TYPES as string[]).includes(searchParams.get('type') ?? '')
+    ? (searchParams.get('type') as LoanType)
+    : 'personal';
+  const [loanType, setLoanType] = useState<LoanType>(initialType);
+  const [segment, setSegment] = useState<string>(searchParams.get('segment') ?? '');
+  const [amount, setAmount] = useState<string>(
+    searchParams.get('amount') ?? String(profile.loanAmount)
+  );
+  const [tenure, setTenure] = useState<string>(searchParams.get('tenure') ?? '60');
+  const [income, setIncome] = useState<string>(searchParams.get('income') ?? '');
+  const [islamicOnly, setIslamicOnly] = useState<boolean>(searchParams.get('islamic') === '1');
 
-  const formatPercent = (value: number | null | undefined): string => {
-    if (value === null || value === undefined || !Number.isFinite(value)) return copy.notPublished;
-    const text = `${value}`;
-    return isBn ? `${toBanglaNumerals(text)}%` : `${text}%`;
-  };
-
-  /** Half-published ranges show the single published bound, not "Not published – X". */
-  const formatAmountRange = (min: number | null, max: number | null): string => {
-    if (min !== null && max !== null) return `${formatMoney(min)} – ${formatMoney(max)}`;
-    if (min !== null) return formatMoney(min);
-    if (max !== null) return formatMoney(max);
-    return copy.notPublished;
-  };
+  const [products, setProducts] = useState<LoanProductListItem[]>([]);
+  const [caps, setCaps] = useState<RegulatoryCap[]>([]);
+  const [catalogueState, setCatalogueState] = useState<'loading' | 'done' | 'error'>('loading');
+  const [scenario, setScenario] = useState<LoanScenarioResponse | null>(null);
+  const [scenarioError, setScenarioError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    amount?: string;
+    tenure?: string;
+    income?: string;
+  }>({});
+  const [retryNonce, setRetryNonce] = useState(0);
+  const runTokenRef = useRef(0);
 
   const loadCatalogue = useCallback(async () => {
     setCatalogueState('loading');
@@ -112,417 +132,433 @@ const LoansPage: React.FC = () => {
 
   useEffect(() => {
     setScenario(null);
-    setScenarioState('idle');
     void loadCatalogue();
   }, [loadCatalogue]);
 
+  // URL sync (replace).
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (loanType !== 'personal') next.set('type', loanType);
+    if (segment) next.set('segment', segment);
+    if (amount !== String(profile.loanAmount)) next.set('amount', amount);
+    if (tenure !== '60') next.set('tenure', tenure);
+    if (income) next.set('income', income);
+    if (islamicOnly) next.set('islamic', '1');
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loanType, segment, amount, tenure, income, islamicOnly]);
+
+  // Auto-run the scenario when inputs are valid (same rules as the old form).
+  useEffect(() => {
+    const errors: typeof fieldErrors = {};
+    const amountValue = amount.trim() === '' ? null : Number(amount);
+    const tenureValue = tenure.trim() === '' ? null : Number(tenure);
+    const incomeValue = income.trim() === '' ? null : Number(income);
+    if (amount.trim() === '') errors.amount = copy.amountRequired;
+    else if (amountValue === null || !Number.isInteger(amountValue)) {
+      errors.amount = copy.amountNotInteger;
+    }
+    if (tenure.trim() === '') errors.tenure = copy.tenureRequired;
+    else if (
+      tenureValue === null ||
+      !Number.isInteger(tenureValue) ||
+      tenureValue < 1 ||
+      tenureValue > 600
+    ) {
+      errors.tenure = copy.tenureInvalid;
+    }
+    if (income.trim() !== '' && (incomeValue === null || incomeValue < 0)) {
+      errors.income = copy.incomeInvalid;
+    }
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0 || amountValue === null || tenureValue === null) return;
+
+    const token = ++runTokenRef.current;
+    const timer = setTimeout(() => {
+      setScenarioError(null);
+      runLoanScenario({
+        loanType,
+        amount: amountValue,
+        tenureMonths: tenureValue,
+        monthlyIncome: incomeValue ?? undefined,
+        islamicOnly,
+      })
+        .then(response => {
+          if (runTokenRef.current === token) setScenario(response);
+        })
+        .catch(() => {
+          if (runTokenRef.current === token) {
+            setScenarioError(copy.scenarioError);
+            setScenario(null);
+          }
+        });
+    }, 400);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loanType, amount, tenure, income, islamicOnly, retryNonce]);
+
   const segments = useMemo(() => {
     const tags = new Set<string>();
-    products.forEach(p => p.segmentTags.forEach(t => tags.add(t)));
+    products.forEach(product => product.segmentTags.forEach(tag => tags.add(tag)));
     return [...tags].sort();
   }, [products]);
 
-  const visibleProducts = useMemo(
-    () => (segment ? products.filter(p => p.segmentTags.includes(segment)) : products),
-    [products, segment]
-  );
-
   const visibleResults = useMemo(() => {
-    if (!scenario) return [];
-    return segment
-      ? scenario.results.filter(r => r.product.segmentTags.includes(segment))
-      : scenario.results;
+    if (!scenario) return null;
+    if (!segment) return scenario.results;
+    return scenario.results.filter(result => result.product.segmentTags.includes(segment));
   }, [scenario, segment]);
 
-  const handleScenario = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const parsedAmount = Number(amount);
-    const parsedTenure = Number(tenure);
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      setFormError(copy.amountRequired);
-      return;
-    }
-    // The backend takes a whole-taka amount; a decimal would be rejected.
-    if (!Number.isInteger(parsedAmount)) {
-      setFormError(copy.amountNotInteger);
-      return;
-    }
-    if (!Number.isFinite(parsedTenure) || parsedTenure < 1) {
-      setFormError(copy.tenureRequired);
-      return;
-    }
-    // The backend caps tenure at 600 months and takes whole months only.
-    if (!Number.isInteger(parsedTenure) || parsedTenure > 600) {
-      setFormError(copy.tenureInvalid);
-      return;
-    }
-    // Income is optional, but a non-blank value must be a valid number —
-    // never silently drop it and run without the income flags.
-    let parsedIncome: number | undefined;
-    if (income.trim() !== '') {
-      const parsed = Number(income);
-      if (!Number.isFinite(parsed) || parsed < 0) {
-        setFormError(copy.incomeInvalid);
-        return;
-      }
-      parsedIncome = parsed;
-    }
-    setFormError(null);
-    setScenarioState('loading');
-    try {
-      const response = await runLoanScenario({
-        loanType,
-        amount: parsedAmount,
-        tenureMonths: parsedTenure,
-        monthlyIncome: parsedIncome,
-        islamicOnly,
-      });
-      setScenario(response);
-      setScenarioState('done');
-    } catch {
-      setScenarioState('error');
+  const visibleProducts = useMemo(() => {
+    if (!segment) return products;
+    return products.filter(product => product.segmentTags.includes(segment));
+  }, [products, segment]);
+
+  const resultBySlug = useMemo(() => {
+    const map = new Map<string, ScenarioResultItem>();
+    scenario?.results.forEach(result => map.set(result.product.slug, result));
+    return map;
+  }, [scenario]);
+
+  const toggleShortlist = (product: LoanProductListItem) => {
+    const outcome = shortlist.toggle({
+      vertical: 'loans',
+      key: product.slug,
+      name: product.name,
+      bankName: product.lenderName,
+      detailHref: `/loans/${product.slug}`,
+    });
+    if (outcome === 'full') {
+      toast({ message: fillCopy(shellCopy.shortlistFull, { count: '4' }), variant: 'warning' });
+    } else if (outcome === 'added') {
+      toast({ message: fillCopy(shellCopy.shortlistAdded, { name: product.name }) });
+    } else {
+      toast({ message: fillCopy(shellCopy.shortlistRemoved, { name: product.name }) });
     }
   };
 
-  const bandCell = (item: LoanProductListItem) => {
-    if (!item.effectiveRate) {
-      return <span className="loans-muted">{copy.noBandNote}</span>;
-    }
-    const { min, max, source, label, category } = item.effectiveRate;
-    const categoryText = bandCategoryLabel(copy, source, category);
+  const renderScenarioCard = (result: ScenarioResultItem) => {
+    const { product } = result;
+    const bandText = result.band ? `${result.band.min}–${result.band.max}%` : null;
+    const categoryNote = result.band
+      ? bandCategoryLabel(copy, result.band.source, result.band.category)
+      : null;
     return (
-      <>
-        <span>
-          {formatPercent(min)} – {formatPercent(max)}
-        </span>
-        <span className="loans-band-source">
-          {label === 'expected_profit' ? copy.expectedProfit : copy.interest} ·{' '}
-          {bandSourceLabel(copy, source)}
-        </span>
-        {categoryText ? (
-          <span className="loans-band-source">{categoryText}</span>
+      <ResultCard
+        key={product.id}
+        bankName={product.lenderName}
+        productName={product.name}
+        detailHref={`/loans/${product.slug}`}
+        heroValue={
+          result.atMinRate && result.atMaxRate ? (
+            <>
+              <Money value={result.atMinRate.emi} /> – <Money value={result.atMaxRate.emi} />
+            </>
+          ) : (
+            <UnknownValue kind="not-published" />
+          )
+        }
+        heroLabel={copy.colEmi}
+        supportingFacts={[
+          {
+            label: copy.colBand,
+            value: bandText ?? <UnknownValue kind="not-published" />,
+          },
+          {
+            label: copy.colTotalCost,
+            value:
+              result.atMinRate && result.atMaxRate ? (
+                <>
+                  <Money value={result.atMinRate.totalCost} /> –{' '}
+                  <Money value={result.atMaxRate.totalCost} />
+                </>
+              ) : (
+                <UnknownValue kind="not-published" />
+              ),
+          },
+          {
+            label: copy.colFee,
+            value:
+              result.processingFeeInclVat !== null ? (
+                <Money value={result.processingFeeInclVat} />
+              ) : (
+                <UnknownValue kind="not-published" />
+              ),
+          },
+          { label: copy.colStatus, value: result.eligible ? copy.statusFits : copy.statusCheck },
+        ]}
+        badges={
+          <>
+            {product.isIslamic ? <Badge variant="info">{copy.islamicBadge}</Badge> : null}
+            {result.usesSimpleInterest ? <Badge>{copy.simpleInterestBadge}</Badge> : null}
+            {product.segmentTags.map(tag => (
+              <Badge key={tag}>{segmentLabel(tag, lang)}</Badge>
+            ))}
+          </>
+        }
+        trustChip={
+          result.band && result.band.source !== 'none' ? (
+            <TrustChip
+              source={bandSourceLabel(copy, result.band.source)}
+              dateLabel={categoryNote ?? bandText ?? ''}
+            />
+          ) : undefined
+        }
+        islamic={product.isIslamic}
+        inShortlist={shortlist.isInShortlist('loans', product.slug)}
+        onToggleShortlist={() => toggleShortlist(product)}
+      >
+        {result.band ? (
+          <p className="cm-discovery-note">
+            {result.rateLabel === 'expected_profit' ? copy.expectedProfit : copy.interest} ·{' '}
+            {bandSourceLabel(copy, result.band.source)}
+            {categoryNote ? ` · ${categoryNote}` : ''}
+          </p>
         ) : (
-          source === 'bb_chart' && <span className="loans-band-source">{copy.bandChartNote}</span>
+          <p className="cm-discovery-note">{copy.noBandNote}</p>
         )}
-      </>
+        {result.supervisionCharge !== null ? (
+          <p className="cm-discovery-note">
+            {copy.supervisionCharge}: <Money value={result.supervisionCharge} /> (
+            {copy.supervisionNotInTotal})
+          </p>
+        ) : null}
+        {result.warnings.map(warning => (
+          <p key={warning.code} className="cm-discovery-note">
+            {warning.message}
+          </p>
+        ))}
+        {result.flags.map(flag => (
+          <p key={flag.code} className="cm-discovery-note">
+            {flag.message}
+          </p>
+        ))}
+        {result.note ? <p className="cm-discovery-note">{result.note}</p> : null}
+      </ResultCard>
     );
   };
 
-  return (
-    <main className="loans-page">
-      <section className="loans-hero">
-        <h1>{copy.heading}</h1>
-        <p>{copy.intro}</p>
-      </section>
+  const renderCatalogueCard = (product: LoanProductListItem) => {
+    const band = product.effectiveRate;
+    return (
+      <ResultCard
+        key={product.id}
+        bankName={product.lenderName}
+        productName={product.name}
+        detailHref={`/loans/${product.slug}`}
+        heroValue={band ? `${band.min}–${band.max}%` : <UnknownValue kind="not-published" />}
+        heroLabel={copy.colBand}
+        supportingFacts={[
+          {
+            label: copy.amountRange,
+            value:
+              product.amountMinBdt !== null || product.amountMaxBdt !== null ? (
+                <>
+                  {product.amountMinBdt !== null ? <Money value={product.amountMinBdt} /> : '…'} –{' '}
+                  {product.amountMaxBdt !== null ? <Money value={product.amountMaxBdt} /> : '…'}
+                </>
+              ) : (
+                <UnknownValue kind="not-published" />
+              ),
+          },
+          {
+            label: copy.tenureRange,
+            value:
+              product.tenureMinMonths !== null || product.tenureMaxMonths !== null ? (
+                `${product.tenureMinMonths ?? '…'}–${product.tenureMaxMonths ?? '…'}`
+              ) : (
+                <UnknownValue kind="not-published" />
+              ),
+          },
+        ]}
+        badges={
+          <>
+            {product.isIslamic ? <Badge variant="info">{copy.islamicBadge}</Badge> : null}
+            {product.usesSimpleInterest ? <Badge>{copy.simpleInterestBadge}</Badge> : null}
+            {product.segmentTags.map(tag => (
+              <Badge key={tag}>{segmentLabel(tag, lang)}</Badge>
+            ))}
+          </>
+        }
+        islamic={product.isIslamic}
+        inShortlist={shortlist.isInShortlist('loans', product.slug)}
+        onToggleShortlist={() => toggleShortlist(product)}
+      />
+    );
+  };
 
-      <div className="loans-estimate-banner" role="note">
-        {copy.estimateBanner}
-      </div>
-
-      <div className="loans-type-tabs" role="tablist" aria-label={copy.heading}>
-        {LOAN_TYPES.map(type => (
-          <button
-            key={type}
-            type="button"
-            role="tab"
-            aria-selected={loanType === type}
-            className={loanType === type ? 'loans-tab loans-tab-active' : 'loans-tab'}
-            onClick={() => {
-              setLoanType(type);
-              setSegment('');
-            }}
-          >
-            {typeLabel(copy, type)}
-          </button>
-        ))}
-      </div>
-
-      <section className="loans-form-section" aria-labelledby="loans-form-heading">
-        <h2 id="loans-form-heading">{copy.formHeading}</h2>
-        {/* Validation lives in handleScenario (whole-taka amounts, tenure
-            1–600, income ≥ 0) so it matches the backend exactly — native
-            bubbles would only duplicate it inconsistently. */}
-        <form onSubmit={handleScenario} className="loans-form" noValidate>
-          <label>
-            {copy.amountLabel}
-            <input
-              type="number"
-              min="1"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              placeholder={copy.amountPlaceholder}
-            />
-          </label>
-          <label>
-            {copy.tenureLabel}
-            <input
-              type="number"
-              min="1"
-              value={tenure}
-              onChange={e => setTenure(e.target.value)}
-              placeholder={copy.tenurePlaceholder}
-            />
-          </label>
-          <label>
-            {copy.incomeLabel}
-            <span className="loans-optional">{copy.incomeOptional}</span>
-            <input
-              type="number"
-              min="0"
-              value={income}
-              onChange={e => setIncome(e.target.value)}
-              placeholder={copy.incomePlaceholder}
-            />
-          </label>
-          <label className="loans-checkbox">
-            <input
-              type="checkbox"
-              checked={islamicOnly}
-              onChange={e => setIslamicOnly(e.target.checked)}
-            />
-            {copy.islamicOnly}
-          </label>
-          {formError && (
-            <p className="loans-form-error" role="alert">
-              {formError}
-            </p>
-          )}
-          <button type="submit" className="loans-submit" disabled={scenarioState === 'loading'}>
-            {scenarioState === 'loading' ? copy.running : copy.runScenario}
-          </button>
-        </form>
-      </section>
-
-      {segments.length > 0 && (
-        <div className="loans-segment-filter">
-          <span>{copy.segmentFilterLabel}:</span>
-          <button
-            type="button"
-            className={segment === '' ? 'loans-chip loans-chip-active' : 'loans-chip'}
-            onClick={() => setSegment('')}
-          >
-            {copy.segmentAll}
-          </button>
-          {segments.map(tag => (
-            <button
-              key={tag}
-              type="button"
-              className={segment === tag ? 'loans-chip loans-chip-active' : 'loans-chip'}
-              onClick={() => setSegment(tag)}
+  const filters = (
+    <div>
+      <h3 className="cm-filter-group-label">{copy.formHeading}</h3>
+      <div className="cm-filter-group" role="group" aria-label={copy.formHeading}>
+        <div className="cm-filter-options">
+          {LOAN_TYPES.map(type => (
+            <Button
+              key={type}
+              variant={loanType === type ? 'primary' : 'ghost'}
+              size="sm"
+              aria-pressed={loanType === type}
+              onClick={() => {
+                setLoanType(type);
+                setSegment('');
+              }}
             >
-              {segmentLabel(tag, lang)}
-            </button>
+              {typeLabel(copy, type)}
+            </Button>
           ))}
         </div>
-      )}
+      </div>
+      <MoneyInput
+        label={copy.amountLabel}
+        value={amount === '' ? null : Number(amount)}
+        onValueChange={value => setAmount(value === null ? '' : String(value))}
+        error={fieldErrors.amount}
+      />
+      <Input
+        label={copy.tenureLabel}
+        type="number"
+        min={1}
+        max={600}
+        value={tenure}
+        error={fieldErrors.tenure}
+        onChange={event => setTenure(event.target.value)}
+      />
+      <MoneyInput
+        label={`${copy.incomeLabel} (${copy.incomeOptional})`}
+        value={income === '' ? null : Number(income)}
+        onValueChange={value => setIncome(value === null ? '' : String(value))}
+        error={fieldErrors.income}
+      />
+      <div className="cm-filter-options">
+        <Checkbox
+          label={copy.islamicOnly}
+          checked={islamicOnly}
+          onChange={event => setIslamicOnly(event.target.checked)}
+        />
+      </div>
+      {segments.length > 0 ? (
+        <fieldset className="cm-filter-group">
+          <legend>{copy.segmentFilterLabel}</legend>
+          <div className="cm-filter-options">
+            <Button
+              variant={segment === '' ? 'primary' : 'ghost'}
+              size="sm"
+              aria-pressed={segment === ''}
+              onClick={() => setSegment('')}
+            >
+              {copy.segmentAll}
+            </Button>
+            {segments.map(tag => (
+              <Button
+                key={tag}
+                variant={segment === tag ? 'primary' : 'ghost'}
+                size="sm"
+                aria-pressed={segment === tag}
+                onClick={() => setSegment(tag)}
+              >
+                {segmentLabel(tag, lang)}
+              </Button>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
+    </div>
+  );
 
-      {catalogueState === 'loading' && <p aria-live="polite">{copy.loadingLabel}</p>}
-      {catalogueState === 'error' && (
-        <div>
-          <p role="alert">{copy.errorResults}</p>
-          <button type="button" onClick={() => void loadCatalogue()}>
-            {copy.retry}
-          </button>
-        </div>
-      )}
+  const showScenario = visibleResults !== null && !scenarioError;
 
-      {scenarioState === 'error' && (
-        <p className="loans-form-error" role="alert">
-          {copy.scenarioError}
+  return (
+    <div className="loans-page">
+      <h1>{copy.heading}</h1>
+      <p className="cm-discovery-note">{copy.intro}</p>
+      <p className="cm-discovery-note">{copy.estimateBanner}</p>
+
+      <DiscoveryLayout
+        filters={filters}
+        resultCount={showScenario ? visibleResults.length : visibleProducts.length}
+      >
+        <h2 className="cm-discovery-section-label">
+          {copy.resultsHeading} — {typeLabel(copy, loanType)}
+        </h2>
+        <p className="cm-discovery-sortedby" role="status">
+          {fillCopy(discoveryCopy.sortedBy, { criterion: copy.rankedByUpperBand })}
         </p>
-      )}
+        <p className="cm-discovery-note">{copy.emiRangeNote}</p>
+        {segment ? (
+          <FilterChips
+            chips={[{ key: 'segment', label: segmentLabel(segment, lang) }]}
+            onRemove={() => setSegment('')}
+            onClearAll={() => setSegment('')}
+          />
+        ) : null}
 
-      {scenario && scenarioState === 'done' ? (
-        <section aria-labelledby="loans-results-heading">
-          <h2 id="loans-results-heading">{copy.resultsHeading}</h2>
-          <p className="loans-muted">{copy.emiRangeNote}</p>
-          {visibleResults.length === 0 ? (
-            <p>{copy.emptyResults}</p>
-          ) : (
-            <div className="loans-table-wrap">
-              <table className="loans-table">
-                <thead>
-                  <tr>
-                    <th>{copy.colProduct}</th>
-                    <th>{copy.colLender}</th>
-                    <th>{copy.colBand}</th>
-                    <th>{copy.colEmi}</th>
-                    <th>{copy.colTotalCost}</th>
-                    <th>{copy.colFee}</th>
-                    <th>{copy.colStatus}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleResults.map(result => (
-                    <tr
-                      key={result.product.id}
-                      className={result.eligible ? '' : 'loans-row-ineligible'}
-                      data-testid={`scenario-row-${result.product.slug}`}
-                    >
-                      <td>
-                        <Link to={`/loans/${result.product.slug}`}>{result.product.name}</Link>
-                        {result.product.isIslamic && (
-                          <span className="loans-badge">{copy.islamicBadge}</span>
-                        )}
-                        {result.usesSimpleInterest && (
-                          <span className="loans-badge">{copy.simpleInterestBadge}</span>
-                        )}
-                        {result.flags.map(flag => (
-                          <span key={flag.code} className="loans-flag">
-                            {flag.message}
-                          </span>
-                        ))}
-                        {result.warnings.map(warning => (
-                          <span key={warning.code} className="loans-flag loans-flag-warning">
-                            {warning.message}
-                          </span>
-                        ))}
-                        {result.note && <span className="loans-flag">{result.note}</span>}
-                      </td>
-                      <td>{result.product.lenderName}</td>
-                      <td>
-                        {result.band ? (
-                          <>
-                            <span>
-                              {formatPercent(result.band.min)} – {formatPercent(result.band.max)}
-                            </span>
-                            <span className="loans-band-source">
-                              {result.rateLabel === 'expected_profit'
-                                ? copy.expectedProfit
-                                : copy.interest}{' '}
-                              · {bandSourceLabel(copy, result.band.source)}
-                            </span>
-                            {bandCategoryLabel(copy, result.band.source, result.band.category) && (
-                              <span className="loans-band-source">
-                                {bandCategoryLabel(copy, result.band.source, result.band.category)}
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          <span className="loans-muted">{copy.noBandNote}</span>
-                        )}
-                      </td>
-                      <td>
-                        {result.atMinRate && result.atMaxRate
-                          ? `${formatMoney(result.atMinRate.emi)} – ${formatMoney(
-                              result.atMaxRate.emi
-                            )}`
-                          : copy.notPublished}
-                      </td>
-                      <td>
-                        {result.atMinRate && result.atMaxRate
-                          ? `${formatMoney(result.atMinRate.totalCost)} – ${formatMoney(
-                              result.atMaxRate.totalCost
-                            )}`
-                          : copy.notPublished}
-                      </td>
-                      <td>
-                        {result.processingFeeInclVat !== null
-                          ? formatMoney(result.processingFeeInclVat)
-                          : copy.notPublished}
-                        {result.supervisionCharge !== null && (
-                          <span className="loans-band-source">
-                            {copy.supervisionCharge}: {formatMoney(result.supervisionCharge)} (
-                            {copy.supervisionNotInTotal})
-                          </span>
-                        )}
-                      </td>
-                      <td>{result.eligible ? copy.statusFits : copy.statusCheck}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {catalogueState === 'loading' ? <DiscoverySkeleton /> : null}
+        {catalogueState === 'error' ? (
+          <DiscoveryError message={copy.errorResults} onRetry={() => void loadCatalogue()} />
+        ) : null}
+        {scenarioError ? (
+          <DiscoveryError
+            message={scenarioError}
+            onRetry={() => setRetryNonce(nonce => nonce + 1)}
+          />
+        ) : null}
+
+        {catalogueState === 'done' && showScenario ? (
+          <>
+            <div className="cm-discovery-list">
+              {visibleResults.map(result => renderScenarioCard(result))}
             </div>
-          )}
-          <section className="loans-notes" aria-labelledby="loans-notes-heading">
-            <h3 id="loans-notes-heading">{copy.notesHeading}</h3>
-            <ul>
-              {scenario.notes.map(note => (
-                <li key={note}>{note}</li>
-              ))}
-            </ul>
-          </section>
-        </section>
-      ) : (
-        catalogueState === 'done' && (
-          <section aria-labelledby="loans-catalogue-heading">
-            <h2 id="loans-catalogue-heading">
-              {copy.catalogueHeading} — {typeLabel(copy, loanType)}
-            </h2>
-            {visibleProducts.length === 0 ? (
-              <p>{copy.emptyResults}</p>
-            ) : (
-              <div className="loans-table-wrap">
-                <table className="loans-table">
-                  <thead>
-                    <tr>
-                      <th>{copy.colProduct}</th>
-                      <th>{copy.colLender}</th>
-                      <th>{copy.colBand}</th>
-                      <th>{copy.amountRange}</th>
-                      <th>{copy.tenureRange}</th>
-                      <th>{copy.statusFits}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visibleProducts.map(product => (
-                      <tr key={product.id}>
-                        <td>
-                          <Link to={`/loans/${product.slug}`}>{product.name}</Link>
-                          {product.isIslamic && (
-                            <span className="loans-badge">{copy.islamicBadge}</span>
-                          )}
-                          {product.usesSimpleInterest && (
-                            <span className="loans-badge">{copy.simpleInterestBadge}</span>
-                          )}
-                          <span className="loans-tags">
-                            {product.segmentTags.map(tag => (
-                              <span key={tag} className="loans-tag">
-                                {segmentLabel(tag, lang)}
-                              </span>
-                            ))}
-                          </span>
-                        </td>
-                        <td>{product.lenderName}</td>
-                        <td>{bandCell(product)}</td>
-                        <td>{formatAmountRange(product.amountMinBdt, product.amountMaxBdt)}</td>
-                        <td>
-                          {product.tenureMaxMonths !== null
-                            ? `${product.tenureMinMonths ?? '—'} – ${product.tenureMaxMonths} ${
-                                copy.months
-                              }`
-                            : copy.notPublished}
-                        </td>
-                        <td>
-                          <Link to={`/loans/${product.slug}`}>{copy.viewDetails}</Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-        )
-      )}
+            {visibleResults.length === 0 ? (
+              <p className="cm-discovery-note">{copy.emptyResults}</p>
+            ) : null}
+            {scenario && scenario.notes.length > 0 ? (
+              <>
+                <h3 className="cm-discovery-section-label">{copy.notesHeading}</h3>
+                <ul className="cm-notes-list">
+                  {scenario.notes.map(note => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+          </>
+        ) : null}
 
-      {caps.length > 0 && (
-        <section className="loans-caps" aria-labelledby="loans-caps-heading">
-          <h2 id="loans-caps-heading">{copy.capsHeading}</h2>
-          <p>{copy.capsIntro}</p>
-          <ul>
+        {catalogueState === 'done' && !showScenario && !scenarioError ? (
+          <>
+            <h3 className="cm-discovery-section-label">{copy.catalogueHeading}</h3>
+            <div className="cm-discovery-list">
+              {visibleProducts.map(product => {
+                const result = resultBySlug.get(product.slug);
+                return result ? renderScenarioCard(result) : renderCatalogueCard(product);
+              })}
+            </div>
+            {visibleProducts.length === 0 ? (
+              <p className="cm-discovery-note">{copy.emptyResults}</p>
+            ) : null}
+          </>
+        ) : null}
+      </DiscoveryLayout>
+
+      {caps.length > 0 ? (
+        <section aria-labelledby="loans-caps-heading">
+          <h2 id="loans-caps-heading" className="cm-discovery-section-label">
+            {copy.capsHeading}
+          </h2>
+          <p className="cm-discovery-note">{copy.capsIntro}</p>
+          <ul className="cm-notes-list">
             {caps.map(cap => (
               <li key={cap.key}>
-                <strong>{cap.description}</strong>
-                <span className="loans-band-source">
+                <strong>{cap.description}</strong>{' '}
+                <span className="cm-discovery-note">
                   {cap.sourceNote} ({cap.effectiveFrom})
                 </span>
               </li>
             ))}
           </ul>
         </section>
-      )}
-    </main>
+      ) : null}
+    </div>
   );
 };
 

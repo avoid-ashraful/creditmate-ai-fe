@@ -68,6 +68,7 @@ export interface LoansCopy {
   expectedProfit: string;
   interest: string;
   emiRangeNote: string;
+  rankedByUpperBand: string;
   notesHeading: string;
   capsHeading: string;
   capsIntro: string;
@@ -196,6 +197,7 @@ const en: LoansCopy = {
   interest: 'Interest',
   emiRangeNote:
     'Ranges run from the lowest to the highest rate in the published band. Your actual rate is set by the lender within the band.',
+  rankedByUpperBand: 'Ranked by total cost at the highest rate in the band',
   notesHeading: 'How these figures are calculated',
   capsHeading: 'Bangladesh Bank ceilings that apply',
   capsIntro:
@@ -326,6 +328,7 @@ const bn: LoansCopy = {
   interest: 'সুদ',
   emiRangeNote:
     'পরিসর প্রকাশিত ব্যান্ডের সর্বনিম্ন থেকে সর্বোচ্চ হার পর্যন্ত। আপনার প্রকৃত হার ব্যান্ডের মধ্যে ঋণদাতা নির্ধারণ করবে।',
+  rankedByUpperBand: 'ব্যান্ডের সর্বোচ্চ হার অনুযায়ী মোট খরচ দিয়ে সাজানো',
   notesHeading: 'এই হিসাব কীভাবে করা হয়',
   capsHeading: 'প্রযোজ্য বাংলাদেশ ব্যাংক সর্বোচ্চ সীমা',
   capsIntro:
