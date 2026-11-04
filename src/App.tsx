@@ -85,6 +85,8 @@ const RegisterPage = lazyLoad(() => import('./pages/RegisterPage'));
 const ResetPasswordPage = lazyLoad(() => import('./pages/ResetPasswordPage'));
 const RewardCalculatorPage = lazyLoad(() => import('./pages/RewardCalculatorPage'));
 const CalculatorsPage = lazyLoad(() => import('./pages/CalculatorsPage'));
+const LoansPage = lazyLoad(() => import('./pages/LoansPage'));
+const LoanDetailPage = lazyLoad(() => import('./pages/LoanDetailPage'));
 const DepositsPage = lazyLoad(() => import('./pages/DepositsPage'));
 const DepositDetailPage = lazyLoad(() => import('./pages/DepositDetailPage'));
 const AccountsPage = lazyLoad(() => import('./pages/AccountsPage'));
@@ -120,6 +122,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/compare', en: 'Compare Cards', bn: 'কার্ড তুলনা' },
   { to: '/reward-calculator', en: 'Reward Calculator', bn: 'রিওয়ার্ড ক্যালকুলেটর' },
   { to: '/calculators', en: 'Calculators', bn: 'ক্যালকুলেটরসমূহ' },
+  { to: '/loans', en: 'Loans', bn: 'ঋণ' },
   { to: '/guides', en: 'Guides', bn: 'গাইড' },
   { to: '/glossary', en: 'Glossary', bn: 'শব্দকোষ' },
   { to: '/about', en: 'About', bn: 'আমাদের সম্পর্কে' },
@@ -238,6 +241,22 @@ export const AppRoutes: React.FC = () => {
           element={
             <Suspense fallback={<LazyPageFallback label="Loading calculators..." />}>
               <CalculatorsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/loans"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading loans..." />}>
+              <LoansPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/loans/:slug"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading loan details..." />}>
+              <LoanDetailPage />
             </Suspense>
           }
         />
