@@ -85,6 +85,8 @@ const RegisterPage = lazyLoad(() => import('./pages/RegisterPage'));
 const ResetPasswordPage = lazyLoad(() => import('./pages/ResetPasswordPage'));
 const RewardCalculatorPage = lazyLoad(() => import('./pages/RewardCalculatorPage'));
 const CalculatorsPage = lazyLoad(() => import('./pages/CalculatorsPage'));
+const DepositsPage = lazyLoad(() => import('./pages/DepositsPage'));
+const DepositDetailPage = lazyLoad(() => import('./pages/DepositDetailPage'));
 const SavedPage = lazyLoad(() => import('./pages/SavedPage'));
 const UnsubscribePage = lazyLoad(() => import('./pages/UnsubscribePage'));
 const VerifyEmailPage = lazyLoad(() => import('./pages/VerifyEmailPage'));
@@ -108,6 +110,7 @@ interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', en: 'Home', bn: 'হোম' },
   { to: '/banks', en: 'Banks', bn: 'ব্যাংকসমূহ' },
+  { to: '/deposits', en: 'Deposits', bn: 'আমানত' },
   { to: '/search', en: 'Advanced Search', bn: 'উন্নত অনুসন্ধান' },
   { to: '/perfect-card-finder', en: 'Quiz', bn: 'কুইজ' },
   { to: '/eligibility-checker', en: 'Eligibility Checker', bn: 'যোগ্যতা যাচাই' },
@@ -232,6 +235,22 @@ export const AppRoutes: React.FC = () => {
           element={
             <Suspense fallback={<LazyPageFallback label="Loading calculators..." />}>
               <CalculatorsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/deposits"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading deposits..." />}>
+              <DepositsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/deposits/:slug"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading deposit..." />}>
+              <DepositDetailPage />
             </Suspense>
           }
         />

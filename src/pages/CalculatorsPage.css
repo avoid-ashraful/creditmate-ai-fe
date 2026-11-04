@@ -288,3 +288,8 @@
   color: #64748b;
   font-size: 0.9rem;
 }
+.calculators-checkbox {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
