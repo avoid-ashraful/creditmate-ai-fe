@@ -4,9 +4,11 @@ import {
   calculateFeeBreakEvenSpend,
   CategoryAllocation,
   computeCardEstimate,
+  computeValueBackPercent,
   parseCashbackCap,
   parseRewardRates,
   rankCards,
+  totalAnnualSpend,
   validateAllocation,
 } from './rewardCalculator';
 
@@ -355,6 +357,35 @@ describe('calculateFeeBreakEvenSpend', () => {
   });
 });
 
+describe('computeValueBackPercent', () => {
+  it('computes net value as a share of total annual spend (hand-checkable)', () => {
+    // BDT 6,000 net on BDT 600,000/year (50,000/month) → exactly 1%.
+    expect(computeValueBackPercent(6000, 600000)).toBeCloseTo(1.0);
+    // BDT 6,200 net on BDT 360,000/year (30,000/month) → 1.7222…%.
+    expect(computeValueBackPercent(6200, 360000)).toBeCloseTo((6200 / 360000) * 100);
+  });
+
+  it('returns null for zero total spend instead of NaN/Infinity', () => {
+    expect(computeValueBackPercent(6000, 0)).toBeNull();
+    expect(computeValueBackPercent(0, 0)).toBeNull();
+  });
+
+  it('shows a negative percentage truthfully when the fee exceeds the rewards', () => {
+    // BDT 3,000 net loss on BDT 600,000/year → −0.5%, never clamped to 0.
+    expect(computeValueBackPercent(-3000, 600000)).toBeCloseTo(-0.5);
+  });
+
+  it('returns null when the net value is unknown', () => {
+    expect(computeValueBackPercent(null, 600000)).toBeNull();
+  });
+
+  it('totalAnnualSpend multiplies the monthly allocation by 12', () => {
+    // SPEND totals BDT 30,000/month.
+    expect(totalAnnualSpend(SPEND)).toBe(360000);
+    expect(totalAnnualSpend({ dining: 0, travel: 0, groceries: 0, fuel: 0, other: 0 })).toBe(0);
+  });
+});
+
 describe('rankCards', () => {
   it('ranks cards with a BDT value above points-only cards and limits results', () => {
     // Value tier: point value stated, fee differs.
@@ -390,6 +421,10 @@ describe('rankCards', () => {
     expect(ranked[2].annualRewardValue).toBeNull();
     expect(ranked[2].annualPoints).toBeCloseTo(7200);
     expect(ranked[2].netAnnualValue).toBeNull();
+    // Value-back %: net ÷ total annual spend (360,000) × 100; ordering unchanged.
+    expect(ranked[0].valueBackPercent).toBeCloseTo((6200 / 360000) * 100);
+    expect(ranked[1].valueBackPercent).toBeCloseTo((-2800 / 360000) * 100);
+    expect(ranked[2].valueBackPercent).toBeNull();
   });
 
   it('ranks a cashback card in the value tier without any point value', () => {

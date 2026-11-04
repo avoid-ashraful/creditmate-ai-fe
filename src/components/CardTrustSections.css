@@ -1,0 +1,123 @@
+/* Data source & verification block and "What changed" timeline
+   on the card detail page. Uses the shared design tokens. */
+
+.provenance-section,
+.history-section {
+  background: var(--color-background-surface);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-base);
+}
+
+.provenance-section h2,
+.history-section h2 {
+  font-size: var(--typography-font-size-xl);
+  font-weight: var(--typography-font-weight-semibold);
+  margin: 0 0 var(--spacing-md);
+  color: var(--color-text-primary);
+}
+
+.provenance-intro,
+.history-intro {
+  margin: 0 0 var(--spacing-lg);
+  color: var(--color-text-secondary);
+}
+
+.provenance-list {
+  margin: 0;
+}
+
+.provenance-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+}
+
+.provenance-row + .provenance-row {
+  border-top: 1px solid var(--color-border-base);
+}
+
+.provenance-row dt {
+  font-weight: var(--typography-font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.provenance-row dd {
+  margin: 0;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.provenance-source-link {
+  color: var(--color-text-link);
+}
+
+.provenance-source-link:hover {
+  color: var(--color-text-link-hover);
+}
+
+.history-login-prompt,
+.history-empty,
+.history-loading {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.history-login-link {
+  color: var(--color-text-link);
+  font-weight: var(--typography-font-weight-semibold);
+}
+
+.history-error {
+  margin: 0;
+  color: var(--color-error-base);
+}
+
+.history-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.history-item {
+  padding: var(--spacing-md) 0 var(--spacing-md) var(--spacing-lg);
+  border-left: 2px solid var(--color-border-strong);
+  position: relative;
+}
+
+.history-item + .history-item {
+  border-top: 1px solid var(--color-border-base);
+}
+
+.history-field {
+  margin: 0 0 var(--spacing-xs);
+  font-weight: var(--typography-font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.history-change {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--color-text-secondary);
+}
+
+.history-old {
+  text-decoration: line-through;
+}
+
+.history-new {
+  font-weight: var(--typography-font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.history-date {
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-font-size-sm);
+}
+
+@media (max-width: 640px) {
+  .provenance-row {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+}

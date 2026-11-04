@@ -2,7 +2,7 @@
  * Card Detail Page with "Watch this card" toggle for alert subscriptions.
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 import ReportIssueDialog from '../components/ReportIssueDialog';
@@ -30,6 +30,14 @@ import { slugify } from '../utils/slugify';
 import { breadcrumbJsonLd } from '../utils/structuredData';
 import { summarizeCardText } from '../utils/summarizeCardText';
 import '../styles/CardDetailPage.css';
+
+// Trust sections (provenance + field history) are split out of the main
+// bundle; they render below the fold on this page.
+const CardTrustSections = React.lazy(() => import('../components/CardTrustSections'));
+
+// The CreditMate Score section is likewise below the fold; lazy-load it
+// to keep the main bundle inside its budget.
+const ScoreSection = React.lazy(() => import('../components/ScoreSection'));
 
 const CARD_DETAIL_PAGE = 'card-detail-page';
 const METRIC_CLASS = 'metric';
@@ -771,6 +779,16 @@ const CardDetailPage: React.FC = () => {
               </tbody>
             </table>
           </section>
+
+          {/* CreditMate Score with its per-component breakdown */}
+          <Suspense fallback={null}>
+            <ScoreSection card={card} />
+          </Suspense>
+
+          {/* Data source, verification status and recorded field changes */}
+          <Suspense fallback={null}>
+            <CardTrustSections card={card} />
+          </Suspense>
 
           {/* Reward program details (structured fields; hidden when the bank publishes none) */}
           {(() => {

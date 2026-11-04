@@ -319,6 +319,20 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
             ],
           },
           {
+            heading: 'The CreditMate Score',
+            paragraphs: [
+              'Each card has a CreditMate Score out of 10. It is computed only from the card’s published data — the same figures you can see on its page — and it is recomputed whenever the card’s data changes. It is not a credit score, and it does not predict whether a bank will approve an application.',
+              'When a card does not publish an annual fee or an APR, that part of the score is set neutrally rather than to zero: an Islamic card, for example, publishes no APR because it charges no interest. Where absence is itself the published fact — no rewards rules or fee waiver stated — no points are given for that part. Banks cannot pay to change a score.',
+            ],
+            bullets: [
+              'Annual cost — up to 3 points: the annual fee level (2.5), plus whether a fee waiver is published (0.5).',
+              'Interest — up to 2 points: the APR measured against Bangladesh Bank’s 25% cap, which most cards charge.',
+              'Rewards value — up to 2.5 points: published points earn rates (1.5), published cashback (0.7), and whether a rewards policy is stated (0.3).',
+              'Perks — up to 1.5 points: published lounge access, international and domestic (0.75 each). Lounge access that is not published scores a small neutral amount; a stated “none” scores zero.',
+              'Data confidence — up to 1 point: whether the record is verified (0.4), whether it links to its source (0.2), and how many of the scored fields are published (0.4).',
+            ],
+          },
+          {
             heading: 'No paid influence',
             paragraphs: [
               'Cards are not ranked or highlighted because of payment. See How We Make Money.',
@@ -627,6 +641,20 @@ export const LEGAL_COPY: Record<Language, LegalCopy> = {
               'ব্যাংক যা প্রকাশ করে তা-ই দেখাই, যেমন "৫ বার" বা "সীমাহীন"। কোনো সংখ্যা আমরা বানাই না।',
               '"নেই" মানে ব্যাংক বলেছে লাউঞ্জ সুবিধা নেই।',
               '"অজানা" মানে আমাদের কাছে তথ্য নেই। এর অর্থ এই নয় যে লাউঞ্জ সুবিধা নেই।',
+            ],
+          },
+          {
+            heading: 'CreditMate স্কোর',
+            paragraphs: [
+              'প্রতিটি কার্ডের ১০-এর মধ্যে একটি CreditMate স্কোর আছে। এটি শুধু কার্ডের প্রকাশিত তথ্য থেকে হিসাব করা হয় — যেসব সংখ্যা কার্ডের পেজেই দেখা যায় — এবং কার্ডের তথ্য বদলালেই আবার হিসাব করা হয়। এটি কোনো ক্রেডিট স্কোর নয়, এবং ব্যাংক আবেদন অনুমোদন করবে কি না তাও বলে না।',
+              'কোনো কার্ড বার্ষিক ফি বা এপিআর প্রকাশ না করলে স্কোরের সেই অংশ শূন্য না ধরে নিরপেক্ষভাবে ধরা হয়: যেমন ইসলামিক কার্ডে সুদ নেই বলে এপিআর প্রকাশিত হয় না। আর যেখানে না-থাকাটাই প্রকাশিত তথ্য — রিওয়ার্ডের নিয়ম বা ফি মওকুফ উল্লেখ নেই — সেখানে সেই অংশে কোনো পয়েন্ট দেওয়া হয় না। অর্থ দিয়ে কোনো ব্যাংক স্কোর বদলাতে পারে না।',
+            ],
+            bullets: [
+              'বার্ষিক খরচ — সর্বোচ্চ ৩ পয়েন্ট: বার্ষিক ফির পরিমাণ (২.৫), এবং ফি মওকুফ প্রকাশিত আছে কি না (০.৫)।',
+              'সুদ — সর্বোচ্চ ২ পয়েন্ট: বাংলাদেশ ব্যাংকের ২৫% সর্বোচ্চ সীমার সঙ্গে এপিআরের তুলনা; বেশিরভাগ কার্ডই এই সীমা নেয়।',
+              'রিওয়ার্ড মূল্য — সর্বোচ্চ ২.৫ পয়েন্ট: প্রকাশিত পয়েন্ট আয়ের হার (১.৫), প্রকাশিত ক্যাশব্যাক (০.৭), এবং রিওয়ার্ড নীতি উল্লেখ আছে কি না (০.৩)।',
+              'সুবিধা — সর্বোচ্চ ১.৫ পয়েন্ট: প্রকাশিত লাউঞ্জ সুবিধা, আন্তর্জাতিক ও দেশীয় (প্রতিটি ০.৭৫)। লাউঞ্জ তথ্য প্রকাশিত না থাকলে সামান্য নিরপেক্ষ পয়েন্ট দেওয়া হয়; "নেই" লেখা থাকলে শূন্য।',
+              'তথ্যের নির্ভরযোগ্যতা — সর্বোচ্চ ১ পয়েন্ট: তথ্য যাচাইকৃত কি না (০.৪), উৎসের লিংক আছে কি না (০.২), এবং স্কোরের ক্ষেত্রগুলোর কতটি প্রকাশিত (০.৪)।',
             ],
           },
           {
