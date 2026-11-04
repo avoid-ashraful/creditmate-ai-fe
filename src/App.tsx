@@ -89,6 +89,8 @@ const LoansPage = lazyLoad(() => import('./pages/LoansPage'));
 const LoanDetailPage = lazyLoad(() => import('./pages/LoanDetailPage'));
 const DepositsPage = lazyLoad(() => import('./pages/DepositsPage'));
 const DepositDetailPage = lazyLoad(() => import('./pages/DepositDetailPage'));
+const AccountsPage = lazyLoad(() => import('./pages/AccountsPage'));
+const AccountDetailPage = lazyLoad(() => import('./pages/AccountDetailPage'));
 const SavedPage = lazyLoad(() => import('./pages/SavedPage'));
 const UnsubscribePage = lazyLoad(() => import('./pages/UnsubscribePage'));
 const VerifyEmailPage = lazyLoad(() => import('./pages/VerifyEmailPage'));
@@ -113,6 +115,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/', en: 'Home', bn: 'হোম' },
   { to: '/banks', en: 'Banks', bn: 'ব্যাংকসমূহ' },
   { to: '/deposits', en: 'Deposits', bn: 'আমানত' },
+  { to: '/accounts', en: 'Accounts', bn: 'অ্যাকাউন্টসমূহ' },
   { to: '/search', en: 'Advanced Search', bn: 'উন্নত অনুসন্ধান' },
   { to: '/perfect-card-finder', en: 'Quiz', bn: 'কুইজ' },
   { to: '/eligibility-checker', en: 'Eligibility Checker', bn: 'যোগ্যতা যাচাই' },
@@ -270,6 +273,22 @@ export const AppRoutes: React.FC = () => {
           element={
             <Suspense fallback={<LazyPageFallback label="Loading deposit..." />}>
               <DepositDetailPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/accounts"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading accounts..." />}>
+              <AccountsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/accounts/:slug"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading account..." />}>
+              <AccountDetailPage />
             </Suspense>
           }
         />
