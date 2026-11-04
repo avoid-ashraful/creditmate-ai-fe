@@ -1,0 +1,39 @@
+{
+  "motion": {
+    "press": {
+      "value": "120ms",
+      "type": "duration",
+      "comment": "Press feedback. Redesign plan range: 80-160ms (motion ceiling 500ms)."
+    },
+    "micro": {
+      "value": "160ms",
+      "type": "duration",
+      "comment": "Micro-interactions. Redesign plan range: 120-200ms (motion ceiling 500ms)."
+    },
+    "standard": {
+      "value": "220ms",
+      "type": "duration",
+      "comment": "Standard transitions. Redesign plan range: 180-250ms (motion ceiling 500ms)."
+    },
+    "large": {
+      "value": "300ms",
+      "type": "duration",
+      "comment": "Large surface transitions. Redesign plan range: 240-360ms (motion ceiling 500ms)."
+    },
+    "easeOut": {
+      "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+      "type": "cubicBezier",
+      "comment": "Ease-out for entrances and press feedback."
+    },
+    "easeInOut": {
+      "value": "cubic-bezier(0.77, 0, 0.175, 1)",
+      "type": "cubicBezier",
+      "comment": "Ease-in-out for moves between states."
+    },
+    "easeExit": {
+      "value": "cubic-bezier(0.4, 0, 1, 1)",
+      "type": "cubicBezier",
+      "comment": "Ease for exits and dismissals."
+    }
+  }
+}

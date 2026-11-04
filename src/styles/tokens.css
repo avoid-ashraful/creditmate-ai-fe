@@ -5,6 +5,12 @@
  */
 
 :root {
+  /* breakpoint */
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
   /* color */
   --color-white: #ffffff;
   --color-black: #000000;
@@ -140,7 +146,17 @@
   --color-gradient-background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
   --color-gradient-card-accent: linear-gradient(90deg, #2563eb, #047857);
 
+  /* motion */
+  --motion-press: 120ms;
+  --motion-micro: 160ms;
+  --motion-standard: 220ms;
+  --motion-large: 300ms;
+  --motion-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
   /* radius */
+  --radius-12: 12px;
   --radius-none: 0;
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -164,6 +180,7 @@
   --shadow-primary-glow-strong: 0 6px 8px -1px rgba(37, 99, 235, 0.4);
 
   /* spacing */
+  --spacing-12: 12px;
   --spacing-none: 0;
   --spacing-2xs: 2px;
   --spacing-xs: 4px;
@@ -203,7 +220,8 @@
 
   /* typography */
   --typography-font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Hind Siliguri',
+    'Noto Sans Bengali', sans-serif;
   --typography-font-family-mono: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
   --typography-font-size-xs: 12px;
   --typography-font-size-sm: 14px;
@@ -359,6 +377,12 @@
 }
 
 :root.light {
+  /* breakpoint */
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
   /* color */
   --color-white: #ffffff;
   --color-black: #000000;
@@ -494,7 +518,17 @@
   --color-gradient-background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
   --color-gradient-card-accent: linear-gradient(90deg, #2563eb, #047857);
 
+  /* motion */
+  --motion-press: 120ms;
+  --motion-micro: 160ms;
+  --motion-standard: 220ms;
+  --motion-large: 300ms;
+  --motion-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
   /* radius */
+  --radius-12: 12px;
   --radius-none: 0;
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -518,6 +552,7 @@
   --shadow-primary-glow-strong: 0 6px 8px -1px rgba(37, 99, 235, 0.4);
 
   /* spacing */
+  --spacing-12: 12px;
   --spacing-none: 0;
   --spacing-2xs: 2px;
   --spacing-xs: 4px;
@@ -557,7 +592,8 @@
 
   /* typography */
   --typography-font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Hind Siliguri',
+    'Noto Sans Bengali', sans-serif;
   --typography-font-family-mono: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
   --typography-font-size-xs: 12px;
   --typography-font-size-sm: 14px;

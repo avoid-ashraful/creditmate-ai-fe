@@ -1,0 +1,17 @@
+.cm-money-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cm-money-input__prefix {
+  position: absolute;
+  left: var(--spacing-12);
+  font-size: var(--typography-font-size-md);
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.cm-money-input .cm-input {
+  padding-left: var(--spacing-xl);
+}

@@ -1,0 +1,56 @@
+.cm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  font-size: var(--typography-font-size-xs);
+  font-weight: var(--typography-font-weight-medium);
+  line-height: var(--typography-line-height-snug);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.cm-badge__dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+}
+
+.cm-badge--neutral {
+  background: var(--color-background-muted);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-subtle);
+}
+
+.cm-badge--success {
+  background: var(--color-success-subtle);
+  color: var(--color-success-base);
+  border-color: var(--color-success-border);
+}
+
+.cm-badge--warning {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning-base);
+  border-color: var(--color-warning-border);
+}
+
+.cm-badge--danger {
+  background: var(--color-error-subtle);
+  color: var(--color-error-base);
+  border-color: var(--color-error-border);
+}
+
+.cm-badge--info {
+  background: var(--color-info-subtle);
+  color: var(--color-info-base);
+  border-color: var(--color-info-border);
+}
+
+.cm-badge--primary {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-base);
+  border-color: var(--color-primary-border);
+}

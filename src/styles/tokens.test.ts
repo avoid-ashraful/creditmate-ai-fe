@@ -108,7 +108,7 @@ describe('design tokens — 4px spacing scale', () => {
 
   it('exposes the full named scale', () => {
     expect(Object.keys(spacing).sort()).toEqual(
-      ['2xl', '2xs', '3xl', '4xl', 'lg', 'md', 'none', 'sm', 'xl', 'xs'].sort()
+      ['12', '2xl', '2xs', '3xl', '4xl', 'lg', 'md', 'none', 'sm', 'xl', 'xs'].sort()
     );
   });
 
@@ -185,6 +185,7 @@ describe('design tokens — typography', () => {
 describe('design tokens — radius, shadow, transition', () => {
   it('defines the radius scale', () => {
     expect(radius).toEqual({
+      '12': '12px',
       none: '0',
       sm: '4px',
       md: '6px',
@@ -327,7 +328,16 @@ describe('design token build outputs', () => {
 
   it('exposes colours, spacing, typography, radius, shadow and transition sets to Figma', () => {
     const set = figmaOutput.global as Record<string, unknown>;
-    ['color', 'spacing', 'typography', 'radius', 'shadow', 'transition'].forEach(group => {
+    [
+      'color',
+      'spacing',
+      'typography',
+      'radius',
+      'shadow',
+      'transition',
+      'breakpoint',
+      'motion',
+    ].forEach(group => {
       expect(set[group]).toBeDefined();
     });
   });
@@ -340,7 +350,16 @@ describe('design token build outputs', () => {
 
   it('produces a stable token surface across exports', () => {
     expect(Object.keys(tokens).sort()).toEqual(
-      ['color', 'radius', 'shadow', 'spacing', 'transition', 'typography'].sort()
+      [
+        'breakpoint',
+        'color',
+        'motion',
+        'radius',
+        'shadow',
+        'spacing',
+        'transition',
+        'typography',
+      ].sort()
     );
   });
 });

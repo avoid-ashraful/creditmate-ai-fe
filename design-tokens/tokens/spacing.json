@@ -20,6 +20,11 @@
       "type": "spacing",
       "comment": "4px base unit x2."
     },
+    "12": {
+      "value": "12px",
+      "type": "spacing",
+      "comment": "The 12px step the plan adds to the 4px scale."
+    },
     "md": {
       "value": "16px",
       "type": "spacing",

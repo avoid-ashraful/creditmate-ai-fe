@@ -115,7 +115,7 @@
   font-size: var(--typography-font-size-sm);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .provenance-row {
     grid-template-columns: 1fr;
     gap: var(--spacing-xs);

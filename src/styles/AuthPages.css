@@ -155,23 +155,21 @@
   max-inline-size: 220px;
   padding-block: var(--spacing-xs);
   padding-inline: var(--spacing-sm);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--color-border-base);
   border-radius: var(--radius-md);
   background: transparent;
-  color: white;
+  color: var(--color-text-primary);
   font: inherit;
   font-size: var(--typography-font-size-sm);
 }
 
 .account-menu-trigger:hover,
 .account-menu-trigger[aria-expanded='true'] {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--color-state-hover-surface);
 }
 
-.account-menu-trigger:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 2px;
-}
+/* No local :focus-visible rule: the global keyboard focus ring in
+   src/styles/index.css supplies a visible, theme-aware indicator. */
 
 .account-menu-email {
   overflow: hidden;

@@ -1,0 +1,88 @@
+.cm-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-12) var(--spacing-md);
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-primary);
+}
+
+.cm-alert__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+}
+
+.cm-alert__title {
+  margin: var(--spacing-none);
+  font-size: var(--typography-font-size-sm);
+  font-weight: var(--typography-font-weight-semibold);
+  line-height: var(--typography-line-height-snug);
+}
+
+.cm-alert__body {
+  font-size: var(--typography-font-size-sm);
+  line-height: var(--typography-line-height-normal);
+  color: var(--color-text-secondary);
+}
+
+.cm-alert__body p {
+  margin: var(--spacing-none);
+}
+
+.cm-alert__close {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-none);
+  font: inherit;
+  font-size: var(--typography-font-size-lg);
+  line-height: var(--typography-line-height-none);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--motion-micro) var(--motion-ease-out);
+}
+
+.cm-alert__close:hover {
+  background: var(--color-state-hover-surface);
+  color: var(--color-text-primary);
+}
+
+.cm-alert__close:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.cm-alert--success {
+  background: var(--color-success-subtle);
+  border-color: var(--color-success-border);
+}
+
+.cm-alert--warning {
+  background: var(--color-warning-subtle);
+  border-color: var(--color-warning-border);
+}
+
+.cm-alert--danger {
+  background: var(--color-error-subtle);
+  border-color: var(--color-error-border);
+}
+
+.cm-alert--info {
+  background: var(--color-info-subtle);
+  border-color: var(--color-info-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-alert__close {
+    transition: none;
+  }
+}

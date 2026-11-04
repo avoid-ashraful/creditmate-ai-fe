@@ -4,6 +4,13 @@
  * Run `npm run tokens:build` to regenerate it.
  */
 
+export const breakpoint = {
+  sm: '480px',
+  md: '768px',
+  lg: '1024px',
+  xl: '1280px',
+} as const;
+
 export const color = {
   dark: {
     primary: {
@@ -261,7 +268,18 @@ export const color = {
   },
 } as const;
 
+export const motion = {
+  press: '120ms',
+  micro: '160ms',
+  standard: '220ms',
+  large: '300ms',
+  easeOut: 'cubic-bezier(0.23, 1, 0.32, 1)',
+  easeInOut: 'cubic-bezier(0.77, 0, 0.175, 1)',
+  easeExit: 'cubic-bezier(0.4, 0, 1, 1)',
+} as const;
+
 export const radius = {
+  '12': '12px',
   none: '0',
   sm: '4px',
   md: '6px',
@@ -287,6 +305,7 @@ export const shadow = {
 } as const;
 
 export const spacing = {
+  '12': '12px',
   none: '0',
   '2xs': '2px',
   xs: '4px',
@@ -334,7 +353,7 @@ export const transition = {
 
 export const typography = {
   fontFamily: {
-    sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+    sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif",
     mono: "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
   },
   fontSize: {
@@ -371,7 +390,9 @@ export const typography = {
 } as const;
 
 export const tokens = {
+  breakpoint,
   color,
+  motion,
   radius,
   shadow,
   spacing,
@@ -380,7 +401,9 @@ export const tokens = {
 } as const;
 
 export type DesignTokens = typeof tokens;
+export type BreakpointTokens = typeof tokens.breakpoint;
 export type ColorTokens = typeof tokens.color;
+export type MotionTokens = typeof tokens.motion;
 export type RadiusTokens = typeof tokens.radius;
 export type ShadowTokens = typeof tokens.shadow;
 export type SpacingTokens = typeof tokens.spacing;
@@ -388,6 +411,10 @@ export type TransitionTokens = typeof tokens.transition;
 export type TypographyTokens = typeof tokens.typography;
 
 export const cssVars = {
+  '--breakpoint-sm': '480px',
+  '--breakpoint-md': '768px',
+  '--breakpoint-lg': '1024px',
+  '--breakpoint-xl': '1280px',
   '--color-dark-primary-base': '#60a5fa',
   '--color-dark-primary-hover': '#93c5fd',
   '--color-dark-primary-active': '#bfdbfe',
@@ -580,6 +607,14 @@ export const cssVars = {
   '--color-gradient-footer': 'linear-gradient(to right, #0f172a, #1e293b)',
   '--color-gradient-background': 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
   '--color-gradient-card-accent': 'linear-gradient(90deg, #2563eb, #047857)',
+  '--motion-press': '120ms',
+  '--motion-micro': '160ms',
+  '--motion-standard': '220ms',
+  '--motion-large': '300ms',
+  '--motion-ease-out': 'cubic-bezier(0.23, 1, 0.32, 1)',
+  '--motion-ease-in-out': 'cubic-bezier(0.77, 0, 0.175, 1)',
+  '--motion-ease-exit': 'cubic-bezier(0.4, 0, 1, 1)',
+  '--radius-12': '12px',
   '--radius-none': '0',
   '--radius-sm': '4px',
   '--radius-md': '6px',
@@ -599,6 +634,7 @@ export const cssVars = {
   '--shadow-focus-error': '0 0 0 3px rgba(239, 68, 68, 0.35)',
   '--shadow-primary-glow': '0 4px 6px -1px rgba(37, 99, 235, 0.3)',
   '--shadow-primary-glow-strong': '0 6px 8px -1px rgba(37, 99, 235, 0.4)',
+  '--spacing-12': '12px',
   '--spacing-none': '0',
   '--spacing-2xs': '2px',
   '--spacing-xs': '4px',
@@ -632,7 +668,7 @@ export const cssVars = {
   '--transition-preset-transform': 'transform 200ms cubic-bezier(0, 0, 0.2, 1)',
   '--transition-preset-all': 'all 200ms ease',
   '--typography-font-family-sans':
-    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+    "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif",
   '--typography-font-family-mono':
     "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
   '--typography-font-size-xs': '12px',

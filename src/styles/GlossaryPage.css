@@ -15,7 +15,7 @@
 }
 
 .glossary-header p {
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   font-size: 1.125rem;
 }
 
@@ -31,14 +31,14 @@
 .search-box input {
   width: 100%;
   padding: var(--spacing-md) var(--spacing-lg);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   font-size: 1rem;
   transition: border-color 0.2s ease;
 }
 
 .search-box input:focus {
-  border-color: var(--primary-color);
+  border-color: var(--color-primary-base);
 }
 
 .category-filters {
@@ -49,9 +49,9 @@
 }
 
 .category-button {
-  background-color: var(--background-color);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
+  background-color: var(--color-background-base);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-primary);
   padding: var(--spacing-xs) var(--spacing-md);
   border-radius: var(--radius-md);
   font-size: 0.875rem;
@@ -60,14 +60,14 @@
 }
 
 .category-button:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  border-color: var(--color-primary-base);
+  color: var(--color-primary-base);
 }
 
 .category-button.active {
-  background-color: var(--primary-color);
+  background-color: var(--color-primary-base);
   color: white;
-  border-color: var(--primary-color);
+  border-color: var(--color-primary-base);
 }
 
 /* Glossary terms list */
@@ -128,8 +128,8 @@
   border-radius: var(--radius-md);
   padding: var(--spacing-xl);
   text-align: center;
-  color: var(--text-light);
-  border: 1px dashed var(--border-color);
+  color: var(--color-text-secondary);
+  border: 1px dashed var(--color-border-strong);
 }
 
 /* Responsive adjustments */

@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 
 import { staggerContainer, usePrefersReducedMotion } from '../animations';
 import { useLanguage, getCommonCopy } from '../locales';
-import { GradientButton } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
 
 import CardListItem from './CardListItem';
@@ -118,13 +117,15 @@ const CardList: React.FC<CardListProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <GradientButton
+          <motion.button
+            type="button"
+            className="primary-button"
             onClick={loadMore}
             whileHover={reduceMotion ? undefined : { scale: 1.05 }}
             whileTap={reduceMotion ? undefined : { scale: 0.95 }}
           >
             {common.categoryLoadMore} ({cards.length - displayLimit} remaining)
-          </GradientButton>
+          </motion.button>
         </motion.div>
       )}
     </div>

@@ -1,0 +1,25 @@
+.cm-verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-12) var(--spacing-md);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-subtle);
+  color: var(--color-text-primary);
+  font-size: var(--typography-font-size-sm);
+}
+
+.cm-verdict-separator {
+  color: var(--color-text-tertiary);
+}
+
+.cm-verdict-label {
+  color: var(--color-text-secondary);
+}
+
+.cm-verdict-value {
+  font-weight: var(--typography-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}

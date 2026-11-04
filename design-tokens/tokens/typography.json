@@ -2,9 +2,9 @@
   "typography": {
     "fontFamily": {
       "sans": {
-        "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+        "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif",
         "type": "fontFamily",
-        "comment": "System UI stack. Matches the existing body font in src/styles/index.css."
+        "comment": "System UI stack with Bengali fallbacks ('Hind Siliguri', 'Noto Sans Bengali') so Bengali glyphs fall through to Hind Siliguri. Matches the existing body font in src/styles/index.css."
       },
       "mono": {
         "value": "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",

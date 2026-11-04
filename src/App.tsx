@@ -24,7 +24,7 @@ import CategoryPage from './pages/CategoryPage';
 import HomePage from './pages/HomePage';
 import SharedPage from './pages/SharedPage';
 import './styles/App.css';
-import { GradientHeader, GradientFooter, GradientBackground } from './styles/StyledComponents';
+import './components/shell/Shell.css';
 import { useNavLinkPrefetch } from './utils/preload';
 
 /**
@@ -464,7 +464,7 @@ export const AppContent: React.FC = () => {
       <a className="skip-link" href="#main-content" lang="en">
         Skip to main content
       </a>
-      <GradientHeader>
+      <header className="cm-shell-header">
         <div className="header-content">
           <div className="logo">
             <Link to="/" lang="en">
@@ -512,13 +512,13 @@ export const AppContent: React.FC = () => {
             </ul>
           </nav>
         </div>
-      </GradientHeader>
+      </header>
 
       <main id="main-content" className="app-content" tabIndex={-1}>
         <AppRoutes />
       </main>
 
-      <GradientFooter>
+      <footer className="cm-shell-footer">
         <div className="footer-content">
           <section aria-labelledby="footer-brand-heading">
             <h2 id="footer-brand-heading" className="visually-hidden">
@@ -565,7 +565,7 @@ export const AppContent: React.FC = () => {
             {isBengali ? 'সর্বস্বত্ব সংরক্ষিত।' : 'All rights reserved.'}
           </p>
         </div>
-      </GradientFooter>
+      </footer>
     </div>
   );
 };
@@ -575,7 +575,6 @@ const App: React.FC = () => {
   return (
     <Router>
       <PageViewTrackerWrapper />
-      <GradientBackground />
       <ErrorBoundary>
         <NetworkStatus />
         <AppContent />

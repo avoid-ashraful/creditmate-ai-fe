@@ -2,7 +2,7 @@
 
 .experiment-results-page {
   min-height: 100vh;
-  background: var(--background-color);
+  background: var(--color-background-base);
 }
 
 .results-header {
@@ -48,7 +48,7 @@
 .empty-state {
   text-align: center;
   padding: 80px 24px;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
 }
 
 .empty-icon {
@@ -58,7 +58,7 @@
 
 .empty-state h2 {
   margin: 0 0 8px;
-  color: var(--text-color);
+  color: var(--color-text-primary);
 }
 
 .empty-state p {
@@ -109,12 +109,12 @@
   font-size: 1.25rem;
   font-weight: 700;
   margin: 0 0 4px;
-  color: var(--text-color);
+  color: var(--color-text-primary);
 }
 
 .experiment-key {
   font-size: 0.75rem;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   font-family: monospace;
   background: #eef2ff;
   padding: 2px 8px;
@@ -173,7 +173,7 @@
 
 .metrics-table th {
   font-weight: 600;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -227,7 +227,7 @@
 .stat-label {
   display: block;
   font-size: 0.75rem;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 4px;
@@ -236,7 +236,7 @@
 .stat-value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--text-color);
+  color: var(--color-text-primary);
 }
 
 .stat-value.positive {
@@ -289,7 +289,7 @@
 .config-details summary {
   cursor: pointer;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--color-text-primary);
   padding: 8px 0;
 }
 
@@ -311,7 +311,7 @@
 
 .config-list dt {
   font-size: 0.75rem;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -331,7 +331,7 @@
   font-size: 1.25rem;
   font-weight: 700;
   margin: 0 0 24px;
-  color: var(--text-color);
+  color: var(--color-text-primary);
 }
 
 .legend-grid {
@@ -351,12 +351,12 @@
   font-size: 0.9rem;
   font-weight: 600;
   margin: 0 0 8px;
-  color: var(--text-color);
+  color: var(--color-text-primary);
 }
 
 .legend-item p {
   font-size: 0.85rem;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   margin: 0;
   line-height: 1.5;
 }

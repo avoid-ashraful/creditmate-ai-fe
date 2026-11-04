@@ -1,30 +1,3 @@
-/* Base styles */
-:root {
-  --primary-color: var(--color-primary-base);
-  --primary-dark: var(--color-primary-hover);
-  --primary-light: #60a5fa;
-  --secondary-color: #0f172a;
-  --accent-color: var(--color-success-base);
-  --text-color: var(--color-text-primary);
-  --text-light: var(--color-text-secondary);
-  --background-color: var(--color-background-base);
-  --card-bg: var(--color-background-surface);
-  --border-color: var(--color-border-strong);
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-}
-
 /* Reset and global styles */
 * {
   box-sizing: border-box;
@@ -33,9 +6,9 @@
 }
 
 body {
-  font-family: var(--font-sans);
-  background-color: var(--background-color);
-  color: var(--text-color);
+  font-family: var(--typography-font-family-sans);
+  background-color: var(--color-background-base);
+  color: var(--color-text-primary);
   line-height: 1.5;
   font-size: 16px;
 }
@@ -47,7 +20,7 @@ a {
 }
 
 a:hover {
-  color: var(--primary-dark);
+  color: var(--color-primary-hover);
 }
 
 ul {
@@ -73,7 +46,7 @@ button {
   top: 0;
   z-index: 1000;
   padding: var(--spacing-sm) var(--spacing-md);
-  background-color: var(--secondary-color);
+  background-color: var(--color-slate-900);
   color: #fff;
   font-weight: 600;
   border-radius: 0 0 var(--radius-md) 0;
@@ -84,159 +57,10 @@ button {
   left: 0;
 }
 
-/* Header sits on a light animated gradient, so its focus ring is white. */
-.main-nav a:focus-visible,
-.logo a:focus-visible,
-.lang-switcher-button:focus-visible {
-  outline: 3px solid #ffffff;
-  outline-offset: 2px;
-}
-
-/* Header styles */
-.app-header {
-  background-color: var(--card-bg);
-  box-shadow: var(--shadow-sm);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-md) var(--spacing-lg);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.logo a {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-color);
-  white-space: nowrap;
-}
-
-.logo {
-  flex-shrink: 0;
-}
-
-.main-nav ul {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.main-nav a {
-  white-space: nowrap;
-  color: var(--text-color);
-  font-weight: 500;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-}
-
-/* QA #14: the Bengali navigation labels run wider than the Latin ones, which
-   pushed the language/theme toggles and the Log in / Register links onto a
-   second header row at common laptop widths (~1366px). When the nav contains
-   Bengali links it gets a tighter gap, and the Bengali links tighter padding,
-   so the row stays on one line; the links, labels, focus outlines and hit
-   areas are otherwise unchanged. */
-.main-nav ul:has(a[lang='bn']) {
-  gap: 0.375rem;
-}
-
-.main-nav a[lang='bn'] {
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
-}
-
-.main-nav a:hover,
-.main-nav a.active {
-  color: var(--primary-color);
-  background-color: rgba(37, 99, 235, 0.05);
-}
-
-.lang-switcher-item {
-  display: inline-flex;
-  align-items: center;
-}
-
-.lang-switcher-button {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: var(--radius-sm);
-  background: rgba(0, 0, 0, 0.12);
-  color: white;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.lang-switcher-button:hover,
-.lang-switcher-button.active {
-  background: rgba(0, 0, 0, 0.2);
-  border-color: rgba(255, 255, 255, 0.6);
-}
-
 /* Content area */
 .app-content {
   flex: 1;
   width: 100%;
-}
-
-/* Footer styles */
-.app-footer {
-  background-color: var(--secondary-color);
-  color: white;
-  padding: var(--spacing-xl) 0 var(--spacing-lg);
-  margin-top: var(--spacing-2xl);
-}
-
-.footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--spacing-lg);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-xl);
-}
-
-.footer-section h3 {
-  font-size: 1.125rem;
-  margin-bottom: var(--spacing-md);
-  color: white;
-}
-
-.footer-section p {
-  color: #94a3b8;
-  margin-bottom: var(--spacing-md);
-}
-
-.footer-section ul li {
-  margin-bottom: var(--spacing-sm);
-}
-
-.footer-section a {
-  color: #94a3b8;
-}
-
-.footer-section a:hover {
-  color: white;
-}
-
-.copyright {
-  max-width: 1200px;
-  margin: var(--spacing-xl) auto 0;
-  padding: var(--spacing-lg) var(--spacing-lg) 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  text-align: center;
-  color: #94a3b8;
-  font-size: 0.875rem;
 }
 
 /* Utility classes */
@@ -255,43 +79,23 @@ button {
 }
 
 .primary-button {
-  background-color: var(--primary-color);
+  background-color: var(--color-primary-base);
   color: white;
 }
 
 .primary-button:hover {
-  background-color: var(--primary-dark);
+  background-color: var(--color-primary-hover);
   color: white;
 }
 
 .secondary-button {
   background-color: white;
-  color: var(--primary-color);
-  border: 1px solid var(--primary-color);
+  color: var(--color-primary-base);
+  border: 1px solid var(--color-primary-base);
 }
 
 .secondary-button:hover {
   background-color: rgba(37, 99, 235, 0.05);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
-  }
-
-  .main-nav ul {
-    gap: var(--spacing-md);
-  }
-}
-
-@media (max-width: 640px) {
-  .main-nav ul {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
 }
 
 /* Common components */
@@ -301,23 +105,23 @@ button {
   align-items: center;
   height: 200px;
   font-size: 1.125rem;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
 }
 
 .empty-state {
   text-align: center;
   padding: var(--spacing-xl);
-  color: var(--text-light);
-  background-color: var(--card-bg);
+  color: var(--color-text-secondary);
+  background-color: var(--color-background-surface);
   border-radius: var(--radius-lg);
-  border: 1px dashed var(--border-color);
+  border: 1px dashed var(--color-border-strong);
   margin: var(--spacing-xl) 0;
 }
 
 .no-results {
   text-align: center;
   padding: var(--spacing-xl);
-  color: var(--text-light);
+  color: var(--color-text-secondary);
 }
 
 /* Inline links stay identifiable without relying on their hue. */

@@ -138,7 +138,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 24px;
-  color: var(--text-color);
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -167,7 +167,7 @@
 .comparison-page .card-chip {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   border: 2px solid #e2e8f0;
-  color: var(--text-color);
+  color: var(--color-text-primary);
   padding: 16px 20px;
   border-radius: 16px;
   display: flex;
@@ -193,12 +193,12 @@
 .comparison-page .card-chip-name {
   font-weight: 600;
   font-size: 1rem;
-  color: var(--text-color);
+  color: var(--color-text-primary);
 }
 
 .comparison-page .card-chip-bank {
   font-size: 0.85rem;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
@@ -263,7 +263,7 @@
 .comparison-table th {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   font-weight: 700;
-  color: var(--text-color);
+  color: var(--color-text-primary);
   font-size: 0.95rem;
   position: sticky;
   top: 0;
@@ -299,7 +299,7 @@
   margin: 0 0 8px 0;
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--text-color);
+  color: var(--color-text-primary);
 }
 
 .card-header .bank-name {
@@ -449,7 +449,7 @@
 
 .comparison-table td {
   font-size: 0.95rem;
-  color: var(--text-color);
+  color: var(--color-text-primary);
   line-height: 1.5;
 }
 
@@ -534,7 +534,7 @@
 .footer-button.secondary {
   background: transparent;
   border: 2px solid #e2e8f0;
-  color: var(--text-color);
+  color: var(--color-text-primary);
 }
 
 .footer-button.secondary:hover {
@@ -544,7 +544,7 @@
 }
 
 .disclaimer {
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
   line-height: 1.6;
   max-width: 600px;
@@ -565,12 +565,12 @@
 
 .empty-state h2 {
   font-size: 1.5rem;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   margin-bottom: 16px;
 }
 
 .empty-state p {
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   margin-bottom: 32px;
   max-width: 400px;
   margin-left: auto;
@@ -581,7 +581,7 @@
   text-align: center;
   padding: 80px 40px;
   font-size: 1.1rem;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
 }
 
 /* Enhanced responsive design */
@@ -702,7 +702,7 @@
   border: 2px solid #e2e8f0;
   border-radius: 999px;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -723,7 +723,7 @@
 .print-button {
   background: transparent;
   border: 2px solid #e2e8f0;
-  color: var(--text-color);
+  color: var(--color-text-primary);
   padding: 10px 20px;
   border-radius: 999px;
   font-weight: 600;
@@ -741,7 +741,7 @@
   margin: 0;
   text-align: center;
   font-size: 1.05rem;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
 }
 
 /* Print: only the comparison table (with the card names in its header).
@@ -801,7 +801,7 @@
   .feature-name {
     position: static;
     background: white !important;
-    color: var(--text-color) !important;
+    color: var(--color-text-primary) !important;
   }
 
   .highlight-difference {

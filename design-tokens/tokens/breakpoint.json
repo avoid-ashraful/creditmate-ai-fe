@@ -1,0 +1,24 @@
+{
+  "breakpoint": {
+    "sm": {
+      "value": "480px",
+      "type": "dimension",
+      "comment": "Large phones."
+    },
+    "md": {
+      "value": "768px",
+      "type": "dimension",
+      "comment": "Tablets / small laptops."
+    },
+    "lg": {
+      "value": "1024px",
+      "type": "dimension",
+      "comment": "Desktop shell."
+    },
+    "xl": {
+      "value": "1280px",
+      "type": "dimension",
+      "comment": "Wide desktop."
+    }
+  }
+}
