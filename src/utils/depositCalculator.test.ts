@@ -1,9 +1,11 @@
 import {
   bankSourceTaxPercent,
+  DepositRateLike,
   dpsInstalmentForTarget,
   dpsMaturity,
   fdrMaturity,
   netOfTax,
+  pickDepositRate,
 } from './depositCalculator';
 
 /**
@@ -50,6 +52,49 @@ describe('dpsInstalmentForTarget', () => {
     const instalment = dpsInstalmentForTarget(100328, 9.5, 120);
     expect(instalment).not.toBeNull();
     expect(instalment as number).toBeCloseTo(500, 0);
+  });
+});
+
+describe('pickDepositRate (mirrors backend covers / pick_rate_row)', () => {
+  const row = (partial: Partial<DepositRateLike>): DepositRateLike => ({
+    tenureMonthsMin: 12,
+    tenureMonthsMax: 12,
+    tenureIsOpenEnded: false,
+    amountMin: 0,
+    amountMax: null,
+    rateMin: 8,
+    rateMax: 8,
+    ...partial,
+  });
+
+  it('treats an open-ended row as covering any horizon at or above its minimum', () => {
+    const open = row({ tenureMonthsMin: 36, tenureMonthsMax: null, tenureIsOpenEnded: true });
+    expect(pickDepositRate([open], 120, 1000)).toBe(open);
+    expect(pickDepositRate([open], 36, 1000)).toBe(open);
+    expect(pickDepositRate([open], 35, 1000)).toBeNull();
+  });
+
+  it('treats a null tenure maximum as open-ended even without the flag', () => {
+    const open = row({ tenureMonthsMin: 36, tenureMonthsMax: null, tenureIsOpenEnded: false });
+    expect(pickDepositRate([open], 600, 1000)).toBe(open);
+  });
+
+  it('does not cover beyond a bounded row maximum', () => {
+    const bounded = row({});
+    expect(pickDepositRate([bounded], 12, 1000)).toBe(bounded);
+    expect(pickDepositRate([bounded], 13, 1000)).toBeNull();
+  });
+
+  it('prefers the narrower bounded band over an open-ended row when both cover', () => {
+    const bounded = row({ tenureMonthsMin: 12, tenureMonthsMax: 24, rateMin: 8 });
+    const open = row({
+      tenureMonthsMin: 12,
+      tenureMonthsMax: null,
+      tenureIsOpenEnded: true,
+      rateMin: 9,
+    });
+    expect(pickDepositRate([open, bounded], 18, 1000)).toBe(bounded);
+    expect(pickDepositRate([open, bounded], 30, 1000)).toBe(open);
   });
 });
 

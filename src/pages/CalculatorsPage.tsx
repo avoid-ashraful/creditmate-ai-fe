@@ -550,6 +550,9 @@ const PayoffTool: React.FC<{
   );
 };
 
+/** Longest horizon the deposit tools accept (matches the scenario API cap). */
+const MAX_DEPOSIT_MONTHS = 600;
+
 /**
  * Deposit-product preset state for the FD/DPS tools: the product list for
  * one kind, the current selection ('custom' or a slug), and the selected
@@ -662,14 +665,18 @@ const depositSourceText = (
   formatters: Formatters,
   rate: number,
   product: DepositProduct | null,
-  row: (DepositRateLike & { isDerived?: boolean }) | null
+  row: (DepositRateLike & { isDerived?: boolean; isRange?: boolean }) | null
 ): string => {
   if (product && row) {
-    const base = fillCopy(copy.depositRateSourceProduct, {
+    let text = fillCopy(copy.depositRateSourceProduct, {
       rate: formatters.apr(rate),
       product: `${product.name} (${product.institutionDisplayName})`,
     });
-    return row.isDerived ? `${base}${copy.derivedRateSuffix}` : base;
+    // The picked row's rateMin is used for ranges — say so, since the
+    // published figure is a band, not a point rate.
+    if (row.isRange) text += copy.rangeRateSuffix;
+    if (row.isDerived) text += copy.derivedRateSuffix;
+    return text;
   }
   return fillCopy(copy.depositRateSourceCustom, { rate: formatters.apr(rate) });
 };
@@ -693,7 +700,10 @@ const FdTool: React.FC<{
     preset.detail && parsedMonths !== null && parsedAmount !== null
       ? pickDepositRate(preset.detail.rates, parsedMonths, parsedAmount)
       : null;
-  const needsCustomRate = preset.selection === 'custom' || (preset.detail !== null && row === null);
+  // While a preset's detail is still loading (or failed to load) there is
+  // no picked row, so the custom-rate field must show — otherwise submit
+  // fails on a rate input the user cannot see.
+  const needsCustomRate = preset.selection === 'custom' || preset.detail === null || row === null;
   const noRateProductName =
     preset.selection !== 'custom' && preset.detail !== null && row === null
       ? preset.detail.name
@@ -704,7 +714,12 @@ const FdTool: React.FC<{
     const rate = row ? row.rateMin : parseNumber(customRate);
     const nextErrors: typeof errors = {};
     if (parsedAmount === null || parsedAmount <= 0) nextErrors.amount = copy.errorAmount;
-    if (parsedMonths === null || !Number.isInteger(parsedMonths) || parsedMonths < 1) {
+    if (
+      parsedMonths === null ||
+      !Number.isInteger(parsedMonths) ||
+      parsedMonths < 1 ||
+      parsedMonths > MAX_DEPOSIT_MONTHS
+    ) {
       nextErrors.months = copy.errorTenure;
     }
     if (rate === null || rate < 0) nextErrors.rate = copy.errorDepositRate;
@@ -858,7 +873,9 @@ const DpsTool: React.FC<{
       : preset.detail && parsedMonths !== null
       ? pickDepositRate(preset.detail.rates, parsedMonths, preset.detail.minInstalment ?? 0)
       : null;
-  const needsCustomRate = preset.selection === 'custom' || (preset.detail !== null && row === null);
+  // Same rule as the FD tool: a preset whose detail has not loaded (or
+  // failed) has no picked row, so the custom-rate field must be visible.
+  const needsCustomRate = preset.selection === 'custom' || preset.detail === null || row === null;
   const noRateProductName =
     preset.selection !== 'custom' && preset.detail !== null && row === null
       ? preset.detail.name
@@ -868,7 +885,12 @@ const DpsTool: React.FC<{
     event.preventDefault();
     const rate = row ? row.rateMin : parseNumber(customRate);
     const nextErrors: typeof errors = {};
-    if (parsedMonths === null || !Number.isInteger(parsedMonths) || parsedMonths < 1) {
+    if (
+      parsedMonths === null ||
+      !Number.isInteger(parsedMonths) ||
+      parsedMonths < 1 ||
+      parsedMonths > MAX_DEPOSIT_MONTHS
+    ) {
       nextErrors.months = copy.errorTenure;
     }
     if (rate === null || rate < 0) nextErrors.rate = copy.errorDepositRate;

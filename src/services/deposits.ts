@@ -22,7 +22,8 @@ export type DepositCompounding = 'monthly' | 'quarterly' | 'annual' | 'at_maturi
 export interface DepositRate {
   id: number;
   tenureMonthsMin: number;
-  tenureMonthsMax: number;
+  /** Null when the band is open-ended ("N months and above"). */
+  tenureMonthsMax: number | null;
   tenureIsOpenEnded: boolean;
   amountMin: number;
   amountMax: number | null;
@@ -33,10 +34,15 @@ export interface DepositRate {
   note: string;
 }
 
+/** The catalogue bank a product belongs to (null for benchmarks / BB-chart-only rows). */
+export interface DepositBankRef {
+  id: number;
+  name: string;
+}
+
 export interface DepositProduct {
   id: number;
-  bank: number | null;
-  bankName: string | null;
+  bank: DepositBankRef | null;
   institutionName: string;
   institutionDisplayName: string;
   institutionType: string;
@@ -67,31 +73,44 @@ export interface DepositProductDetail extends DepositProduct {
   loanSpreadPp: number | null;
   prematureEncashmentTerms: string;
   eligibilityNotes: string;
-  investmentCapPerPerson: number | null;
+  investmentCap: number | null;
   jointCap: number | null;
   rates: DepositRate[];
-  created: string;
-  modified: string;
 }
 
+/**
+ * Wire shapes below mirror the backend serializers exactly
+ * (deposits/api/serializers.py): rate rows carry no `is_range` or
+ * open-ended flag — a range is rate_min != rate_max, and an open-ended
+ * band is tenure_months_max === null. `bank` is the nested BankSerializer
+ * object, not an id.
+ */
 interface DepositRateApi {
   id: number;
   tenure_months_min: number;
   tenure_months_max: number | null;
-  tenure_is_open_ended: boolean;
   amount_min: string;
   amount_max: string | null;
   rate_min: string;
   rate_max: string;
-  is_range: boolean;
   is_derived: boolean;
   note: string;
 }
 
+interface DepositBankApi {
+  id: number;
+  name: string;
+  logo: string | null;
+  website: string | null;
+  is_active: boolean;
+  credit_card_count: number;
+  created: string;
+  modified: string;
+}
+
 interface DepositProductApi {
   id: number;
-  bank: number | null;
-  bank_name: string | null;
+  bank: DepositBankApi | null;
   institution_name: string;
   institution_display_name: string;
   institution_type: string;
@@ -122,11 +141,9 @@ interface DepositProductDetailApi extends DepositProductApi {
   loan_spread_pp: string | null;
   premature_encashment_terms: string;
   eligibility_notes: string;
-  investment_cap_per_person: string | null;
+  investment_cap: string | null;
   joint_cap: string | null;
   rates: DepositRateApi[];
-  created: string;
-  modified: string;
 }
 
 const num = (value: string | null): number | null =>
@@ -135,21 +152,24 @@ const num = (value: string | null): number | null =>
 const transformRate = (api: DepositRateApi): DepositRate => ({
   id: api.id,
   tenureMonthsMin: api.tenure_months_min,
-  tenureMonthsMax: api.tenure_months_max ?? api.tenure_months_min,
-  tenureIsOpenEnded: api.tenure_is_open_ended,
+  // Open-ended bands arrive as tenure_months_max: null and stay null —
+  // collapsing them to the minimum would misstate the coverage.
+  tenureMonthsMax: api.tenure_months_max,
+  tenureIsOpenEnded: api.tenure_months_max === null,
   amountMin: Number(api.amount_min),
   amountMax: num(api.amount_max),
   rateMin: Number(api.rate_min),
   rateMax: Number(api.rate_max),
-  isRange: api.is_range,
+  // The rate serializer emits no is_range flag; a range is defined by the
+  // two ends differing (the backend's own definition).
+  isRange: Number(api.rate_min) !== Number(api.rate_max),
   isDerived: api.is_derived,
   note: api.note,
 });
 
 const transformProduct = (api: DepositProductApi): DepositProduct => ({
   id: api.id,
-  bank: api.bank,
-  bankName: api.bank_name,
+  bank: api.bank ? { id: api.bank.id, name: api.bank.name } : null,
   institutionName: api.institution_name,
   institutionDisplayName: api.institution_display_name,
   institutionType: api.institution_type,
@@ -215,11 +235,9 @@ export const getDepositProduct = async (slug: string): Promise<DepositProductDet
     loanSpreadPp: num(api.loan_spread_pp),
     prematureEncashmentTerms: api.premature_encashment_terms,
     eligibilityNotes: api.eligibility_notes,
-    investmentCapPerPerson: num(api.investment_cap_per_person),
+    investmentCap: num(api.investment_cap),
     jointCap: num(api.joint_cap),
     rates: api.rates.map(transformRate),
-    created: api.created,
-    modified: api.modified,
   };
 };
 
@@ -257,19 +275,25 @@ export interface DepositScenarioResponse {
   notes: string[];
 }
 
+/**
+ * Scenario entries spread the backend's evaluate_product() dict next to
+ * the product: keys are is_derived_rate / source_tax_pct /
+ * effective_yield_pct (decimals serialised as strings, the yield as a
+ * JSON number).
+ */
 interface ScenarioResultApi {
   product: DepositProductApi;
   rate_min: string;
   rate_max: string;
   is_range: boolean;
-  rate_is_derived: boolean;
+  is_derived_rate: boolean;
   gross_maturity: string;
   interest_earned: string;
   source_tax: string;
-  tax_rate_percent: string;
+  source_tax_pct: string;
   net_maturity: string;
   net_maturity_at_max_rate: string | null;
-  effective_yield_percent: string;
+  effective_yield_pct: number;
 }
 
 const transformScenarioResult = (api: ScenarioResultApi): DepositScenarioResult => ({
@@ -277,14 +301,14 @@ const transformScenarioResult = (api: ScenarioResultApi): DepositScenarioResult 
   rateMin: Number(api.rate_min),
   rateMax: Number(api.rate_max),
   isRange: api.is_range,
-  rateIsDerived: api.rate_is_derived,
+  rateIsDerived: api.is_derived_rate,
   grossMaturity: Number(api.gross_maturity),
   interestEarned: Number(api.interest_earned),
   sourceTax: Number(api.source_tax),
-  taxRatePercent: Number(api.tax_rate_percent),
+  taxRatePercent: Number(api.source_tax_pct),
   netMaturity: Number(api.net_maturity),
   netMaturityAtMaxRate: num(api.net_maturity_at_max_rate),
-  effectiveYieldPercent: Number(api.effective_yield_percent),
+  effectiveYieldPercent: Number(api.effective_yield_pct),
 });
 
 /** Run the server-side scenario ranking (net-of-tax maturity, descending). */

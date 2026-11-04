@@ -24,8 +24,7 @@ const mockScenario = runDepositScenario as jest.Mock;
 
 const makeProduct = (partial: Partial<DepositProduct>): DepositProduct => ({
   id: 1,
-  bank: 1,
-  bankName: 'Alpha Bank',
+  bank: { id: 1, name: 'Alpha Bank' },
   institutionName: '',
   institutionDisplayName: 'Alpha Bank',
   institutionType: 'conventional',
@@ -76,7 +75,12 @@ const scenarioResponse: DepositScenarioResponse = {
   results: [
     scenarioRow(makeProduct({ id: 1, name: 'Alpha FDR', slug: 'alpha-fdr' }), 540500),
     scenarioRow(
-      makeProduct({ id: 2, name: 'Beta FDR', slug: 'beta-fdr', bankName: 'Beta Bank' }),
+      makeProduct({
+        id: 2,
+        name: 'Beta FDR',
+        slug: 'beta-fdr',
+        bank: { id: 2, name: 'Beta Bank' },
+      }),
       535062
     ),
   ],
@@ -88,7 +92,6 @@ const scenarioResponse: DepositScenarioResponse = {
         slug: 'sanchayapatra',
         isBenchmark: true,
         bank: null,
-        bankName: null,
         institutionDisplayName: 'National Savings Directorate (Sanchayapatra)',
       }),
       556192,
@@ -155,6 +158,35 @@ describe('DepositsPage', () => {
     renderPage();
     await user.click(screen.getByRole('button', { name: 'Compare deposits' }));
     expect(await screen.findByText(/3 product\(s\) publish no rate/)).toBeInTheDocument();
+  });
+
+  it('builds the bank filter from the products and sends the chosen bank id', async () => {
+    const user = userEvent.setup();
+    mockList.mockResolvedValue({
+      count: 2,
+      next: null,
+      previous: null,
+      results: [
+        makeProduct({ id: 1 }),
+        makeProduct({
+          id: 2,
+          name: 'Beta FDR',
+          slug: 'beta-fdr',
+          bank: { id: 2, name: 'Beta Bank' },
+        }),
+      ],
+    });
+    renderPage();
+
+    // Options appear once the product list (which carries the banks) loads.
+    expect(await screen.findByRole('option', { name: 'Alpha Bank' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Beta Bank' })).toBeInTheDocument();
+    const bankSelect = screen.getByLabelText('Bank');
+
+    await user.selectOptions(bankSelect, '1');
+    await user.click(screen.getByRole('button', { name: 'Compare deposits' }));
+    await waitFor(() => expect(mockScenario).toHaveBeenCalled());
+    expect(mockScenario).toHaveBeenCalledWith(expect.objectContaining({ bank: 1 }));
   });
 
   it('switches to the DPS scenario', async () => {

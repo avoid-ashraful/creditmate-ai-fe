@@ -110,7 +110,8 @@ export const bankSourceTaxPercent = (hasTin: boolean): number => (hasTin ? 10 : 
 /** Minimal rate-row shape needed for picking (mirrors services' DepositRate). */
 export interface DepositRateLike {
   tenureMonthsMin: number;
-  tenureMonthsMax: number;
+  /** Null for an open-ended band ("N months and above"). */
+  tenureMonthsMax: number | null;
   tenureIsOpenEnded: boolean;
   amountMin: number;
   amountMax: number | null;
@@ -123,6 +124,10 @@ export interface DepositRateLike {
  * pick_rate_row: among covering rows, the narrowest tenure span wins,
  * then the narrowest amount span. Returns null when nothing covers it
  * (the UI then asks for a custom rate instead of inventing one).
+ *
+ * Coverage mirrors DepositRate.covers() on the backend: an open-ended
+ * row (flagged, or with a null maximum) covers any horizon at or above
+ * its minimum.
  */
 export const pickDepositRate = (
   rates: DepositRateLike[],
@@ -130,16 +135,19 @@ export const pickDepositRate = (
   amount: number
 ): DepositRateLike | null => {
   const covering = rates.filter(rate => {
-    const tenureOk = rate.tenureIsOpenEnded
-      ? months >= rate.tenureMonthsMin
-      : months >= rate.tenureMonthsMin && months <= rate.tenureMonthsMax;
+    const tenureOk =
+      rate.tenureIsOpenEnded || rate.tenureMonthsMax === null
+        ? months >= rate.tenureMonthsMin
+        : months >= rate.tenureMonthsMin && months <= rate.tenureMonthsMax;
     const amountOk =
       amount >= rate.amountMin && (rate.amountMax === null || amount <= rate.amountMax);
     return tenureOk && amountOk;
   });
   if (covering.length === 0) return null;
   const tenureSpan = (rate: DepositRateLike): number =>
-    rate.tenureIsOpenEnded ? Number.MAX_SAFE_INTEGER : rate.tenureMonthsMax - rate.tenureMonthsMin;
+    rate.tenureIsOpenEnded || rate.tenureMonthsMax === null
+      ? Number.MAX_SAFE_INTEGER
+      : rate.tenureMonthsMax - rate.tenureMonthsMin;
   const amountSpan = (rate: DepositRateLike): number =>
     rate.amountMax === null ? Number.MAX_SAFE_INTEGER : rate.amountMax - rate.amountMin;
   return [...covering].sort(

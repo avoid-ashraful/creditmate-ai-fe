@@ -108,6 +108,7 @@ export interface CalculatorsCopy {
   /** Placeholders: {rate} */
   depositRateSourceCustom: string;
   derivedRateSuffix: string;
+  rangeRateSuffix: string;
 }
 
 const en: CalculatorsCopy = {
@@ -205,6 +206,7 @@ const en: CalculatorsCopy = {
   depositRateSourceProduct: 'Rate {rate}% — {product}',
   depositRateSourceCustom: 'Custom rate {rate}%',
   derivedRateSuffix: ' (derived from the bank’s published maturity table)',
+  rangeRateSuffix: ' (lower bound of the published rate range)',
 };
 
 const bn: CalculatorsCopy = {
@@ -302,6 +304,7 @@ const bn: CalculatorsCopy = {
   depositRateSourceProduct: 'হার {rate}% — {product}',
   depositRateSourceCustom: 'কাস্টম হার {rate}%',
   derivedRateSuffix: ' (ব্যাংকের প্রকাশিত মেয়াদপূর্তি সারণি থেকে নির্ণীত)',
+  rangeRateSuffix: ' (প্রকাশিত হার পরিসরের নিম্ন সীমা)',
 };
 
 export const CALCULATORS_COPY: Record<Language, CalculatorsCopy> = { en, bn };

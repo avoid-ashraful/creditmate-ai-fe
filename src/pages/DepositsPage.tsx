@@ -130,7 +130,7 @@ const DepositsPage: React.FC = () => {
   const bankOptions = useMemo(() => {
     const seen = new Map<number, string>();
     products.forEach(product => {
-      if (product.bank !== null && product.bankName) seen.set(product.bank, product.bankName);
+      if (product.bank !== null) seen.set(product.bank.id, product.bank.name);
     });
     return [...seen.entries()]
       .map(([id, name]) => ({ id, name }))

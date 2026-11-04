@@ -23,15 +23,14 @@ interface Formatters {
 }
 
 const tenureText = (rate: DepositRate, copy: DepositsCopy, formatters: Formatters): string => {
-  if (rate.tenureIsOpenEnded) {
+  const max = rate.tenureMonthsMax;
+  if (rate.tenureIsOpenEnded || max === null) {
     return `${formatters.count(rate.tenureMonthsMin)}${copy.openEndedSuffix} ${copy.monthsUnit}`;
   }
-  if (rate.tenureMonthsMax === rate.tenureMonthsMin) {
+  if (max === rate.tenureMonthsMin) {
     return `${formatters.count(rate.tenureMonthsMin)} ${copy.monthsUnit}`;
   }
-  return `${formatters.count(rate.tenureMonthsMin)}–${formatters.count(rate.tenureMonthsMax)} ${
-    copy.monthsUnit
-  }`;
+  return `${formatters.count(rate.tenureMonthsMin)}–${formatters.count(max)} ${copy.monthsUnit}`;
 };
 
 const slabText = (rate: DepositRate, copy: DepositsCopy, formatters: Formatters): string => {
