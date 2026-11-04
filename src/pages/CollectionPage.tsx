@@ -45,7 +45,7 @@ const CollectionPage: React.FC = () => {
   };
   return (
     <section className="saved-page" aria-labelledby="collection-title">
-      <Link to="/saved">← {t.title}</Link>
+      <Link to="/my/saved">← {t.title}</Link>
       {error && <p role="alert">{error}</p>}
       {!item ? (
         <p role="status">{t.loading}</p>

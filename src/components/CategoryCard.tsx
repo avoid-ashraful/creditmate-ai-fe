@@ -13,7 +13,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
   const text = getCategoryText(category, lang);
 
   return (
-    <Link to={`/category/${category.slug}`} className="category-card" lang={lang}>
+    <Link to={`/cards?categories=${category.slug}`} className="category-card" lang={lang}>
       <span className="category-icon" aria-hidden="true">
         {category.icon}
       </span>

@@ -452,7 +452,7 @@ const GuidesPage: React.FC = () => {
             <RelatedContent
               heading={common.guidesRelatedCategories}
               links={getCategoriesForGuide(guide.slug).map(category => ({
-                to: `/category/${category.slug}`,
+                to: `/cards?categories=${category.slug}`,
                 label: getCategoryText(category, lang).name,
                 description: getCategoryText(category, lang).description,
               }))}

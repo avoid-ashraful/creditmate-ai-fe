@@ -55,6 +55,12 @@ export const MAX_CARD_PAGES = 50;
 /** Routes that do not depend on data. Keep in step with the routes in src/App.tsx. */
 export const STATIC_PATHS: readonly string[] = [
   '/',
+  '/cards',
+  '/deposits',
+  '/accounts',
+  '/loans',
+  '/calculators',
+  '/eligibility-checker',
   '/banks',
   '/compare',
   '/perfect-card-finder',
@@ -228,7 +234,9 @@ export const buildSitemapEntries = ({
   };
 
   staticPaths.forEach(path => add({ path }));
-  categorySlugs.forEach(slug => add({ path: `/category/${slug}` }));
+  // Category pages folded into canonical discovery (redesign Phase 1):
+  // /category/:slug redirects to /cards with the category as a filter.
+  categorySlugs.forEach(slug => add({ path: `/cards?categories=${slug}` }));
   add({ path: '/guides' });
   guides.forEach(guide =>
     add({ path: `/guides/${guide.slug}`, lastmod: toLastmod(guide.updated) })

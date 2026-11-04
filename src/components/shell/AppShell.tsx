@@ -182,8 +182,13 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         setPaletteOpen(open => !open);
       }
     };
+    const onOpenRequest = () => setPaletteOpen(true);
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    window.addEventListener('creditmate:open-palette', onOpenRequest);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('creditmate:open-palette', onOpenRequest);
+    };
   }, []);
 
   const toggleCollapsed = () => {
@@ -252,7 +257,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const trayBarVisible = count > 0 && location.pathname !== '/compare';
 
   return (
-    <div className={collapsed ? 'cm-layout is-collapsed' : 'cm-layout'}>
+    <div className={collapsed ? 'cm-layout is-collapsed' : 'cm-layout'} lang={lang}>
       <a href="#main-content" className="cm-skip-link">
         {copy.skipToContent}
       </a>

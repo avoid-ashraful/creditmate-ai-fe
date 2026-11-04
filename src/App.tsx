@@ -1,26 +1,28 @@
 import { motion } from 'framer-motion';
-import React, { useEffect, useState, Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useEffect, Suspense, lazy } from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useParams,
+} from 'react-router-dom';
 
 import { MotionProvider, pageVariants, usePrefersReducedMotion } from './animations';
-import { AccountMenu } from './components/AccountMenu';
 import ErrorBoundary from './components/ErrorBoundary';
-import {
-  LazyPageFallback,
-  LazyAuthFallback,
-  LazyPageMinimalFallback,
-} from './components/LazyPageFallback';
+import { LazyPageFallback } from './components/LazyPageFallback';
 import NetworkStatus from './components/NetworkStatus';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { ThemeToggle } from './components/ThemeToggle';
+import AppShell from './components/shell/AppShell';
+import { ToastProvider } from './components/ui';
 import { AuthProvider } from './hooks/AuthProvider';
+import { ShortlistProvider } from './hooks/ShortlistProvider';
 import { ThemeProvider } from './hooks/ThemeProvider';
 import { ANALYTICS_EVENTS, analytics, getAnalyticsContextProperties } from './lib/analytics';
 import { isResultsViewEnabled } from './lib/experiments';
-import { LanguageProvider, LEGAL_PAGE_PATHS, getLegalNav, useLanguage } from './locales';
-import type { LegalPageKey } from './locales';
+import { LanguageProvider, LEGAL_PAGE_PATHS } from './locales';
 import CardDetailPage from './pages/CardDetailPage';
-import CategoryPage from './pages/CategoryPage';
 import HomePage from './pages/HomePage';
 import SharedPage from './pages/SharedPage';
 import './styles/App.css';
@@ -63,13 +65,12 @@ const lazyLoad = (
   return lazy(importFn);
 };
 
-// Lazy-loaded pages (non-critical paths) - eager in tests, lazy in production
 const AboutPage = lazyLoad(() => import('./pages/AboutPage'));
 const BankPage = lazyLoad(() => import('./pages/BankPage'));
 const BanksPage = lazyLoad(() => import('./pages/BanksPage'));
 const AccountPage = lazyLoad(() => import('./pages/AccountPage'));
-const AdvancedSearchPage = lazyLoad(() => import('./pages/AdvancedSearchPage'));
 const AlertsPage = lazyLoad(() => import('./pages/AlertsPage'));
+const CardsDiscoveryPage = lazyLoad(() => import('./pages/CardsDiscoveryPage'));
 const CollectionPage = lazyLoad(() => import('./pages/CollectionPage'));
 const EligibilityCheckerPage = lazyLoad(() => import('./pages/EligibilityCheckerPage'));
 const ComparisonPage = lazyLoad(() => import('./pages/ComparisonPage'));
@@ -79,6 +80,7 @@ const GlossaryPage = lazyLoad(() => import('./pages/GlossaryPage'));
 const GuidesPage = lazyLoad(() => import('./pages/GuidesPage'));
 const LegalPage = lazyLoad(() => import('./pages/LegalPage'));
 const LoginPage = lazyLoad(() => import('./pages/LoginPage'));
+const MyPage = lazyLoad(() => import('./pages/MyPage'));
 const NotFoundPage = lazyLoad(() => import('./pages/NotFoundPage'));
 const RecommendationQuiz = lazyLoad(() => import('./pages/RecommendationQuiz'));
 const RegisterPage = lazyLoad(() => import('./pages/RegisterPage'));
@@ -96,46 +98,31 @@ const UnsubscribePage = lazyLoad(() => import('./pages/UnsubscribePage'));
 const VerifyEmailPage = lazyLoad(() => import('./pages/VerifyEmailPage'));
 
 // Critical path pages - eager loaded
-// HomePage, CardDetailPage, CategoryPage, SharedPage
+// HomePage, CardDetailPage, SharedPage
 // (ComparisonPage moved to lazyLoad above: the main chunk was at its size
 // budget, and /compare is reached by an explicit user action, not on landing.)
 
-interface NavItem {
-  to: string;
-  en: string;
-  bn: string;
-}
+/** /search is retired: the canonical discovery lives at /cards (query preserved). */
+const SearchRedirect: React.FC = () => {
+  const location = useLocation();
+  return <Navigate to={`/cards${location.search}`} replace />;
+};
 
-/**
- * Primary navigation labels. These are the small set of key translations the
- * app ships today; they translate navigation chrome only, not the full content
- * of each page (see LOCALIZATION_GUIDE.md, "Limitations").
- */
-export const NAV_ITEMS: NavItem[] = [
-  { to: '/', en: 'Home', bn: 'হোম' },
-  { to: '/banks', en: 'Banks', bn: 'ব্যাংকসমূহ' },
-  { to: '/deposits', en: 'Deposits', bn: 'আমানত' },
-  { to: '/accounts', en: 'Accounts', bn: 'অ্যাকাউন্টসমূহ' },
-  { to: '/search', en: 'Advanced Search', bn: 'উন্নত অনুসন্ধান' },
-  { to: '/perfect-card-finder', en: 'Quiz', bn: 'কুইজ' },
-  { to: '/eligibility-checker', en: 'Eligibility Checker', bn: 'যোগ্যতা যাচাই' },
-  { to: '/compare', en: 'Compare Cards', bn: 'কার্ড তুলনা' },
-  { to: '/reward-calculator', en: 'Reward Calculator', bn: 'রিওয়ার্ড ক্যালকুলেটর' },
-  { to: '/calculators', en: 'Calculators', bn: 'ক্যালকুলেটরসমূহ' },
-  { to: '/loans', en: 'Loans', bn: 'ঋণ' },
-  { to: '/guides', en: 'Guides', bn: 'গাইড' },
-  { to: '/glossary', en: 'Glossary', bn: 'শব্দকোষ' },
-  { to: '/about', en: 'About', bn: 'আমাদের সম্পর্কে' },
-];
+/** /category/:slug folds into /cards with the category applied as a filter. */
+const CategoryRedirect: React.FC = () => {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/cards?categories=${encodeURIComponent(slug ?? '')}`} replace />;
+};
 
-const FOOTER_LEGAL_KEYS: LegalPageKey[] = [
-  'terms',
-  'privacy',
-  'disclaimer',
-  'howWeMakeMoney',
-  'methodology',
-  'contact',
-];
+/** /saved/collections/:id moved under /my (Section 2.2 route map). */
+const CollectionRedirect: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/my/collections/${id ?? ''}`} replace />;
+};
+
+const lazyRoute = (label: string, element: React.ReactNode) => (
+  <Suspense fallback={<LazyPageFallback label={label} />}>{element}</Suspense>
+);
 
 /**
  * Render the page routes. Exported so routing can be tested with MemoryRouter.
@@ -156,271 +143,99 @@ export const AppRoutes: React.FC = () => {
     >
       <Routes location={location}>
         <Route path="/" element={<HomePage />} />
-        <Route
-          path="/search"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading search..." />}>
-              <AdvancedSearchPage />
-            </Suspense>
-          }
-        />
+        <Route path="/cards" element={lazyRoute('Loading cards...', <CardsDiscoveryPage />)} />
+        <Route path="/search" element={<SearchRedirect />} />
+        <Route path="/category/:slug" element={<CategoryRedirect />} />
         <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
-        <Route
-          path="/banks"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading banks..." />}>
-              <BanksPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/bank/:slug"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading bank..." />}>
-              <BankPage />
-            </Suspense>
-          }
-        />
-        <Route path="/category/:slug" element={<CategoryPage />} />
-        <Route
-          path="/compare"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading comparison..." />}>
-              <ComparisonPage />
-            </Suspense>
-          }
-        />
+        <Route path="/banks" element={lazyRoute('Loading banks...', <BanksPage />)} />
+        <Route path="/bank/:slug" element={lazyRoute('Loading bank...', <BankPage />)} />
+        <Route path="/compare" element={lazyRoute('Loading comparison...', <ComparisonPage />)} />
         <Route path="/shared/:token" element={<SharedPage />} />
         <Route path="/saved/shared/collections/:slug" element={<SharedPage kind="collection" />} />
+
+        {/* My CreditMate (Phase 1 route map): personal surfaces under /my. */}
+        <Route path="/my" element={lazyRoute('Loading your CreditMate...', <MyPage />)} />
         <Route
-          path="/saved"
+          path="/my/saved"
+          element={
+            <ProtectedRoute>{lazyRoute('Loading saved items...', <SavedPage />)}</ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my/collections/:id"
           element={
             <ProtectedRoute>
-              <Suspense fallback={<LazyPageFallback label="Loading saved items..." />}>
-                <SavedPage />
-              </Suspense>
+              {lazyRoute('Loading collection...', <CollectionPage />)}
             </ProtectedRoute>
           }
         />
         <Route
-          path="/saved/collections/:id"
+          path="/my/profile"
           element={
-            <ProtectedRoute>
-              <Suspense fallback={<LazyPageFallback label="Loading collection..." />}>
-                <CollectionPage />
-              </Suspense>
-            </ProtectedRoute>
+            <ProtectedRoute>{lazyRoute('Loading account...', <AccountPage />)}</ProtectedRoute>
           }
         />
+        <Route
+          path="/my/alerts"
+          element={
+            <ProtectedRoute>{lazyRoute('Loading alerts...', <AlertsPage />)}</ProtectedRoute>
+          }
+        />
+
+        {/* Permanent in-app redirects from the pre-redesign paths. */}
+        <Route path="/saved" element={<Navigate to="/my/saved" replace />} />
+        <Route path="/saved/collections/:id" element={<CollectionRedirect />} />
+        <Route path="/account" element={<Navigate to="/my/profile" replace />} />
+        <Route path="/alerts" element={<Navigate to="/my/alerts" replace />} />
+
         <Route
           path="/perfect-card-finder"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading quiz..." />}>
-              <RecommendationQuiz />
-            </Suspense>
-          }
+          element={lazyRoute('Loading quiz...', <RecommendationQuiz />)}
         />
         <Route
           path="/eligibility-checker"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading eligibility checker..." />}>
-              <EligibilityCheckerPage />
-            </Suspense>
-          }
+          element={lazyRoute('Loading eligibility checker...', <EligibilityCheckerPage />)}
         />
         <Route
           path="/reward-calculator"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading calculator..." />}>
-              <RewardCalculatorPage />
-            </Suspense>
-          }
+          element={lazyRoute('Loading reward calculator...', <RewardCalculatorPage />)}
         />
         <Route
           path="/calculators"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading calculators..." />}>
-              <CalculatorsPage />
-            </Suspense>
-          }
+          element={lazyRoute('Loading calculators...', <CalculatorsPage />)}
         />
-        <Route
-          path="/loans"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading loans..." />}>
-              <LoansPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/loans/:slug"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading loan details..." />}>
-              <LoanDetailPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/deposits"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading deposits..." />}>
-              <DepositsPage />
-            </Suspense>
-          }
-        />
+        <Route path="/loans" element={lazyRoute('Loading loans...', <LoansPage />)} />
+        <Route path="/loans/:slug" element={lazyRoute('Loading loan...', <LoanDetailPage />)} />
+        <Route path="/deposits" element={lazyRoute('Loading deposits...', <DepositsPage />)} />
         <Route
           path="/deposits/:slug"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading deposit..." />}>
-              <DepositDetailPage />
-            </Suspense>
-          }
+          element={lazyRoute('Loading deposit...', <DepositDetailPage />)}
         />
-        <Route
-          path="/accounts"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading accounts..." />}>
-              <AccountsPage />
-            </Suspense>
-          }
-        />
+        <Route path="/accounts" element={lazyRoute('Loading accounts...', <AccountsPage />)} />
         <Route
           path="/accounts/:slug"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading account..." />}>
-              <AccountDetailPage />
-            </Suspense>
-          }
+          element={lazyRoute('Loading account...', <AccountDetailPage />)}
         />
-        <Route
-          path="/guides"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading guides..." />}>
-              <GuidesPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/guides/:slug"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading guide..." />}>
-              <GuidesPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/glossary"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading glossary..." />}>
-              <GlossaryPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading about page..." />}>
-              <AboutPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            <Suspense fallback={<LazyAuthFallback />}>
-              <LoginPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <Suspense fallback={<LazyAuthFallback />}>
-              <RegisterPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/forgot-password"
-          element={
-            <Suspense fallback={<LazyAuthFallback />}>
-              <ForgotPasswordPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/reset-password"
-          element={
-            <Suspense fallback={<LazyAuthFallback />}>
-              <ResetPasswordPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/unsubscribe"
-          element={
-            <Suspense fallback={<LazyPageMinimalFallback label="Loading..." />}>
-              <UnsubscribePage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/verify-email"
-          element={
-            <Suspense fallback={<LazyAuthFallback />}>
-              <VerifyEmailPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/account"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<LazyPageFallback label="Loading account..." />}>
-                <AccountPage />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/alerts"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<LazyPageFallback label="Loading alerts..." />}>
-                <AlertsPage />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/guides" element={lazyRoute('Loading guides...', <GuidesPage />)} />
+        <Route path="/guides/:slug" element={lazyRoute('Loading guide...', <GuidesPage />)} />
+        <Route path="/glossary" element={lazyRoute('Loading glossary...', <GlossaryPage />)} />
+        <Route path="/about" element={lazyRoute('Loading about...', <AboutPage />)} />
+        <Route path="/login" element={lazyRoute('Loading sign in...', <LoginPage />)} />
+        <Route path="/register" element={lazyRoute('Loading register...', <RegisterPage />)} />
+        <Route path="/forgot-password" element={lazyRoute('Loading...', <ForgotPasswordPage />)} />
+        <Route path="/reset-password" element={lazyRoute('Loading...', <ResetPasswordPage />)} />
+        <Route path="/unsubscribe" element={lazyRoute('Loading...', <UnsubscribePage />)} />
+        <Route path="/verify-email" element={lazyRoute('Loading...', <VerifyEmailPage />)} />
         {(Object.values(LEGAL_PAGE_PATHS) as string[]).map(path => (
-          <Route
-            key={path}
-            path={path}
-            element={
-              <Suspense fallback={<LazyPageFallback label="Loading..." />}>
-                <LegalPage />
-              </Suspense>
-            }
-          />
+          <Route key={path} path={path} element={lazyRoute('Loading...', <LegalPage />)} />
         ))}
         {showResultsView && (
           <Route
             path="/experiment-results"
-            element={
-              <Suspense fallback={<LazyPageFallback label="Loading experiment results..." />}>
-                <ExperimentResults />
-              </Suspense>
-            }
+            element={lazyRoute('Loading experiment results...', <ExperimentResults />)}
           />
         )}
-        <Route
-          path="*"
-          element={
-            <Suspense fallback={<LazyPageFallback label="Loading..." />}>
-              <NotFoundPage />
-            </Suspense>
-          }
-        />
+        <Route path="*" element={lazyRoute('Loading...', <NotFoundPage />)} />
       </Routes>
     </motion.div>
   );
@@ -445,130 +260,26 @@ const PageViewTrackerWrapper: React.FC = () => {
 };
 
 /**
- * The full application shell: header, routed content and footer. Expects to be
- * rendered inside a router and a LanguageProvider.
+ * The full application: shell (mode rail / mobile bars), providers and the
+ * routed content. Expects to be rendered inside a router, a
+ * LanguageProvider and an AuthProvider.
  */
 export const AppContent: React.FC = () => {
-  const { lang, setLang } = useLanguage();
-  const isBengali = lang === 'bn';
-  const legalNav = getLegalNav(lang);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   // Prefetch lazy-loaded routes on hover/focus of nav links
   useNavLinkPrefetch();
 
   return (
-    <div className="app" lang={lang}>
-      {/* Keyboard users can bypass the repeated header navigation. The target
-          is focusable so the browser moves focus into the main content. */}
-      <a className="skip-link" href="#main-content" lang="en">
-        Skip to main content
-      </a>
-      <header className="cm-shell-header">
-        <div className="header-content">
-          <div className="logo">
-            <Link to="/" lang="en">
-              CreditMate AI
-            </Link>
-          </div>
-          <button
-            type="button"
-            className="mobile-menu-toggle"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="main-navigation"
-            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-          >
-            {isMobileMenuOpen ? '✕' : '☰'}
-          </button>
-          <nav
-            className={'main-nav' + (isMobileMenuOpen ? ' is-open' : '')}
-            id="main-navigation"
-            aria-label={isBengali ? 'প্রধান নেভিগেশন' : 'Main navigation'}
-          >
-            <ul>
-              {NAV_ITEMS.map(item => (
-                <li key={item.to}>
-                  <Link to={item.to} lang={isBengali ? 'bn' : 'en'}>
-                    {isBengali ? item.bn : item.en}
-                  </Link>
-                </li>
-              ))}
-              <li className="lang-switcher-item">
-                <button
-                  type="button"
-                  lang="en"
-                  className={`lang-switcher-button ${isBengali ? 'active' : ''}`}
-                  onClick={() => setLang(isBengali ? 'en' : 'bn')}
-                  aria-label={isBengali ? 'Switch to English' : 'Switch to Bengali'}
-                >
-                  {isBengali ? 'English' : 'Bengali'}
-                </button>
-              </li>
-              <li className="lang-switcher-item">
-                <ThemeToggle />
-              </li>
-              <AccountMenu />
-            </ul>
-          </nav>
-        </div>
-      </header>
-
-      <main id="main-content" className="app-content" tabIndex={-1}>
-        <AppRoutes />
-      </main>
-
-      <footer className="cm-shell-footer">
-        <div className="footer-content">
-          <section aria-labelledby="footer-brand-heading">
-            <h2 id="footer-brand-heading" className="visually-hidden">
-              CreditMate AI
-            </h2>
-            <p className="footer-brand">
-              {isBengali
-                ? 'বাংলাদেশি গ্রাহকদের জন্য আর্থিক সিদ্ধান্ত সহজ করা।'
-                : 'Making financial decisions simpler for Bangladeshi consumers.'}
-            </p>
-          </section>
-          <nav aria-labelledby="footer-nav-heading" className="footer-section">
-            <h2 id="footer-nav-heading" className="visually-hidden">
-              {isBengali ? 'দ্রুত লিংক' : 'Quick Links'}
-            </h2>
-            <ul>
-              {NAV_ITEMS.map(item => (
-                <li key={item.to}>
-                  <Link to={item.to} lang={isBengali ? 'bn' : 'en'}>
-                    {isBengali ? item.bn : item.en}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <nav aria-labelledby="footer-legal-heading" className="footer-section">
-            <h2 id="footer-legal-heading" className="visually-hidden">
-              {legalNav.footerLegalHeading}
-            </h2>
-            <ul>
-              {FOOTER_LEGAL_KEYS.map(key => (
-                <li key={key}>
-                  <Link to={LEGAL_PAGE_PATHS[key]} lang={isBengali ? 'bn' : 'en'}>
-                    {legalNav.titles[key]}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-        <div className="copyright">
-          <p>
-            &copy; {new Date().getFullYear()} CreditMate AI.{' '}
-            {isBengali ? 'সর্বস্বত্ব সংরক্ষিত।' : 'All rights reserved.'}
-          </p>
-        </div>
-      </footer>
-    </div>
+    <ShortlistProvider>
+      <ToastProvider>
+        <AppShell>
+          <AppRoutes />
+        </AppShell>
+      </ToastProvider>
+    </ShortlistProvider>
   );
 };
+
+AppContent.displayName = 'AppContent';
 
 /** Router-bound application. Uses a browser router for the SPA. */
 const App: React.FC = () => {

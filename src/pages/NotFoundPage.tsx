@@ -22,7 +22,7 @@ const NotFoundPage: React.FC = () => {
           <Link to="/">{copy.homeLink}</Link>
         </li>
         <li>
-          <Link to="/search">{copy.searchLink}</Link>
+          <Link to="/cards">{copy.searchLink}</Link>
         </li>
         <li>
           <Link to="/compare">{copy.compareLink}</Link>
