@@ -172,11 +172,84 @@
 .specs-section,
 .rewards-section,
 .fee-waiver-section,
-.features-section {
+.features-section,
+.score-section {
   background: var(--color-background-surface);
   padding: var(--spacing-lg);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-base);
+}
+
+.score-section h2 {
+  font-size: var(--typography-font-size-xl);
+  font-weight: var(--typography-font-weight-semibold);
+  margin: 0 0 var(--spacing-lg);
+}
+
+.score-summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.score-total {
+  font-size: var(--typography-font-size-3xl, 2rem);
+  font-weight: var(--typography-font-weight-bold);
+  color: var(--color-success-hover);
+}
+
+.score-band {
+  font-weight: var(--typography-font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.score-intro {
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-lg);
+}
+
+.score-breakdown {
+  list-style: none;
+  margin: 0 0 var(--spacing-lg);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.score-component-header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.score-component-label {
+  font-weight: var(--typography-font-weight-semibold);
+}
+
+.score-component-points {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.score-bar {
+  height: 8px;
+  border-radius: var(--radius-md);
+  background: var(--color-border-base);
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  height: 100%;
+  background: var(--color-success-base);
+}
+
+.score-component-reason {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--typography-font-size-sm);
 }
 
 .pros-cons-section h2,
