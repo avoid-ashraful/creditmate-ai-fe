@@ -286,6 +286,31 @@ export interface CommonCopy {
   categoryRelatedGuides: string;
   categoryOtherCategories: string;
 
+  // BankPage / BanksPage
+  bankNotFoundTitle: string;
+  bankNotFoundDesc: string;
+  bankBackToBanks: string;
+  bankErrorLoading: string;
+  bankSkeletonLabel: string;
+  bankNoCardsTitle: string;
+  bankNoCardsDesc: string;
+  bankStatCards: string;
+  bankStatAnnualFeeRange: string;
+  bankStatAprRange: string;
+  bankStatFreeCards: string;
+  bankStatLoungeCards: string;
+  bankCardsHeading: string;
+  bankVisitWebsite: string;
+  banksIndexTitle: string;
+  banksIndexDesc: string;
+  banksErrorLoading: string;
+  banksSkeletonLabel: string;
+  banksSearchPlaceholder: string;
+  banksSearchAriaLabel: string;
+  banksNoResults: string;
+  banksCardCount: string;
+  banksTotalLabel: string;
+
   // GuidesPage
   guidesNotFoundTitle: string;
   guidesNotFoundDesc: string;
@@ -683,6 +708,32 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     categoryCardAriaLabel: 'Browse {name} credit cards',
     categoryRelatedGuides: 'Learn before you apply',
     categoryOtherCategories: 'Other categories',
+
+    // BankPage / BanksPage
+    bankNotFoundTitle: 'Bank not found',
+    bankNotFoundDesc: 'The bank you are looking for does not exist.',
+    bankBackToBanks: 'Browse all banks',
+    bankErrorLoading: 'Failed to load this bank. Please try again later.',
+    bankSkeletonLabel: 'Loading bank cards...',
+    bankNoCardsTitle: 'No cards listed yet',
+    bankNoCardsDesc: 'We do not have any credit cards from this bank yet. Check back soon.',
+    bankStatCards: 'Cards',
+    bankStatAnnualFeeRange: 'Annual fee range',
+    bankStatAprRange: 'APR range',
+    bankStatFreeCards: 'No-annual-fee cards',
+    bankStatLoungeCards: 'Cards with lounge access',
+    bankCardsHeading: 'Cards from this bank',
+    bankVisitWebsite: 'Visit bank website',
+    banksIndexTitle: 'Banks in Bangladesh',
+    banksIndexDesc:
+      'Browse credit cards bank by bank. Pick a bank to see every card we list for it.',
+    banksErrorLoading: 'Failed to load banks. Please try again later.',
+    banksSkeletonLabel: 'Loading banks...',
+    banksSearchPlaceholder: 'Search banks...',
+    banksSearchAriaLabel: 'Search banks by name',
+    banksNoResults: 'No banks match your search.',
+    banksCardCount: '{count} cards',
+    banksTotalLabel: 'banks',
 
     // GuidesPage
     guidesNotFoundTitle: 'Guide not found',
@@ -1093,6 +1144,32 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     categoryCardAriaLabel: '{name} ক্রেডিট কার্ড দেখুন',
     categoryRelatedGuides: 'আবেদনের আগে জানুন',
     categoryOtherCategories: 'অন্যান্য বিভাগ',
+
+    // BankPage / BanksPage
+    bankNotFoundTitle: 'ব্যাংক পাওয়া যায়নি',
+    bankNotFoundDesc: 'আপনি যে ব্যাংকটি খুঁজছেন সেটি অস্তিত্বে নেই।',
+    bankBackToBanks: 'সব ব্যাংক দেখুন',
+    bankErrorLoading: 'এই ব্যাংক লোড করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।',
+    bankSkeletonLabel: 'ব্যাংকের কার্ড লোড হচ্ছে…',
+    bankNoCardsTitle: 'এখনো কোনো কার্ড তালিকাভুক্ত নেই',
+    bankNoCardsDesc: 'এই ব্যাংকের কোনো ক্রেডিট কার্ড আমাদের কাছে এখনো নেই। শীঘ্রই আবার দেখুন।',
+    bankStatCards: 'কার্ড',
+    bankStatAnnualFeeRange: 'বার্ষিক ফির পরিসর',
+    bankStatAprRange: 'APR পরিসর',
+    bankStatFreeCards: 'বার্ষিক ফি-মুক্ত কার্ড',
+    bankStatLoungeCards: 'লাউঞ্জ সুবিধাসহ কার্ড',
+    bankCardsHeading: 'এই ব্যাংকের কার্ডসমূহ',
+    bankVisitWebsite: 'ব্যাংকের ওয়েবসাইট দেখুন',
+    banksIndexTitle: 'বাংলাদেশের ব্যাংকসমূহ',
+    banksIndexDesc:
+      'ব্যাংক অনুযায়ী ক্রেডিট কার্ড দেখুন। একটি ব্যাংক বেছে নিন এবং তার সব কার্ড দেখুন।',
+    banksErrorLoading: 'ব্যাংক লোড করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।',
+    banksSkeletonLabel: 'ব্যাংক লোড হচ্ছে…',
+    banksSearchPlaceholder: 'ব্যাংক খুঁজুন...',
+    banksSearchAriaLabel: 'নাম দিয়ে ব্যাংক খুঁজুন',
+    banksNoResults: 'আপনার অনুসন্ধানের সাথে কোনো ব্যাংক মেলেনি।',
+    banksCardCount: '{count}টি কার্ড',
+    banksTotalLabel: 'ব্যাংক',
 
     // GuidesPage
     guidesNotFoundTitle: 'গাইড পাওয়া যায়নি',

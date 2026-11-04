@@ -66,6 +66,8 @@ const lazyLoad = (
 
 // Lazy-loaded pages (non-critical paths) - eager in tests, lazy in production
 const AboutPage = lazyLoad(() => import('./pages/AboutPage'));
+const BankPage = lazyLoad(() => import('./pages/BankPage'));
+const BanksPage = lazyLoad(() => import('./pages/BanksPage'));
 const AccountPage = lazyLoad(() => import('./pages/AccountPage'));
 const AdvancedSearchPage = lazyLoad(() => import('./pages/AdvancedSearchPage'));
 const AlertsPage = lazyLoad(() => import('./pages/AlertsPage'));
@@ -101,6 +103,7 @@ interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', en: 'Home', bn: 'হোম' },
+  { to: '/banks', en: 'Banks', bn: 'ব্যাংকসমূহ' },
   { to: '/search', en: 'Advanced Search', bn: 'উন্নত অনুসন্ধান' },
   { to: '/perfect-card-finder', en: 'Quiz', bn: 'কুইজ' },
   { to: '/compare', en: 'Compare Cards', bn: 'কার্ড তুলনা' },
@@ -147,6 +150,22 @@ export const AppRoutes: React.FC = () => {
           }
         />
         <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
+        <Route
+          path="/banks"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading banks..." />}>
+              <BanksPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/bank/:slug"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading bank..." />}>
+              <BankPage />
+            </Suspense>
+          }
+        />
         <Route path="/category/:slug" element={<CategoryPage />} />
         <Route path="/compare" element={<ComparisonPage />} />
         <Route path="/shared/:token" element={<SharedPage />} />

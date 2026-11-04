@@ -55,6 +55,7 @@ export const MAX_CARD_PAGES = 50;
 /** Routes that do not depend on data. Keep in step with the routes in src/App.tsx. */
 export const STATIC_PATHS: readonly string[] = [
   '/',
+  '/banks',
   '/compare',
   '/perfect-card-finder',
   '/reward-calculator',
