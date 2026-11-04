@@ -191,6 +191,10 @@ describe('transformCreditCard trust fields', () => {
       foreignTransactionFee: '3%',
     });
     expect(full.verifiedAt?.toISOString()).toBe('2025-05-01T00:00:00.000Z');
+    expect(apiServiceTransform({ verification_status: 'needs_review' }).verificationStatus).toBe(
+      'needs_review'
+    );
+    expect(apiServiceTransform({}).verificationStatus).toBe('');
 
     const unknown = apiServiceTransform({ min_monthly_income: null, is_dual_currency: null });
     expect(unknown.minMonthlyIncome).toBeNull();

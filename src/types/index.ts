@@ -104,6 +104,8 @@ export interface CreditCard {
   sourceUrl: string; // bank schedule of charges ('' when unknown)
   // Trust fields: absent/undefined or null/'' always means unknown, never 0/false.
   applyUrl?: string;
+  /** Backend editorial state: 'verified' | 'needs_review' | 'draft'; '' when unknown. */
+  verificationStatus?: string;
   verifiedAt?: Date | null;
   cardNetwork?: CardNetwork;
   isIslamic?: boolean;

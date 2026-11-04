@@ -427,6 +427,7 @@ class ApiService {
       isActive: apiCard.is_active,
       sourceUrl: apiCard.source_url || '',
       applyUrl: apiCard.apply_url || '',
+      verificationStatus: apiCard.verification_status ?? '',
       verifiedAt: parseModifiedDate(apiCard.verified_at),
       cardNetwork: apiCard.card_network ?? '',
       isIslamic: apiCard.is_islamic ?? false,

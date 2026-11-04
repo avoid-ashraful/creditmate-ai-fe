@@ -137,6 +137,31 @@ export interface CardDetailCopy {
   sourceScheduleOfCharges: string;
   /** Placeholder: {date} */
   verifiedOn: string;
+
+  // Data source & verification block
+  provenanceHeading: string;
+  provenanceIntro: string;
+  provenanceStatusLabel: string;
+  provenanceStatusVerified: string;
+  provenanceStatusNeedsReview: string;
+  provenanceStatusDraft: string;
+  provenanceStatusUnknown: string;
+  provenanceSourceLabel: string;
+  provenanceSourceMissing: string;
+  provenanceLastVerifiedLabel: string;
+  provenanceNotVerifiedYet: string;
+
+  // What changed (field-history timeline)
+  historyHeading: string;
+  historyIntro: string;
+  historyLoading: string;
+  historyEmpty: string;
+  historyError: string;
+  historyLoginPrompt: string;
+  historyLoginLink: string;
+  /** Placeholders: {field}, {date} */
+  historyChangedOn: string;
+
   dataDisclaimer: string;
   disclaimerLink: string;
   specNetwork: string;
@@ -295,6 +320,31 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     sourceLabel: 'Source:',
     sourceScheduleOfCharges: 'Bank schedule of charges',
     verifiedOn: 'Verified on {date}',
+
+    provenanceHeading: 'Data source & verification',
+    provenanceIntro:
+      "We collect this card's fees and terms from the bank's own published documents and check them before listing the card here.",
+    provenanceStatusLabel: 'Verification status',
+    provenanceStatusVerified: 'Verified against bank documents',
+    provenanceStatusNeedsReview: 'Being re-checked',
+    provenanceStatusDraft: 'Not yet verified',
+    provenanceStatusUnknown: 'Not recorded',
+    provenanceSourceLabel: 'Data source',
+    provenanceSourceMissing:
+      "We haven't recorded a public source for this card yet — its data is still being verified.",
+    provenanceLastVerifiedLabel: 'Last verified',
+    provenanceNotVerifiedYet: 'This card has not been through verification yet.',
+
+    historyHeading: 'What changed',
+    historyIntro: "Recorded changes to this card's published fees, rates and terms.",
+    historyLoading: 'Loading change history…',
+    historyEmpty:
+      "No recorded changes yet — we monitor this card's fees and rates, and any change the bank publishes will appear here.",
+    historyError: "We couldn't load the change history right now. Please try again later.",
+    historyLoginPrompt: "Log in to see how this card's fees and rates have changed over time.",
+    historyLoginLink: 'Log in',
+    historyChangedOn: '{field} · {date}',
+
     dataDisclaimer:
       'Card terms can change without notice. Confirm current terms with the bank before applying.',
     disclaimerLink: 'Read our disclaimer',
@@ -468,6 +518,31 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     sourceLabel: 'সূত্র:',
     sourceScheduleOfCharges: 'ব্যাংকের চার্জ তালিকা',
     verifiedOn: '{date} তারিখে যাচাই করা হয়েছে',
+
+    provenanceHeading: 'তথ্যের উৎস ও যাচাই',
+    provenanceIntro:
+      'আমরা এই কার্ডের ফি ও শর্ত ব্যাংকের নিজস্ব প্রকাশিত নথি থেকে সংগ্রহ করি এবং এখানে তালিকাভুক্ত করার আগে যাচাই করি।',
+    provenanceStatusLabel: 'যাচাইয়ের অবস্থা',
+    provenanceStatusVerified: 'ব্যাংকের নথির সাথে যাচাইকৃত',
+    provenanceStatusNeedsReview: 'পুনরায় যাচাই চলছে',
+    provenanceStatusDraft: 'এখনো যাচাই করা হয়নি',
+    provenanceStatusUnknown: 'রেকর্ড করা হয়নি',
+    provenanceSourceLabel: 'তথ্যের উৎস',
+    provenanceSourceMissing:
+      'এই কার্ডের জন্য আমরা এখনো কোনো প্রকাশ্য উৎস রেকর্ড করিনি — এর তথ্য এখনো যাচাই করা হচ্ছে।',
+    provenanceLastVerifiedLabel: 'সর্বশেষ যাচাই',
+    provenanceNotVerifiedYet: 'এই কার্ডটি এখনো যাচাই প্রক্রিয়ার মধ্য দিয়ে যায়নি।',
+
+    historyHeading: 'কী পরিবর্তন হয়েছে',
+    historyIntro: 'এই কার্ডের প্রকাশিত ফি, হার ও শর্তে রেকর্ড করা পরিবর্তনসমূহ।',
+    historyLoading: 'পরিবর্তনের ইতিহাস লোড হচ্ছে…',
+    historyEmpty:
+      'এখনো কোনো পরিবর্তন রেকর্ড করা হয়নি — আমরা এই কার্ডের ফি ও হার পর্যবেক্ষণ করি, ব্যাংক কোনো পরিবর্তন প্রকাশ করলে তা এখানে দেখা যাবে।',
+    historyError: 'এই মুহূর্তে পরিবর্তনের ইতিহাস লোড করা যায়নি। অনুগ্রহ করে পরে আবার চেষ্টা করুন।',
+    historyLoginPrompt: 'সময়ের সাথে এই কার্ডের ফি ও হার কীভাবে বদলেছে তা দেখতে লগ ইন করুন।',
+    historyLoginLink: 'লগ ইন করুন',
+    historyChangedOn: '{field} · {date}',
+
     dataDisclaimer:
       'কার্ডের শর্ত আগাম নোটিশ ছাড়াই বদলাতে পারে। আবেদনের আগে ব্যাংকের কাছ থেকে বর্তমান শর্ত নিশ্চিত করুন।',
     disclaimerLink: 'দাবিত্যাগ পড়ুন',
@@ -556,4 +631,76 @@ export function getNetworkLabel(copy: CardDetailCopy, network?: string): string 
 
 export function getCardDetailCopy(lang: Language): CardDetailCopy {
   return CARD_DETAIL_COPY[lang];
+}
+
+/**
+ * Human-friendly labels for the raw field names the backend tracks in
+ * card field history (see `TRACKED_FIELDS` in the backend signals).
+ * Fields missing from this map fall back to a prettified field name.
+ */
+export const FIELD_HISTORY_LABELS: Record<Language, Record<string, string>> = {
+  en: {
+    annual_fee: 'Annual fee',
+    annual_fee_waiver_policy: 'Annual fee waiver policy',
+    interest_rate_apr: 'Interest rate (APR)',
+    lounge_access_international: 'International lounge access',
+    lounge_access_domestic: 'Domestic lounge access',
+    lounge_access_condition: 'Lounge access conditions',
+    cash_advance_fee: 'Cash advance fee',
+    late_payment_fee: 'Late payment fee',
+    reward_points_policy: 'Reward points policy',
+    reward_program_name: 'Reward program',
+    reward_earn_rules: 'Reward earn rules',
+    cashback_rules: 'Cashback rules',
+    reward_point_value_bdt: 'Reward point value',
+    points_expiry_text: 'Points expiry',
+    reward_source_url: 'Reward terms source',
+    additional_features: 'Additional features',
+    is_active: 'Card status',
+    source_url: 'Data source',
+    apply_url: 'Application link',
+    verification_status: 'Verification status',
+    card_network: 'Card network',
+    is_islamic: 'Islamic (Shariah-compliant)',
+    is_dual_currency: 'Dual currency',
+    min_monthly_income: 'Minimum monthly income',
+    supplementary_card_fee: 'Supplementary card fee',
+    foreign_transaction_fee: 'Foreign transaction fee',
+  },
+  bn: {
+    annual_fee: 'বার্ষিক ফি',
+    annual_fee_waiver_policy: 'বার্ষিক ফি মওকুফ নীতি',
+    interest_rate_apr: 'সুদের হার (এপিআর)',
+    lounge_access_international: 'আন্তর্জাতিক লাউঞ্জ সুবিধা',
+    lounge_access_domestic: 'দেশীয় লাউঞ্জ সুবিধা',
+    lounge_access_condition: 'লাউঞ্জ সুবিধার শর্ত',
+    cash_advance_fee: 'নগদ উত্তোলন ফি',
+    late_payment_fee: 'বিলম্বে পরিশোধ ফি',
+    reward_points_policy: 'রিওয়ার্ড পয়েন্ট নীতি',
+    reward_program_name: 'রিওয়ার্ড প্রোগ্রাম',
+    reward_earn_rules: 'রিওয়ার্ড অর্জনের নিয়ম',
+    cashback_rules: 'ক্যাশব্যাক নিয়ম',
+    reward_point_value_bdt: 'রিওয়ার্ড পয়েন্টের মূল্য',
+    points_expiry_text: 'পয়েন্টের মেয়াদ',
+    reward_source_url: 'রিওয়ার্ড শর্তের উৎস',
+    additional_features: 'অতিরিক্ত সুবিধা',
+    is_active: 'কার্ডের অবস্থা',
+    source_url: 'তথ্যের উৎস',
+    apply_url: 'আবেদনের লিংক',
+    verification_status: 'যাচাইয়ের অবস্থা',
+    card_network: 'কার্ড নেটওয়ার্ক',
+    is_islamic: 'ইসলামিক (শরিয়াহ-সম্মত)',
+    is_dual_currency: 'ডুয়াল কারেন্সি',
+    min_monthly_income: 'ন্যূনতম মাসিক আয়',
+    supplementary_card_fee: 'সম্পূরক কার্ডের ফি',
+    foreign_transaction_fee: 'বৈদেশিক লেনদেন ফি',
+  },
+};
+
+/** Friendly label for a tracked field name; prettifies unknown fields. */
+export function getFieldHistoryLabel(lang: Language, fieldName: string): string {
+  const known = FIELD_HISTORY_LABELS[lang][fieldName];
+  if (known) return known;
+  const pretty = fieldName.replace(/_/g, ' ').trim();
+  return pretty ? pretty.charAt(0).toUpperCase() + pretty.slice(1) : fieldName;
 }
