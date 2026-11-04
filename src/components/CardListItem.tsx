@@ -7,6 +7,8 @@ import { CreditCard } from '../types';
 import { slugify } from '../utils/slugify';
 import { summarizeCardText } from '../utils/summarizeCardText';
 
+import ScoreBadge from './ScoreBadge';
+
 interface CardListItemProps {
   card: CreditCard;
   isSelected?: boolean;
@@ -105,12 +107,13 @@ const CardListItem: React.FC<CardListItemProps> = ({
         ) : (
           <span className="bank-name">{common.unknownBank}</span>
         )}
-        {(networkLabel || card.isIslamic) && (
+        {(networkLabel || card.isIslamic || card.creditmateScore != null) && (
           <span className="card-badges">
             {networkLabel && <span className="card-badge card-badge-network">{networkLabel}</span>}
             {card.isIslamic && (
               <span className="card-badge card-badge-islamic">{detailCopy.islamicBadge}</span>
             )}
+            <ScoreBadge score={card.creditmateScore} />
           </span>
         )}
       </div>

@@ -5,6 +5,7 @@ import {
   CardFilterOptions,
   CardNetwork,
   CashbackRule,
+  CreditMateScoreBreakdown,
   ReportIssueInput,
   RewardCategory,
   RewardEarnRule,
@@ -62,6 +63,11 @@ export interface CreditCardApiResponse {
   min_monthly_income?: number | string | null;
   supplementary_card_fee?: string;
   foreign_transaction_fee?: string;
+  creditmate_score?: number | string | null;
+  creditmate_score_breakdown?: Record<
+    string,
+    { points: number | string; max: number | string; reason: string }
+  > | null;
   images?: Array<{ small: string; full: string }>;
 }
 
@@ -90,6 +96,26 @@ const normalizeDecimal = (value: number | string | null | undefined): number | n
   if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return null;
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : null;
+};
+
+/**
+ * Normalize a CreditMate Score breakdown: keep only components whose
+ * points/max parse as numbers; a malformed or absent breakdown stays
+ * null (unknown), never a fabricated zero breakdown.
+ */
+const normalizeScoreBreakdown = (
+  raw: CreditCardApiResponse['creditmate_score_breakdown']
+): CreditMateScoreBreakdown | null => {
+  if (!raw || typeof raw !== 'object') return null;
+  const breakdown: CreditMateScoreBreakdown = {};
+  Object.entries(raw).forEach(([key, component]) => {
+    if (!component || typeof component !== 'object') return;
+    const points = normalizeDecimal(component.points);
+    const max = normalizeDecimal(component.max);
+    if (points === null || max === null) return;
+    breakdown[key] = { points, max, reason: component.reason ?? '' };
+  });
+  return Object.keys(breakdown).length > 0 ? breakdown : null;
 };
 
 /**
@@ -435,6 +461,8 @@ class ApiService {
       minMonthlyIncome: normalizeDecimal(apiCard.min_monthly_income),
       supplementaryCardFee: apiCard.supplementary_card_fee ?? '',
       foreignTransactionFee: apiCard.foreign_transaction_fee ?? '',
+      creditmateScore: normalizeDecimal(apiCard.creditmate_score),
+      creditmateScoreBreakdown: normalizeScoreBreakdown(apiCard.creditmate_score_breakdown),
       // Never invent freshness: missing modified date stays unknown (null)
       lastUpdated: parseModifiedDate(apiCard.modified),
       images: apiCard.images || [],
