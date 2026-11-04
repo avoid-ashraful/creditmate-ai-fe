@@ -1,0 +1,110 @@
+.cm-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  font: inherit;
+  font-weight: var(--typography-font-weight-medium);
+  line-height: var(--typography-line-height-tight);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--motion-micro) var(--motion-ease-out),
+    color var(--motion-micro) var(--motion-ease-out),
+    border-color var(--motion-micro) var(--motion-ease-out),
+    box-shadow var(--motion-micro) var(--motion-ease-out),
+    transform var(--motion-press) var(--motion-ease-out);
+}
+
+.cm-button--md {
+  min-height: 40px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--typography-font-size-md);
+}
+
+.cm-button--sm {
+  min-height: 32px;
+  padding: var(--spacing-xs) var(--spacing-12);
+  font-size: var(--typography-font-size-sm);
+}
+
+.cm-button--primary {
+  background: var(--color-primary-base);
+  color: var(--color-primary-contrast);
+}
+
+.cm-button--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.cm-button--primary:active:not(:disabled) {
+  background: var(--color-primary-active);
+}
+
+.cm-button--ghost {
+  background: transparent;
+  color: var(--color-primary-base);
+}
+
+.cm-button--ghost:hover:not(:disabled) {
+  background: var(--color-state-hover-surface);
+  color: var(--color-primary-hover);
+}
+
+.cm-button--ghost:active:not(:disabled) {
+  background: var(--color-state-selected-surface);
+}
+
+.cm-button--danger {
+  background: var(--color-error-base);
+  color: var(--color-error-contrast);
+}
+
+.cm-button--danger:hover:not(:disabled) {
+  background: var(--color-error-hover);
+}
+
+.cm-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.cm-button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.cm-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cm-button__spinner {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-full);
+  animation: cm-button-spin 0.7s linear infinite;
+}
+
+@keyframes cm-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-button {
+    transition: none;
+  }
+
+  .cm-button:active:not(:disabled) {
+    transform: none;
+  }
+
+  .cm-button__spinner {
+    animation-duration: 1.6s;
+  }
+}

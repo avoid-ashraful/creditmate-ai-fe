@@ -1,0 +1,14 @@
+.cm-gloss {
+  padding: 0;
+  border: none;
+  border-bottom: 1px dotted var(--color-text-tertiary);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: help;
+}
+
+.cm-gloss:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: var(--spacing-2xs);
+}

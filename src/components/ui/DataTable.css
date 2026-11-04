@@ -1,0 +1,44 @@
+.cm-datatable-scroll {
+  overflow-x: auto;
+}
+
+.cm-datatable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--typography-font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.cm-datatable-caption {
+  padding-bottom: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--typography-font-weight-semibold);
+  text-align: left;
+}
+
+.cm-datatable th {
+  padding: var(--spacing-sm) var(--spacing-12);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  font-weight: var(--typography-font-weight-semibold);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.cm-datatable td {
+  padding: var(--spacing-sm) var(--spacing-12);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.cm-datatable tbody tr:nth-child(even) {
+  background: var(--color-background-muted);
+}
+
+.cm-datatable tbody tr:hover {
+  background: var(--color-state-hover-surface);
+}
+
+.cm-datatable-cell-right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

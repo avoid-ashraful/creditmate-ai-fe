@@ -1,0 +1,120 @@
+.cm-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background: var(--color-background-overlay);
+  animation: cm-dialog-fade var(--motion-standard) var(--motion-ease-out);
+}
+
+.cm-dialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 90vh;
+  background: var(--color-background-elevated);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-12);
+  box-shadow: var(--shadow-xl);
+  animation: cm-dialog-in var(--motion-standard) var(--motion-ease-out);
+}
+
+.cm-dialog--sm {
+  max-width: 400px;
+}
+
+.cm-dialog--md {
+  max-width: 560px;
+}
+
+.cm-dialog--lg {
+  max-width: 760px;
+}
+
+.cm-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-sm);
+}
+
+.cm-dialog__title {
+  margin: var(--spacing-none);
+  font-size: var(--typography-font-size-xl);
+  font-weight: var(--typography-font-weight-semibold);
+  line-height: var(--typography-line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.cm-dialog__close {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-none);
+  font: inherit;
+  font-size: var(--typography-font-size-xl);
+  line-height: var(--typography-line-height-none);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--motion-micro) var(--motion-ease-out);
+}
+
+.cm-dialog__close:hover {
+  background: var(--color-state-hover-surface);
+  color: var(--color-text-primary);
+}
+
+.cm-dialog__close:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.cm-dialog__body {
+  padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-lg);
+  overflow-y: auto;
+  font-size: var(--typography-font-size-md);
+  line-height: var(--typography-line-height-normal);
+  color: var(--color-text-secondary);
+}
+
+.cm-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+@keyframes cm-dialog-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes cm-dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-dialog-overlay,
+  .cm-dialog {
+    animation: none;
+  }
+
+  .cm-dialog__close {
+    transition: none;
+  }
+}

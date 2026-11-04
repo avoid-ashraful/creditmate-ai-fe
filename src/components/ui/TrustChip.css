@@ -1,0 +1,54 @@
+.cm-trust-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--color-background-muted);
+  color: var(--color-text-secondary);
+  font-family: var(--typography-font-family-sans);
+  font-size: var(--typography-font-size-xs);
+  line-height: var(--typography-line-height-snug);
+}
+
+button.cm-trust-chip {
+  cursor: pointer;
+  transition: background-color var(--motion-micro) var(--motion-ease-out);
+}
+
+button.cm-trust-chip:hover {
+  background: var(--color-state-hover-surface);
+}
+
+button.cm-trust-chip:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: var(--spacing-2xs);
+}
+
+.cm-trust-chip-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-weight: var(--typography-font-weight-medium);
+}
+
+.cm-trust-chip-dot {
+  width: var(--spacing-sm);
+  height: var(--spacing-sm);
+  border-radius: var(--radius-full);
+}
+
+.cm-trust-chip-dot-derived {
+  background: var(--color-info-base);
+}
+
+.cm-trust-chip-dot-changed {
+  background: var(--color-warning-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.cm-trust-chip {
+    transition: none;
+  }
+}

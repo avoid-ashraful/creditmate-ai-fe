@@ -1,0 +1,36 @@
+.cm-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.cm-tooltip-bubble {
+  position: absolute;
+  bottom: calc(100% + var(--spacing-sm));
+  left: 50%;
+  z-index: 20;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  background: var(--color-background-inverse);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-inverse);
+  font-size: var(--typography-font-size-xs);
+  line-height: var(--typography-line-height-snug);
+  white-space: nowrap;
+  transform: translateX(-50%);
+  animation: cm-tooltip-in var(--motion-micro) var(--motion-ease-out);
+}
+
+@keyframes cm-tooltip-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-tooltip-bubble {
+    animation: none;
+  }
+}

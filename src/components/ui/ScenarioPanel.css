@@ -1,0 +1,89 @@
+.cm-scenario {
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-12);
+  background: var(--color-background-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.cm-scenario-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.cm-scenario-title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--typography-font-size-lg);
+  font-weight: var(--typography-font-weight-semibold);
+}
+
+.cm-scenario-assumptions {
+  color: var(--color-text-link);
+  font-size: var(--typography-font-size-sm);
+  text-decoration: none;
+}
+
+.cm-scenario-assumptions:hover {
+  color: var(--color-text-link-hover);
+  text-decoration: underline;
+}
+
+.cm-scenario-assumptions:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: var(--spacing-2xs);
+}
+
+.cm-scenario-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.cm-scenario-result {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-muted);
+  color: var(--color-text-primary);
+}
+
+.cm-scenario-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.cm-scenario-reset {
+  padding: var(--spacing-sm) var(--spacing-12);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--typography-font-family-sans);
+  font-size: var(--typography-font-size-sm);
+  font-weight: var(--typography-font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--motion-micro) var(--motion-ease-out);
+}
+
+.cm-scenario-reset:hover {
+  background: var(--color-state-hover-surface);
+}
+
+.cm-scenario-reset:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: var(--spacing-2xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-scenario-reset {
+    transition: none;
+  }
+}

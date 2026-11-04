@@ -1,0 +1,32 @@
+.cm-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--typography-font-size-sm);
+  line-height: var(--typography-line-height-snug);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.cm-radio__input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: var(--spacing-none);
+  accent-color: var(--color-primary-base);
+  cursor: pointer;
+}
+
+.cm-radio__input:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.cm-radio--disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.cm-radio--disabled .cm-radio__input {
+  cursor: not-allowed;
+}
