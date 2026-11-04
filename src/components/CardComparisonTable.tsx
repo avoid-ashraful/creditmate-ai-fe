@@ -9,6 +9,7 @@ import CardTextSummary from './CardTextSummary';
 interface CardComparisonTableProps {
   cards: CreditCard[];
   highlightDifferences?: boolean;
+  differencesOnly?: boolean;
 }
 
 interface ComparisonFeature {
@@ -16,7 +17,31 @@ interface ComparisonFeature {
   label: string;
   value: (card: CreditCard) => React.ReactNode;
   differenceKey?: keyof CreditCard;
+  /**
+   * The value two cards are compared on for difference detection when the
+   * row has no plain `differenceKey` field (for example a policy's nested
+   * conditions text). Defaults to the `differenceKey` field.
+   */
+  identityValue?: (card: CreditCard) => unknown;
   group: 'Costs' | 'Benefits' | 'Card information';
+}
+
+const featureIdentityValue = (feature: ComparisonFeature, card: CreditCard): unknown =>
+  feature.identityValue?.(card) ?? (feature.differenceKey ? card[feature.differenceKey] : null);
+
+/**
+ * Keep only the items whose value differs across the compared cards.
+ * A row differs when its per-card identity values contain at least two
+ * distinct entries (Set semantics, matching the table's difference
+ * highlighting). With zero or one card nothing can differ, so the result
+ * is empty. Exported for unit tests.
+ */
+export function filterToDiffering<T, C>(
+  items: readonly T[],
+  cards: readonly C[],
+  valueFor: (item: T, card: C) => unknown
+): T[] {
+  return items.filter(item => new Set(cards.map(card => valueFor(item, card))).size > 1);
 }
 
 const formatAnnualFee = (fee: number | null, common: ReturnType<typeof getCommonCopy>): string =>
@@ -46,6 +71,11 @@ const getFeatures = (
     label: common.filterSectionInterestRate,
     value: card => formatInterestRate(card, common),
     differenceKey: 'interestRateApr',
+    // A null APR displays differently for Islamic cards ("No interest
+    // (Islamic)") than for other cards ("Unknown"), so the raw field alone
+    // would wrongly treat those two cards as identical on this row.
+    identityValue: card =>
+      card.interestRateApr ?? (card.isIslamic ? 'no-apr-islamic' : 'no-apr-unknown'),
     group: 'Costs',
   },
   {
@@ -82,6 +112,7 @@ const getFeatures = (
     value: card => (
       <CardTextSummary text={card.annualFeeWaiverPolicy?.conditions || common.unknown} />
     ),
+    identityValue: card => card.annualFeeWaiverPolicy?.conditions ?? null,
     group: 'Costs',
   },
   {
@@ -116,6 +147,7 @@ const getFeatures = (
     key: 'reward-points',
     label: common.cardRewards,
     value: card => <CardTextSummary text={card.rewardPointsPolicy || common.unknown} />,
+    identityValue: card => card.rewardPointsPolicy ?? null,
     group: 'Benefits',
   },
   {
@@ -133,6 +165,7 @@ const getFeatures = (
       ) : (
         common.unknown
       ),
+    identityValue: card => JSON.stringify(card.additionalFeatures),
     group: 'Benefits',
   },
   {
@@ -175,6 +208,9 @@ const getFeatures = (
     key: 'last-updated',
     label: common.cardLastUpdated,
     value: card => (card.lastUpdated ? card.lastUpdated.toLocaleDateString() : common.unknown),
+    // The cell shows a calendar date, so identity is compared at day
+    // granularity — two updates on the same day display identically.
+    identityValue: card => card.lastUpdated?.toDateString() ?? null,
     group: 'Card information',
   },
 ];
@@ -182,6 +218,7 @@ const getFeatures = (
 const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
   cards,
   highlightDifferences = true,
+  differencesOnly = false,
 }) => {
   const { lang } = useLanguage();
   const common = getCommonCopy(lang);
@@ -197,7 +234,16 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
     return new Set(cards.map(card => card[key])).size > 1;
   };
 
-  const groups = Array.from(new Set(features.map(feature => feature.group)));
+  // With a single card nothing can differ, so filtering would leave an
+  // empty table and the "all features match" note would hide the card
+  // entirely. The filter (and the note) only apply to 2+ cards.
+  const visibleFeatures =
+    differencesOnly && cards.length > 1
+      ? filterToDiffering(features, cards, featureIdentityValue)
+      : features;
+  const noDifferences = differencesOnly && cards.length > 1 && visibleFeatures.length === 0;
+
+  const groups = Array.from(new Set(visibleFeatures.map(feature => feature.group)));
   const comparisonSummary = cards.length > 1 ? getComparisonSummary(cards) : null;
 
   return (
@@ -208,79 +254,91 @@ const CardComparisonTable: React.FC<CardComparisonTableProps> = ({
           <p>{comparisonSummary}</p>
         </section>
       )}
-      <div className="comparison-mobile-cards" role="region" aria-label="Card comparison details">
-        {cards.map(card => (
-          <article className="comparison-mobile-card" key={card.id}>
-            <header className="comparison-mobile-card-header">
-              <h3>{card.name}</h3>
-              <p>by {getBankName(card, common)}</p>
-            </header>
-            {groups.map((group, index) => (
-              <details
-                className="comparison-mobile-group"
-                key={`${card.id}-${group}`}
-                open={index === 0}
-              >
-                <summary>{group}</summary>
-                <dl>
-                  {features
-                    .filter(feature => feature.group === group)
-                    .map(feature => (
-                      <div className="comparison-mobile-feature" key={feature.key}>
-                        <dt>{feature.label}</dt>
-                        <dd>{feature.value(card)}</dd>
-                      </div>
-                    ))}
-                </dl>
-              </details>
-            ))}
-          </article>
-        ))}
-      </div>
-
-      <div
-        className="comparison-table-scroll"
-        role="region"
-        aria-label="Compare card features"
-        tabIndex={0}
-      >
-        <table className="comparison-table">
-          <thead>
-            <tr>
-              <th className="feature-column" scope="col">
-                {common.featureColumnLabel}
-              </th>
-              {cards.map(card => (
-                <th key={card.id} className="card-column" scope="col">
-                  <div className="card-header">
-                    <h3>{card.name}</h3>
-                    <span className="bank-name">by {getBankName(card, common)}</span>
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {features.map(feature => (
-              <tr
-                key={feature.key}
-                className={
-                  feature.differenceKey && hasDifferences(feature.differenceKey)
-                    ? 'highlight-difference'
-                    : ''
-                }
-              >
-                <th className="feature-name" scope="row">
-                  {feature.label}
-                </th>
-                {cards.map(card => (
-                  <td key={`${card.id}-${feature.key}`}>{feature.value(card)}</td>
+      {noDifferences ? (
+        <p className="comparison-all-identical" role="status">
+          {common.comparisonAllIdentical}
+        </p>
+      ) : (
+        <>
+          <div
+            className="comparison-mobile-cards"
+            role="region"
+            aria-label="Card comparison details"
+          >
+            {cards.map(card => (
+              <article className="comparison-mobile-card" key={card.id}>
+                <header className="comparison-mobile-card-header">
+                  <h3>{card.name}</h3>
+                  <p>by {getBankName(card, common)}</p>
+                </header>
+                {groups.map((group, index) => (
+                  <details
+                    className="comparison-mobile-group"
+                    key={`${card.id}-${group}`}
+                    open={index === 0}
+                  >
+                    <summary>{group}</summary>
+                    <dl>
+                      {visibleFeatures
+                        .filter(feature => feature.group === group)
+                        .map(feature => (
+                          <div className="comparison-mobile-feature" key={feature.key}>
+                            <dt>{feature.label}</dt>
+                            <dd>{feature.value(card)}</dd>
+                          </div>
+                        ))}
+                    </dl>
+                  </details>
                 ))}
-              </tr>
+              </article>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          <div
+            className="comparison-table-scroll"
+            role="region"
+            aria-label="Compare card features"
+            tabIndex={0}
+          >
+            <table className="comparison-table">
+              <thead>
+                <tr>
+                  <th className="feature-column" scope="col">
+                    {common.featureColumnLabel}
+                  </th>
+                  {cards.map(card => (
+                    <th key={card.id} className="card-column" scope="col">
+                      <div className="card-header">
+                        <h3>{card.name}</h3>
+                        <span className="bank-name">by {getBankName(card, common)}</span>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {visibleFeatures.map(feature => (
+                  <tr
+                    key={feature.key}
+                    className={
+                      feature.differenceKey && hasDifferences(feature.differenceKey)
+                        ? 'highlight-difference'
+                        : ''
+                    }
+                  >
+                    <th className="feature-name" scope="row">
+                      {feature.label}
+                    </th>
+                    {cards.map(card => (
+                      <td key={`${card.id}-${feature.key}`}>{feature.value(card)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
   );
 };
