@@ -67,7 +67,7 @@
   border: none;
   font-size: 1.1rem;
   background: transparent;
-  color: var(--text-color);
+  color: var(--color-text-primary);
   font-weight: 400;
 }
 
@@ -127,13 +127,13 @@
 .stat-number {
   font-size: 2.5rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--color-primary-base);
   display: block;
   margin-bottom: var(--spacing-sm);
 }
 
 .stat-label {
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   font-size: 1rem;
   font-weight: 500;
 }
@@ -197,7 +197,7 @@
 .list-header h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-color);
+  color: var(--color-text-primary);
   margin: 0;
 }
 
@@ -279,46 +279,6 @@
   gap: 24px;
 }
 
-.card-list-item {
-  background: var(--color-background-surface);
-  border: 2px solid transparent;
-  border-radius: 20px;
-  padding: 28px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  position: relative;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-}
-
-.card-list-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.02) 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.card-list-item:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-  transform: translateY(-4px);
-  border-color: rgba(102, 126, 234, 0.2);
-}
-
-.card-list-item:hover::before {
-  opacity: 1;
-}
-
-.card-list-item.selected {
-  border-color: var(--color-brand-gradient-from);
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
-  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
-}
-
 .card-image {
   margin-bottom: var(--spacing-md);
   text-align: center;
@@ -342,7 +302,7 @@
   font-size: 1.25rem;
   font-weight: 700;
   margin: 0;
-  color: var(--text-color);
+  color: var(--color-text-primary);
   line-height: 1.3;
 }
 
@@ -367,7 +327,7 @@
 }
 
 .detail-label {
-  color: var(--text-light);
+  color: var(--color-text-secondary);
 }
 
 .card-rewards,
@@ -378,7 +338,7 @@
 .card-rewards h4,
 .card-features h4 {
   font-size: 0.875rem;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   margin-bottom: var(--spacing-xs);
 }
 
@@ -388,7 +348,7 @@
 }
 
 .more-features {
-  color: var(--primary-color);
+  color: var(--color-primary-base);
   font-style: italic;
 }
 
@@ -399,8 +359,8 @@
 
 .load-more button {
   background-color: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-primary);
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-md);
   font-size: 0.875rem;
@@ -408,8 +368,8 @@
 }
 
 .load-more button:hover {
-  background-color: var(--background-color);
-  border-color: var(--text-light);
+  background-color: var(--color-background-base);
+  border-color: var(--color-text-secondary);
 }
 
 /* Comparison CTA */
@@ -417,7 +377,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--primary-color);
+  background-color: var(--color-primary-base);
   color: white;
   padding: var(--spacing-md) var(--spacing-lg);
   border-radius: var(--radius-md);
@@ -433,7 +393,7 @@
 
 .compare-button {
   background-color: var(--color-background-surface);
-  color: var(--primary-color);
+  color: var(--color-primary-base);
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-md);
   font-weight: 500;
@@ -441,13 +401,13 @@
 }
 
 .compare-button:hover {
-  background-color: var(--background-color);
+  background-color: var(--color-background-base);
   transform: translateY(-2px);
 }
 
 /* Benefits section */
 .benefits-section {
-  background-color: var(--background-color);
+  background-color: var(--color-background-base);
   padding: var(--spacing-2xl) var(--spacing-lg);
   text-align: center;
   margin-top: var(--spacing-2xl);
@@ -694,7 +654,7 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
 }
 
 .card-list.list .detail-value {

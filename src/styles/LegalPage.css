@@ -14,7 +14,7 @@
 
 .legal-lede {
   font-size: 1.125rem;
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   margin-bottom: var(--spacing-lg);
 }
 

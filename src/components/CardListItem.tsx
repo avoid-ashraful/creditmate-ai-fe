@@ -1,12 +1,13 @@
+import { motion } from 'framer-motion';
 import React from 'react';
 
 import { cardHover, cardTap, fadeInUp, usePrefersReducedMotion } from '../animations';
 import { useLanguage, getCommonCopy, getCardDetailCopy, getNetworkLabel } from '../locales';
-import { AnimatedCard, GradientButton } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
 import { slugify } from '../utils/slugify';
 import { summarizeCardText } from '../utils/summarizeCardText';
 
+import './CardListItem.css';
 import ScoreBadge from './ScoreBadge';
 
 interface CardListItemProps {
@@ -79,7 +80,7 @@ const CardListItem: React.FC<CardListItemProps> = ({
   };
 
   return (
-    <AnimatedCard
+    <motion.div
       className={`card-list-item ${isSelected ? 'selected' : ''}`}
       onClick={handleClick}
       variants={fadeInUp}
@@ -184,17 +185,18 @@ const CardListItem: React.FC<CardListItemProps> = ({
 
       {selectable && (
         <div className="compare-button-container">
-          <GradientButton
-            className={`add-to-compare-btn ${isSelected ? 'in-list' : ''}`}
+          <motion.button
+            type="button"
+            className={`primary-button add-to-compare-btn ${isSelected ? 'in-list' : ''}`}
             onClick={handleAddToCompare}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             {isSelected ? common.comparisonFooterShare : common.comparisonAddCard}
-          </GradientButton>
+          </motion.button>
         </div>
       )}
-    </AnimatedCard>
+    </motion.div>
   );
 };
 

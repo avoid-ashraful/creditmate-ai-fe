@@ -1,0 +1,42 @@
+/* CardListItem — the card tile's own styles (moved from HomePage.css so the
+ * tile looks identical on every page that renders it, Phase 0). */
+
+.card-list-item {
+  background: var(--color-background-surface);
+  border: 2px solid transparent;
+  border-radius: 20px;
+  padding: 28px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.card-list-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.02) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-list-item:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+.card-list-item:hover::before {
+  opacity: 1;
+}
+
+.card-list-item.selected {
+  border-color: var(--color-brand-gradient-from);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+}

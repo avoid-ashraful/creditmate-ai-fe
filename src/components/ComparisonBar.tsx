@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 
 import { usePrefersReducedMotion } from '../animations';
 import { useLanguage, getCommonCopy } from '../locales';
-import { GradientComparisonBar } from '../styles/StyledComponents';
 import { CreditCard } from '../types';
 
 import '../styles/ComparisonBar.css';
@@ -30,7 +29,7 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
   }
 
   return (
-    <GradientComparisonBar>
+    <div className="comparison-bar">
       <motion.div
         className="comparison-bar-content"
         initial={reduceMotion ? false : { y: 50, opacity: 0 }}
@@ -108,7 +107,7 @@ const ComparisonBar: React.FC<ComparisonBarProps> = ({
           </p>
         </div>
       </motion.div>
-    </GradientComparisonBar>
+    </div>
   );
 };
 

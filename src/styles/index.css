@@ -27,7 +27,6 @@ code {
 }
 
 /* Keep a solid focus outline even when lazy component styles reset outlines. */
-header :focus-visible,
 .hero-section :focus-visible {
   outline-color: #fff !important;
   box-shadow: 0 0 0 5px #0f172a;

@@ -7,7 +7,6 @@ import {
   ExperimentViewData,
 } from '../../lib/experiments';
 import { useLanguage, getCommonCopy } from '../../locales';
-import { GradientButton } from '../../styles/StyledComponents';
 import '../../styles/ExperimentResults.css';
 
 const ExperimentResults: React.FC = () => {
@@ -34,9 +33,13 @@ const ExperimentResults: React.FC = () => {
         <div className="header-content">
           <h1>{common.experimentResultsTitle}</h1>
           <p className="subtitle">{common.experimentResultsSubtitle}</p>
-          <GradientButton onClick={() => navigate('/')} className="back-button">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="primary-button back-button"
+          >
             {common.experimentBackToApp}
-          </GradientButton>
+          </button>
         </div>
       </header>
 
