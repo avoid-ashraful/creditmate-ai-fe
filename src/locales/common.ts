@@ -217,6 +217,11 @@ export interface CommonCopy {
   calcResultNetValue: string;
   calcResultBreakEven: string;
   calcResultBreakEvenUnknown: string;
+  calcResultValueBack: string;
+  calcBestValueBack: string;
+  /** Placeholders: {value} — the value-back % (also the BDT returned per BDT 100). */
+  calcValueBackExplainer: string;
+  calcValueBackNoSpend: string;
   calcExportCompare: string;
   calcLoading: string;
   /** Structured-reward result copy */
@@ -642,6 +647,11 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     calcResultNetValue: 'Net annual value',
     calcResultBreakEven: 'Break-even monthly spend',
     calcResultBreakEvenUnknown: 'Not computable with current allocation',
+    calcResultValueBack: 'Effective value-back',
+    calcBestValueBack: 'Best value-back',
+    calcValueBackExplainer:
+      'Value-back % is the net annual value (rewards minus annual fee) divided by your total annual spend. At {value}%, for every BDT 100 you spend, the card returns about BDT {value} after its annual fee.',
+    calcValueBackNoSpend: 'Enter spend to see value-back',
     calcExportCompare: 'Export to comparison',
     calcLoading: 'Loading credit cards...',
     calcCategoryAll: 'All spending',
@@ -1079,6 +1089,11 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     calcResultNetValue: 'নিট বার্ষিক মূল্য',
     calcResultBreakEven: 'ব্রেক-ইভেন মাসিক খরচ',
     calcResultBreakEvenUnknown: 'বর্তমান বণ্টনে গণনা সম্ভব নয়',
+    calcResultValueBack: 'কার্যকর ভ্যালু-ব্যাক',
+    calcBestValueBack: 'সেরা ভ্যালু-ব্যাক',
+    calcValueBackExplainer:
+      'ভ্যালু-ব্যাক % হলো নিট বার্ষিক মূল্য (রিওয়ার্ড বিয়োগ বার্ষিক ফি) ভাগ আপনার মোট বার্ষিক খরচ। ভ্যালু-ব্যাক {value}% হলে, প্রতি ১০০ বিডিটি খরচে কার্ডটি বার্ষিক ফি কাটার পর প্রায় {value} বিডিটি ফেরত দেয়।',
+    calcValueBackNoSpend: 'ভ্যালু-ব্যাক দেখতে খরচ লিখুন',
     calcExportCompare: 'তুলনায় রপ্তানি করুন',
     calcLoading: 'ক্রেডিট কার্ড লোড হচ্ছে…',
     calcRankedCardsSuffix: 'কার্ড:',

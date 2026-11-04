@@ -182,6 +182,42 @@ test('ranks top 5 cards by net annual value and shows break-even and export CTAs
   expect(window.location.search).toBe('?ids=1');
 });
 
+test('shows effective value-back % per card, flags the best, and explains it', async () => {
+  const cards: CreditCard[] = [
+    { ...baseCard, id: 1, name: 'Card A', annualFee: 1000 },
+    { ...baseCard, id: 2, name: 'Card B', annualFee: 6000 },
+    { ...baseCard, id: 3, name: 'Card C', annualFee: 3000 },
+    { ...baseCard, id: 4, name: 'Card D', annualFee: 2000 },
+    { ...baseCard, id: 5, name: 'Card E', annualFee: 8000 },
+  ];
+  getCardsSpy.mockResolvedValue(apiResponse(cards));
+  renderPage();
+
+  await screen.findByRole('button', { name: /Calculate best value cards/i });
+  await fillAllocation();
+
+  expect(await screen.findByText(/^Top 5 cards:/i)).toBeInTheDocument();
+
+  // Total annual spend = 30,000 × 12 = 360,000; rewards are 7,200 for every card.
+  // Value-back % = (7,200 − fee) ÷ 360,000 × 100, one decimal place.
+  const itemFor = (name: string) => screen.getByText(new RegExp(name)).closest('li') as HTMLElement;
+  expect(itemFor('Card A')).toHaveTextContent('1.7%'); // net 6,200
+  expect(itemFor('Card D')).toHaveTextContent('1.4%'); // net 5,200
+  expect(itemFor('Card C')).toHaveTextContent('1.2%'); // net 4,200
+  expect(itemFor('Card B')).toHaveTextContent('0.3%'); // net 1,200
+  // A card whose fee exceeds its rewards shows the negative % truthfully.
+  expect(itemFor('Card E')).toHaveTextContent('-0.2%'); // net −800
+
+  // Only the highest value-back card carries the marker (ranking order unchanged).
+  expect(screen.getAllByText('Best value-back')).toHaveLength(1);
+  expect(itemFor('Card A')).toHaveTextContent('Best value-back');
+
+  // Explainer line ties the % back to BDT per BDT 100 spent, after the fee.
+  expect(
+    screen.getByText(/for every BDT 100 you spend, the card returns about BDT 1\.7/i)
+  ).toBeInTheDocument();
+});
+
 test('shows estimated points only (never an invented value) for cards without a stated point value', async () => {
   const pointsOnly: CreditCard = {
     ...baseCard,

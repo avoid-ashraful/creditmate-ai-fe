@@ -430,6 +430,32 @@ export const calculateFeeBreakEvenSpend = (
   return card.annualFee / (12 * slope);
 };
 
+/** Total annual spend (BDT) implied by a monthly category allocation. */
+export const totalAnnualSpend = (allocation: CategoryAllocation): number =>
+  INPUT_CATEGORIES.reduce((sum, key) => sum + allocation[key], 0) * 12;
+
+/**
+ * Effective value-back percentage: the share of total annual spend a card
+ * returns after its annual fee, i.e.
+ *
+ *   valueBack = netAnnualValue / totalAnnualSpend × 100
+ *
+ * where netAnnualValue is rewards earned − annual fee (the same figure the
+ * calculator already displays). A negative net value yields a negative
+ * percentage — a card can cost more than it returns — and the value is never
+ * clamped. Returns null when the net value is unknown or the total spend is
+ * not positive (no honest percentage exists; the UI shows "—" instead of
+ * NaN/Infinity).
+ */
+export const computeValueBackPercent = (
+  netAnnualValue: number | null,
+  totalAnnualSpendBdt: number
+): number | null => {
+  if (netAnnualValue === null || !Number.isFinite(netAnnualValue)) return null;
+  if (!Number.isFinite(totalAnnualSpendBdt) || totalAnnualSpendBdt <= 0) return null;
+  return (netAnnualValue / totalAnnualSpendBdt) * 100;
+};
+
 /**
  * A ranked card result for display.
  */
@@ -448,6 +474,8 @@ export interface RankedCard {
   netAnnualValueAfterInterest: number | null;
   /** Whether borrowing cost is known; fee and reward-value availability still apply. */
   rankable: boolean;
+  /** Net annual value as a % of total annual spend; null when not computable. */
+  valueBackPercent: number | null;
 }
 
 const hasRankingSignal = (estimate: CardRewardEstimate): boolean =>
@@ -502,6 +530,7 @@ export const rankCards = (
     );
   }
 
+  const annualSpend = totalAnnualSpend(allocation);
   return cards
     .filter(card => Boolean(card) && card.isActive)
     .map(card => {
@@ -525,6 +554,7 @@ export const rankCards = (
         annualInterest,
         netAnnualValueAfterInterest,
         rankable,
+        valueBackPercent: computeValueBackPercent(netAnnualValue, annualSpend),
       };
     })
     .filter(ranked => hasRankingSignal(ranked.estimate))

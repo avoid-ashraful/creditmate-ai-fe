@@ -217,6 +217,14 @@ const RewardCalculatorPage: React.FC = () => {
     return label;
   };
 
+  // Highest effective value-back among the results, if any card has one.
+  // Ranking order is untouched — this only identifies the best-% card.
+  const bestValueBackCard = ranked.reduce<RankedCard | null>((best, rankedCard) => {
+    if (rankedCard.valueBackPercent === null) return best;
+    if (best === null || best.valueBackPercent === null) return rankedCard;
+    return rankedCard.valueBackPercent > best.valueBackPercent ? rankedCard : best;
+  }, null);
+
   const rankedCardItem = (rankedCard: RankedCard, index: number) => {
     const {
       card,
@@ -228,7 +236,9 @@ const RewardCalculatorPage: React.FC = () => {
       annualInterest,
       netAnnualValueAfterInterest,
       rankable,
+      valueBackPercent,
     } = rankedCard;
+    const isBestValueBack = bestValueBackCard !== null && bestValueBackCard.card.id === card.id;
     // A card is only shown with a BDT figure when the bank itself states a
     // point value and/or publishes cashback; otherwise points stay unconverted.
     const hasValue = estimate.annualValueBdt !== null;
@@ -315,6 +325,24 @@ const RewardCalculatorPage: React.FC = () => {
               </div>
             )}
           </dl>
+          {hasValue && (
+            <p className="ranked-card-value-back">
+              <span className="value-back-label">{common.calcResultValueBack}</span>
+              <span
+                className={`value-back-figure${
+                  valueBackPercent !== null && valueBackPercent < 0 ? ' negative' : ''
+                }`}
+              >
+                {valueBackPercent === null ? '—' : `${valueBackPercent.toFixed(1)}%`}
+              </span>
+              {isBestValueBack && (
+                <span className="value-back-badge">{common.calcBestValueBack}</span>
+              )}
+              {valueBackPercent === null && (
+                <span className="value-back-hint">{common.calcValueBackNoSpend}</span>
+              )}
+            </p>
+          )}
           {estimate.appliedRules.length > 0 && (
             <p className="ranked-card-rules-applied">
               <strong>{common.calcRulesApplied}</strong>{' '}
@@ -493,6 +521,13 @@ const RewardCalculatorPage: React.FC = () => {
                 ? common.calcBorrowingResultsTitle
                 : `${common.calcResultsTitle} ${ranked.length} ${common.calcRankedCardsSuffix}`}
             </h2>
+            {bestValueBackCard !== null && bestValueBackCard.valueBackPercent !== null && (
+              <p className="value-back-explainer">
+                {fillCopy(common.calcValueBackExplainer, {
+                  value: bestValueBackCard.valueBackPercent.toFixed(1),
+                })}
+              </p>
+            )}
             {valuedCards.length > 0 && (
               <>
                 <h3 className="ranking-group-heading">{common.calcValuedCardsHeading}</h3>
