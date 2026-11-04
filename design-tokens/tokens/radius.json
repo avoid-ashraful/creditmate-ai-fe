@@ -20,6 +20,11 @@
       "type": "borderRadius",
       "comment": "Matches the legacy --radius-lg (0.5rem) already used by panels and modals."
     },
+    "12": {
+      "value": "12px",
+      "type": "borderRadius",
+      "comment": "Panels and dialogs per plan."
+    },
     "xl": {
       "value": "16px",
       "type": "borderRadius",

@@ -5,6 +5,28 @@
     "com.creditmate.source": "design-tokens/tokens/*.json"
   },
   "global": {
+    "breakpoint": {
+      "sm": {
+        "type": "sizing",
+        "value": "480px",
+        "description": "Large phones."
+      },
+      "md": {
+        "type": "sizing",
+        "value": "768px",
+        "description": "Tablets / small laptops."
+      },
+      "lg": {
+        "type": "sizing",
+        "value": "1024px",
+        "description": "Desktop shell."
+      },
+      "xl": {
+        "type": "sizing",
+        "value": "1280px",
+        "description": "Wide desktop."
+      }
+    },
     "color": {
       "dark": {
         "primary": {
@@ -882,7 +904,49 @@
         }
       }
     },
+    "motion": {
+      "press": {
+        "type": "duration",
+        "value": "120ms",
+        "description": "Press feedback. Redesign plan range: 80-160ms (motion ceiling 500ms)."
+      },
+      "micro": {
+        "type": "duration",
+        "value": "160ms",
+        "description": "Micro-interactions. Redesign plan range: 120-200ms (motion ceiling 500ms)."
+      },
+      "standard": {
+        "type": "duration",
+        "value": "220ms",
+        "description": "Standard transitions. Redesign plan range: 180-250ms (motion ceiling 500ms)."
+      },
+      "large": {
+        "type": "duration",
+        "value": "300ms",
+        "description": "Large surface transitions. Redesign plan range: 240-360ms (motion ceiling 500ms)."
+      },
+      "easeOut": {
+        "type": "transitionTimingFunction",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "description": "Ease-out for entrances and press feedback."
+      },
+      "easeInOut": {
+        "type": "transitionTimingFunction",
+        "value": "cubic-bezier(0.77, 0, 0.175, 1)",
+        "description": "Ease-in-out for moves between states."
+      },
+      "easeExit": {
+        "type": "transitionTimingFunction",
+        "value": "cubic-bezier(0.4, 0, 1, 1)",
+        "description": "Ease for exits and dismissals."
+      }
+    },
     "radius": {
+      "12": {
+        "type": "borderRadius",
+        "value": "12px",
+        "description": "Panels and dialogs per plan."
+      },
       "none": {
         "type": "borderRadius",
         "value": "0",
@@ -1087,6 +1151,11 @@
       }
     },
     "spacing": {
+      "12": {
+        "type": "spacing",
+        "value": "12px",
+        "description": "The 12px step the plan adds to the 4px scale."
+      },
       "none": {
         "type": "spacing",
         "value": "0",
@@ -1248,8 +1317,8 @@
       "fontFamily": {
         "sans": {
           "type": "fontFamilies",
-          "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-          "description": "System UI stack. Matches the existing body font in src/styles/index.css."
+          "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif",
+          "description": "System UI stack with Bengali fallbacks ('Hind Siliguri', 'Noto Sans Bengali') so Bengali glyphs fall through to Hind Siliguri. Matches the existing body font in src/styles/index.css."
         },
         "mono": {
           "type": "fontFamilies",
