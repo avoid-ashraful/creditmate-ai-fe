@@ -1,0 +1,256 @@
+.loans-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.loans-hero {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.loans-hero h1 {
+  font-size: 2rem;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.loans-hero p {
+  color: #64748b;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.loans-estimate-banner {
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  color: #92400e;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.loans-type-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.loans-tab {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  color: #334155;
+}
+
+.loans-tab-active {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #ffffff;
+}
+
+.loans-form-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.loans-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.loans-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.loans-form input[type='number'] {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  min-width: 180px;
+}
+
+.loans-optional {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.loans-checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  font-weight: 400 !important;
+}
+
+.loans-form-error {
+  color: #b91c1c;
+  width: 100%;
+}
+
+.loans-submit {
+  background: #1d4ed8;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.loans-submit:disabled {
+  opacity: 0.6;
+}
+
+.loans-segment-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.loans-chip {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  color: #334155;
+}
+
+.loans-chip-active {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #ffffff;
+}
+
+.loans-table-wrap {
+  overflow-x: auto;
+}
+
+.loans-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+.loans-table th,
+.loans-table td {
+  border: 1px solid #e2e8f0;
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.loans-table th {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.loans-row-ineligible {
+  opacity: 0.55;
+  background: #f8fafc;
+}
+
+.loans-badge {
+  display: inline-block;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.loans-tags {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.loans-tag {
+  display: inline-block;
+  background: #eff6ff;
+  color: #1e40af;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  margin-right: 0.3rem;
+}
+
+.loans-band-source {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.loans-flag {
+  display: block;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+.loans-flag-warning {
+  color: #92400e;
+}
+
+.loans-muted {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.loans-notes,
+.loans-caps {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.loan-detail-terms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem 1.5rem;
+}
+
+.loan-detail-terms dt {
+  font-weight: 600;
+  color: #334155;
+}
+
+.loan-detail-terms dd {
+  margin: 0.15rem 0 0;
+  color: #0f172a;
+}
+
+.loan-detail-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.loan-detail-warning {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 0.5rem;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+}

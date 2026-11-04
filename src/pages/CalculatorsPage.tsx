@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { fillCopy, getCommonCopy, toBanglaNumerals, useLanguage } from '../locales';
 import { CalculatorsCopy, getCalculatorsCopy } from '../locales/calculators';
 import type { CommonCopy } from '../locales/common';
+import { getLoansCopy } from '../locales/loans';
 import { apiService } from '../services/api';
 import {
   DepositProduct,
@@ -230,6 +232,7 @@ const EmiTool: React.FC<{
   common: CommonCopy;
   formatters: Formatters;
 }> = ({ cards, copy, common, formatters }) => {
+  const { lang } = useLanguage();
   const [selection, setSelection] = useState<RateSelection>('custom');
   const [customApr, setCustomApr] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
@@ -371,6 +374,9 @@ const EmiTool: React.FC<{
           )}
         </div>
       )}
+      <p className="calculators-loans-link">
+        <Link to="/loans">{getLoansCopy(lang).calculatorsLinkText}</Link>
+      </p>
     </section>
   );
 };
