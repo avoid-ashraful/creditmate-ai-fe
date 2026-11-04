@@ -8,7 +8,23 @@ import { CalculatorsCopy, getCalculatorsCopy } from '../locales/calculators';
 import type { CommonCopy } from '../locales/common';
 import { getLoansCopy } from '../locales/loans';
 import { apiService } from '../services/api';
+import {
+  DepositProduct,
+  DepositProductDetail,
+  getDepositProduct,
+  getDepositProducts,
+} from '../services/deposits';
 import { CreditCard } from '../types';
+import {
+  bankSourceTaxPercent,
+  DepositRateLike,
+  dpsInstalmentForTarget,
+  dpsMaturity,
+  fdrMaturity,
+  netOfTax,
+  NetMaturity,
+  pickDepositRate,
+} from '../utils/depositCalculator';
 import {
   calculateEmi,
   calculatePayoff,
@@ -21,7 +37,7 @@ import { fetchAllPages } from '../utils/fetchAllPages';
 
 import './CalculatorsPage.css';
 
-type ToolTab = 'emi' | 'payoff';
+type ToolTab = 'emi' | 'payoff' | 'fd' | 'dps';
 
 /** 'custom', or the id of the selected card as a string. */
 type RateSelection = string;
@@ -540,6 +556,526 @@ const PayoffTool: React.FC<{
   );
 };
 
+/** Longest horizon the deposit tools accept (matches the scenario API cap). */
+const MAX_DEPOSIT_MONTHS = 600;
+
+/**
+ * Deposit-product preset state for the FD/DPS tools: the product list for
+ * one kind, the current selection ('custom' or a slug), and the selected
+ * product's detail (for its published rates + compounding).
+ */
+const useDepositPreset = (products: DepositProduct[]) => {
+  const [selection, setSelection] = useState<string>('custom');
+  const [detail, setDetail] = useState<DepositProductDetail | null>(null);
+
+  useEffect(() => {
+    if (selection === 'custom') {
+      setDetail(null);
+      return;
+    }
+    let cancelled = false;
+    getDepositProduct(selection)
+      .then(fetched => {
+        if (!cancelled) setDetail(fetched);
+      })
+      .catch(() => {
+        if (!cancelled) setDetail(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selection]);
+
+  const selectedProduct = products.find(product => product.slug === selection) ?? null;
+  return { selection, setSelection, detail, selectedProduct };
+};
+
+interface DepositRateFieldsProps {
+  idPrefix: string;
+  products: DepositProduct[];
+  selection: string;
+  onSelectionChange: (selection: string) => void;
+  customRate: string;
+  onCustomRateChange: (value: string) => void;
+  showCustomRate: boolean;
+  noRateProductName: string | null;
+  rateError: string | null;
+  copy: CalculatorsCopy;
+}
+
+const DepositRateFields: React.FC<DepositRateFieldsProps> = ({
+  idPrefix,
+  products,
+  selection,
+  onSelectionChange,
+  customRate,
+  onCustomRateChange,
+  showCustomRate,
+  noRateProductName,
+  rateError,
+  copy,
+}) => (
+  <>
+    <div className="calculators-field">
+      <label htmlFor={`${idPrefix}-product`}>{copy.depositProductLabel}</label>
+      <select
+        id={`${idPrefix}-product`}
+        value={selection}
+        onChange={event => onSelectionChange(event.target.value)}
+      >
+        <option value="custom">{copy.customDepositRateOption}</option>
+        {products.map(product => (
+          <option key={product.slug} value={product.slug}>
+            {product.name} — {product.institutionDisplayName}
+          </option>
+        ))}
+      </select>
+    </div>
+    {noRateProductName && (
+      <p className="calculators-no-apr-note" role="note">
+        {fillCopy(copy.noRateForTenureNotice, { product: noRateProductName })}
+      </p>
+    )}
+    {showCustomRate && (
+      <div className="calculators-field">
+        <label htmlFor={`${idPrefix}-rate`}>{copy.depositRateLabel}</label>
+        <input
+          id={`${idPrefix}-rate`}
+          type="number"
+          min="0"
+          step="any"
+          inputMode="decimal"
+          value={customRate}
+          onChange={event => onCustomRateChange(event.target.value)}
+          aria-invalid={rateError ? true : undefined}
+        />
+        {rateError && (
+          <p className="field-error" role="alert">
+            {rateError}
+          </p>
+        )}
+      </div>
+    )}
+  </>
+);
+
+interface DepositOutcome {
+  net: NetMaturity;
+  contributed: number;
+  sourceText: string;
+  requiredInstalment?: number;
+}
+
+const depositSourceText = (
+  copy: CalculatorsCopy,
+  formatters: Formatters,
+  rate: number,
+  product: DepositProduct | null,
+  row: (DepositRateLike & { isDerived?: boolean; isRange?: boolean }) | null
+): string => {
+  if (product && row) {
+    let text = fillCopy(copy.depositRateSourceProduct, {
+      rate: formatters.apr(rate),
+      product: `${product.name} (${product.institutionDisplayName})`,
+    });
+    // The picked row's rateMin is used for ranges — say so, since the
+    // published figure is a band, not a point rate.
+    if (row.isRange) text += copy.rangeRateSuffix;
+    if (row.isDerived) text += copy.derivedRateSuffix;
+    return text;
+  }
+  return fillCopy(copy.depositRateSourceCustom, { rate: formatters.apr(rate) });
+};
+
+const FdTool: React.FC<{
+  products: DepositProduct[];
+  copy: CalculatorsCopy;
+  formatters: Formatters;
+}> = ({ products, copy, formatters }) => {
+  const preset = useDepositPreset(products);
+  const [customRate, setCustomRate] = useState<string>('');
+  const [amount, setAmount] = useState<string>('500000');
+  const [months, setMonths] = useState<string>('12');
+  const [hasTin, setHasTin] = useState<boolean>(true);
+  const [errors, setErrors] = useState<{ amount?: string; months?: string; rate?: string }>({});
+  const [outcome, setOutcome] = useState<DepositOutcome | null>(null);
+
+  const parsedMonths = parseNumber(months);
+  const parsedAmount = parseNumber(amount);
+  const row =
+    preset.detail && parsedMonths !== null && parsedAmount !== null
+      ? pickDepositRate(preset.detail.rates, parsedMonths, parsedAmount)
+      : null;
+  // While a preset's detail is still loading (or failed to load) there is
+  // no picked row, so the custom-rate field must show — otherwise submit
+  // fails on a rate input the user cannot see.
+  const needsCustomRate = preset.selection === 'custom' || preset.detail === null || row === null;
+  const noRateProductName =
+    preset.selection !== 'custom' && preset.detail !== null && row === null
+      ? preset.detail.name
+      : null;
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const rate = row ? row.rateMin : parseNumber(customRate);
+    const nextErrors: typeof errors = {};
+    if (parsedAmount === null || parsedAmount <= 0) nextErrors.amount = copy.errorAmount;
+    if (
+      parsedMonths === null ||
+      !Number.isInteger(parsedMonths) ||
+      parsedMonths < 1 ||
+      parsedMonths > MAX_DEPOSIT_MONTHS
+    ) {
+      nextErrors.months = copy.errorTenure;
+    }
+    if (rate === null || rate < 0) nextErrors.rate = copy.errorDepositRate;
+    setErrors(nextErrors);
+    if (
+      Object.keys(nextErrors).length > 0 ||
+      parsedAmount === null ||
+      parsedMonths === null ||
+      rate === null
+    ) {
+      setOutcome(null);
+      return;
+    }
+    const gross = fdrMaturity(
+      parsedAmount,
+      rate,
+      parsedMonths,
+      preset.detail?.compounding ?? 'annual'
+    );
+    if (gross === null) {
+      setOutcome(null);
+      return;
+    }
+    setOutcome({
+      net: netOfTax(gross, parsedAmount, bankSourceTaxPercent(hasTin)),
+      contributed: parsedAmount,
+      sourceText: depositSourceText(copy, formatters, rate, preset.selectedProduct, row),
+    });
+    analytics.track(ANALYTICS_EVENTS.calculatorUse);
+  };
+
+  return (
+    <section aria-labelledby="fd-heading">
+      <h2 id="fd-heading">{copy.fdHeading}</h2>
+      <p className="calculators-tool-intro">{copy.fdIntro}</p>
+      <form className="calculators-form" onSubmit={handleSubmit} noValidate>
+        <DepositRateFields
+          idPrefix="fd"
+          products={products}
+          selection={preset.selection}
+          onSelectionChange={preset.setSelection}
+          customRate={customRate}
+          onCustomRateChange={setCustomRate}
+          showCustomRate={needsCustomRate}
+          noRateProductName={noRateProductName}
+          rateError={errors.rate ?? null}
+          copy={copy}
+        />
+        <div className="calculators-field">
+          <label htmlFor="fd-amount">{copy.fdAmountLabel}</label>
+          <input
+            id="fd-amount"
+            type="number"
+            min="0"
+            step="any"
+            inputMode="decimal"
+            value={amount}
+            onChange={event => setAmount(event.target.value)}
+            aria-invalid={errors.amount ? true : undefined}
+          />
+          {errors.amount && (
+            <p className="field-error" role="alert">
+              {errors.amount}
+            </p>
+          )}
+        </div>
+        <div className="calculators-field">
+          <label htmlFor="fd-months">{copy.fdMonthsLabel}</label>
+          <input
+            id="fd-months"
+            type="number"
+            min="1"
+            step="1"
+            inputMode="numeric"
+            value={months}
+            onChange={event => setMonths(event.target.value)}
+            aria-invalid={errors.months ? true : undefined}
+          />
+          {errors.months && (
+            <p className="field-error" role="alert">
+              {errors.months}
+            </p>
+          )}
+        </div>
+        <label className="calculators-checkbox">
+          <input
+            type="checkbox"
+            checked={hasTin}
+            onChange={event => setHasTin(event.target.checked)}
+          />
+          {copy.hasTinLabel}
+        </label>
+        <button type="submit" className="calculate-button">
+          {copy.calculateFd}
+        </button>
+      </form>
+      {outcome && (
+        <div className="calculators-result" aria-live="polite">
+          <h3>{copy.resultsHeading}</h3>
+          <p className="calculators-apr-source">{outcome.sourceText}</p>
+          <dl className="calculators-metrics">
+            <div>
+              <dt>{copy.fdGross}</dt>
+              <dd>{formatters.money(outcome.net.grossMaturity)}</dd>
+            </div>
+            <div>
+              <dt>{copy.fdInterest}</dt>
+              <dd>{formatters.money(outcome.net.interestEarned)}</dd>
+            </div>
+            <div>
+              <dt>{copy.fdTax}</dt>
+              <dd>{formatters.money(outcome.net.sourceTax)}</dd>
+            </div>
+            <div>
+              <dt>{copy.fdNet}</dt>
+              <dd>{formatters.money(outcome.net.netMaturity)}</dd>
+            </div>
+          </dl>
+        </div>
+      )}
+    </section>
+  );
+};
+
+const DpsTool: React.FC<{
+  products: DepositProduct[];
+  copy: CalculatorsCopy;
+  formatters: Formatters;
+}> = ({ products, copy, formatters }) => {
+  const preset = useDepositPreset(products);
+  const [mode, setMode] = useState<'maturity' | 'goal'>('maturity');
+  const [customRate, setCustomRate] = useState<string>('');
+  const [instalment, setInstalment] = useState<string>('5000');
+  const [target, setTarget] = useState<string>('1000000');
+  const [months, setMonths] = useState<string>('60');
+  const [hasTin, setHasTin] = useState<boolean>(true);
+  const [errors, setErrors] = useState<{
+    instalment?: string;
+    target?: string;
+    months?: string;
+    rate?: string;
+  }>({});
+  const [outcome, setOutcome] = useState<DepositOutcome | null>(null);
+
+  const parsedMonths = parseNumber(months);
+  const parsedInstalment = parseNumber(instalment);
+  const slabAmount = mode === 'maturity' ? parsedInstalment : null;
+  const row =
+    preset.detail && parsedMonths !== null && slabAmount !== null
+      ? pickDepositRate(preset.detail.rates, parsedMonths, slabAmount)
+      : preset.detail && parsedMonths !== null
+      ? pickDepositRate(preset.detail.rates, parsedMonths, preset.detail.minInstalment ?? 0)
+      : null;
+  // Same rule as the FD tool: a preset whose detail has not loaded (or
+  // failed) has no picked row, so the custom-rate field must be visible.
+  const needsCustomRate = preset.selection === 'custom' || preset.detail === null || row === null;
+  const noRateProductName =
+    preset.selection !== 'custom' && preset.detail !== null && row === null
+      ? preset.detail.name
+      : null;
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const rate = row ? row.rateMin : parseNumber(customRate);
+    const nextErrors: typeof errors = {};
+    if (
+      parsedMonths === null ||
+      !Number.isInteger(parsedMonths) ||
+      parsedMonths < 1 ||
+      parsedMonths > MAX_DEPOSIT_MONTHS
+    ) {
+      nextErrors.months = copy.errorTenure;
+    }
+    if (rate === null || rate < 0) nextErrors.rate = copy.errorDepositRate;
+    const parsedTarget = parseNumber(target);
+    if (mode === 'maturity' && (parsedInstalment === null || parsedInstalment <= 0)) {
+      nextErrors.instalment = copy.errorAmount;
+    }
+    if (mode === 'goal' && (parsedTarget === null || parsedTarget <= 0)) {
+      nextErrors.target = copy.errorTarget;
+    }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0 || parsedMonths === null || rate === null) {
+      setOutcome(null);
+      return;
+    }
+    const taxPercent = bankSourceTaxPercent(hasTin);
+    if (mode === 'maturity' && parsedInstalment !== null) {
+      const gross = dpsMaturity(parsedInstalment, rate, parsedMonths);
+      if (gross === null) return setOutcome(null);
+      const contributed = parsedInstalment * parsedMonths;
+      setOutcome({
+        net: netOfTax(gross, contributed, taxPercent),
+        contributed,
+        sourceText: depositSourceText(copy, formatters, rate, preset.selectedProduct, row),
+      });
+    } else if (mode === 'goal' && parsedTarget !== null) {
+      const required = dpsInstalmentForTarget(parsedTarget, rate, parsedMonths);
+      if (required === null) return setOutcome(null);
+      const contributed = required * parsedMonths;
+      setOutcome({
+        net: netOfTax(parsedTarget, contributed, taxPercent),
+        contributed,
+        requiredInstalment: required,
+        sourceText: depositSourceText(copy, formatters, rate, preset.selectedProduct, row),
+      });
+    }
+    analytics.track(ANALYTICS_EVENTS.calculatorUse);
+  };
+
+  return (
+    <section aria-labelledby="dps-heading">
+      <h2 id="dps-heading">{copy.dpsHeading}</h2>
+      <p className="calculators-tool-intro">{copy.dpsIntro}</p>
+      <div className="calculators-tabs" role="tablist" aria-label={copy.dpsHeading}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'maturity'}
+          className={`calculators-tab${mode === 'maturity' ? ' calculators-tab-active' : ''}`}
+          onClick={() => setMode('maturity')}
+        >
+          {copy.dpsModeMaturity}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'goal'}
+          className={`calculators-tab${mode === 'goal' ? ' calculators-tab-active' : ''}`}
+          onClick={() => setMode('goal')}
+        >
+          {copy.dpsModeGoal}
+        </button>
+      </div>
+      <form className="calculators-form" onSubmit={handleSubmit} noValidate>
+        <DepositRateFields
+          idPrefix="dps"
+          products={products}
+          selection={preset.selection}
+          onSelectionChange={preset.setSelection}
+          customRate={customRate}
+          onCustomRateChange={setCustomRate}
+          showCustomRate={needsCustomRate}
+          noRateProductName={noRateProductName}
+          rateError={errors.rate ?? null}
+          copy={copy}
+        />
+        {mode === 'maturity' ? (
+          <div className="calculators-field">
+            <label htmlFor="dps-instalment">{copy.dpsInstalmentLabel}</label>
+            <input
+              id="dps-instalment"
+              type="number"
+              min="0"
+              step="any"
+              inputMode="decimal"
+              value={instalment}
+              onChange={event => setInstalment(event.target.value)}
+              aria-invalid={errors.instalment ? true : undefined}
+            />
+            {errors.instalment && (
+              <p className="field-error" role="alert">
+                {errors.instalment}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="calculators-field">
+            <label htmlFor="dps-target">{copy.dpsTargetLabel}</label>
+            <input
+              id="dps-target"
+              type="number"
+              min="0"
+              step="any"
+              inputMode="decimal"
+              value={target}
+              onChange={event => setTarget(event.target.value)}
+              aria-invalid={errors.target ? true : undefined}
+            />
+            {errors.target && (
+              <p className="field-error" role="alert">
+                {errors.target}
+              </p>
+            )}
+          </div>
+        )}
+        <div className="calculators-field">
+          <label htmlFor="dps-months">{copy.dpsMonthsLabel}</label>
+          <input
+            id="dps-months"
+            type="number"
+            min="1"
+            step="1"
+            inputMode="numeric"
+            value={months}
+            onChange={event => setMonths(event.target.value)}
+            aria-invalid={errors.months ? true : undefined}
+          />
+          {errors.months && (
+            <p className="field-error" role="alert">
+              {errors.months}
+            </p>
+          )}
+        </div>
+        <label className="calculators-checkbox">
+          <input
+            type="checkbox"
+            checked={hasTin}
+            onChange={event => setHasTin(event.target.checked)}
+          />
+          {copy.hasTinLabel}
+        </label>
+        <button type="submit" className="calculate-button">
+          {copy.calculateDps}
+        </button>
+      </form>
+      {outcome && (
+        <div className="calculators-result" aria-live="polite">
+          <h3>{copy.resultsHeading}</h3>
+          <p className="calculators-apr-source">{outcome.sourceText}</p>
+          <dl className="calculators-metrics">
+            {outcome.requiredInstalment !== undefined && (
+              <div>
+                <dt>{copy.dpsRequiredInstalment}</dt>
+                <dd>{formatters.money(outcome.requiredInstalment)}</dd>
+              </div>
+            )}
+            <div>
+              <dt>{copy.dpsContributed}</dt>
+              <dd>{formatters.money(outcome.contributed)}</dd>
+            </div>
+            <div>
+              <dt>{copy.dpsGross}</dt>
+              <dd>{formatters.money(outcome.net.grossMaturity)}</dd>
+            </div>
+            <div>
+              <dt>{copy.fdTax}</dt>
+              <dd>{formatters.money(outcome.net.sourceTax)}</dd>
+            </div>
+            <div>
+              <dt>{copy.fdNet}</dt>
+              <dd>{formatters.money(outcome.net.netMaturity)}</dd>
+            </div>
+          </dl>
+        </div>
+      )}
+    </section>
+  );
+};
+
 const CalculatorsPage: React.FC = () => {
   const { lang } = useLanguage();
   const copy = getCalculatorsCopy(lang);
@@ -553,8 +1089,26 @@ const CalculatorsPage: React.FC = () => {
 
   const [tab, setTab] = useState<ToolTab>('emi');
   const [cards, setCards] = useState<CreditCard[]>([]);
+  const [depositProducts, setDepositProducts] = useState<DepositProduct[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [apiError, setApiError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Deposit presets are optional chrome for the FD/DPS tools: a failure
+    // here must not block the card calculators, so errors just leave the
+    // preset lists empty (the tools still work with a custom rate).
+    fetchAllPages(page => getDepositProducts({ page, pageSize: 100 }))
+      .then(all => {
+        if (!cancelled) setDepositProducts(all.results.filter(p => !p.isBenchmark));
+      })
+      .catch(() => {
+        if (!cancelled) setDepositProducts([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -632,13 +1186,46 @@ const CalculatorsPage: React.FC = () => {
             >
               {copy.tabPayoff}
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'fd'}
+              className={`calculators-tab${tab === 'fd' ? ' calculators-tab-active' : ''}`}
+              onClick={() => setTab('fd')}
+            >
+              {copy.tabFd}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'dps'}
+              className={`calculators-tab${tab === 'dps' ? ' calculators-tab-active' : ''}`}
+              onClick={() => setTab('dps')}
+            >
+              {copy.tabDps}
+            </button>
           </div>
 
           <section className="calculator-form-section">
-            {tab === 'emi' ? (
+            {tab === 'emi' && (
               <EmiTool cards={cards} copy={copy} common={common} formatters={formatters} />
-            ) : (
+            )}
+            {tab === 'payoff' && (
               <PayoffTool cards={cards} copy={copy} common={common} formatters={formatters} />
+            )}
+            {tab === 'fd' && (
+              <FdTool
+                products={depositProducts.filter(p => p.kind !== 'dps')}
+                copy={copy}
+                formatters={formatters}
+              />
+            )}
+            {tab === 'dps' && (
+              <DpsTool
+                products={depositProducts.filter(p => p.kind === 'dps')}
+                copy={copy}
+                formatters={formatters}
+              />
             )}
           </section>
         </>
