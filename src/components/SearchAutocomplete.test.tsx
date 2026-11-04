@@ -440,3 +440,48 @@ describe('SearchAutocomplete – HomePage integration', () => {
     expect(screen.queryByText(/Other Rewards Card/i)).not.toBeInTheDocument();
   });
 });
+
+// ---- Regression: one global index space across groups (Phase 0) ----------
+
+describe('SearchAutocomplete – global option index across groups', () => {
+  beforeEach(() => jest.useRealTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it('aria-activedescendant, option ids and aria-selected agree across groups', async () => {
+    const apiSpy = jest.spyOn(apiService, 'getTypeaheadSuggestions').mockResolvedValue({
+      suggestions: [
+        { type: 'card', id: 1, label: 'Alpha Card', detail: 'Alpha Bank' },
+        { type: 'card', id: 2, label: 'Beta Card', detail: 'Beta Bank' },
+        { type: 'bank', id: 9, label: 'Gamma Bank' },
+      ],
+      facets: [],
+      didYouMean: null,
+    } as never);
+
+    renderAutocomplete();
+    const input = screen.getByRole('combobox');
+    fireEvent.input(input, { target: { value: 'ga' } });
+
+    const options = await screen.findAllByRole('option');
+    expect(options).toHaveLength(3);
+
+    // Option ids are globally numbered: the bank (3rd flat option) is -option-2,
+    // not -option-0 as the old per-group numbering produced.
+    const ids = options.map(o => o.id);
+    expect(new Set(ids).size).toBe(3);
+    expect(ids[2]).toMatch(/-option-2$/);
+
+    // Two ArrowDowns from the initial index 0 land on the bank (flat index 2).
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    expect(input.getAttribute('aria-activedescendant')).toBe(ids[2]);
+    const selected = options.filter(o => o.getAttribute('aria-selected') === 'true');
+    expect(selected).toHaveLength(1);
+    expect(selected[0].id).toBe(ids[2]);
+    expect(selected[0]).toHaveClass('highlighted');
+
+    // Enter selects that same bank option.
+    apiSpy.mockRestore();
+  });
+});

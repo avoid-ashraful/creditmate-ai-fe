@@ -62,6 +62,10 @@ const renderHighlighted = (text: string, query: string): React.ReactNode => {
 const buildFlatOptions = (result: TypeaheadResult | null): FlattenedOption[] => {
   if (!result) return [];
 
+  // ONE index space owns keyboard state, option ids and aria-selected: the
+  // index is global across groups (cards, then banks, then categories).
+  // (Previously each group numbered from 0, so aria-activedescendant could
+  // point at a different option than the one keyboard navigation selected.)
   const cards = result.cards.map((c, idx) => ({
     key: `card-${c.id}`,
     kind: 'card' as const,
@@ -75,7 +79,7 @@ const buildFlatOptions = (result: TypeaheadResult | null): FlattenedOption[] => 
     kind: 'bank' as const,
     label: b.name,
     selection: { kind: 'bank' as const, id: b.id, name: b.name },
-    index: idx,
+    index: cards.length + idx,
   }));
 
   const categories = result.categories.map((c, idx) => ({
@@ -83,7 +87,7 @@ const buildFlatOptions = (result: TypeaheadResult | null): FlattenedOption[] => 
     kind: 'category' as const,
     label: c.name,
     selection: { kind: 'category' as const, slug: c.slug, name: c.name },
-    index: idx,
+    index: cards.length + banks.length + idx,
   }));
 
   return [...cards, ...banks, ...categories];
@@ -95,47 +99,25 @@ const buildGroups = (
 ): SuggestionGroup[] => {
   if (!result) return [];
 
+  // Groups are views over the flat list, so group items carry the same
+  // global index the keyboard handler and aria-activedescendant use.
+  const flat = buildFlatOptions(result);
+  const byKind = (kind: FlattenedOption['kind']) => flat.filter(o => o.kind === kind);
   const groups: SuggestionGroup[] = [];
 
   if (result.cards?.length > 0) {
-    groups.push({
-      key: 'cards',
-      label: commonCopy.searchGroupCards,
-      items: result.cards.map((c, idx) => ({
-        key: `card-${c.id}`,
-        kind: 'card' as const,
-        label: c.name,
-        selection: { kind: 'card' as const, id: c.id, name: c.name },
-        index: idx,
-      })),
-    });
+    groups.push({ key: 'cards', label: commonCopy.searchGroupCards, items: byKind('card') });
   }
 
   if (result.banks?.length > 0) {
-    groups.push({
-      key: 'banks',
-      label: commonCopy.searchGroupBanks,
-      items: result.banks.map((b, idx) => ({
-        key: `bank-${b.id}`,
-        kind: 'bank' as const,
-        label: b.name,
-        selection: { kind: 'bank' as const, id: b.id, name: b.name },
-        index: idx,
-      })),
-    });
+    groups.push({ key: 'banks', label: commonCopy.searchGroupBanks, items: byKind('bank') });
   }
 
   if (result.categories?.length > 0) {
     groups.push({
       key: 'categories',
       label: commonCopy.searchGroupCategories,
-      items: result.categories.map((c, idx) => ({
-        key: `category-${c.slug}`,
-        kind: 'category' as const,
-        label: c.name,
-        selection: { kind: 'category' as const, slug: c.slug, name: c.name },
-        index: idx,
-      })),
+      items: byKind('category'),
     });
   }
 
@@ -396,18 +378,20 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
                     {group.label}
                   </span>
                   <div role="presentation">
-                    {group.items.map((item, i) => (
+                    {group.items.map(item => (
                       <div
                         key={item.key}
                         role="option"
-                        id={`${listboxId}-option-${i}`}
-                        aria-selected={activeIndex === i}
-                        className="search-autocomplete-option"
+                        id={`${listboxId}-option-${item.index}`}
+                        aria-selected={activeIndex === item.index}
+                        className={`search-autocomplete-option${
+                          activeIndex === item.index ? ' highlighted' : ''
+                        }`}
                         onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
                           e.preventDefault();
                           selectOption(item);
                         }}
-                        onMouseEnter={() => setActiveIndex(i)}
+                        onMouseEnter={() => setActiveIndex(item.index ?? -1)}
                       >
                         <span className="search-autocomplete-item-text">
                           {renderHighlighted(item.label, value)}
