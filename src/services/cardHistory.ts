@@ -4,6 +4,8 @@
  * `GET /api/v1/credit-cards/{id}/field-history/` returns the recorded
  * changes to a card's tracked fields (fees, APR, lounge access, reward
  * terms, …), newest first, in the standard paginated envelope.
+ * `getFieldHistory` follows the envelope's `next` links (capped at
+ * MAX_HISTORY_PAGES) so callers always see the complete history.
  *
  * The backend requires authentication for this endpoint (anonymous
  * requests get a 403), so — like the alerts client — the access token
@@ -44,6 +46,9 @@ export interface FieldHistoryEntry {
 
 export type FieldHistoryResponse = ApiResponse<FieldHistoryApiEntry>;
 
+/** Safety cap on history pages fetched by a single getFieldHistory call. */
+export const MAX_HISTORY_PAGES = 10;
+
 /** Normalize a field-history entry from the API shape. */
 export function transformFieldHistoryEntry(apiEntry: FieldHistoryApiEntry): FieldHistoryEntry {
   return {
@@ -66,11 +71,31 @@ export class CardHistoryClient {
   }
 
   /**
-   * Fetch one page of a card's field history, newest first.
+   * Fetch a card's complete field history, newest first.
+   *
+   * The backend paginates at 20 entries per page, so the first page's
+   * `next` is followed until exhausted — otherwise the timeline would
+   * silently drop every change beyond the newest 20. Pagination stops
+   * after MAX_HISTORY_PAGES pages as a guard against a pathological
+   * backend that never stops emitting `next`.
    * Throws ApiError(401) when there is no active session, matching the
    * backend's authentication requirement for this endpoint.
    */
-  async getFieldHistory(cardId: number, page = 1): Promise<FieldHistoryResponse> {
+  async getFieldHistory(cardId: number): Promise<FieldHistoryResponse> {
+    const firstPage = await this.fetchFieldHistoryPage(cardId, 1);
+    const results = [...firstPage.results];
+    let lastPage = firstPage;
+    let pageNumber = 1;
+    while (lastPage.next && pageNumber < MAX_HISTORY_PAGES) {
+      pageNumber += 1;
+      lastPage = await this.fetchFieldHistoryPage(cardId, pageNumber);
+      results.push(...lastPage.results);
+    }
+    return { ...firstPage, next: lastPage.next, results };
+  }
+
+  /** Fetch one page of a card's field history, newest first. */
+  private async fetchFieldHistoryPage(cardId: number, page: number): Promise<FieldHistoryResponse> {
     if (!authClient.hasSession()) {
       throw new ApiError(401, 'No active session');
     }

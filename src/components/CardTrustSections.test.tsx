@@ -3,7 +3,7 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { LanguageProvider, formatLocalizedDate } from '../locales';
-import { cardHistoryClient } from '../services/cardHistory';
+import { ApiError, cardHistoryClient } from '../services/cardHistory';
 import { CreditCard } from '../types';
 
 import { CardHistoryTimeline, CardProvenance } from './CardTrustSections';
@@ -84,6 +84,15 @@ describe('CardProvenance', () => {
     expect(screen.getByRole('heading', { name: 'তথ্যের উৎস ও যাচাই' })).toBeInTheDocument();
     expect(screen.getByText('ব্যাংকের নথির সাথে যাচাইকৃত')).toBeInTheDocument();
   });
+
+  it('renders a non-http(s) source as plain text, not a link', () => {
+    renderWithProviders(
+      <CardProvenance card={{ ...baseCard, sourceUrl: 'ftp://bank.example.com/charges.pdf' }} />
+    );
+
+    expect(screen.getByText('ftp://bank.example.com/charges.pdf')).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
 });
 
 describe('CardHistoryTimeline', () => {
@@ -144,6 +153,20 @@ describe('CardHistoryTimeline', () => {
     renderWithProviders(<CardHistoryTimeline cardId={1} />);
 
     expect(await screen.findByText(/No recorded changes yet/)).toBeInTheDocument();
+  });
+
+  it('falls back to the login prompt when the server rejects an authenticated user with 403', async () => {
+    mockAuthStatus = 'authenticated';
+    mockGetFieldHistory.mockRejectedValue(
+      new ApiError({ status: 403, detail: 'Authentication required to view field history.' })
+    );
+
+    renderWithProviders(<CardHistoryTimeline cardId={1} />);
+
+    expect(
+      await screen.findByText(/Log in to see how this card's fees and rates have changed/)
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
   });
 
   it('shows an error state when the history cannot be loaded', async () => {

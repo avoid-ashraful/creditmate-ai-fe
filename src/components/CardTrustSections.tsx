@@ -84,9 +84,14 @@ export function formatHistoryValue(
   return String(value);
 }
 
+/** Only http(s) source URLs are safe to render as clickable links. */
+const LINKABLE_SOURCE_URL = /^https?:\/\//i;
+
 export const CardProvenance: React.FC<{ card: CreditCard }> = ({ card }) => {
   const { lang } = useLanguage();
   const copy = getCardDetailCopy(lang);
+  const sourceUrl = card.sourceUrl;
+  const linkableSource = !!sourceUrl && LINKABLE_SOURCE_URL.test(sourceUrl);
 
   return (
     <section className="provenance-section" aria-labelledby="provenance-heading">
@@ -100,15 +105,19 @@ export const CardProvenance: React.FC<{ card: CreditCard }> = ({ card }) => {
         <div className="provenance-row">
           <dt>{copy.provenanceSourceLabel}</dt>
           <dd>
-            {card.sourceUrl ? (
-              <a
-                className="provenance-source-link"
-                href={card.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-              >
-                {card.sourceUrl}
-              </a>
+            {sourceUrl ? (
+              linkableSource ? (
+                <a
+                  className="provenance-source-link"
+                  href={sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                >
+                  {sourceUrl}
+                </a>
+              ) : (
+                sourceUrl
+              )
             ) : (
               copy.provenanceSourceMissing
             )}

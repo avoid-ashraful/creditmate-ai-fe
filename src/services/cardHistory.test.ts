@@ -6,7 +6,12 @@ import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 
 import { authClient } from './auth';
-import { ApiError, cardHistoryClient, transformFieldHistoryEntry } from './cardHistory';
+import {
+  ApiError,
+  MAX_HISTORY_PAGES,
+  cardHistoryClient,
+  transformFieldHistoryEntry,
+} from './cardHistory';
 
 const server = setupServer();
 
@@ -91,6 +96,66 @@ describe('CardHistoryClient.getFieldHistory', () => {
       )
     );
     await expect(cardHistoryClient.getFieldHistory(9)).rejects.toMatchObject({ status: 403 });
+  });
+
+  it('follows next across pages and returns every entry in order', async () => {
+    const entry = (id: number) => ({
+      id,
+      card_id: 1,
+      field_name: 'annual_fee',
+      old_value: '3000.00',
+      new_value: '3500.00',
+      created: '2026-11-03T20:34:10Z',
+    });
+    server.use(
+      rest.get('*/api/v1/credit-cards/1/field-history/', (req, res, ctx) => {
+        const page = req.url.searchParams.get('page');
+        if (page === '2') {
+          return res(ctx.json({ count: 3, next: null, previous: 'page-1', results: [entry(1)] }));
+        }
+        return res(
+          ctx.json({ count: 3, next: 'page-2', previous: null, results: [entry(3), entry(2)] })
+        );
+      })
+    );
+
+    const response = await cardHistoryClient.getFieldHistory(1);
+
+    expect(response.count).toBe(3);
+    expect(response.next).toBeNull();
+    expect(response.results.map(result => result.id)).toEqual([3, 2, 1]);
+  });
+
+  it('stops following next after the page cap', async () => {
+    let requests = 0;
+    server.use(
+      rest.get('*/api/v1/credit-cards/1/field-history/', (req, res, ctx) => {
+        requests += 1;
+        const page = Number(req.url.searchParams.get('page') ?? '1');
+        return res(
+          ctx.json({
+            count: 999,
+            next: 'always-more',
+            previous: null,
+            results: [
+              {
+                id: page,
+                card_id: 1,
+                field_name: 'annual_fee',
+                old_value: '3000.00',
+                new_value: '3500.00',
+                created: '2026-11-03T20:34:10Z',
+              },
+            ],
+          })
+        );
+      })
+    );
+
+    const response = await cardHistoryClient.getFieldHistory(1);
+
+    expect(requests).toBe(MAX_HISTORY_PAGES);
+    expect(response.results).toHaveLength(MAX_HISTORY_PAGES);
   });
 });
 
