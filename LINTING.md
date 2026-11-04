@@ -35,6 +35,8 @@ This project uses ESLint and Prettier to enforce code quality and consistent for
 node scripts/check-design-values.mjs --write-baseline
 ```
 
+The baseline may only ever decrease: CI compares it against the PR's base branch and fails on any per-file/per-rule increase, and each redesign phase must lower it.
+
 ## Pre-commit Hook
 
 A pre-commit hook is set up to automatically run linting and formatting on staged files before each commit. This ensures that all committed code meets the project's quality standards.

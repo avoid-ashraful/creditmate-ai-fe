@@ -49,6 +49,18 @@ jobs:
       - name: Design values
         run: npm run check-styles
 
+      - name: Design values baseline guard
+        if: github.event_name == 'pull_request'
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          if git cat-file -e "$BASE_SHA:scripts/design-values-baseline.json" 2>/dev/null; then
+            git show "$BASE_SHA:scripts/design-values-baseline.json" > "$RUNNER_TEMP/base-design-values-baseline.json"
+            node scripts/check-design-values.mjs --compare-baseline "$RUNNER_TEMP/base-design-values-baseline.json"
+          else
+            echo "Base branch has no design-values baseline yet - nothing to guard."
+          fi
+
       - name: Unit tests
         run: npm run test:ci
 

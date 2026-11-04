@@ -58,6 +58,11 @@
  *   node scripts/check-design-values.mjs                 check everything
  *   node scripts/check-design-values.mjs src/components/ui   check a subtree
  *   node scripts/check-design-values.mjs --write-baseline    regenerate baseline
+ *   node scripts/check-design-values.mjs --compare-baseline <file>
+ *       Ratchet guard (CI): compare the committed baseline against another
+ *       baseline file (the PR base branch's version) and fail on ANY
+ *       per-file/per-rule increase. Decreases and removals pass. This stops
+ *       a regenerated-upward baseline from slipping through CI review.
  *
  * Run with: npm run check-styles
  */
@@ -111,7 +116,64 @@ const RULES = {
 
 const args = process.argv.slice(2);
 const writeBaseline = args.includes('--write-baseline');
-const pathFilter = args.find((arg) => !arg.startsWith('--'));
+const compareFlagIndex = args.indexOf('--compare-baseline');
+const compareBaselinePath = compareFlagIndex >= 0 ? args[compareFlagIndex + 1] : undefined;
+const pathFilter = args.find((arg, index) => !arg.startsWith('--') && index !== compareFlagIndex + 1);
+
+// ---------------------------------------------------------------------------
+// --compare-baseline: the ratchet may only ever decrease (CI guard)
+// ---------------------------------------------------------------------------
+
+if (compareFlagIndex >= 0) {
+  if (!compareBaselinePath) {
+    console.error('✗ --compare-baseline requires a path to the reference baseline file');
+    process.exit(1);
+  }
+  const loadBaselineFiles = (path, label) => {
+    try {
+      return JSON.parse(readFileSync(path, 'utf8')).files ?? {};
+    } catch {
+      console.error(`✗ ${label} baseline at ${path} is missing or not valid JSON`);
+      process.exit(1);
+    }
+  };
+  const currentFiles = loadBaselineFiles(baselinePath, 'Committed');
+  const referenceFiles = loadBaselineFiles(resolve(compareBaselinePath), 'Reference');
+
+  const increases = [];
+  let decreases = 0;
+  const allFiles = new Set([...Object.keys(currentFiles), ...Object.keys(referenceFiles)]);
+  for (const rel of allFiles) {
+    const currentCounts = currentFiles[rel] ?? {};
+    const referenceCounts = referenceFiles[rel] ?? {};
+    const allRules = new Set([...Object.keys(currentCounts), ...Object.keys(referenceCounts)]);
+    for (const rule of allRules) {
+      const current = currentCounts[rule] ?? 0;
+      const reference = referenceCounts[rule] ?? 0;
+      if (current > reference) {
+        increases.push(`${rel} [${rule}]: ${reference} -> ${current}`);
+      } else if (current < reference) {
+        decreases += 1;
+      }
+    }
+  }
+
+  if (increases.length > 0) {
+    console.error('✗ Design-values baseline increased vs the reference baseline:');
+    for (const increase of increases) console.error(`    ${increase}`);
+    console.error(
+      'The baseline may only ever decrease. Revert the increase, or clean the ' +
+        'design values up so the regenerated baseline is lower.'
+    );
+    process.exit(1);
+  }
+
+  console.log(
+    `✓ Design-values baseline guard passed: no per-file/per-rule increase ` +
+      `vs the reference baseline (${decreases} decrease(s) locked in).`
+  );
+  process.exit(0);
+}
 
 /** Recursively collect scannable files under a directory. */
 function collectFiles(dir, out) {
