@@ -16,6 +16,27 @@ const baseListCard: CreditCardApiResponse = {
 const apiServiceTransform = (overrides: Partial<CreditCardApiResponse>) =>
   apiService.transformCreditCard({ ...baseListCard, ...overrides });
 
+describe('transformCreditCard CreditMate Score fields', () => {
+  it('maps score and breakdown, parsing decimal strings', () => {
+    const card = apiServiceTransform({
+      creditmate_score: '7.5',
+      creditmate_score_breakdown: {
+        annual_cost: { points: '2.00', max: '3.00', reason: 'no annual fee' },
+      } as unknown as CreditCardApiResponse['creditmate_score_breakdown'],
+    });
+    expect(card.creditmateScore).toBe(7.5);
+    expect(card.creditmateScoreBreakdown).toEqual({
+      annual_cost: { points: 2, max: 3, reason: 'no annual fee' },
+    });
+  });
+
+  it('keeps absent score fields unknown (null), never zero', () => {
+    const card = apiServiceTransform({});
+    expect(card.creditmateScore).toBeNull();
+    expect(card.creditmateScoreBreakdown).toBeNull();
+  });
+});
+
 describe('transformCreditCard list-contract adapter', () => {
   it('normalizes valid decimal strings to numbers', () => {
     const card = apiService.transformCreditCard(baseListCard);

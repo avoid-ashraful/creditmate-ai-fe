@@ -792,3 +792,22 @@
   border-color: var(--color-primary-base);
   color: var(--color-primary-base);
 }
+
+.card-badge-score {
+  border-color: var(--color-success-border);
+  background: var(--color-success-subtle);
+  color: var(--color-success-hover);
+}
+
+.card-badge-score-fair {
+  border-color: var(--color-border-base);
+  background: var(--color-background-surface);
+  color: var(--color-text-secondary);
+}
+
+.card-badge-score-basic {
+  border-color: var(--color-border-base);
+  background: var(--color-background-surface);
+  color: var(--color-text-secondary);
+  font-weight: var(--typography-font-weight-medium);
+}
