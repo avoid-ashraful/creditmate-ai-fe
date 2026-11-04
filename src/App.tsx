@@ -84,6 +84,7 @@ const RecommendationQuiz = lazyLoad(() => import('./pages/RecommendationQuiz'));
 const RegisterPage = lazyLoad(() => import('./pages/RegisterPage'));
 const ResetPasswordPage = lazyLoad(() => import('./pages/ResetPasswordPage'));
 const RewardCalculatorPage = lazyLoad(() => import('./pages/RewardCalculatorPage'));
+const CalculatorsPage = lazyLoad(() => import('./pages/CalculatorsPage'));
 const SavedPage = lazyLoad(() => import('./pages/SavedPage'));
 const UnsubscribePage = lazyLoad(() => import('./pages/UnsubscribePage'));
 const VerifyEmailPage = lazyLoad(() => import('./pages/VerifyEmailPage'));
@@ -112,6 +113,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/eligibility-checker', en: 'Eligibility Checker', bn: 'যোগ্যতা যাচাই' },
   { to: '/compare', en: 'Compare Cards', bn: 'কার্ড তুলনা' },
   { to: '/reward-calculator', en: 'Reward Calculator', bn: 'রিওয়ার্ড ক্যালকুলেটর' },
+  { to: '/calculators', en: 'Calculators', bn: 'ক্যালকুলেটরসমূহ' },
   { to: '/guides', en: 'Guides', bn: 'গাইড' },
   { to: '/glossary', en: 'Glossary', bn: 'শব্দকোষ' },
   { to: '/about', en: 'About', bn: 'আমাদের সম্পর্কে' },
@@ -221,6 +223,14 @@ export const AppRoutes: React.FC = () => {
           element={
             <Suspense fallback={<LazyPageFallback label="Loading calculator..." />}>
               <RewardCalculatorPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/calculators"
+          element={
+            <Suspense fallback={<LazyPageFallback label="Loading calculators..." />}>
+              <CalculatorsPage />
             </Suspense>
           }
         />
