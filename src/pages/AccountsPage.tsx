@@ -91,6 +91,11 @@ const ResultTable: React.FC<{
               {row.waiversApplied.length > 0 && (
                 <span className="accounts-badge accounts-badge-waived">{copy.waivedNote}</span>
               )}
+              {row.product.variantOf && (
+                <span className="accounts-rate-kind">
+                  {fillCopy(copy.variantOfNote, { name: row.product.variantOf.name })}
+                </span>
+              )}
             </td>
             <td>
               {rateText(row, formatters)}
@@ -101,13 +106,39 @@ const ResultTable: React.FC<{
               </span>
               {row.isRange && <span className="accounts-rate-kind">{copy.rateRangeNote}</span>}
             </td>
-            <td>{formatters.money(row.interestEarned)}</td>
+            <td>
+              {formatters.money(row.interestEarned)}
+              {row.isRange && row.interestEarnedAtMaxRate !== null && (
+                <span className="accounts-rate-kind">
+                  {fillCopy(copy.atMaxRateNote, {
+                    rate: formatters.rate(row.rateMax ?? row.rate),
+                    amount: formatters.money(row.interestEarnedAtMaxRate),
+                  })}
+                </span>
+              )}
+              {row.interestBlockedByMinBalance && row.product.minBalanceToEarn !== null && (
+                <span className="accounts-rate-kind">
+                  {fillCopy(copy.minBalanceInterestNote, {
+                    amount: formatters.money(row.product.minBalanceToEarn),
+                  })}
+                </span>
+              )}
+              {row.basisNote && <span className="accounts-rate-kind">{row.basisNote}</span>}
+            </td>
             <td>{feeCell(row.maintenanceFeeAnnual, formatters, copy)}</td>
             <td>{feeCell(row.debitCardFeeAnnual, formatters, copy)}</td>
             <td>{feeCell(row.smsFeeAnnual, formatters, copy)}</td>
             <td>{feeCell(row.onlineBankingFeeAnnual, formatters, copy)}</td>
             <td className="accounts-net">
               {row.netAnnualValue === null ? '—' : formatters.money(row.netAnnualValue)}
+              {row.isRange && row.netAnnualValueAtMaxRate !== null && (
+                <span className="accounts-rate-kind">
+                  {fillCopy(copy.atMaxRateNote, {
+                    rate: formatters.rate(row.rateMax ?? row.rate),
+                    amount: formatters.money(row.netAnnualValueAtMaxRate),
+                  })}
+                </span>
+              )}
             </td>
             <td>
               <Link to={`/accounts/${row.product.slug}`}>{copy.viewDetails}</Link>
@@ -186,7 +217,8 @@ const AccountsPage: React.FC = () => {
     setRunError(null);
     try {
       const response = await runAccountScenario({
-        averageBalance: parsedBalance,
+        // The backend caps average_balance at 2 decimal places.
+        averageBalance: Math.round(parsedBalance * 100) / 100,
         accountType,
         islamicOnly,
         bank: bank ? Number(bank) : undefined,
@@ -195,7 +227,7 @@ const AccountsPage: React.FC = () => {
       setScenario(response);
     } catch (error) {
       console.error('Account scenario failed:', error);
-      setRunError(copy.loadError);
+      setRunError(copy.scenarioError);
       setScenario(null);
     } finally {
       setIsRunning(false);

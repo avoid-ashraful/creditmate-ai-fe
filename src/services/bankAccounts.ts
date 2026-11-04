@@ -128,7 +128,7 @@ interface RateSlabApi {
   balance_min: string;
   balance_max: string | null;
   rate: string;
-  rate_max?: string;
+  rate_max?: string | null;
 }
 
 interface FeeSlabApi {
@@ -196,7 +196,7 @@ const num = (value: string | null | undefined): number | null =>
 
 const transformRateSlab = (api: RateSlabApi): AccountRateSlab => {
   const rate = Number(api.rate);
-  const rateMax = api.rate_max !== undefined ? Number(api.rate_max) : null;
+  const rateMax = api.rate_max != null ? Number(api.rate_max) : null;
   return {
     balanceMin: Number(api.balance_min),
     balanceMax: num(api.balance_max),

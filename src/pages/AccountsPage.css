@@ -130,6 +130,11 @@
   white-space: nowrap;
 }
 
+.accounts-net .accounts-rate-kind {
+  font-weight: 400;
+  white-space: normal;
+}
+
 .accounts-badge {
   display: inline-block;
   margin-left: 0.5rem;

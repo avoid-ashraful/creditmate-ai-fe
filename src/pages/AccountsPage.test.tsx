@@ -220,6 +220,137 @@ describe('AccountsPage', () => {
     expect(mockScenario).toHaveBeenCalledWith(expect.objectContaining({ averageBalance: 100000 }));
   });
 
+  it('explains when interest is blocked by the published minimum balance', async () => {
+    const user = userEvent.setup();
+    mockScenario.mockResolvedValue({
+      ...scenarioResponse,
+      results: [
+        makeRow(
+          makeProduct({
+            id: 5,
+            name: 'Threshold Savings',
+            slug: 'threshold',
+            minBalanceToEarn: 100000,
+          }),
+          { interestEarned: 0, interestBlockedByMinBalance: true }
+        ),
+      ],
+      segmentExcluded: [],
+      unrankedWithoutFees: [],
+    });
+    renderPage();
+    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
+
+    await screen.findByText('Threshold Savings');
+    const row = within(screen.getAllByRole('table')[0]).getAllByRole('row')[1];
+    expect(row).toHaveTextContent('BDT 0.00');
+    expect(row).toHaveTextContent(
+      'No interest or profit below the published minimum balance of BDT 100,000.00'
+    );
+  });
+
+  it('renders the per-product basis note supplied by the API', async () => {
+    const user = userEvent.setup();
+    mockScenario.mockResolvedValue({
+      ...scenarioResponse,
+      results: [
+        makeRow(makeProduct({ id: 6, name: 'Lowest Balance Savings', slug: 'lowest' }), {
+          interestBasis: 'lowest_monthly_balance',
+          basisNote: 'Estimate assumes your balance never dips below this average in any month.',
+        }),
+      ],
+      segmentExcluded: [],
+      unrankedWithoutFees: [],
+    });
+    renderPage();
+    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
+
+    await screen.findByText('Lowest Balance Savings');
+    const row = within(screen.getAllByRole('table')[0]).getAllByRole('row')[1];
+    expect(row).toHaveTextContent(
+      'Estimate assumes your balance never dips below this average in any month.'
+    );
+  });
+
+  it('shows the at-max interest and net figures for range-rate rows', async () => {
+    const user = userEvent.setup();
+    mockScenario.mockResolvedValue({
+      ...scenarioResponse,
+      results: [
+        makeRow(makeProduct({ id: 7, name: 'Range Savings', slug: 'range' }), {
+          rate: 2.5,
+          rateMax: 3.85,
+          isRange: true,
+          interestEarned: 1250,
+          interestEarnedAtMaxRate: 1925,
+          netAnnualValue: -50,
+          netAnnualValueAtMaxRate: 625,
+        }),
+      ],
+      segmentExcluded: [],
+      unrankedWithoutFees: [],
+    });
+    renderPage();
+    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
+
+    await screen.findByText('Range Savings');
+    const row = within(screen.getAllByRole('table')[0]).getAllByRole('row')[1];
+    expect(row).toHaveTextContent('At 3.85%: BDT 1,925.00');
+    expect(row).toHaveTextContent('At 3.85%: BDT 625.00');
+  });
+
+  it('labels scenario rows that are variants of another product', async () => {
+    const user = userEvent.setup();
+    mockScenario.mockResolvedValue({
+      ...scenarioResponse,
+      results: [
+        makeRow(
+          makeProduct({
+            id: 8,
+            name: 'Alo Savings',
+            slug: 'alo',
+            variantOf: { slug: 'base-savings', name: 'Base Savings' },
+          })
+        ),
+      ],
+      segmentExcluded: [],
+      unrankedWithoutFees: [],
+    });
+    renderPage();
+    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
+
+    await screen.findByText('Alo Savings');
+    const row = within(screen.getAllByRole('table')[0]).getAllByRole('row')[1];
+    expect(row).toHaveTextContent('Variant of Base Savings');
+  });
+
+  it('shows a scenario-specific error when the comparison fails', async () => {
+    mockScenario.mockRejectedValue(new Error('boom'));
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Failed to run the comparison. Please check your balance and try again.'
+    );
+    expect(
+      screen.queryByText('Failed to load accounts. Please try again later.')
+    ).not.toBeInTheDocument();
+  });
+
+  it('rounds the balance to 2 decimal places before posting', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const input = screen.getByLabelText('Your average balance (BDT)');
+    await user.clear(input);
+    await user.type(input, '50000.567');
+    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
+    await waitFor(() => expect(mockScenario).toHaveBeenCalled());
+    expect(mockScenario).toHaveBeenCalledWith(
+      expect.objectContaining({ averageBalance: 50000.57 })
+    );
+  });
+
   it('explains that the maintenance fee is BB-fixed and identical at every bank', async () => {
     renderPage();
     expect(

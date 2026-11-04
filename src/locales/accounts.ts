@@ -34,6 +34,7 @@ export interface AccountsCopy {
   runScenario: string;
   loading: string;
   loadError: string;
+  scenarioError: string;
   resultsHeading: string;
   colBank: string;
   colProduct: string;
@@ -52,6 +53,12 @@ export interface AccountsCopy {
   partialFeesBadge: string;
   notPublished: string;
   waivedNote: string;
+  /** Placeholders: {amount} */
+  minBalanceInterestNote: string;
+  /** Placeholders: {rate}, {amount} */
+  atMaxRateNote: string;
+  /** Placeholders: {name} */
+  variantOfNote: string;
   noResults: string;
   /** Placeholders: {count} */
   excludedNote: string;
@@ -70,10 +77,9 @@ export interface AccountsCopy {
   andAboveSuffix: string;
   detailMaintenanceHeading: string;
   detailMaintenanceCol: string;
-  halfYearlySuffix: string;
   feesHeading: string;
-  feeMaintenanceLabel: string;
   feeCardLabel: string;
+  noDebitCardLabel: string;
   feeCardFirstYearLabel: string;
   feeCardReplacementLabel: string;
   feeSmsLabel: string;
@@ -83,7 +89,6 @@ export interface AccountsCopy {
   feeClosureLabel: string;
   feeStatementDuplicateLabel: string;
   feeBalanceConfirmationLabel: string;
-  perYearSuffix: string;
   perLeafSuffix: string;
   basisLabel: string;
   payoutLabel: string;
@@ -93,15 +98,12 @@ export interface AccountsCopy {
   withdrawalLimitLabel: string;
   /** Placeholders: {count} */
   withdrawalLimitValue: string;
-  rateConditionsHeading: string;
   maintenanceFreeNote: string;
   conditionsHeading: string;
   dormancyHeading: string;
   eligibilityHeading: string;
   variantsHeading: string;
   variantOfLabel: string;
-  /** Placeholders: {name} */
-  alsoAvailableAs: string;
   provenanceHeading: string;
   sourceSocLabel: string;
   sourceRateLabel: string;
@@ -163,6 +165,7 @@ const en: AccountsCopy = {
   runScenario: 'Compare accounts',
   loading: 'Loading accounts…',
   loadError: 'Failed to load accounts. Please try again later.',
+  scenarioError: 'Failed to run the comparison. Please check your balance and try again.',
   resultsHeading: 'Ranked by net annual value at your balance',
   colBank: 'Bank',
   colProduct: 'Account',
@@ -181,6 +184,9 @@ const en: AccountsCopy = {
   partialFeesBadge: 'Partial fees — some charges not published',
   notPublished: 'Not published',
   waivedNote: 'Waiver applied at this balance',
+  minBalanceInterestNote: 'No interest or profit below the published minimum balance of {amount}',
+  atMaxRateNote: 'At {rate}%: {amount}',
+  variantOfNote: 'Variant of {name}',
   noResults: 'No account publishes a rate covering this balance yet. Try a different balance.',
   excludedNote:
     '{count} account(s) publish no rate covering this balance and are not ranked — we never invent a rate.',
@@ -200,10 +206,9 @@ const en: AccountsCopy = {
   andAboveSuffix: ' and above',
   detailMaintenanceHeading: 'Maintenance fee by balance (half-yearly)',
   detailMaintenanceCol: 'Charge per half-year',
-  halfYearlySuffix: ' / half-year',
   feesHeading: 'Fees & charges (excluding VAT)',
-  feeMaintenanceLabel: 'Account maintenance',
   feeCardLabel: 'Debit card (annual)',
+  noDebitCardLabel: 'No debit card included',
   feeCardFirstYearLabel: 'Debit card (first year)',
   feeCardReplacementLabel: 'Debit card replacement',
   feeSmsLabel: 'SMS / transaction alerts (annual)',
@@ -213,7 +218,6 @@ const en: AccountsCopy = {
   feeClosureLabel: 'Account closing',
   feeStatementDuplicateLabel: 'Duplicate statement',
   feeBalanceConfirmationLabel: 'Balance confirmation (extra copy)',
-  perYearSuffix: ' / year',
   perLeafSuffix: ' / leaf',
   basisLabel: 'Interest calculated on',
   payoutLabel: 'Interest / profit paid',
@@ -222,14 +226,12 @@ const en: AccountsCopy = {
   openingDepositLabel: 'Opening deposit',
   withdrawalLimitLabel: 'Profit withdrawal condition',
   withdrawalLimitValue: 'No profit in a month with {count} or more withdrawals',
-  rateConditionsHeading: 'Rate conditions',
   maintenanceFreeNote: 'No maintenance fee at any balance, as published by the bank.',
   conditionsHeading: 'Waivers & conditions',
   dormancyHeading: 'Dormancy',
   eligibilityHeading: 'Who can open it / notes',
   variantsHeading: 'Also available as',
   variantOfLabel: 'Variant of',
-  alsoAvailableAs: 'Also available as {name}',
   provenanceHeading: 'Source & verification',
   sourceSocLabel: 'Schedule of charges',
   sourceRateLabel: 'Rate source',
@@ -289,6 +291,7 @@ const bn: AccountsCopy = {
   runScenario: 'অ্যাকাউন্ট তুলনা করুন',
   loading: 'অ্যাকাউন্ট লোড হচ্ছে…',
   loadError: 'অ্যাকাউন্ট লোড করা যায়নি। পরে আবার চেষ্টা করুন।',
+  scenarioError: 'তুলনা চালানো যায়নি। আপনার ব্যালেন্স যাচাই করে আবার চেষ্টা করুন।',
   resultsHeading: 'আপনার ব্যালেন্সে নিট বার্ষিক মূল্য অনুযায়ী সাজানো',
   colBank: 'ব্যাংক',
   colProduct: 'অ্যাকাউন্ট',
@@ -307,6 +310,10 @@ const bn: AccountsCopy = {
   partialFeesBadge: 'আংশিক ফি — কিছু চার্জ প্রকাশিত নয়',
   notPublished: 'প্রকাশিত নয়',
   waivedNote: 'এই ব্যালেন্সে মওকুফ প্রযোজ্য',
+  minBalanceInterestNote:
+    'প্রকাশিত সর্বনিম্ন ব্যালেন্স {amount}-এর নিচে সুদ বা মুনাফা প্রযোজ্য নয়',
+  atMaxRateNote: '{rate}% হারে: {amount}',
+  variantOfNote: '{name}-এর রূপভেদ',
   noResults:
     'এই ব্যালেন্সের জন্য কোনো অ্যাকাউন্ট এখনো হার প্রকাশ করেনি। অন্য ব্যালেন্স চেষ্টা করুন।',
   excludedNote:
@@ -327,10 +334,9 @@ const bn: AccountsCopy = {
   andAboveSuffix: ' ও তার বেশি',
   detailMaintenanceHeading: 'ব্যালেন্স অনুযায়ী রক্ষণাবেক্ষণ ফি (অর্ধবার্ষিক)',
   detailMaintenanceCol: 'প্রতি অর্ধবছরে চার্জ',
-  halfYearlySuffix: ' / অর্ধবছর',
   feesHeading: 'ফি ও চার্জ (ভ্যাট ছাড়া)',
-  feeMaintenanceLabel: 'অ্যাকাউন্ট রক্ষণাবেক্ষণ',
   feeCardLabel: 'ডেবিট কার্ড (বার্ষিক)',
+  noDebitCardLabel: 'ডেবিট কার্ড অন্তর্ভুক্ত নয়',
   feeCardFirstYearLabel: 'ডেবিট কার্ড (প্রথম বছর)',
   feeCardReplacementLabel: 'ডেবিট কার্ড প্রতিস্থাপন',
   feeSmsLabel: 'এসএমএস / লেনদেন সতর্কতা (বার্ষিক)',
@@ -340,7 +346,6 @@ const bn: AccountsCopy = {
   feeClosureLabel: 'অ্যাকাউন্ট বন্ধ',
   feeStatementDuplicateLabel: 'ডুপ্লিকেট স্টেটমেন্ট',
   feeBalanceConfirmationLabel: 'ব্যালেন্স নিশ্চিতকরণ (অতিরিক্ত কপি)',
-  perYearSuffix: ' / বছর',
   perLeafSuffix: ' / পাতা',
   basisLabel: 'সুদ হিসাব হয়',
   payoutLabel: 'সুদ / মুনাফা দেওয়া হয়',
@@ -349,14 +354,12 @@ const bn: AccountsCopy = {
   openingDepositLabel: 'প্রারম্ভিক জমা',
   withdrawalLimitLabel: 'মুনাফার উত্তোলন শর্ত',
   withdrawalLimitValue: 'কোনো মাসে {count} বা তার বেশি উত্তোলন থাকলে সেই মাসে মুনাফা নেই',
-  rateConditionsHeading: 'হারের শর্তাবলি',
   maintenanceFreeNote: 'ব্যাংকের প্রকাশনা অনুযায়ী, কোনো ব্যালেন্সেই রক্ষণাবেক্ষণ ফি নেই।',
   conditionsHeading: 'মওকুফ ও শর্তাবলি',
   dormancyHeading: 'সুপ্ত অবস্থা',
   eligibilityHeading: 'কারা খুলতে পারবেন / নোট',
   variantsHeading: 'এছাড়াও পাওয়া যায়',
   variantOfLabel: 'এর রূপভেদ',
-  alsoAvailableAs: 'এছাড়াও পাওয়া যায়: {name}',
   provenanceHeading: 'উৎস ও যাচাই',
   sourceSocLabel: 'চার্জের তালিকা (SOC)',
   sourceRateLabel: 'হারের উৎস',

@@ -147,6 +147,17 @@ describe('AccountDetailPage', () => {
     );
   });
 
+  it('says no debit card is included instead of "Not published" when none is bundled', async () => {
+    mockDetail.mockResolvedValue({ ...detail, debitCardIncluded: false, debitCardFeeAnnual: null });
+    renderPage();
+    await screen.findByText('General Savings Account');
+    const tables = screen.getAllByRole('table');
+    const cardRow = within(tables[2]).getAllByRole('row')[0];
+    expect(cardRow).toHaveTextContent('Debit card (annual)');
+    expect(cardRow).toHaveTextContent('No debit card included');
+    expect(cardRow).not.toHaveTextContent('Not published');
+  });
+
   it('shows the history login prompt when signed out', async () => {
     renderPage();
     await screen.findByText('General Savings Account');

@@ -214,6 +214,32 @@ describe('getAccountProducts', () => {
     expect(slab.rateMax).toBe(3.85);
     expect(slab.isRange).toBe(true);
   });
+
+  it('treats an explicit null rate_max as no range, never as 0', async () => {
+    server.use(
+      rest.get(`${BASE}/account-products/`, (_req, res, ctx) =>
+        res(
+          ctx.json({
+            count: 1,
+            next: null,
+            previous: null,
+            results: [
+              {
+                ...productApi,
+                id: 104,
+                rate_slabs: [{ balance_min: '0', balance_max: null, rate: '2.50', rate_max: null }],
+              },
+            ],
+          })
+        )
+      )
+    );
+    const response = await getAccountProducts();
+    const slab = response.results[0].rateSlabs[0];
+    expect(slab.rate).toBe(2.5);
+    expect(slab.rateMax).toBeNull();
+    expect(slab.isRange).toBe(false);
+  });
 });
 
 describe('getAccountProduct', () => {

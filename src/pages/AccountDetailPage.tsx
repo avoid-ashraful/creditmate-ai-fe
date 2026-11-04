@@ -175,7 +175,7 @@ const AccountDetailPage: React.FC = () => {
       label: copy.feeCardLabel,
       value: product.debitCardIncluded
         ? feeText(product.debitCardFeeAnnual, formatters, copy)
-        : copy.notPublished,
+        : copy.noDebitCardLabel,
     },
     ...(product.debitCardFirstYearFee !== null
       ? [
