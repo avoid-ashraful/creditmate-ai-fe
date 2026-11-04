@@ -46,6 +46,9 @@ jobs:
       - name: Format check
         run: npm run check-format
 
+      - name: Design values
+        run: npm run check-styles
+
       - name: Unit tests
         run: npm run test:ci
 
