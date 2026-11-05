@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--spacing-md);
-  background: rgba(0, 0, 0, 0.5);
+  background: color-mix(in srgb, var(--color-black) 50%, transparent);
 }
 
 .report-dialog {

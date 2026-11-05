@@ -1,5 +1,8 @@
 import React, { useId, useState } from 'react';
 
+import { getResultCardCopy, useLanguage } from '../../locales';
+
+import StatusChip from './StatusChip';
 import './ResultCard.css';
 
 export interface ResultCardFact {
@@ -55,6 +58,8 @@ const ResultCard: React.FC<ResultCardProps> = ({
 }) => {
   const regionId = useId().replace(/[^a-zA-Z0-9-]/g, '');
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const { lang } = useLanguage();
+  const copy = getResultCardCopy(lang);
   const classes = ['cm-result-card', className].filter(Boolean).join(' ');
 
   return (
@@ -75,14 +80,14 @@ const ResultCard: React.FC<ResultCardProps> = ({
             aria-pressed={inShortlist}
             onClick={onToggleShortlist}
           >
-            {inShortlist ? 'In shortlist' : 'Add to shortlist'}
+            {inShortlist ? copy.inShortlist : copy.addToShortlist}
           </button>
         ) : null}
       </div>
 
       {islamic || badges ? (
         <div className="cm-result-card-badges">
-          {islamic ? <span className="cm-result-card-islamic">Islamic</span> : null}
+          {islamic ? <StatusChip tone="neutral">{copy.islamic}</StatusChip> : null}
           {badges}
         </div>
       ) : null}
@@ -112,7 +117,7 @@ const ResultCard: React.FC<ResultCardProps> = ({
             aria-controls={regionId}
             onClick={() => setExpanded(value => !value)}
           >
-            Details
+            {copy.details}
           </button>
           {expanded ? (
             <div id={regionId} className="cm-result-card-region">

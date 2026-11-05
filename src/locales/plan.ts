@@ -34,6 +34,25 @@ export interface PlanCopy {
   openLabel: string;
   deleteLabel: string;
   scenarioDeleted: string;
+  // Mirror-don't-decorate (Phase 4, addendum B8): inputs restated in words
+  mirrorEmi: string;
+  mirrorPayoff: string;
+  mirrorDepositFdr: string;
+  mirrorDepositDps: string;
+  mirrorRewards: string;
+  mirrorLoan: string;
+  mirrorAccount: string;
+  // Ghost-preview before applying a saved scenario (Phase 4, addendum B6)
+  previewOpen: string;
+  previewCancel: string;
+  previewLoading: string;
+  previewFailed: string;
+  previewEmiResult: string;
+  previewPayoffResult: string;
+  previewDepositResult: string;
+  previewRewardsResult: string;
+  previewLoanResult: string;
+  previewAccountResult: string;
   // Loan scenario tool
   loanAmountLabel: string;
   loanTenureLabel: string;
@@ -93,6 +112,23 @@ const en: PlanCopy = {
   openLabel: 'Open',
   deleteLabel: 'Delete',
   scenarioDeleted: 'Scenario deleted.',
+  mirrorEmi: 'Borrowing {amount} over {months} months at {rate}%',
+  mirrorPayoff: 'Paying {payment} a month toward a {balance} balance at {rate}%',
+  mirrorDepositFdr: 'Saving {amount} for {months} months at {rate}%',
+  mirrorDepositDps: 'Saving {amount} a month for {months} months at {rate}%',
+  mirrorRewards: 'Spending {amount} a month across your categories',
+  mirrorLoan: 'Comparing loans of {amount} over {months} months',
+  mirrorAccount: 'Comparing accounts at an average balance of {amount}',
+  previewOpen: 'Open with these numbers',
+  previewCancel: 'Not now',
+  previewLoading: 'Computing the preview…',
+  previewFailed: "Couldn't compute a preview — open the tool to see the result.",
+  previewEmiResult: 'EMI {emi} a month · {total} paid in total',
+  previewPayoffResult: 'Clear in {months} months · {interest} in interest',
+  previewDepositResult: 'Best net return {value} — {name}',
+  previewRewardsResult: 'Best estimated net value {value} a year — {name}',
+  previewLoanResult: 'Lowest total cost {total} — {name}',
+  previewAccountResult: 'Best net value {value} a year — {name}',
   loanAmountLabel: 'Loan amount (BDT)',
   loanTenureLabel: 'Tenure (months)',
   loanPurposeLabel: 'Purpose',
@@ -150,6 +186,23 @@ const bn: PlanCopy = {
   openLabel: 'খুলুন',
   deleteLabel: 'মুছুন',
   scenarioDeleted: 'পরিস্থিতি মোছা হয়েছে।',
+  mirrorEmi: '{rate}% হারে {months} মাসের জন্য {amount} ঋণ নিচ্ছেন',
+  mirrorPayoff: '{rate}% হারে {balance} ব্যালেন্সের জন্য মাসে {payment} পরিশোধ করছেন',
+  mirrorDepositFdr: '{rate}% হারে {months} মাসের জন্য {amount} সঞ্চয় করছেন',
+  mirrorDepositDps: '{rate}% হারে {months} মাস ধরে প্রতি মাসে {amount} সঞ্চয় করছেন',
+  mirrorRewards: 'আপনার ক্যাটেগরিগুলোতে প্রতি মাসে {amount} খরচ করছেন',
+  mirrorLoan: '{months} মাসের মেয়াদে {amount} ঋণের তুলনা করছেন',
+  mirrorAccount: 'গড় ব্যালেন্স {amount} ধরে অ্যাকাউন্টগুলোর তুলনা করছেন',
+  previewOpen: 'এই সংখ্যাগুলো দিয়ে খুলুন',
+  previewCancel: 'এখন নয়',
+  previewLoading: 'প্রিভিউ হিসাব হচ্ছে…',
+  previewFailed: 'প্রিভিউ হিসাব করা যায়নি — ফলাফল দেখতে টুলটি খুলুন।',
+  previewEmiResult: 'মাসে কিস্তি {emi} — মোট পরিশোধ {total}',
+  previewPayoffResult: '{months} মাসে পরিশোধ হবে — সুদ {interest}',
+  previewDepositResult: 'সেরা নিট রিটার্ন {value} — {name}',
+  previewRewardsResult: 'বছরে সেরা আনুমানিক নিট মান {value} — {name}',
+  previewLoanResult: 'সর্বনিম্ন মোট খরচ {total} — {name}',
+  previewAccountResult: 'বছরে সেরা নিট মান {value} — {name}',
   loanAmountLabel: 'ঋণের পরিমাণ (টাকা)',
   loanTenureLabel: 'মেয়াদ (মাস)',
   loanPurposeLabel: 'উদ্দেশ্য',

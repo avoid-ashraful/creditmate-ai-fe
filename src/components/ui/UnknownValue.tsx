@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { formatTakaRange } from '../../lib/format';
+import { getVocabularyCopy, useLanguage } from '../../locales';
 
 import './UnknownValue.css';
 
@@ -30,11 +31,11 @@ export interface UnknownValueProps {
   className?: string;
 }
 
-const LABELS: Partial<Record<UnknownValueKind, string>> = {
-  'not-published': 'Not published',
-  'not-applicable': 'Not applicable',
-  unavailable: 'Unavailable',
-};
+const LABEL_KEYS = {
+  'not-published': 'notPublished',
+  'not-applicable': 'notApplicable',
+  unavailable: 'unavailable',
+} as const;
 
 /**
  * The shared vocabulary for values CreditMate cannot state plainly.
@@ -51,6 +52,8 @@ const UnknownValue: React.FC<UnknownValueProps> = ({
   note,
   className,
 }) => {
+  const { lang } = useLanguage();
+  const vocabulary = getVocabularyCopy(lang);
   const classes = ['cm-unknown', className].filter(Boolean).join(' ');
   const noteNode = note ? <span className="cm-visually-hidden">{note}</span> : null;
 
@@ -58,7 +61,7 @@ const UnknownValue: React.FC<UnknownValueProps> = ({
     return (
       <span className={classes}>
         {children}
-        <span className="cm-unknown-derived-badge">Derived</span>
+        <span className="cm-unknown-derived-badge">{vocabulary.derived}</span>
         {noteNode}
       </span>
     );
@@ -75,7 +78,7 @@ const UnknownValue: React.FC<UnknownValueProps> = ({
     return (
       <span className={classes}>
         {value}
-        <span className="cm-unknown-range-badge">Estimated range</span>
+        <span className="cm-unknown-range-badge">{vocabulary.estimatedRange}</span>
         {noteNode}
       </span>
     );
@@ -83,7 +86,7 @@ const UnknownValue: React.FC<UnknownValueProps> = ({
 
   return (
     <span className={classes}>
-      {LABELS[kind]}
+      {vocabulary[LABEL_KEYS[kind as keyof typeof LABEL_KEYS]]}
       {noteNode}
     </span>
   );

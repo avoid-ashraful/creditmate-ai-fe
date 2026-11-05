@@ -39,7 +39,7 @@
 
 .loans-tab {
   border: 1px solid var(--color-slate-300);
-  background: var(--color-white);
+  background: var(--color-background-surface);
   border-radius: 999px;
   padding: 0.5rem 1rem;
   cursor: pointer;
@@ -53,7 +53,7 @@
 }
 
 .loans-form-section {
-  background: var(--color-white);
+  background: var(--color-background-surface);
   border: 1px solid var(--color-slate-200);
   border-radius: 0.5rem;
   padding: 1.5rem;
@@ -144,7 +144,7 @@
 .loans-table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--color-white);
+  background: var(--color-background-surface);
 }
 
 .loans-table th,
@@ -230,7 +230,7 @@
 
 .loan-detail-terms dt {
   font-weight: 600;
-  color: var(--color-slate-700);
+  color: var(--color-text-secondary);
 }
 
 .loan-detail-terms dd {
@@ -239,7 +239,7 @@
 }
 
 .loan-detail-section {
-  background: var(--color-white);
+  background: var(--color-background-surface);
   border: 1px solid var(--color-slate-200);
   border-radius: 0.5rem;
   padding: 1.25rem 1.5rem;
@@ -253,4 +253,9 @@
   color: var(--color-error-hover);
   padding: 0.75rem 1rem;
   margin-bottom: 1.25rem;
+}
+
+.loan-detail-terms a {
+  color: var(--color-text-link-hover);
+  text-decoration: underline;
 }

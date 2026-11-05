@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
+import MirrorLine from '../components/MirrorLine';
 import SaveScenarioButton from '../components/SaveScenarioButton';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
@@ -9,6 +10,7 @@ import { fillCopy, getCommonCopy, toBanglaNumerals, useLanguage } from '../local
 import { CalculatorsCopy, getCalculatorsCopy } from '../locales/calculators';
 import type { CommonCopy } from '../locales/common';
 import { getLoansCopy } from '../locales/loans';
+import { getPlanCopy } from '../locales/plan';
 import { apiService } from '../services/api';
 import {
   DepositProduct,
@@ -310,6 +312,20 @@ const EmiTool: React.FC<{
     <section aria-labelledby="emi-heading">
       <h2 id="emi-heading">{copy.emiHeading}</h2>
       <p className="calculators-tool-intro">{copy.emiIntro}</p>
+      {(() => {
+        const parsedAmount = parseNumber(amount);
+        const parsedMonths = parseNumber(tenure);
+        const rate = resolveRate(selection, cards, customApr);
+        return parsedAmount !== null && parsedMonths !== null && rate.apr !== null ? (
+          <MirrorLine>
+            {fillCopy(getPlanCopy(lang).mirrorEmi, {
+              amount: formatters.money(parsedAmount),
+              rate: String(rate.apr),
+              months: String(parsedMonths),
+            })}
+          </MirrorLine>
+        ) : null;
+      })()}
       <form className="calculators-form" onSubmit={handleSubmit} noValidate>
         <RateSourceFields
           idPrefix="emi"
@@ -429,6 +445,7 @@ const PayoffTool: React.FC<{
   common: CommonCopy;
   formatters: Formatters;
 }> = ({ cards, copy, common, formatters }) => {
+  const { lang } = useLanguage();
   const [selection, setSelection] = useState<RateSelection>('custom');
   const [customApr, setCustomApr] = useParamState('rate', '');
   const [balance, setBalance] = useParamState('balance', '');
@@ -476,6 +493,20 @@ const PayoffTool: React.FC<{
     <section aria-labelledby="payoff-heading">
       <h2 id="payoff-heading">{copy.payoffHeading}</h2>
       <p className="calculators-tool-intro">{copy.payoffIntro}</p>
+      {(() => {
+        const parsedBalance = parseNumber(balance);
+        const parsedPayment = parseNumber(payment);
+        const rate = resolveRate(selection, cards, customApr);
+        return parsedBalance !== null && parsedPayment !== null && rate.apr !== null ? (
+          <MirrorLine>
+            {fillCopy(getPlanCopy(lang).mirrorPayoff, {
+              balance: formatters.money(parsedBalance),
+              payment: formatters.money(parsedPayment),
+              rate: String(rate.apr),
+            })}
+          </MirrorLine>
+        ) : null;
+      })()}
       <form className="calculators-form" onSubmit={handleSubmit} noValidate>
         <RateSourceFields
           idPrefix="payoff"
@@ -728,6 +759,7 @@ const FdTool: React.FC<{
   copy: CalculatorsCopy;
   formatters: Formatters;
 }> = ({ products, copy, formatters }) => {
+  const { lang } = useLanguage();
   const preset = useDepositPreset(products);
   const [customRate, setCustomRate] = useParamState('rate', '');
   const [amount, setAmount] = useParamState('amount', '500000');
@@ -799,6 +831,17 @@ const FdTool: React.FC<{
     <section aria-labelledby="fd-heading">
       <h2 id="fd-heading">{copy.fdHeading}</h2>
       <p className="calculators-tool-intro">{copy.fdIntro}</p>
+      {parsedAmount !== null &&
+      parsedMonths !== null &&
+      (row ? row.rateMin : parseNumber(customRate)) !== null ? (
+        <MirrorLine>
+          {fillCopy(getPlanCopy(lang).mirrorDepositFdr, {
+            amount: formatters.money(parsedAmount),
+            months: String(parsedMonths),
+            rate: String(row ? row.rateMin : parseNumber(customRate)),
+          })}
+        </MirrorLine>
+      ) : null}
       <form className="calculators-form" onSubmit={handleSubmit} noValidate>
         <DepositRateFields
           idPrefix="fd"
@@ -893,6 +936,7 @@ const DpsTool: React.FC<{
   copy: CalculatorsCopy;
   formatters: Formatters;
 }> = ({ products, copy, formatters }) => {
+  const { lang } = useLanguage();
   const preset = useDepositPreset(products);
   const [modeParam, setModeParam] = useParamState('mode', 'maturity');
   const mode = (modeParam === 'goal' ? 'goal' : 'maturity') as 'maturity' | 'goal';
@@ -982,6 +1026,18 @@ const DpsTool: React.FC<{
     <section aria-labelledby="dps-heading">
       <h2 id="dps-heading">{copy.dpsHeading}</h2>
       <p className="calculators-tool-intro">{copy.dpsIntro}</p>
+      {mode === 'maturity' &&
+      parseNumber(instalment) !== null &&
+      parseNumber(months) !== null &&
+      (row ? row.rateMin : parseNumber(customRate)) !== null ? (
+        <MirrorLine>
+          {fillCopy(getPlanCopy(lang).mirrorDepositDps, {
+            amount: formatters.money(parseNumber(instalment) as number),
+            months: String(parseNumber(months)),
+            rate: String(row ? row.rateMin : parseNumber(customRate)),
+          })}
+        </MirrorLine>
+      ) : null}
       <div className="calculators-tabs" role="tablist" aria-label={copy.dpsHeading}>
         <button
           type="button"

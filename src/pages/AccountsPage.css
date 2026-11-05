@@ -247,3 +247,8 @@
   border: 1px solid var(--color-border-strong);
   border-radius: 999px;
 }
+
+.accounts-facts a {
+  color: var(--color-text-link-hover);
+  text-decoration: underline;
+}

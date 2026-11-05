@@ -1,0 +1,8 @@
+.cm-sparkline {
+  color: var(--color-text-secondary);
+  flex: none;
+}
+
+.cm-sparkline-last {
+  fill: var(--color-primary-base);
+}

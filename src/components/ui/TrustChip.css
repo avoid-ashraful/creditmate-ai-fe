@@ -52,3 +52,11 @@ button.cm-trust-chip:focus-visible {
     transition: none;
   }
 }
+
+/* Source links inside the chip are real links: underline them (WCAG
+   link-in-text-block) and use the link token, which passes contrast in
+   both themes on chip surfaces. */
+.cm-trust-chip a {
+  color: var(--color-text-link-hover);
+  text-decoration: underline;
+}

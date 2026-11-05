@@ -47,6 +47,7 @@ const makeProduct = (partial: Partial<DepositProduct>): DepositProduct => ({
   maxInstalment: null,
   tenuresMonths: [],
   rateRange: null,
+  rateHistory: null,
   loanAgainstPercent: null,
   sourceUrl: '',
   sourceKind: 'bb_chart',

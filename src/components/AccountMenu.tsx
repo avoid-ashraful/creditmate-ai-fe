@@ -84,7 +84,6 @@ export const AccountMenu: React.FC = () => {
         ref={triggerRef}
         type="button"
         className="cm-account-trigger"
-        aria-label={shell.accountMenuAriaLabel}
         aria-expanded={open}
         aria-controls={MENU_ID}
         onClick={() => setOpen(previous => !previous)}
@@ -92,6 +91,7 @@ export const AccountMenu: React.FC = () => {
         <span className="cm-account-avatar" aria-hidden="true">
           {accountInitials(user)}
         </span>
+        <span className="cm-sr-only">{shell.accountMenuAriaLabel}</span>
       </button>
       {open && (
         <div id={MENU_ID} className="cm-account-panel" role="menu">

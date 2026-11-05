@@ -62,12 +62,25 @@ export interface DepositProduct {
   maxInstalment: number | null;
   /** Published rate span across the product's tenures (list serializer's rate_range). */
   rateRange: { min: number; max: number } | null;
+  /**
+   * Published-rate history for the headline tenure cell (Phase 4),
+   * reconstructed server-side from real field-history rows. Points are
+   * recorded values only — the UI renders a trend solely from 3+.
+   */
+  rateHistory: DepositProductRateHistory | null;
   tenuresMonths: number[];
   loanAgainstPercent: number | null;
   sourceUrl: string;
   sourceKind: string;
   rateEffectiveDate: string | null;
   verifiedAt: string | null;
+}
+
+/** Headline-cell published-rate history (Phase 4 sparkline payload). */
+export interface DepositProductRateHistory {
+  tenureMonthsMin: number;
+  tenureMonthsMax: number | null;
+  points: { at: string; value: number }[];
 }
 
 export interface DepositProductDetail extends DepositProduct {
@@ -133,6 +146,11 @@ interface DepositProductApi {
   tenures_months: number[];
   loan_against_percent: string | null;
   rate_range: { min: string; max: string } | null;
+  rate_history: {
+    tenure_months_min: number;
+    tenure_months_max: number | null;
+    points: { at: string; value: string }[];
+  } | null;
   source_url: string;
   source_kind: string;
   rate_effective_date: string | null;
@@ -193,6 +211,16 @@ const transformProduct = (api: DepositProductApi): DepositProduct => ({
   tenuresMonths: api.tenures_months ?? [],
   rateRange: api.rate_range
     ? { min: Number(api.rate_range.min), max: Number(api.rate_range.max) }
+    : null,
+  rateHistory: api.rate_history
+    ? {
+        tenureMonthsMin: api.rate_history.tenure_months_min,
+        tenureMonthsMax: api.rate_history.tenure_months_max,
+        points: api.rate_history.points.map(point => ({
+          at: point.at,
+          value: Number(point.value),
+        })),
+      }
     : null,
   loanAgainstPercent: num(api.loan_against_percent),
   sourceUrl: api.source_url,

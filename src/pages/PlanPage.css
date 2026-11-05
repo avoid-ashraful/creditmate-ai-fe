@@ -49,3 +49,35 @@
   gap: var(--spacing-sm);
   margin-top: var(--spacing-lg);
 }
+
+/* Phase 4: ghost-preview of a saved scenario before applying it. */
+.plan-scenario-name {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-primary-base);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.plan-preview {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-surface);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.plan-preview-text {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--typography-font-size-lg);
+  font-variant-numeric: tabular-nums;
+}
+
+.plan-preview-actions {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}

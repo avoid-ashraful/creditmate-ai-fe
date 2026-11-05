@@ -56,7 +56,8 @@
   border-radius: var(--radius-md);
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .category-button:hover {
@@ -66,7 +67,7 @@
 
 .category-button.active {
   background-color: var(--color-primary-base);
-  color: white;
+  color: var(--color-primary-contrast);
   border-color: var(--color-primary-base);
 }
 
@@ -83,7 +84,8 @@
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-border-base);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .glossary-item:hover {
@@ -124,7 +126,7 @@
 }
 
 .no-results {
-  background-color: white;
+  background-color: var(--color-background-surface);
   border-radius: var(--radius-md);
   padding: var(--spacing-xl);
   text-align: center;
@@ -152,4 +154,24 @@
   .category-button {
     text-align: center;
   }
+}
+
+/* Glossary language toggle buttons: unstyled before this pass; give them a
+   WCAG 2.2 AA target size (>=24px) and visible states. */
+.lang-button {
+  min-height: var(--spacing-lg);
+  min-width: var(--spacing-lg);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-background-base);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font: inherit;
+}
+
+.lang-button.active {
+  background-color: var(--color-primary-base);
+  border-color: var(--color-primary-base);
+  color: var(--color-primary-contrast);
 }

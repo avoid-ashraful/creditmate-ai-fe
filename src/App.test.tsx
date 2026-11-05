@@ -185,11 +185,11 @@ describe('App language switcher', () => {
     expect(within(nav).getByRole('link', { name: /Cards/ })).toBeInTheDocument();
     expect(within(nav).getByRole('link', { name: 'Glossary' })).toBeInTheDocument();
 
-    await user.click(screen.getAllByRole('button', { name: 'Language' })[0]);
+    await user.click(screen.getAllByRole('button', { name: /Language/ })[0]);
     expect(within(nav).getByRole('link', { name: /কার্ড/ })).toBeInTheDocument();
     expect(within(nav).getByRole('link', { name: 'শব্দকোষ' })).toBeInTheDocument();
 
-    await user.click(screen.getAllByRole('button', { name: 'ভাষা' })[0]);
+    await user.click(screen.getAllByRole('button', { name: /ভাষা/ })[0]);
     expect(within(nav).getByRole('link', { name: /Cards/ })).toBeInTheDocument();
   });
 });

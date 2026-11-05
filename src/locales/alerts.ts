@@ -42,6 +42,9 @@ export interface AlertsCopy {
   feedLoadMore: string;
   feedSourceLabel: string;
   feedNotPublished: string;
+  // Per-user new-since-last-visit grouping (Phase 4, D4)
+  feedNewHeading: string;
+  feedEarlierHeading: string;
 
   // Watch this card toggle
   watchThisCard: string;
@@ -117,6 +120,8 @@ export const ALERTS_COPY: Record<Language, AlertsCopy> = {
     feedLoadMore: 'Load more changes',
     feedSourceLabel: 'Source',
     feedNotPublished: 'Not published',
+    feedNewHeading: 'New since your last visit',
+    feedEarlierHeading: 'Earlier changes',
 
     subscriptionCardTitle: 'Subscription',
     subscriptionKindLabel: 'Alert type',
@@ -195,6 +200,8 @@ export const ALERTS_COPY: Record<Language, AlertsCopy> = {
     feedLoadMore: 'আরও পরিবর্তন দেখুন',
     feedSourceLabel: 'উৎস',
     feedNotPublished: 'প্রকাশিত নয়',
+    feedNewHeading: 'আপনার শেষ দেখার পর নতুন',
+    feedEarlierHeading: 'আগের পরিবর্তন',
     retry: 'আবার চেষ্টা করুন',
     unfollowBank: 'অনুসরণ বাতিল',
 

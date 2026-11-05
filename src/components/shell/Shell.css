@@ -852,3 +852,29 @@
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
 }
+
+/* ---------- Focus mode (Phase 4): shared pages ---------- */
+/* The shared artefact is the page: rail, top bar, bottom bar and the
+   footer recede entirely; the skip link stays for keyboard users. */
+.cm-layout.is-focus .cm-rail,
+.cm-layout.is-focus .cm-topbar,
+.cm-layout.is-focus .cm-bottombar,
+.cm-layout.is-focus .cm-shell-footer {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .cm-layout.is-focus .cm-column {
+    margin-left: var(--spacing-none);
+  }
+}
+
+.cm-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

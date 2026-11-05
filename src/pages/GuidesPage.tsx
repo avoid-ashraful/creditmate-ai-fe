@@ -1,10 +1,14 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import RelatedContent from '../components/RelatedContent';
 import { getCategoriesForGuide } from '../config/categories';
 import { getGuideForLanguage, guidesForLanguage, SITE_NAME } from '../content/guides';
 import { useLanguage, getCommonCopy, getCategoryText } from '../locales';
+import { getChangesCopy } from '../locales/changes';
+import { apiService } from '../services/api';
+import { getDepositProducts } from '../services/deposits';
+import { fetchLoanProducts } from '../services/loans';
 import { categoryDiscoveryPath } from '../utils/categoryPath';
 import { breadcrumbJsonLd, faqPageJsonLd } from '../utils/structuredData';
 
@@ -166,6 +170,31 @@ const GuidesPage: React.FC = () => {
   const guide = getGuideForLanguage(lang, slug);
   const langGuides = guidesForLanguage(lang);
   const common = getCommonCopy(lang);
+  const changesCopy = getChangesCopy(lang);
+
+  // Metric-led index headline (Phase 4): the catalogue counts the guides
+  // explain, computed live and shown only when every count loaded —
+  // a partial line would misstate the catalogue.
+  const [catalogLine, setCatalogLine] = useState<string | null>(null);
+  useEffect(() => {
+    if (slug) return;
+    let cancelled = false;
+    (async () => {
+      const [cards, deposits, loans] = await Promise.all([
+        apiService.getCreditCards({ page_size: 1 }).catch(() => null),
+        getDepositProducts({ pageSize: 1 }).catch(() => null),
+        fetchLoanProducts({}).catch(() => null),
+      ]);
+      if (cancelled || !cards || !deposits || !loans) return;
+      setCatalogLine(
+        `${cards.count} ${changesCopy.learnMetricCards} · ${deposits.count} ${changesCopy.learnMetricDeposits} · ${loans.length} ${changesCopy.learnMetricLoans} — ${changesCopy.learnMetricSource}`
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, lang]);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const canonical = `${origin}${slug ? `${GUIDES_PATH}/${slug}` : GUIDES_PATH}`;
@@ -473,6 +502,7 @@ const GuidesPage: React.FC = () => {
         <p className="guides-eyebrow">{common.guidesIndexEyebrow}</p>
         <h1>{common.guidesIndexTitle}</h1>
         <p className="guides-lede">{common.guidesIndexLede}</p>
+        {catalogLine ? <p className="guides-meta">{catalogLine}</p> : null}
       </header>
 
       <nav aria-label="User guides" className="guides-index">

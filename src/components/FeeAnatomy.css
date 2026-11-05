@@ -1,0 +1,71 @@
+.cm-fee-anatomy {
+  margin-bottom: var(--spacing-lg);
+}
+
+.cm-fee-anatomy-intro {
+  color: var(--color-text-secondary);
+}
+
+.cm-fee-anatomy-layers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.cm-fee-anatomy-layer {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 2fr auto;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.cm-fee-anatomy-track {
+  display: block;
+  height: 14px;
+  background: var(--color-background-muted);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.cm-fee-anatomy-bar {
+  display: block;
+  height: 100%;
+}
+
+.cm-fee-anatomy-bar--add {
+  background: var(--color-success-base);
+}
+
+.cm-fee-anatomy-bar--subtract {
+  background: var(--color-warning-base);
+}
+
+.cm-fee-anatomy-bar--unknown {
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+}
+
+.cm-fee-anatomy-value {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cm-fee-anatomy-note {
+  grid-column: 1 / -1;
+  color: var(--color-text-secondary);
+  font-size: var(--typography-font-size-sm);
+  margin: 0;
+}
+
+.cm-fee-anatomy-total {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  border-top: var(--spacing-2xs) solid var(--color-border-strong);
+  padding-top: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  font-size: var(--typography-font-size-lg);
+}

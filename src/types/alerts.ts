@@ -62,6 +62,8 @@ export interface BankFollowFeedEntry {
   /** Only loans history records a source; null elsewhere — never invented. */
   source: string | null;
   changed_at: string;
+  /** Phase 4 (D4): newer than the requesting user's seen watermark. */
+  is_new: boolean;
 }
 
 /** Feed page: offset pagination with an exact has_more flag (no total). */
@@ -70,6 +72,12 @@ export interface BankFollowFeedResponse {
   page: number;
   page_size: number;
   has_more: boolean;
+  /**
+   * The user's seen watermark at read time (Phase 4, D4), or null when
+   * no baseline exists yet. Reading never advances it — the client
+   * calls markBankFollowFeedSeen once the entries have been displayed.
+   */
+  seen_at: string | null;
 }
 
 /** Alert preferences as returned by the API. */

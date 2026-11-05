@@ -29,6 +29,7 @@ jest.mock('../services/alerts', () => ({
     listBankFollows: jest.fn(),
     unfollowBank: jest.fn(),
     getBankFollowFeed: jest.fn(),
+    markBankFollowFeedSeen: jest.fn(),
   },
 }));
 
@@ -81,6 +82,10 @@ beforeEach(() => {
     page: 1,
     page_size: 20,
     has_more: false,
+    seen_at: null,
+  });
+  (alertsClient.markBankFollowFeedSeen as jest.Mock).mockResolvedValue({
+    seen_at: '2026-11-05T00:00:00Z',
   });
 });
 
@@ -236,6 +241,7 @@ describe('AlertsPage', () => {
           new_value: 2000,
           source: null,
           changed_at: '2026-10-01T10:00:00Z',
+          is_new: false,
         },
         {
           id: 'loans:3',
@@ -249,11 +255,13 @@ describe('AlertsPage', () => {
           new_value: 13.5,
           source: 'Bangladesh Bank lending chart',
           changed_at: '2026-09-15T10:00:00Z',
+          is_new: false,
         },
       ],
       page: 1,
       page_size: 20,
       has_more: false,
+      seen_at: null,
     });
     const { container } = renderAlertsPage();
 
@@ -285,6 +293,7 @@ describe('AlertsPage', () => {
           new_value: 14,
           source: 'bangladesh_bank_chart',
           changed_at: '2026-09-15T10:00:00Z',
+          is_new: false,
         },
         {
           id: 'loans:10',
@@ -298,11 +307,13 @@ describe('AlertsPage', () => {
           new_value: 11.5,
           source: 'internal_audit_trail',
           changed_at: '2026-09-10T10:00:00Z',
+          is_new: false,
         },
       ],
       page: 1,
       page_size: 20,
       has_more: false,
+      seen_at: null,
     });
     renderAlertsPage();
 
@@ -328,6 +339,7 @@ describe('AlertsPage', () => {
       new_value: 2000,
       source: null,
       changed_at: '2026-10-01T10:00:00Z',
+      is_new: false,
     });
     (alertsClient.getBankFollowFeed as jest.Mock)
       .mockResolvedValueOnce({
@@ -335,12 +347,14 @@ describe('AlertsPage', () => {
         page: 1,
         page_size: 1,
         has_more: true,
+        seen_at: null,
       })
       .mockResolvedValueOnce({
         results: [entry('cards:2', 'Second Change Card')],
         page: 2,
         page_size: 1,
         has_more: false,
+        seen_at: null,
       });
     renderAlertsPage();
 

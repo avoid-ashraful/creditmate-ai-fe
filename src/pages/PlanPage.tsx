@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { Button, ConfirmDialog, useToast } from '../components/ui';
 import { AUTH_STATUS, useAuth } from '../hooks/AuthProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
+import { computeScenarioPreview } from '../lib/scenarioPreview';
 import { useLanguage } from '../locales';
 import { getPlanCopy } from '../locales/plan';
 import { savedService, type SavedScenario } from '../services/saved';
@@ -32,6 +33,24 @@ const PlanPage: React.FC = () => {
   const { toast } = useToast();
   const [scenarios, setScenarios] = useState<SavedScenario[]>([]);
   const [pendingDelete, setPendingDelete] = useState<SavedScenario | null>(null);
+  // Ghost-preview state (Phase 4): the scenario whose outcome is being
+  // shown before the user commits to opening it.
+  const [preview, setPreview] = useState<{
+    scenario: SavedScenario;
+    text: string | null;
+    loading: boolean;
+  } | null>(null);
+
+  const openPreview = (scenario: SavedScenario) => {
+    setPreview({ scenario, text: null, loading: true });
+    void computeScenarioPreview(scenario.tool, scenario.params, copy).then(text => {
+      setPreview(current =>
+        current && current.scenario.id === scenario.id
+          ? { scenario, text, loading: false }
+          : current
+      );
+    });
+  };
 
   useSeoMeta({
     title: 'Plan your money | CreditMate AI',
@@ -107,16 +126,37 @@ const PlanPage: React.FC = () => {
         ) : scenarios.length === 0 ? (
           <p className="cm-discovery-note">{copy.noSavedScenarios}</p>
         ) : (
-          <ul className="cm-home-list">
-            {scenarios.map(scenario => (
-              <li key={scenario.id}>
-                <Link to={scenarioHref(scenario)}>{scenario.name}</Link>{' '}
-                <Button variant="ghost" size="sm" onClick={() => setPendingDelete(scenario)}>
-                  {copy.deleteLabel}
-                </Button>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="cm-home-list">
+              {scenarios.map(scenario => (
+                <li key={scenario.id}>
+                  <button
+                    type="button"
+                    className="plan-scenario-name"
+                    onClick={() => openPreview(scenario)}
+                  >
+                    {scenario.name}
+                  </button>{' '}
+                  <Button variant="ghost" size="sm" onClick={() => setPendingDelete(scenario)}>
+                    {copy.deleteLabel}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            {preview ? (
+              <div className="plan-preview" role="region" aria-label={preview.scenario.name}>
+                <p className="plan-preview-text">
+                  {preview.loading ? copy.previewLoading : preview.text ?? copy.previewFailed}
+                </p>
+                <p className="plan-preview-actions">
+                  <Link to={scenarioHref(preview.scenario)}>{copy.previewOpen}</Link>{' '}
+                  <Button variant="ghost" size="sm" onClick={() => setPreview(null)}>
+                    {copy.previewCancel}
+                  </Button>
+                </p>
+              </div>
+            ) : null}
+          </>
         )}
       </section>
 

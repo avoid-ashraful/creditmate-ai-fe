@@ -271,15 +271,25 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
   // sticky summaries carry the count there in later phases).
   const TRAY_BAR_PATHS = ['/', '/cards', '/deposits', '/loans', '/accounts'];
   const trayBarVisible = count > 0 && TRAY_BAR_PATHS.includes(location.pathname);
+  // Focus mode (Phase 4): shared comparison/collection pages are often
+  // opened by someone who received the link — the shell recedes so the
+  // shared artefact is the whole page.
+  const focusMode =
+    location.pathname.startsWith('/shared/') || location.pathname.startsWith('/saved/shared/');
 
   return (
-    <div className={collapsed ? 'cm-layout is-collapsed' : 'cm-layout'} lang={lang}>
+    <div
+      className={['cm-layout', collapsed ? 'is-collapsed' : '', focusMode ? 'is-focus' : '']
+        .filter(Boolean)
+        .join(' ')}
+      lang={lang}
+    >
       <a href="#main-content" className="cm-skip-link">
         {copy.skipToContent}
       </a>
 
       <aside className="cm-rail">
-        <Link to="/" className="cm-rail-logo" aria-label="CreditMate AI">
+        <Link to="/" className="cm-rail-logo">
           <span className="cm-logo-mark" aria-hidden="true">
             CM
           </span>
@@ -298,12 +308,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           {secondaryModes.map(mode => renderModeBlock(mode, true))}
         </nav>
         <div className="cm-rail-footer">
-          <button
-            type="button"
-            className="cm-rail-tray"
-            onClick={() => setTrayOpen(true)}
-            aria-label={`${copy.shortlistButton} (${count})`}
-          >
+          <button type="button" className="cm-rail-tray" onClick={() => setTrayOpen(true)}>
             <span className="cm-rail-tray-label">{copy.shortlistButton}</span>
             <span className="cm-rail-tray-count">{count}</span>
           </button>
@@ -313,7 +318,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
               type="button"
               className="cm-lang-toggle"
               onClick={toggleLang}
-              aria-label={copy.languageLabel}
+              aria-label={`${copy.languageLabel}: ${lang === 'en' ? 'বাংলা' : 'English'}`}
             >
               {lang === 'en' ? 'বাংলা' : 'English'}
             </button>

@@ -1,0 +1,33 @@
+.cm-slider {
+  position: relative;
+  display: block;
+  padding-top: var(--spacing-xl);
+}
+
+.cm-slider-bubble {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  background: var(--color-background-inverse);
+  color: var(--color-text-inverse);
+  font-size: var(--typography-font-size-xs);
+  font-weight: var(--typography-font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cm-slider-bubble.is-active,
+.cm-slider:hover .cm-slider-bubble,
+.cm-slider:focus-within .cm-slider-bubble {
+  opacity: 1;
+}
+
+.cm-slider-input {
+  width: 100%;
+  accent-color: var(--color-primary-base);
+  cursor: pointer;
+}

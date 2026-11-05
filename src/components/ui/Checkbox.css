@@ -10,8 +10,8 @@
 
 .cm-checkbox__input {
   flex: none;
-  width: 18px;
-  height: 18px;
+  width: var(--spacing-lg);
+  height: var(--spacing-lg);
   margin: var(--spacing-none);
   accent-color: var(--color-primary-base);
   cursor: pointer;

@@ -25,13 +25,13 @@
   background: var(--color-warning-subtle);
   border: 1px solid var(--color-warning-base);
   border-radius: 0.5rem;
-  color: var(--color-amber-800);
+  color: var(--color-warning-base);
   padding: 0.75rem 1rem;
   margin-bottom: 1.5rem;
 }
 
 .eligibility-form-section {
-  background: var(--color-white);
+  background: var(--color-background-surface);
   border: 1px solid var(--color-slate-200);
   border-radius: 0.5rem;
   padding: 1.5rem;
@@ -99,7 +99,7 @@
 
 .eligibility-submit {
   background: var(--color-primary-base);
-  color: var(--color-white);
+  color: var(--color-primary-contrast);
   border: none;
   border-radius: 0.375rem;
   padding: 0.625rem 1.25rem;
@@ -211,7 +211,7 @@
 }
 
 .eligibility-card-tile {
-  background: var(--color-white);
+  background: var(--color-background-surface);
   border: 1px solid var(--color-slate-200);
   border-radius: 0.5rem;
   padding: 1rem;
@@ -257,7 +257,7 @@
 
 .eligibility-notes,
 .eligibility-method {
-  background: var(--color-white);
+  background: var(--color-background-surface);
   border: 1px solid var(--color-slate-200);
   border-radius: 0.5rem;
   padding: 1rem 1.5rem;

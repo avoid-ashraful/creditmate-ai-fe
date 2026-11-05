@@ -8,8 +8,8 @@
   text-align: center;
   margin-bottom: var(--spacing-xl);
   padding: var(--spacing-2xl) var(--spacing-lg);
-  background: linear-gradient(to right, var(--color-primary-base), var(--color-primary-hover));
-  color: white;
+  background: var(--color-primary-base);
+  color: var(--color-primary-contrast);
 }
 
 .about-header h1 {
@@ -19,7 +19,6 @@
 
 .about-header p {
   font-size: 1.25rem;
-  opacity: 0.9;
 }
 
 .content-container {
@@ -30,7 +29,7 @@
 
 /* Mission section */
 .mission-section {
-  background-color: white;
+  background-color: var(--color-background-surface);
 }
 
 .mission-section h2 {
@@ -65,7 +64,7 @@
 }
 
 .problem-card {
-  background-color: white;
+  background-color: var(--color-background-surface);
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-sm);
@@ -83,7 +82,7 @@
 
 /* Solution section */
 .solution-section {
-  background-color: white;
+  background-color: var(--color-background-surface);
 }
 
 .solution-section h2 {
@@ -110,7 +109,7 @@
   background-color: var(--color-background-base);
   padding: var(--spacing-lg);
   border-radius: var(--radius-md);
-  border-left: 4px solid var(--color-primary-base);
+  border-left: var(--spacing-xs) solid var(--color-primary-base);
 }
 
 .feature h3 {
@@ -146,7 +145,7 @@
 }
 
 .team-member {
-  background-color: white;
+  background-color: var(--color-background-surface);
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-sm);
@@ -182,7 +181,7 @@
 
 /* Contact section */
 .contact-section {
-  background-color: white;
+  background-color: var(--color-background-surface);
   text-align: center;
 }
 

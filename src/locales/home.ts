@@ -44,6 +44,17 @@ export interface HomeCopy {
   trustHeading: string;
   trustBody: string;
   trustMethodologyLink: string;
+  // First-time profile primer (Phase 4, addendum B9): one question per
+  // screen on mobile, fully skippable, stores only the three numbers.
+  primerTitle: string;
+  primerIntro: string;
+  primerProgress: string;
+  primerNext: string;
+  primerSkip: string;
+  primerDone: string;
+  primerBalanceQ: string;
+  primerSpendQ: string;
+  primerLoanQ: string;
 }
 
 const en: HomeCopy = {
@@ -90,6 +101,16 @@ const en: HomeCopy = {
   trustBody:
     'Rates are published bands, never invented points. Islamic products show expected profit, never “interest”. Government Sanchayapatra is a benchmark, never ranked as a bank. Every figure names its source.',
   trustMethodologyLink: 'Read the methodology',
+  primerTitle: 'Set your numbers',
+  primerIntro:
+    'Three numbers make every comparison yours. Skip any of them — the usual Bangladesh defaults apply instead.',
+  primerProgress: '{current} of {total}',
+  primerNext: 'Next',
+  primerSkip: 'Skip',
+  primerDone: 'Done',
+  primerBalanceQ: 'What balance do you usually keep in your account?',
+  primerSpendQ: 'What do you spend on cards in a typical month?',
+  primerLoanQ: 'If you took a loan, how much would it be for?',
 };
 
 const bn: HomeCopy = {
@@ -136,6 +157,16 @@ const bn: HomeCopy = {
   trustBody:
     'হার প্রকাশিত ব্যান্ড, কখনো বানানো পয়েন্ট নয়। ইসলামিক পণ্যে প্রত্যাশিত মুনাফা, কখনো সুদ নয়। সরকারি সঞ্চয়পত্র একটি বেঞ্চমার্ক, কখনো ব্যাংক হিসেবে র‍্যাঙ্ক নয়। প্রতিটি সংখ্যার উৎস উল্লেখ থাকে।',
   trustMethodologyLink: 'পদ্ধতি পড়ুন',
+  primerTitle: 'আপনার সংখ্যাগুলো সেট করুন',
+  primerIntro:
+    'তিনটি সংখ্যা প্রতিটি তুলনাকে আপনার জন্য সাজিয়ে দেয়। যেকোনোটি এড়িয়ে যেতে পারেন — সেক্ষেত্রে বাংলাদেশের প্রচলিত ডিফল্টগুলো প্রযোজ্য হবে।',
+  primerProgress: '{total}টির মধ্যে {current}',
+  primerNext: 'পরেরটি',
+  primerSkip: 'এড়িয়ে যান',
+  primerDone: 'সম্পন্ন',
+  primerBalanceQ: 'আপনি সাধারণত আপনার অ্যাকাউন্টে কত ব্যালেন্স রাখেন?',
+  primerSpendQ: 'একটি সাধারণ মাসে আপনি কার্ডে কত খরচ করেন?',
+  primerLoanQ: 'যদি ঋণ নেন, তাহলে কত টাকার জন্য নেবেন?',
 };
 
 export const HOME_COPY: Record<Language, HomeCopy> = { en, bn };

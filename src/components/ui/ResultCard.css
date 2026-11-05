@@ -81,16 +81,6 @@
   gap: var(--spacing-sm);
 }
 
-.cm-result-card-islamic {
-  padding: var(--spacing-2xs) var(--spacing-sm);
-  border: 1px solid var(--color-success-border);
-  border-radius: var(--radius-full);
-  background: var(--color-success-subtle);
-  color: var(--color-success-base);
-  font-size: var(--typography-font-size-xs);
-  font-weight: var(--typography-font-weight-medium);
-}
-
 .cm-result-card-hero-value {
   color: var(--color-text-primary);
   font-size: var(--typography-font-size-2xl);
