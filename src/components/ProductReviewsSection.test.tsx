@@ -199,6 +199,30 @@ describe('ProductReviewsSection (Phase 3B)', () => {
     expect(screen.queryByText('Write a Review')).not.toBeInTheDocument();
   });
 
+  test('an approved own review is shown once — in its state card, not duplicated in the list', async () => {
+    mockService.getOwnProductReview.mockResolvedValue({
+      id: 11, // same review as the public list fixture
+      productId: 7,
+      productType: 'deposit',
+      rating: 4,
+      title: 'Reliable FDR',
+      body: 'Maturity was credited on time.',
+      pros: 'On-time payout',
+      cons: '',
+      helpfulCount: 1,
+      reviewerName: 'Me',
+      status: 'approved',
+      created: new Date('2025-03-01T10:00:00Z'),
+      modified: new Date('2025-03-01T10:00:00Z'),
+    });
+    renderSection({ id: 5, email: 'me@example.com' });
+    await waitFor(() => {
+      expect(screen.getByText('Your review')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Approved')).toBeInTheDocument();
+    expect(screen.getAllByText('Reliable FDR')).toHaveLength(1);
+  });
+
   test('signed-out visitors get the honest login prompt and product-named empty copy', async () => {
     mockService.getProductSummary.mockResolvedValue(
       summary({ review_count: 0, approved_count: 0, average_rating: null })

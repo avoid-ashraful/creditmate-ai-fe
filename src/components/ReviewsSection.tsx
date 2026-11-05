@@ -637,7 +637,8 @@ const OwnReviewCard: React.FC<{
   copy: ReturnType<typeof getReviewsCopy>;
   onEdit: () => void;
   onDelete: () => Promise<void>;
-}> = ({ review, copy, onEdit, onDelete }) => {
+  commentsSlot?: React.ReactNode;
+}> = ({ review, copy, onEdit, onDelete, commentsSlot }) => {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const date = review.created ? formatGregorianDate(review.created) : '';
 
@@ -694,6 +695,7 @@ const OwnReviewCard: React.FC<{
           </button>
         )}
       </div>
+      {review.status === 'approved' && commentsSlot}
     </div>
   );
 };
@@ -1277,6 +1279,10 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
 
   // JSON-LD for AggregateRating (handled in useEffect above)
 
+  // The author's own review is held in its state card above; when it is
+  // approved it also appears in the public list — don't show it twice.
+  const visibleReviews = ownReview ? reviews.filter(review => review.id !== ownReview.id) : reviews;
+
   return (
     <section className="reviews-section" aria-labelledby="reviews-heading">
       <h2 id="reviews-heading">{copy.sectionTitle}</h2>
@@ -1314,6 +1320,16 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
           copy={copy}
           onEdit={handleEditOwnReview}
           onDelete={handleDeleteOwnReview}
+          commentsSlot={
+            <ReviewComments
+              productType={productType}
+              reviewId={ownReview.id}
+              copy={copy}
+              isSignedIn={!!user}
+              getAccessToken={getAccessToken}
+              onLogin={() => navigate('/login', { state: { from: productUrl } })}
+            />
+          }
         />
       )}
 
@@ -1393,11 +1409,11 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         ) : reviews.length === 0 ? (
           <div className="reviews-empty">
             <p>{copy.noReviewsYet}</p>
-            <p className="empty-hint">{copy.beFirstToReview}</p>
+            {!ownReview && <p className="empty-hint">{copy.beFirstToReview}</p>}
           </div>
         ) : (
           <>
-            {reviews.map(review => (
+            {visibleReviews.map(review => (
               <ReviewItem
                 key={review.id}
                 review={review}
@@ -1415,16 +1431,18 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
                 }
               />
             ))}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalCount={summary?.review_count || 0}
-              onPageChange={page => {
-                setCurrentPage(page);
-                fetchReviews(page);
-              }}
-              copy={copy}
-            />
+            {visibleReviews.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalCount={summary?.review_count || 0}
+                onPageChange={page => {
+                  setCurrentPage(page);
+                  fetchReviews(page);
+                }}
+                copy={copy}
+              />
+            )}
           </>
         )}
       </div>
