@@ -8,6 +8,7 @@ import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { AUTH_STATUS, AuthStatus } from '../hooks/AuthProvider';
+import { ShortlistProvider } from '../hooks/ShortlistProvider';
 import { LanguageProvider } from '../locales/LanguageContext';
 import { alertsClient } from '../services/alerts';
 import { apiService } from '../services/api';
@@ -68,9 +69,11 @@ const renderCardDetailPage = (authStatus: AuthStatus = AUTH_STATUS.anonymous) =>
   return render(
     <MemoryRouter initialEntries={['/card/test-bank/test-card']}>
       <LanguageProvider>
-        <Routes>
-          <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
-        </Routes>
+        <ShortlistProvider>
+          <Routes>
+            <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
+          </Routes>
+        </ShortlistProvider>
       </LanguageProvider>
     </MemoryRouter>
   );

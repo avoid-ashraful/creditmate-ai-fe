@@ -2,14 +2,33 @@ import { render, screen, within } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
+import { ShortlistProvider } from '../hooks/ShortlistProvider';
 import { LanguageProvider } from '../locales';
-import { AccountProductDetail, getAccountProduct } from '../services/bankAccounts';
+import {
+  AccountProductDetail,
+  getAccountFieldHistory,
+  getAccountProduct,
+} from '../services/bankAccounts';
 
 import AccountDetailPage from './AccountDetailPage';
 
 jest.mock('../services/bankAccounts', () => {
   const actual = jest.requireActual('../services/bankAccounts');
-  return { ...actual, getAccountProduct: jest.fn(), getAccountFieldHistory: jest.fn() };
+  return {
+    ...actual,
+    getAccountProduct: jest.fn(),
+    getAccountFieldHistory: jest.fn(),
+    runAccountScenario: jest.fn(async () => ({
+      averageBalance: 50000,
+      accountType: 'savings',
+      count: 0,
+      excludedWithoutRate: 0,
+      results: [],
+      segmentExcluded: [],
+      unrankedWithoutFees: [],
+      notes: [],
+    })),
+  };
 });
 jest.mock('../hooks/useSeoMeta', () => ({ useSeoMeta: jest.fn() }));
 jest.mock('../hooks/AuthProvider', () => ({
@@ -84,14 +103,18 @@ const detail: AccountProductDetail = {
   verificationStatus: 'verified',
 };
 
+const mockHistory = getAccountFieldHistory as jest.Mock;
+
 const renderPage = () =>
   render(
     <LanguageProvider>
-      <MemoryRouter initialEntries={['/accounts/city-bank-plc-general-savings-account']}>
-        <Routes>
-          <Route path="/accounts/:slug" element={<AccountDetailPage />} />
-        </Routes>
-      </MemoryRouter>
+      <ShortlistProvider>
+        <MemoryRouter initialEntries={['/accounts/city-bank-plc-general-savings-account']}>
+          <Routes>
+            <Route path="/accounts/:slug" element={<AccountDetailPage />} />
+          </Routes>
+        </MemoryRouter>
+      </ShortlistProvider>
     </LanguageProvider>
   );
 
@@ -99,11 +122,14 @@ describe('AccountDetailPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDetail.mockResolvedValue(detail);
+    mockHistory.mockResolvedValue([]);
   });
 
   it('renders the rate slabs as slabs, never a single headline rate', async () => {
     renderPage();
-    expect(await screen.findByText('General Savings Account')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'General Savings Account' })
+    ).toBeInTheDocument();
     const tables = screen.getAllByRole('table');
     const slabRows = within(tables[0]).getAllByRole('row');
     // Header + both published slabs, with their balance bands.
@@ -117,7 +143,7 @@ describe('AccountDetailPage', () => {
 
   it('renders the maintenance slab table by balance band', async () => {
     renderPage();
-    await screen.findByText('General Savings Account');
+    await screen.findByRole('heading', { level: 1, name: 'General Savings Account' });
     const tables = screen.getAllByRole('table');
     const maintRows = within(tables[1]).getAllByRole('row');
     expect(maintRows).toHaveLength(6); // header + 5 BB bands
@@ -129,7 +155,7 @@ describe('AccountDetailPage', () => {
 
   it('renders the fee table and provenance', async () => {
     renderPage();
-    await screen.findByText('General Savings Account');
+    await screen.findByRole('heading', { level: 1, name: 'General Savings Account' });
     expect(screen.getByText('Debit card (annual)')).toBeInTheDocument();
     expect(screen.getByText('SMS / transaction alerts (annual)')).toBeInTheDocument();
     expect(screen.getByText('BDT 600.00')).toBeInTheDocument();
@@ -139,7 +165,7 @@ describe('AccountDetailPage', () => {
 
   it('links the marketing variant as "also available as"', async () => {
     renderPage();
-    await screen.findByText('General Savings Account');
+    await screen.findByRole('heading', { level: 1, name: 'General Savings Account' });
     const link = screen.getByRole('link', { name: 'City Alo General Savings Account' });
     expect(link).toHaveAttribute(
       'href',
@@ -150,7 +176,7 @@ describe('AccountDetailPage', () => {
   it('says no debit card is included instead of "Not published" when none is bundled', async () => {
     mockDetail.mockResolvedValue({ ...detail, debitCardIncluded: false, debitCardFeeAnnual: null });
     renderPage();
-    await screen.findByText('General Savings Account');
+    await screen.findByRole('heading', { level: 1, name: 'General Savings Account' });
     const tables = screen.getAllByRole('table');
     const cardRow = within(tables[2]).getAllByRole('row')[0];
     expect(cardRow).toHaveTextContent('Debit card (annual)');
@@ -158,10 +184,18 @@ describe('AccountDetailPage', () => {
     expect(cardRow).not.toHaveTextContent('Not published');
   });
 
-  it('shows the history login prompt when signed out', async () => {
+  it('shows the change history when signed out (D1: history is public)', async () => {
     renderPage();
-    await screen.findByText('General Savings Account');
-    expect(screen.getByText('Sign in to see this account’s change history.')).toBeInTheDocument();
+    await screen.findByRole('heading', { level: 1, name: 'General Savings Account' });
+    expect(
+      screen.queryByText('Sign in to see this account’s change history.')
+    ).not.toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'No changes recorded yet — the current edition is the first we captured.'
+      )
+    ).toBeInTheDocument();
+    expect(mockHistory).toHaveBeenCalled();
   });
 
   it('shows an error state when the product cannot be loaded', async () => {

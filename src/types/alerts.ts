@@ -32,6 +32,22 @@ export interface AlertSubscriptionsResponse {
   results: AlertSubscription[];
 }
 
+/** A bank follow as returned by the API (redesign D4: server-backed). */
+export interface BankFollow {
+  id: number;
+  bank: number;
+  bank_name: string;
+  created: string;
+}
+
+/** List response for bank follows. */
+export interface BankFollowsResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: BankFollow[];
+}
+
 /** Alert preferences as returned by the API. */
 export interface AlertPreferences {
   frequency: AlertFrequency;

@@ -5,8 +5,11 @@ import './TrustChip.css';
 export type TrustChipMarker = 'derived' | 'changed';
 
 export interface TrustChipProps {
-  /** Where the data came from, e.g. "BB chart" or "Bank schedule of charges". */
-  source: string;
+  /**
+   * Where the data came from, e.g. "BB chart" or "Bank schedule of charges".
+   * May be a link to the source itself (redesign Phase 2 detail pages).
+   */
+  source: React.ReactNode;
   /** When it applies / was verified, e.g. "Oct 2026 edition" or "verified 3 Nov". */
   dateLabel: string;
   marker?: TrustChipMarker;

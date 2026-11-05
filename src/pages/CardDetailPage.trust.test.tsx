@@ -7,6 +7,7 @@ import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
 import { AuthProvider } from '../hooks/AuthProvider';
+import { ShortlistProvider } from '../hooks/ShortlistProvider';
 import { LanguageProvider } from '../locales';
 import { handlers, testCards } from '../mocks/handlers';
 
@@ -24,11 +25,13 @@ const renderCard = (route = CARD_ROUTE, lang: 'en' | 'bn' = 'en') =>
   render(
     <LanguageProvider initialLang={lang}>
       <AuthProvider>
-        <MemoryRouter initialEntries={[route]}>
-          <Routes>
-            <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
-          </Routes>
-        </MemoryRouter>
+        <ShortlistProvider>
+          <MemoryRouter initialEntries={[route]}>
+            <Routes>
+              <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
+            </Routes>
+          </MemoryRouter>
+        </ShortlistProvider>
       </AuthProvider>
     </LanguageProvider>
   );
@@ -50,6 +53,11 @@ const useCard = (overrides: Record<string, unknown>) =>
 const specValue = (label: string) =>
   within(screen.getByRole('row', { name: name => name.startsWith(label) })).getByRole('cell');
 
+// Redesign Phase 2: spec rows live in Layer-2 tabs; open the tab first.
+const openTab = async (name: string) => {
+  await userEvent.click(screen.getByRole('tab', { name }));
+};
+
 describe('CardDetailPage trust fields', () => {
   test('prefers applyUrl, shows source, verified date, disclaimer and spec rows', async () => {
     renderCard();
@@ -63,15 +71,20 @@ describe('CardDetailPage trust fields', () => {
       'href',
       'https://test.com/schedule-of-charges'
     );
-    expect(screen.getByText(/Verified on/)).toBeInTheDocument();
+    // Shown in the sticky summary's TrustChip and again in the full
+    // provenance record in the trust block.
+    expect(screen.getAllByText(/Verified on/).length).toBeGreaterThan(0);
     expect(screen.getByRole('link', { name: 'Read our disclaimer' })).toHaveAttribute(
       'href',
       '/disclaimer'
     );
+    await openTab('Features & limits');
     expect(specValue('Card Network')).toHaveTextContent('Visa');
     expect(specValue('Islamic (Shariah-compliant)')).toHaveTextContent('No, conventional');
     expect(specValue('Dual Currency')).toHaveTextContent('Yes');
+    await openTab('Eligibility');
     expect(specValue('Minimum Monthly Income')).toHaveTextContent('BDT 50,000 per month');
+    await openTab('Fees & charges');
     expect(specValue('Supplementary Card Fee')).toHaveTextContent('BDT 500');
     expect(specValue('Foreign Transaction Fee')).toHaveTextContent('3%');
   });
@@ -84,7 +97,9 @@ describe('CardDetailPage trust fields', () => {
     const feeSchedule = screen.getByRole('link', { name: 'View fee schedule' });
     expect(feeSchedule).toHaveAttribute('href', 'https://test.com/schedule-of-charges');
     expect(feeSchedule).toHaveAttribute('rel', 'noopener noreferrer nofollow');
-    expect(feeSchedule).toHaveAttribute('class', expect.stringContaining('btn-secondary'));
+    // Redesign button system: the fee schedule is the secondary (outline)
+    // action in the sticky summary.
+    expect(feeSchedule).toHaveAttribute('class', expect.stringContaining('btn-outline'));
     unmount();
 
     const { unmount: unmountBengali } = renderCard(CARD_ROUTE, 'bn');
@@ -103,7 +118,7 @@ describe('CardDetailPage trust fields', () => {
     expect(screen.queryByText(/Verified on/)).not.toBeInTheDocument();
   });
 
-  test('unknown trust fields render Unknown, never 0 or No; Islamic null APR is relabelled', async () => {
+  test('unknown trust fields render "Not published", never 0 or No; Islamic null APR is relabelled', async () => {
     useCard({
       card_network: '',
       is_islamic: true,
@@ -116,13 +131,16 @@ describe('CardDetailPage trust fields', () => {
     renderCard();
 
     await screen.findByRole('heading', { level: 1, name: 'Test Credit Card' });
-    expect(specValue('Card Network')).toHaveTextContent('Unknown');
-    expect(specValue('Dual Currency')).toHaveTextContent('Unknown');
-    expect(specValue('Minimum Monthly Income')).toHaveTextContent('Unknown');
-    expect(specValue('Supplementary Card Fee')).toHaveTextContent('Unknown');
-    expect(specValue('Foreign Transaction Fee')).toHaveTextContent('Unknown');
+    await openTab('Features & limits');
+    expect(specValue('Card Network')).toHaveTextContent('Not published');
+    expect(specValue('Dual Currency')).toHaveTextContent('Not published');
     expect(specValue('Islamic (Shariah-compliant)')).toHaveTextContent('Yes, Shariah-compliant');
-    expect(specValue('Profit/fee (Shariah)')).toHaveTextContent('Data not available');
+    expect(specValue('Profit/fee (Shariah)')).toHaveTextContent('Not published');
+    await openTab('Eligibility');
+    expect(specValue('Minimum Monthly Income')).toHaveTextContent('Not published');
+    await openTab('Fees & charges');
+    expect(specValue('Supplementary Card Fee')).toHaveTextContent('Not published');
+    expect(specValue('Foreign Transaction Fee')).toHaveTextContent('Not published');
   });
 
   test('shows the profit/fee wording from additional features on Islamic cards without an APR', async () => {
@@ -138,18 +156,20 @@ describe('CardDetailPage trust fields', () => {
     await screen.findByRole('heading', { level: 1, name: 'Test Credit Card' });
 
     // The Shariah profit/fee row prints the detail without the field prefix,
-    // both in the specs table and in the key metrics.
+    // both in the specs table and in the sticky summary.
+    await openTab('Features & limits');
     expect(specValue('Profit/fee (Shariah)')).toHaveTextContent(
       '20% (flat profit rate on the financed amount)'
     );
     expect(specValue('Profit/fee (Shariah)')).not.toHaveTextContent('Interest/charges details');
   });
 
-  test('keeps "Data not available" for Islamic cards whose features carry no profit/fee text', async () => {
+  test('keeps "Not published" for Islamic cards whose features carry no profit/fee text', async () => {
     useCard({ is_islamic: true, interest_rate_apr: null });
     renderCard();
     await screen.findByRole('heading', { level: 1, name: 'Test Credit Card' });
-    expect(specValue('Profit/fee (Shariah)')).toHaveTextContent('Data not available');
+    await openTab('Features & limits');
+    expect(specValue('Profit/fee (Shariah)')).toHaveTextContent('Not published');
   });
 });
 

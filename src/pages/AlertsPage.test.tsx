@@ -25,6 +25,8 @@ jest.mock('../services/alerts', () => ({
     getPreferences: jest.fn(),
     updatePreferences: jest.fn(),
     deleteSubscription: jest.fn(),
+    listBankFollows: jest.fn(),
+    unfollowBank: jest.fn(),
   },
 }));
 
@@ -48,6 +50,10 @@ const mockSubscriptions = [
 
 const mockPreferences = { frequency: 'daily', email_enabled: true };
 
+const mockBankFollows = [
+  { id: 1, bank: 7, bank_name: 'BRAC Bank', created: '2024-02-01T10:00:00Z' },
+];
+
 const renderAlertsPage = () => {
   return render(
     <MemoryRouter initialEntries={['/alerts']}>
@@ -66,6 +72,8 @@ beforeEach(() => {
   (alertsClient.getPreferences as jest.Mock).mockResolvedValue(mockPreferences);
   (alertsClient.updatePreferences as jest.Mock).mockResolvedValue(mockPreferences);
   (alertsClient.deleteSubscription as jest.Mock).mockResolvedValue(undefined);
+  (alertsClient.listBankFollows as jest.Mock).mockResolvedValue({ results: [] });
+  (alertsClient.unfollowBank as jest.Mock).mockResolvedValue(undefined);
 });
 
 describe('AlertsPage', () => {
@@ -170,5 +178,35 @@ describe('AlertsPage', () => {
         screen.getByText('Failed to load alert settings. Please try again.')
       ).toBeInTheDocument();
     });
+  });
+
+  it('shows followed banks after loading', async () => {
+    (alertsClient.listBankFollows as jest.Mock).mockResolvedValue({ results: mockBankFollows });
+    renderAlertsPage();
+    expect(await screen.findByText('BRAC Bank')).toBeInTheDocument();
+    expect(screen.getByText('Banks you follow')).toBeInTheDocument();
+  });
+
+  it('shows the honest empty state when the user follows no banks', async () => {
+    renderAlertsPage();
+    expect(await screen.findByText(/You are not following any bank yet/)).toBeInTheDocument();
+  });
+
+  it('shows an error with retry — not the empty state — when followed banks fail to load', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    (alertsClient.listBankFollows as jest.Mock)
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValue({ results: mockBankFollows });
+    renderAlertsPage();
+
+    expect(
+      await screen.findByText('We could not load the banks you follow. Please try again.')
+    ).toBeInTheDocument();
+    // A load failure must never masquerade as "you follow nothing".
+    expect(screen.queryByText(/You are not following any bank yet/)).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByText('BRAC Bank')).toBeInTheDocument();
+    expect(alertsClient.listBankFollows).toHaveBeenCalledTimes(2);
   });
 });

@@ -1,9 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 
-import { useAuth } from '../hooks/AuthProvider';
+import { DetailSummary, Money, MoneyInput, TrustChip, VerdictStrip } from '../components/ui';
+import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
-import { fillCopy, toBanglaNumerals, useLanguage } from '../locales';
+import {
+  fillCopy,
+  formatLocalizedDate,
+  getDetailCopy,
+  toBanglaNumerals,
+  useLanguage,
+} from '../locales';
 import {
   AccountsCopy,
   basisLabel,
@@ -14,12 +21,14 @@ import {
 import {
   AccountHistoryEntry,
   AccountProductDetail,
-  ApiError,
+  AccountScenarioResult,
   getAccountFieldHistory,
   getAccountProduct,
+  runAccountScenario,
 } from '../services/bankAccounts';
 
 import './AccountsPage.css';
+import '../styles/DecisionDetail.css';
 
 interface Formatters {
   money: (value: number) => string;
@@ -48,46 +57,35 @@ const historyValueText = (value: unknown): string => {
   return String(value);
 };
 
+/**
+ * Rate/fee-change history is public (redesign decision D1): everyone sees
+ * the same dated record, signed in or not.
+ */
 const HistorySection: React.FC<{
   slug: string;
   copy: AccountsCopy;
 }> = ({ slug, copy }) => {
-  const { status: authStatus } = useAuth();
   const [entries, setEntries] = useState<AccountHistoryEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const [needsLogin, setNeedsLogin] = useState(false);
 
   useEffect(() => {
-    if (authStatus !== 'authenticated') return;
     let cancelled = false;
     getAccountFieldHistory(slug)
       .then(history => {
         if (!cancelled) setEntries(history);
       })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
-          setNeedsLogin(true);
-          return;
-        }
-        setFailed(true);
+      .catch(() => {
+        if (!cancelled) setFailed(true);
       });
     return () => {
       cancelled = true;
     };
-  }, [authStatus, slug]);
-
-  const showLoginPrompt = authStatus !== 'authenticated' || needsLogin;
+  }, [slug]);
 
   return (
-    <section className="accounts-history" aria-labelledby="account-history-heading">
+    <section className="accounts-history p2-section" aria-labelledby="account-history-heading">
       <h2 id="account-history-heading">{copy.historyHeading}</h2>
       <p>{copy.historyIntro}</p>
-      {showLoginPrompt && (
-        <p className="accounts-login-prompt">
-          {copy.historyLoginPrompt} <Link to="/login">{copy.historyLoginLink}</Link>
-        </p>
-      )}
       {failed && <p role="alert">{copy.historyError}</p>}
       {entries !== null && entries.length === 0 && <p>{copy.historyEmpty}</p>}
       {entries !== null && entries.length > 0 && (
@@ -109,10 +107,97 @@ const HistorySection: React.FC<{
   );
 };
 
+/**
+ * Scenario carry-forward strip (redesign Phase 2): the balance from the
+ * discovery scenario arrives prefilled; the net-value figures come from
+ * the same scenario endpoint discovery uses. A product the endpoint
+ * cannot rank (fees not fully published) shows no invented figure.
+ */
+const AccountScenarioStrip: React.FC<{
+  product: AccountProductDetail;
+}> = ({ product }) => {
+  const { lang } = useLanguage();
+  const detail = getDetailCopy(lang);
+  const [searchParams] = useSearchParams();
+  const [balance, setBalance] = useState<number | null>(() => {
+    const value = Number(searchParams.get('balance'));
+    return Number.isFinite(value) && value > 0 ? value : 50000;
+  });
+  const [result, setResult] = useState<AccountScenarioResult | null>(null);
+  const [responded, setResponded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const runTokenRef = useRef(0);
+
+  useEffect(() => {
+    if (!balance || balance <= 0) return;
+    const token = ++runTokenRef.current;
+    const timer = setTimeout(() => {
+      runAccountScenario({ averageBalance: balance, accountType: product.accountType })
+        .then(response => {
+          if (runTokenRef.current !== token) return;
+          const mine = [
+            ...response.results,
+            ...response.segmentExcluded,
+            ...response.unrankedWithoutFees,
+          ].find(entry => entry.product.slug === product.slug);
+          setResult(mine ?? null);
+          setResponded(true);
+          setFailed(false);
+        })
+        .catch(() => {
+          if (runTokenRef.current !== token) return;
+          setFailed(true);
+          setResponded(true);
+        });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [balance, product.accountType, product.slug]);
+
+  return (
+    <section className="p2-scenario" aria-labelledby="account-scenario-heading">
+      <h2 id="account-scenario-heading">{detail.accountScenarioHeading}</h2>
+      <div className="p2-scenario-inputs">
+        <MoneyInput label={detail.balanceLabel} value={balance} onValueChange={setBalance} />
+      </div>
+      {failed && <p role="alert">{detail.scenarioError}</p>}
+      {!failed && responded && (!result || result.netAnnualValue === null) && (
+        <p>{detail.scenarioNotRanked}</p>
+      )}
+      {!failed && result && result.netAnnualValue !== null && (
+        <dl className="p2-scenario-results">
+          <div className="p2-scenario-result">
+            <dt>{detail.netAnnualValueLabel}</dt>
+            <dd>
+              <Money value={result.netAnnualValue} decimals={2} />
+            </dd>
+          </div>
+          <div className="p2-scenario-result">
+            <dt>{detail.interestAtBalanceLabel}</dt>
+            <dd>
+              <Money value={result.interestEarned} decimals={2} />
+            </dd>
+          </div>
+          {result.totalFees !== null && (
+            <div className="p2-scenario-result">
+              <dt>{detail.feesPerYearLabel}</dt>
+              <dd>
+                <Money value={result.totalFees} decimals={2} />
+              </dd>
+            </div>
+          )}
+        </dl>
+      )}
+      {result?.basisNote && <p className="p2-section-note">{result.basisNote}</p>}
+    </section>
+  );
+};
+
 const AccountDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { lang } = useLanguage();
   const copy = getAccountsCopy(lang);
+  const detail = getDetailCopy(lang);
+  const shortlist = useShortlist();
   const isBn = lang === 'bn';
   const [product, setProduct] = useState<AccountProductDetail | null>(null);
   const [failed, setFailed] = useState(false);
@@ -227,8 +312,52 @@ const AccountDetailPage: React.FC = () => {
       : []),
   ];
 
+  const inShortlist = shortlist.isInShortlist('accounts', product.slug);
+  // Slabs are never collapsed to a single headline rate: the summary
+  // shows the full published range across balance bands.
+  const rateRangeText =
+    product.rateSlabs.length > 0
+      ? (() => {
+          const low = Math.min(...product.rateSlabs.map(slab => slab.rate));
+          const high = Math.max(...product.rateSlabs.map(slab => slab.rateMax ?? slab.rate));
+          return low === high
+            ? `${formatters.rate(low)}%`
+            : `${formatters.rate(low)}–${formatters.rate(high)}%`;
+        })()
+      : null;
+  const rateLabel =
+    product.rateType === 'expected_profit' ? copy.expectedProfitLabel : copy.detailRateCol;
+  const summaryFacts = [
+    { label: copy.basisLabel, value: basisLabel(copy, product.interestBasis) },
+    { label: copy.payoutLabel, value: payoutLabel(copy, product.interestPayoutFrequency) },
+    ...(product.minBalanceToEarn !== null
+      ? [{ label: copy.minBalanceToEarnLabel, value: formatters.money(product.minBalanceToEarn) }]
+      : []),
+    ...(product.minBalanceRequired !== null
+      ? [
+          {
+            label: copy.minBalanceRequiredLabel,
+            value: formatters.money(product.minBalanceRequired),
+          },
+        ]
+      : []),
+    ...(product.openingDeposit !== null
+      ? [{ label: copy.openingDepositLabel, value: formatters.money(product.openingDeposit) }]
+      : []),
+    ...(product.withdrawalLimitForInterest !== null
+      ? [
+          {
+            label: copy.withdrawalLimitLabel,
+            value: fillCopy(copy.withdrawalLimitValue, {
+              count: formatters.count(product.withdrawalLimitForInterest),
+            }),
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <div className="accounts-page accounts-detail">
+    <div className="accounts-page accounts-detail p2-detail">
       <Link to="/accounts" className="accounts-back">
         ← {copy.backToAccounts}
       </Link>
@@ -247,200 +376,226 @@ const AccountDetailPage: React.FC = () => {
         </p>
       )}
 
-      <dl className="accounts-facts">
-        <div>
-          <dt>{copy.basisLabel}</dt>
-          <dd>{basisLabel(copy, product.interestBasis)}</dd>
-        </div>
-        <div>
-          <dt>{copy.payoutLabel}</dt>
-          <dd>{payoutLabel(copy, product.interestPayoutFrequency)}</dd>
-        </div>
-        {product.minBalanceToEarn !== null && (
-          <div>
-            <dt>{copy.minBalanceToEarnLabel}</dt>
-            <dd>{formatters.money(product.minBalanceToEarn)}</dd>
-          </div>
-        )}
-        {product.minBalanceRequired !== null && (
-          <div>
-            <dt>{copy.minBalanceRequiredLabel}</dt>
-            <dd>{formatters.money(product.minBalanceRequired)}</dd>
-          </div>
-        )}
-        {product.openingDeposit !== null && (
-          <div>
-            <dt>{copy.openingDepositLabel}</dt>
-            <dd>{formatters.money(product.openingDeposit)}</dd>
-          </div>
-        )}
-        {product.withdrawalLimitForInterest !== null && (
-          <div>
-            <dt>{copy.withdrawalLimitLabel}</dt>
-            <dd>
-              {fillCopy(copy.withdrawalLimitValue, {
-                count: formatters.count(product.withdrawalLimitForInterest),
-              })}
-            </dd>
-          </div>
-        )}
-      </dl>
+      <div className="p2-detail-grid">
+        <aside className="p2-detail-aside">
+          <DetailSummary
+            identity={{ bankName: product.bank.name, productName: product.name }}
+            heroValue={rateRangeText ?? copy.notPublished}
+            heroLabel={rateLabel}
+            facts={summaryFacts}
+            trustChip={
+              product.sourceSocUrl ? (
+                <TrustChip
+                  source={
+                    <a href={product.sourceSocUrl} target="_blank" rel="noreferrer">
+                      {copy.sourceSocLabel}
+                    </a>
+                  }
+                  dateLabel={
+                    product.verifiedAt
+                      ? formatLocalizedDate(new Date(product.verifiedAt), lang)
+                      : detail.trustChipUnverified
+                  }
+                />
+              ) : undefined
+            }
+            actions={
+              <button
+                type="button"
+                className="btn btn-primary"
+                aria-pressed={inShortlist}
+                onClick={() =>
+                  shortlist.toggle({
+                    vertical: 'accounts',
+                    key: product.slug,
+                    name: product.name,
+                    bankName: product.bank.name,
+                    detailHref: `/accounts/${product.slug}`,
+                  })
+                }
+              >
+                {inShortlist ? detail.inShortlist : detail.addToShortlist}
+              </button>
+            }
+          />
+        </aside>
 
-      <section aria-labelledby="account-slabs-heading">
-        <h2 id="account-slabs-heading">{copy.detailSlabsHeading}</h2>
-        {product.rateSlabs.length > 0 ? (
-          <div className="accounts-table-wrap">
-            <table className="accounts-table">
-              <thead>
-                <tr>
-                  <th scope="col">{copy.detailSlabCol}</th>
-                  <th scope="col">
-                    {product.rateType === 'expected_profit'
-                      ? copy.expectedProfitLabel
-                      : copy.detailRateCol}
-                  </th>
-                </tr>
-              </thead>
+        <div className="p2-detail-main">
+          <VerdictStrip
+            items={[
+              {
+                label: rateLabel,
+                value: rateRangeText ?? copy.notPublished,
+              },
+              { label: copy.basisLabel, value: basisLabel(copy, product.interestBasis) },
+              {
+                label: copy.verifiedLabel,
+                value: product.verifiedAt
+                  ? formatLocalizedDate(new Date(product.verifiedAt), lang)
+                  : copy.notPublished,
+              },
+            ]}
+          />
+
+          <AccountScenarioStrip product={product} />
+
+          <section className="p2-section" aria-labelledby="account-slabs-heading">
+            <h2 id="account-slabs-heading">{copy.detailSlabsHeading}</h2>
+            {product.rateSlabs.length > 0 ? (
+              <div className="accounts-table-wrap">
+                <table className="accounts-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">{copy.detailSlabCol}</th>
+                      <th scope="col">
+                        {product.rateType === 'expected_profit'
+                          ? copy.expectedProfitLabel
+                          : copy.detailRateCol}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {product.rateSlabs.map(slab => (
+                      <tr key={`${slab.balanceMin}-${slab.balanceMax ?? 'open'}`}>
+                        <td>{slabBandText(slab.balanceMin, slab.balanceMax, formatters, copy)}</td>
+                        <td>
+                          {slab.isRange && slab.rateMax !== null
+                            ? `${formatters.rate(slab.rate)}–${formatters.rate(slab.rateMax)}%`
+                            : `${formatters.rate(slab.rate)}%`}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p>{copy.notPublished}</p>
+            )}
+            {product.rateConditionsText && <p>{product.rateConditionsText}</p>}
+          </section>
+
+          <section aria-labelledby="account-maintenance-heading">
+            <h2 id="account-maintenance-heading">{copy.detailMaintenanceHeading}</h2>
+            {product.maintenanceFeeSlabs === null ? (
+              <p>{copy.notPublished}</p>
+            ) : product.maintenanceFeeSlabs.every(slab => slab.fee === 0) ? (
+              <p>{copy.maintenanceFreeNote}</p>
+            ) : (
+              <div className="accounts-table-wrap">
+                <table className="accounts-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">{copy.detailSlabCol}</th>
+                      <th scope="col">{copy.detailMaintenanceCol}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {product.maintenanceFeeSlabs.map(slab => (
+                      <tr key={`${slab.balanceMin}-${slab.balanceMax ?? 'open'}`}>
+                        <td>{slabBandText(slab.balanceMin, slab.balanceMax, formatters, copy)}</td>
+                        <td>{formatters.money(slab.fee)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {product.maintenanceWaiverText && <p>{product.maintenanceWaiverText}</p>}
+          </section>
+
+          <section aria-labelledby="account-fees-heading">
+            <h2 id="account-fees-heading">{copy.feesHeading}</h2>
+            <table className="accounts-fee-table">
               <tbody>
-                {product.rateSlabs.map(slab => (
-                  <tr key={`${slab.balanceMin}-${slab.balanceMax ?? 'open'}`}>
-                    <td>{slabBandText(slab.balanceMin, slab.balanceMax, formatters, copy)}</td>
-                    <td>
-                      {slab.isRange && slab.rateMax !== null
-                        ? `${formatters.rate(slab.rate)}–${formatters.rate(slab.rateMax)}%`
-                        : `${formatters.rate(slab.rate)}%`}
-                    </td>
+                {feeRows.map(row => (
+                  <tr key={row.label}>
+                    <th scope="row">{row.label}</th>
+                    <td>{row.value}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        ) : (
-          <p>{copy.notPublished}</p>
-        )}
-        {product.rateConditionsText && <p>{product.rateConditionsText}</p>}
-      </section>
+            {(product.debitCardWaiverText || product.maintenanceWaiverText) && (
+              <>
+                <h3>{copy.conditionsHeading}</h3>
+                {product.debitCardWaiverText && <p>{product.debitCardWaiverText}</p>}
+              </>
+            )}
+          </section>
 
-      <section aria-labelledby="account-maintenance-heading">
-        <h2 id="account-maintenance-heading">{copy.detailMaintenanceHeading}</h2>
-        {product.maintenanceFeeSlabs === null ? (
-          <p>{copy.notPublished}</p>
-        ) : product.maintenanceFeeSlabs.every(slab => slab.fee === 0) ? (
-          <p>{copy.maintenanceFreeNote}</p>
-        ) : (
-          <div className="accounts-table-wrap">
-            <table className="accounts-table">
-              <thead>
-                <tr>
-                  <th scope="col">{copy.detailSlabCol}</th>
-                  <th scope="col">{copy.detailMaintenanceCol}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {product.maintenanceFeeSlabs.map(slab => (
-                  <tr key={`${slab.balanceMin}-${slab.balanceMax ?? 'open'}`}>
-                    <td>{slabBandText(slab.balanceMin, slab.balanceMax, formatters, copy)}</td>
-                    <td>{formatters.money(slab.fee)}</td>
-                  </tr>
+          {product.dormancyTerms && (
+            <section>
+              <h2>{copy.dormancyHeading}</h2>
+              <p>{product.dormancyTerms}</p>
+            </section>
+          )}
+          {product.eligibilityNotes && (
+            <section>
+              <h2>{copy.eligibilityHeading}</h2>
+              <p>{product.eligibilityNotes}</p>
+            </section>
+          )}
+
+          {product.variants.length > 0 && (
+            <section aria-labelledby="account-variants-heading">
+              <h2 id="account-variants-heading">{copy.variantsHeading}</h2>
+              <ul className="accounts-variants">
+                {product.variants.map(variant => (
+                  <li key={variant.slug}>
+                    <Link to={`/accounts/${variant.slug}`}>{variant.name}</Link>
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {product.maintenanceWaiverText && <p>{product.maintenanceWaiverText}</p>}
-      </section>
-
-      <section aria-labelledby="account-fees-heading">
-        <h2 id="account-fees-heading">{copy.feesHeading}</h2>
-        <table className="accounts-fee-table">
-          <tbody>
-            {feeRows.map(row => (
-              <tr key={row.label}>
-                <th scope="row">{row.label}</th>
-                <td>{row.value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {(product.debitCardWaiverText || product.maintenanceWaiverText) && (
-          <>
-            <h3>{copy.conditionsHeading}</h3>
-            {product.debitCardWaiverText && <p>{product.debitCardWaiverText}</p>}
-          </>
-        )}
-      </section>
-
-      {product.dormancyTerms && (
-        <section>
-          <h2>{copy.dormancyHeading}</h2>
-          <p>{product.dormancyTerms}</p>
-        </section>
-      )}
-      {product.eligibilityNotes && (
-        <section>
-          <h2>{copy.eligibilityHeading}</h2>
-          <p>{product.eligibilityNotes}</p>
-        </section>
-      )}
-
-      {product.variants.length > 0 && (
-        <section aria-labelledby="account-variants-heading">
-          <h2 id="account-variants-heading">{copy.variantsHeading}</h2>
-          <ul className="accounts-variants">
-            {product.variants.map(variant => (
-              <li key={variant.slug}>
-                <Link to={`/accounts/${variant.slug}`}>{variant.name}</Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section className="accounts-provenance">
-        <h2>{copy.provenanceHeading}</h2>
-        <dl className="accounts-facts">
-          {product.sourceSocUrl && (
-            <div>
-              <dt>{copy.sourceSocLabel}</dt>
-              <dd>
-                <a href={product.sourceSocUrl} target="_blank" rel="noreferrer">
-                  {product.sourceSocUrl}
-                </a>
-              </dd>
-            </div>
+              </ul>
+            </section>
           )}
-          {product.sourceRateUrl && (
-            <div>
-              <dt>{copy.sourceRateLabel}</dt>
-              <dd>
-                <a href={product.sourceRateUrl} target="_blank" rel="noreferrer">
-                  {product.sourceRateUrl}
-                </a>
-              </dd>
-            </div>
-          )}
-          {product.socEffectiveDate && (
-            <div>
-              <dt>{copy.socEffectiveLabel}</dt>
-              <dd>{product.socEffectiveDate}</dd>
-            </div>
-          )}
-          {product.rateEffectiveDate && (
-            <div>
-              <dt>{copy.rateEffectiveLabel}</dt>
-              <dd>{product.rateEffectiveDate}</dd>
-            </div>
-          )}
-          {product.verifiedAt && (
-            <div>
-              <dt>{copy.verifiedLabel}</dt>
-              <dd>{new Date(product.verifiedAt).toLocaleDateString()}</dd>
-            </div>
-          )}
-        </dl>
-      </section>
 
-      <HistorySection slug={product.slug} copy={copy} />
+          <section className="accounts-provenance">
+            <h2>{copy.provenanceHeading}</h2>
+            <dl className="accounts-facts">
+              {product.sourceSocUrl && (
+                <div>
+                  <dt>{copy.sourceSocLabel}</dt>
+                  <dd>
+                    <a href={product.sourceSocUrl} target="_blank" rel="noreferrer">
+                      {product.sourceSocUrl}
+                    </a>
+                  </dd>
+                </div>
+              )}
+              {product.sourceRateUrl && (
+                <div>
+                  <dt>{copy.sourceRateLabel}</dt>
+                  <dd>
+                    <a href={product.sourceRateUrl} target="_blank" rel="noreferrer">
+                      {product.sourceRateUrl}
+                    </a>
+                  </dd>
+                </div>
+              )}
+              {product.socEffectiveDate && (
+                <div>
+                  <dt>{copy.socEffectiveLabel}</dt>
+                  <dd>{product.socEffectiveDate}</dd>
+                </div>
+              )}
+              {product.rateEffectiveDate && (
+                <div>
+                  <dt>{copy.rateEffectiveLabel}</dt>
+                  <dd>{product.rateEffectiveDate}</dd>
+                </div>
+              )}
+              {product.verifiedAt && (
+                <div>
+                  <dt>{copy.verifiedLabel}</dt>
+                  <dd>{new Date(product.verifiedAt).toLocaleDateString()}</dd>
+                </div>
+              )}
+            </dl>
+          </section>
+
+          <HistorySection slug={product.slug} copy={copy} />
+        </div>
+      </div>
     </div>
   );
 };

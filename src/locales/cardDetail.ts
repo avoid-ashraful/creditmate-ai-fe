@@ -36,12 +36,11 @@ export interface CardDetailCopy {
   openingApplication: string;
 
   // Formatting
-  dataNotAvailable: string;
+  /** §3.6 unknown-value vocabulary: the bank does not publish this figure. */
+  notPublished: string;
   noAnnualFee: string;
   bdt: string;
-  na: string;
   none: string;
-  unknown: string;
   yes: string;
   no: string;
 
@@ -233,12 +232,10 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     applyNow: 'Apply Now',
     openingApplication: 'Opening application...',
 
-    dataNotAvailable: 'Data not available',
+    notPublished: 'Not published',
     noAnnualFee: 'No annual fee',
     bdt: 'BDT',
-    na: 'N/A',
     none: 'None',
-    unknown: 'Unknown',
     yes: 'Yes',
     no: 'No',
 
@@ -256,7 +253,7 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     conHighApr: 'Higher interest rate at {apr}% APR',
     conCashAdvanceFee: 'Cash advance fee:',
     conNoLounge: 'No lounge access included',
-    conLoungeUnknown: 'Lounge access data not available',
+    conLoungeUnknown: 'Lounge access not published',
 
     specsHeading: 'Complete Specifications',
     specCardName: 'Card Name',
@@ -432,12 +429,10 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     applyNow: 'এখনই আবেদন করুন',
     openingApplication: 'আবেদন পেজ খোলা হচ্ছে...',
 
-    dataNotAvailable: 'তথ্য পাওয়া যায়নি',
+    notPublished: 'প্রকাশিত নয়',
     noAnnualFee: 'বার্ষিক ফি নেই',
     bdt: '৳',
-    na: 'প্রযোজ্য নয়',
     none: 'নেই',
-    unknown: 'অজানা',
     yes: 'হ্যাঁ',
     no: 'না',
 
@@ -455,7 +450,7 @@ export const CARD_DETAIL_COPY: Record<Language, CardDetailCopy> = {
     conHighApr: 'তুলনামূলক বেশি সুদের হার: {apr}% এপিআর',
     conCashAdvanceFee: 'ক্যাশ অ্যাডভান্স ফি:',
     conNoLounge: 'লাউঞ্জ সুবিধা অন্তর্ভুক্ত নেই',
-    conLoungeUnknown: 'লাউঞ্জ সুবিধার তথ্য পাওয়া যায়নি',
+    conLoungeUnknown: 'লাউঞ্জ সুবিধা প্রকাশিত নয়',
 
     specsHeading: 'সম্পূর্ণ বিবরণ',
     specCardName: 'কার্ডের নাম',

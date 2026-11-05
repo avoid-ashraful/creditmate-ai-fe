@@ -1,13 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 
+import { Badge, Money, ResultCard, TrustChip } from '../components/ui';
+import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
-import { fillCopy, toBanglaNumerals, useLanguage } from '../locales';
+import { readEligibilitySession, saveEligibilitySession } from '../lib/eligibilitySession';
+import { fillCopy, formatLocalizedDate, toBanglaNumerals, useLanguage } from '../locales';
 import { getEligibilityCopy } from '../locales/eligibility';
 import {
   checkEligibility,
   CibStatus,
+  EligibilityProfile,
   EligibilityResponse,
+  EligibilityResultItem,
   EligibilityVerdict,
   EmploymentType,
   groupResultsByVerdict,
@@ -19,6 +23,7 @@ import './EligibilityCheckerPage.css';
 
 type LoadState = 'idle' | 'loading' | 'error' | 'done';
 type TinAnswer = 'unset' | 'yes' | 'no';
+type ResultSort = 'score' | 'fee';
 
 const VERDICT_CLASS: Record<EligibilityVerdict, string> = {
   eligible: 'verdict-eligible',
@@ -32,15 +37,31 @@ const EligibilityCheckerPage: React.FC = () => {
   const copy = getEligibilityCopy(lang);
   const isBn = lang === 'bn';
 
-  const [income, setIncome] = useState<string>('');
-  const [employmentType, setEmploymentType] = useState<EmploymentType>('salaried');
-  const [age, setAge] = useState<string>('');
-  const [hasTin, setHasTin] = useState<TinAnswer>('unset');
-  const [cibStatus, setCibStatus] = useState<CibStatus>('unknown');
-  const [islamicOnly, setIslamicOnly] = useState<boolean>(false);
+  // Arriving with a check already done this session (e.g. from a card
+  // page) prefills the form from the session-only copy — the inputs are
+  // never stored anywhere longer-lived (plan Section 4.9).
+  const [sessionProfile] = useState<EligibilityProfile | null>(
+    () => readEligibilitySession()?.profile ?? null
+  );
+  const [income, setIncome] = useState<string>(
+    sessionProfile ? String(sessionProfile.monthlyIncome) : ''
+  );
+  const [employmentType, setEmploymentType] = useState<EmploymentType>(
+    sessionProfile?.employmentType ?? 'salaried'
+  );
+  const [age, setAge] = useState<string>(
+    sessionProfile?.age !== undefined ? String(sessionProfile.age) : ''
+  );
+  const [hasTin, setHasTin] = useState<TinAnswer>(
+    sessionProfile?.hasTin === undefined ? 'unset' : sessionProfile.hasTin ? 'yes' : 'no'
+  );
+  const [cibStatus, setCibStatus] = useState<CibStatus>(sessionProfile?.cibStatus ?? 'unknown');
+  const [islamicOnly, setIslamicOnly] = useState<boolean>(sessionProfile?.islamicOnly ?? false);
   const [incomeError, setIncomeError] = useState<string | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [result, setResult] = useState<EligibilityResponse | null>(null);
+  const [sort, setSort] = useState<ResultSort>('score');
+  const shortlist = useShortlist();
 
   useSeoMeta({
     title: copy.seoTitle,
@@ -79,14 +100,19 @@ const EligibilityCheckerPage: React.FC = () => {
     setLoadState('loading');
     try {
       const parsedAge = age.trim() === '' ? undefined : Number(age);
-      const response = await checkEligibility({
+      const profile: EligibilityProfile = {
         monthlyIncome: parsedIncome,
         employmentType,
         age: parsedAge !== undefined && Number.isFinite(parsedAge) ? parsedAge : undefined,
         hasTin: hasTin === 'unset' ? undefined : hasTin === 'yes',
         cibStatus,
         islamicOnly,
-      });
+      };
+      const response = await checkEligibility(profile);
+      // Session-only mirror so card pages can show "your check this
+      // session" and a return visit prefills the form. The endpoint
+      // itself stores nothing; this never leaves sessionStorage.
+      saveEligibilitySession(profile, response);
       setResult(response);
       setLoadState('done');
     } catch {
@@ -112,45 +138,107 @@ const EligibilityCheckerPage: React.FC = () => {
       ? copy.verdictUnknownHint
       : copy.verdictNotYetHint;
 
-  const renderCardTile = (card: CreditCard, reasons: string[]) => {
-    const detailPath = `/card/${slugify(card.bankName ?? '')}/${slugify(card.name)}`;
+  const detailPathFor = (card: CreditCard): string =>
+    `/card/${slugify(card.bankName ?? '')}/${slugify(card.name)}`;
+
+  const toggleShortlist = (card: CreditCard) => {
+    shortlist.toggle({
+      vertical: 'cards',
+      key: String(card.id),
+      cardId: card.id,
+      name: card.name,
+      bankName: card.bankName ?? '',
+      detailHref: detailPathFor(card),
+    });
+  };
+
+  // One canonical result shape everywhere on this page: the discovery
+  // ResultCard, with the checker's reasons quoted as its children and a
+  // working shortlist action (no more single-card compare links).
+  const renderResultCard = (item: EligibilityResultItem, showVerdictBadge = false) => {
+    const { card } = item;
+    const score = card.creditmateScore ?? null;
     return (
-      <article key={card.id} className="eligibility-card-tile">
-        <h4>
-          <Link to={detailPath}>{card.name}</Link>
-        </h4>
-        <p className="eligibility-card-bank">{card.bankName}</p>
-        <dl className="eligibility-card-facts">
-          <div>
-            <dt>{copy.annualFee}</dt>
-            <dd>{card.annualFee === null ? copy.noMinIncome : formatMoney(card.annualFee)}</dd>
-          </div>
-          <div>
-            <dt>{copy.apr}</dt>
-            <dd>
-              {card.interestRateApr === null
-                ? copy.noMinIncome
-                : `${isBn ? toBanglaNumerals(card.interestRateApr) : card.interestRateApr}%`}
-            </dd>
-          </div>
-          <div>
-            <dt>{copy.minIncome}</dt>
-            <dd>{formatMoney(card.minMonthlyIncome)}</dd>
-          </div>
-        </dl>
+      <ResultCard
+        key={card.id}
+        bankName={card.bankName ?? ''}
+        productName={card.name}
+        detailHref={detailPathFor(card)}
+        heroValue={
+          score !== null ? (
+            <span>
+              {score.toFixed(1)}
+              <span className="eligibility-score-scale"> / 10</span>
+            </span>
+          ) : (
+            <Money value={card.annualFee} />
+          )
+        }
+        heroLabel={score !== null ? copy.scoreLabel : copy.annualFee}
+        supportingFacts={[
+          { label: copy.annualFee, value: <Money value={card.annualFee} /> },
+          {
+            label: copy.apr,
+            // A null APR on a conventional card is unpublished data; on an
+            // Islamic card APR structurally does not apply (§3.6 vocabulary).
+            value:
+              card.interestRateApr === null
+                ? card.isIslamic
+                  ? copy.notApplicable
+                  : copy.noMinIncome
+                : `${isBn ? toBanglaNumerals(card.interestRateApr) : card.interestRateApr}%`,
+          },
+          { label: copy.minIncome, value: formatMoney(card.minMonthlyIncome) },
+        ]}
+        badges={
+          showVerdictBadge ? (
+            <Badge variant={item.verdict === 'eligible' ? 'success' : 'info'}>
+              {verdictLabel(item.verdict)}
+            </Badge>
+          ) : undefined
+        }
+        trustChip={
+          card.verifiedAt ? (
+            <TrustChip
+              source={copy.sourceLabel}
+              dateLabel={formatLocalizedDate(card.verifiedAt, lang)}
+            />
+          ) : undefined
+        }
+        islamic={card.isIslamic}
+        inShortlist={shortlist.isInShortlist('cards', String(card.id))}
+        onToggleShortlist={() => toggleShortlist(card)}
+        defaultExpanded
+      >
         <ul className="eligibility-reasons">
-          {reasons.map(reason => (
+          {item.reasons.map(reason => (
             <li key={reason}>{reason}</li>
           ))}
         </ul>
-        <p className="eligibility-card-links">
-          <Link to={detailPath}>{copy.viewDetails}</Link>
-          {' · '}
-          <Link to={`/compare?ids=${card.id}`}>{copy.compare}</Link>
-        </p>
-      </article>
+      </ResultCard>
     );
   };
+
+  const sortItems = (items: EligibilityResultItem[]): EligibilityResultItem[] => {
+    const sorted = [...items];
+    if (sort === 'fee') {
+      sorted.sort((a, b) => (a.card.annualFee ?? Infinity) - (b.card.annualFee ?? Infinity));
+    } else {
+      sorted.sort((a, b) => (b.card.creditmateScore ?? -1) - (a.card.creditmateScore ?? -1));
+    }
+    return sorted;
+  };
+
+  // Guided shortlist: the top 3 eligible/likely cards by CreditMate
+  // Score, each with the checker's own reasons (which quote the real
+  // published numbers) — then the full honest four groups below.
+  const topPicks = useMemo(() => {
+    if (!result) return [];
+    return result.results
+      .filter(item => item.verdict === 'eligible' || item.verdict === 'likely')
+      .sort((a, b) => (b.card.creditmateScore ?? -1) - (a.card.creditmateScore ?? -1))
+      .slice(0, 3);
+  }, [result]);
 
   return (
     <div className="eligibility-page">
@@ -302,17 +390,41 @@ const EligibilityCheckerPage: React.FC = () => {
           {result.totalCards === 0 ? (
             <p className="eligibility-status">{copy.emptyResults}</p>
           ) : (
-            groups.map(group => (
-              <section key={group.verdict} className="eligibility-group">
-                <h3 className={VERDICT_CLASS[group.verdict]}>
-                  {verdictLabel(group.verdict)} ({formatCount(group.items.length)})
-                </h3>
-                <p className="eligibility-group-hint">{verdictHint(group.verdict)}</p>
-                <div className="eligibility-tiles">
-                  {group.items.map(item => renderCardTile(item.card, item.reasons))}
-                </div>
-              </section>
-            ))
+            <>
+              {topPicks.length > 0 && (
+                <section className="eligibility-group" aria-labelledby="eligibility-top-picks">
+                  <h3 id="eligibility-top-picks">{copy.topPicksHeading}</h3>
+                  <p className="eligibility-group-hint">{copy.topPicksNote}</p>
+                  <div className="eligibility-tiles">
+                    {topPicks.map(item => renderResultCard(item, true))}
+                  </div>
+                </section>
+              )}
+
+              <div className="eligibility-sort">
+                <label htmlFor="eligibility-sort">{copy.sortLabel}</label>
+                <select
+                  id="eligibility-sort"
+                  value={sort}
+                  onChange={event => setSort(event.target.value as ResultSort)}
+                >
+                  <option value="score">{copy.sortScore}</option>
+                  <option value="fee">{copy.sortFeeAsc}</option>
+                </select>
+              </div>
+
+              {groups.map(group => (
+                <section key={group.verdict} className="eligibility-group">
+                  <h3 className={VERDICT_CLASS[group.verdict]}>
+                    {verdictLabel(group.verdict)} ({formatCount(group.items.length)})
+                  </h3>
+                  <p className="eligibility-group-hint">{verdictHint(group.verdict)}</p>
+                  <div className="eligibility-tiles">
+                    {sortItems(group.items).map(item => renderResultCard(item))}
+                  </div>
+                </section>
+              ))}
+            </>
           )}
 
           {result.notes.length > 0 && (

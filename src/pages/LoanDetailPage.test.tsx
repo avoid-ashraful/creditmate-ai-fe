@@ -2,13 +2,26 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
+import { ShortlistProvider } from '../hooks/ShortlistProvider';
 import { fetchLoanFieldHistory, fetchLoanProduct, LoanProductDetail } from '../services/loans';
 
 import LoanDetailPage from './LoanDetailPage';
 
 jest.mock('../services/loans', () => {
   const actual = jest.requireActual('../services/loans');
-  return { ...actual, fetchLoanProduct: jest.fn(), fetchLoanFieldHistory: jest.fn() };
+  return {
+    ...actual,
+    fetchLoanProduct: jest.fn(),
+    fetchLoanFieldHistory: jest.fn(),
+    runLoanScenario: jest.fn(async () => ({
+      loanType: 'personal',
+      amount: 500000,
+      tenureMonths: 60,
+      monthlyIncome: null,
+      results: [],
+      notes: [],
+    })),
+  };
 });
 jest.mock('../services/auth', () => ({
   authClient: { hasSession: () => false, getAccessToken: async () => null },
@@ -114,16 +127,27 @@ describe('LoanDetailPage', () => {
   it('labels Islamic pricing as expected profit and shows provenance', async () => {
     render(
       <MemoryRouter initialEntries={['/loans/sibl-islamic-consumer-finance']}>
-        <Routes>
-          <Route path="/loans/:slug" element={<LoanDetailPage />} />
-        </Routes>
+        <ShortlistProvider>
+          <Routes>
+            <Route path="/loans/:slug" element={<LoanDetailPage />} />
+          </Routes>
+        </ShortlistProvider>
       </MemoryRouter>
     );
-    expect(await screen.findByText('SIBL Islamic Consumer Finance')).toBeInTheDocument();
-    expect(screen.getByText(/Expected profit/)).toBeInTheDocument();
-    expect(screen.getByText('14.5% – 16.5%')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /SIBL Islamic Consumer Finance/ })
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/Expected profit/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('14.5% – 16.5%').length).toBeGreaterThan(0);
     expect(screen.getByText('https://www.siblbd.com/retail/consumer-finance')).toBeInTheDocument();
-    expect(screen.getByText(/Sign in to see the recorded change history/)).toBeInTheDocument();
+    // D1: change history is public — no sign-in note; the honest empty
+    // state shows for everyone when nothing has been recorded.
+    expect(
+      screen.queryByText(/Sign in to see the recorded change history/)
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/No changes have been recorded for this product yet/)
+    ).toBeInTheDocument();
     const text = document.body.textContent ?? '';
     expect(text).not.toMatch(/pre-approved/i);
     expect(text).not.toMatch(/guaranteed/i);
@@ -132,9 +156,11 @@ describe('LoanDetailPage', () => {
   it('renders the type-specific terms block (personal: income multiple)', async () => {
     render(
       <MemoryRouter initialEntries={['/loans/sibl-islamic-consumer-finance']}>
-        <Routes>
-          <Route path="/loans/:slug" element={<LoanDetailPage />} />
-        </Routes>
+        <ShortlistProvider>
+          <Routes>
+            <Route path="/loans/:slug" element={<LoanDetailPage />} />
+          </Routes>
+        </ShortlistProvider>
       </MemoryRouter>
     );
     expect(await screen.findByText('Product-specific terms')).toBeInTheDocument();

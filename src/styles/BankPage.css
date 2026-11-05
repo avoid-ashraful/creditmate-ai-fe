@@ -23,14 +23,14 @@
 .bank-stat {
   min-width: 140px;
   padding: 1rem 1.25rem;
-  border: 1px solid var(--color-border-base, #e2e2e2);
+  border: 1px solid var(--color-border-base, var(--color-slate-200));
   border-radius: 12px;
   text-align: center;
 }
 
 .bank-stat dt {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
@@ -60,7 +60,7 @@
 .banks-search input {
   width: min(420px, 100%);
   padding: 0.65rem 1rem;
-  border: 1px solid var(--color-border-base, #ccc);
+  border: 1px solid var(--color-border-base, var(--color-slate-300));
   border-radius: 999px;
   font-size: 1rem;
 }
@@ -81,7 +81,7 @@
   gap: 0.5rem;
   height: 100%;
   padding: 1.25rem 1rem;
-  border: 1px solid var(--color-border-base, #e2e2e2);
+  border: 1px solid var(--color-border-base, var(--color-slate-200));
   border-radius: 12px;
   text-align: center;
   text-decoration: none;
@@ -90,7 +90,7 @@
 
 .bank-tile-link:hover,
 .bank-tile-link:focus-visible {
-  border-color: var(--color-brand-gradient-from, #6c4bd8);
+  border-color: var(--color-brand-gradient-from, var(--color-indigo-500));
 }
 
 .bank-tile-logo {
@@ -110,7 +110,7 @@
     var(--color-brand-gradient-from) 0%,
     var(--color-brand-gradient-to) 100%
   );
-  color: #fff;
+  color: var(--color-white);
   font-size: 1.4rem;
   font-weight: 700;
 }
@@ -120,12 +120,22 @@
 }
 
 .bank-tile-count {
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
 
 .banks-no-results {
   text-align: center;
   padding: 2rem 1rem;
-  color: #666;
+  color: var(--color-text-secondary);
+}
+
+/* Cross-vertical hub lists (redesign Phase 2) */
+.bank-hub-list {
+  list-style: none;
+  margin: 0 0 var(--spacing-md);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }

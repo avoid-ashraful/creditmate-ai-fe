@@ -5,14 +5,12 @@
  *   verification status and when it was last verified. Missing data is
  *   stated honestly (never invented).
  * - `CardHistoryTimeline` — the "What changed" timeline fed by the
- *   backend field-history endpoint. That endpoint requires
- *   authentication, so signed-out visitors get a login prompt instead.
+ *   backend field-history endpoint. The endpoint is public (redesign
+ *   decision D1), so every visitor sees the full dated history.
  */
 
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 
-import { useAuth } from '../hooks/AuthProvider';
 import {
   useLanguage,
   getCardDetailCopy,
@@ -22,7 +20,6 @@ import {
   CardDetailCopy,
 } from '../locales';
 import {
-  ApiError,
   cardHistoryClient,
   transformFieldHistoryEntry,
   FieldHistoryEntry,
@@ -56,7 +53,7 @@ export function formatHistoryValue(
   fieldName: string,
   value: unknown
 ): string {
-  if (value === null || value === undefined) return copy.unknown;
+  if (value === null || value === undefined) return copy.notPublished;
   if (value === '') return copy.none;
   if (typeof value === 'boolean') {
     if (fieldName === 'is_active') return value ? copy.statusActive : copy.statusInactive;
@@ -152,17 +149,13 @@ type HistoryState =
   | { kind: 'error' };
 
 export const CardHistoryTimeline: React.FC<{ cardId: number }> = ({ cardId }) => {
-  const { status: authStatus } = useAuth();
   const { lang } = useLanguage();
   const copy = getCardDetailCopy(lang);
   const [state, setState] = useState<HistoryState>({ kind: 'idle' });
-  const [needsLogin, setNeedsLogin] = useState(false);
 
   useEffect(() => {
-    if (authStatus !== 'authenticated') return;
     let cancelled = false;
     setState({ kind: 'loading' });
-    setNeedsLogin(false);
     cardHistoryClient
       .getFieldHistory(cardId)
       .then(response => {
@@ -171,52 +164,36 @@ export const CardHistoryTimeline: React.FC<{ cardId: number }> = ({ cardId }) =>
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
-          setNeedsLogin(true);
-          setState({ kind: 'idle' });
-          return;
-        }
         console.error('Failed to load field history:', err);
         setState({ kind: 'error' });
       });
     return () => {
       cancelled = true;
     };
-  }, [authStatus, cardId]);
-
-  const showLoginPrompt = authStatus !== 'authenticated' || needsLogin;
+  }, [cardId]);
 
   return (
     <section className="history-section" aria-labelledby="history-heading">
       <h2 id="history-heading">{copy.historyHeading}</h2>
       <p className="history-intro">{copy.historyIntro}</p>
 
-      {showLoginPrompt && (
-        <p className="history-login-prompt">
-          {copy.historyLoginPrompt}{' '}
-          <Link to="/login" className="history-login-link">
-            {copy.historyLoginLink}
-          </Link>
-        </p>
-      )}
-
-      {!showLoginPrompt && state.kind === 'loading' && (
+      {state.kind === 'loading' && (
         <p className="history-loading" role="status" aria-live="polite">
           {copy.historyLoading}
         </p>
       )}
 
-      {!showLoginPrompt && state.kind === 'error' && (
+      {state.kind === 'error' && (
         <p className="history-error" role="alert">
           {copy.historyError}
         </p>
       )}
 
-      {!showLoginPrompt && state.kind === 'ready' && state.entries.length === 0 && (
+      {state.kind === 'ready' && state.entries.length === 0 && (
         <p className="history-empty">{copy.historyEmpty}</p>
       )}
 
-      {!showLoginPrompt && state.kind === 'ready' && state.entries.length > 0 && (
+      {state.kind === 'ready' && state.entries.length > 0 && (
         <ol className="history-timeline">
           {state.entries.map(entry => (
             <li key={entry.id} className="history-item">

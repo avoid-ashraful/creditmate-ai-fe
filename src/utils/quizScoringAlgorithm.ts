@@ -283,6 +283,128 @@ const generateRecommendationReason = (card: CreditCard, answers: QuizAnswers): s
   return reasons.slice(0, 2).join('. ') || 'Recommended for your profile';
 };
 
+/**
+ * Quiz V2 (redesign Phase 2, plan Section 4.10).
+ *
+ * The rebuilt finder asks first-order CONSTRAINT questions first
+ * (income, Islamic preference, fee tolerance, network, bank) and only
+ * then preference questions (spend, primary use, travel). Every answer
+ * starts unset — nothing is preselected — and the constraints are real
+ * filters over the same fields the /cards discovery exposes, so the
+ * quiz results and "See all cards" can never disagree about which
+ * cards qualify. Ranking among the survivors reuses the legacy scoring
+ * above, with neutral internal fallbacks for skipped preference
+ * questions; those fallbacks only order the survivors, they never
+ * filter anything in or out.
+ */
+export type IncomeBand = 'up_to_30k' | '30k_50k' | '50k_100k' | 'above_100k';
+export type IslamicPreference = 'any' | 'islamic_only';
+export type NetworkPreference = 'visa' | 'mastercard' | 'amex';
+
+export interface QuizAnswersV2 {
+  incomeBand: IncomeBand | null;
+  islamicPreference: IslamicPreference | null;
+  feeTolerance: QuizAnswers['feeTolerance'] | null;
+  network: NetworkPreference | null;
+  bankId: number | null;
+  monthlySpend: number | null;
+  primaryUse: QuizAnswers['primaryUse'] | null;
+  travelFrequency: QuizAnswers['travelFrequency'] | null;
+}
+
+export const emptyQuizAnswersV2 = (): QuizAnswersV2 => ({
+  incomeBand: null,
+  islamicPreference: null,
+  feeTolerance: null,
+  network: null,
+  bankId: null,
+  monthlySpend: null,
+  primaryUse: null,
+  travelFrequency: null,
+});
+
+/** The top of each income band: a card qualifies when its published
+ * minimum monthly income is at or below the band the user picked (or
+ * when the bank publishes no minimum — same rule as eligibility). */
+export const INCOME_BAND_CAPS: Record<IncomeBand, number> = {
+  up_to_30k: 30000,
+  '30k_50k': 50000,
+  '50k_100k': 100000,
+  above_100k: Number.POSITIVE_INFINITY,
+};
+
+/** Annual-fee ceilings per tolerance. Mirrors the /cards discovery
+ * semantics: a capped filter only matches cards whose fee is published
+ * and within the cap (an unpublished fee is never assumed to fit). */
+export const FEE_TOLERANCE_CAPS: Record<QuizAnswers['feeTolerance'], number> = {
+  none: 0,
+  low: 1500,
+  moderate: 3000,
+  high: Number.POSITIVE_INFINITY,
+};
+
+export const applyQuizConstraints = (cards: CreditCard[], answers: QuizAnswersV2): CreditCard[] => {
+  const incomeCap = answers.incomeBand ? INCOME_BAND_CAPS[answers.incomeBand] : null;
+  const feeCap = answers.feeTolerance ? FEE_TOLERANCE_CAPS[answers.feeTolerance] : null;
+  return cards.filter(card => {
+    if (!card.isActive) return false;
+    if (incomeCap !== null && incomeCap !== Number.POSITIVE_INFINITY) {
+      if (card.minMonthlyIncome != null && card.minMonthlyIncome > incomeCap) return false;
+    }
+    if (answers.islamicPreference === 'islamic_only' && !card.isIslamic) return false;
+    if (feeCap !== null && feeCap !== Number.POSITIVE_INFINITY) {
+      if (card.annualFee == null || card.annualFee > feeCap) return false;
+    }
+    if (answers.network && (card.cardNetwork ?? '') !== answers.network) return false;
+    if (answers.bankId !== null && card.bankId !== answers.bankId) return false;
+    return true;
+  });
+};
+
+/** Rank the constraint survivors with the legacy scoring. Skipped
+ * preference questions fall back to neutral midpoints for ORDERING
+ * only; constraints above are the sole filters. */
+export const rankQuizCardsV2 = (
+  cards: CreditCard[],
+  answers: QuizAnswersV2,
+  limit = 3
+): Array<{ card: CreditCard; score: number; reason: string }> => {
+  const legacyAnswers: QuizAnswers = {
+    monthlySpend: answers.monthlySpend ?? 50000,
+    primaryUse: answers.primaryUse ?? 'shopping',
+    travelFrequency: answers.travelFrequency ?? 'occasional',
+    feeTolerance: answers.feeTolerance ?? 'high',
+    cardTier: 'standard',
+  };
+  return rankCards(applyQuizConstraints(cards, answers), legacyAnswers, limit);
+};
+
+/**
+ * The answers as /cards discovery URL params — "See all cards" lands
+ * on the canonical discovery with exactly the quiz's constraints
+ * applied (conventional-only is not expressible there, so the Islamic
+ * question only ever offers any / Islamic-only).
+ */
+export const quizDiscoveryParams = (answers: QuizAnswersV2): URLSearchParams => {
+  const params = new URLSearchParams();
+  if (answers.incomeBand) {
+    const cap = INCOME_BAND_CAPS[answers.incomeBand];
+    if (Number.isFinite(cap)) {
+      params.set('max_min_monthly_income', String(cap));
+      params.set('include_unknown_income', 'true');
+    }
+  }
+  if (answers.islamicPreference === 'islamic_only') params.set('is_islamic', 'true');
+  if (answers.feeTolerance === 'none') {
+    params.set('no_annual_fee', 'true');
+  } else if (answers.feeTolerance === 'low' || answers.feeTolerance === 'moderate') {
+    params.set('annual_fee_max', String(FEE_TOLERANCE_CAPS[answers.feeTolerance]));
+  }
+  if (answers.network) params.set('card_network', answers.network);
+  if (answers.bankId !== null) params.set('bank_ids', String(answers.bankId));
+  return params;
+};
+
 export const encodeQuizResult = (result: { cardIds: number[]; answers: QuizAnswers }): string => {
   const data = JSON.stringify(result);
   return btoa(data).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');

@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
+import { AuthProvider } from '../hooks/AuthProvider';
 import { apiService } from '../services/api';
 
 import BankPage from './BankPage';
@@ -86,11 +87,13 @@ const emptyCardsResponse = { count: 0, next: null, previous: null, results: [] }
 
 const renderBankPage = (slug: string) =>
   render(
-    <MemoryRouter initialEntries={[`/bank/${slug}`]}>
-      <Routes>
-        <Route path="/bank/:slug" element={<BankPage />} />
-      </Routes>
-    </MemoryRouter>
+    <AuthProvider>
+      <MemoryRouter initialEntries={[`/bank/${slug}`]}>
+        <Routes>
+          <Route path="/bank/:slug" element={<BankPage />} />
+        </Routes>
+      </MemoryRouter>
+    </AuthProvider>
   );
 
 beforeEach(() => {

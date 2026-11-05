@@ -1,35 +1,60 @@
 /**
- * Card Detail Page with "Watch this card" toggle for alert subscriptions.
+ * Card Detail Page — a decision page (redesign plan Section 4.3).
+ *
+ * Grammar (Section 4.12): a sticky DetailSummary (identity, CreditMate
+ * Score, the estimated value at the user's profile spend, the session
+ * eligibility signal, provenance chip, actions), a verdict strip, then
+ * Layer-2 tabs (fees, rewards, eligibility, features & limits, reviews),
+ * ONE deduplicated trust block (score breakdown, provenance, the now
+ * public fee-change history), and similar cards drawn cross-bank by
+ * CreditMate Score proximity. Every fact and figure is the same data
+ * the pre-redesign page showed — only the presentation changed.
  */
 
-import React, { useEffect, useState, useCallback, Suspense } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 import ReportIssueDialog from '../components/ReportIssueDialog';
 import { ReviewsSection } from '../components/ReviewsSection';
+import { Skeleton } from '../components/Skeleton';
+import {
+  DetailSummary,
+  Money,
+  Tabs,
+  TrustChip,
+  UnknownValue,
+  VerdictStrip,
+} from '../components/ui';
 import { useAuth } from '../hooks/AuthProvider';
+import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
+import { sessionVerdictForCard } from '../lib/eligibilitySession';
+import { useProfile } from '../lib/profile';
 import {
   useLanguage,
   getAuthCopy,
-  getCommonCopy,
   getAlertsCopy,
   getCardDetailCopy,
+  getDetailCopy,
   getNetworkLabel,
   fillCopy,
   formatLocalizedDate,
   CardDetailCopy,
 } from '../locales';
+import { getEligibilityCopy } from '../locales/eligibility';
+import { getScoreCopy } from '../locales/score';
 import { alertsClient } from '../services/alerts';
 import { apiService } from '../services/api';
 import { CreditCard, RewardCategory } from '../types';
 import { describeFeeWaiverPolicy, FeeWaiverLabels } from '../utils/feeWaiver';
 import { getComparisonSummary } from '../utils/narratives';
+import { computeCardEstimate } from '../utils/rewardCalculator';
 import { slugify } from '../utils/slugify';
 import { breadcrumbJsonLd } from '../utils/structuredData';
 import { summarizeCardText } from '../utils/summarizeCardText';
 import '../styles/CardDetailPage.css';
+import '../styles/DecisionDetail.css';
 
 // Trust sections (provenance + field history) are split out of the main
 // bundle; they render below the fold on this page.
@@ -40,9 +65,6 @@ const CardTrustSections = React.lazy(() => import('../components/CardTrustSectio
 const ScoreSection = React.lazy(() => import('../components/ScoreSection'));
 
 const CARD_DETAIL_PAGE = 'card-detail-page';
-const METRIC_CLASS = 'metric';
-const LABEL_CLASS = 'label';
-const VALUE_CLASS = 'value';
 const SPEC_KEY_CLASS = 'spec-key';
 const SPEC_VALUE_CLASS = 'spec-value';
 
@@ -58,6 +80,35 @@ const REWARD_CATEGORY_LABELS: Record<RewardCategory, keyof CardDetailCopy> = {
   other: 'rewardCategoryOther',
 };
 
+/** Why a similar card is similar, from real attributes only. */
+const similarReason = (
+  card: CreditCard,
+  candidate: CreditCard,
+  detail: ReturnType<typeof getDetailCopy>,
+  networkName: string | null
+): string => {
+  const reasons: string[] = [];
+  if (networkName && candidate.cardNetwork && candidate.cardNetwork === card.cardNetwork) {
+    reasons.push(fillCopy(detail.similarReasonSameNetwork, { network: networkName }));
+  }
+  if (
+    candidate.annualFee !== null &&
+    card.annualFee !== null &&
+    candidate.annualFee < card.annualFee
+  ) {
+    reasons.push(detail.similarReasonLowerFee);
+  }
+  if (
+    card.creditmateScore != null &&
+    candidate.creditmateScore != null &&
+    Math.abs(candidate.creditmateScore - card.creditmateScore) <= 1
+  ) {
+    reasons.push(detail.similarReasonCloseScore);
+  }
+  if (reasons.length === 0) reasons.push(detail.similarReasonTopScore);
+  return `${detail.similarReasonPrefix} ${reasons.join(' · ')}`;
+};
+
 const CardDetailPage: React.FC = () => {
   const { bankSlug, cardSlug } = useParams<{ bankSlug: string; cardSlug: string }>();
   const { status: authStatus } = useAuth();
@@ -65,7 +116,11 @@ const CardDetailPage: React.FC = () => {
   const authCopy = getAuthCopy(lang);
   const alertsCopy = getAlertsCopy(lang);
   const copy = getCardDetailCopy(lang);
-  const common = getCommonCopy(lang);
+  const detail = getDetailCopy(lang);
+  const eligibilityCopy = getEligibilityCopy(lang);
+  const scoreCopy = getScoreCopy(lang);
+  const shortlist = useShortlist();
+  const { profile } = useProfile();
 
   const [card, setCard] = useState<CreditCard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -91,8 +146,8 @@ const CardDetailPage: React.FC = () => {
           description: fillCopy(copy.seoDescription, {
             name: card.name,
             bank: card.bankName ?? copy.seoBankFallback,
-            fee: card.annualFee === null ? copy.na : `${copy.bdt} ${card.annualFee}`,
-            apr: card.interestRateApr === null ? copy.na : `${card.interestRateApr}%`,
+            fee: card.annualFee === null ? copy.notPublished : `${copy.bdt} ${card.annualFee}`,
+            apr: card.interestRateApr === null ? copy.notPublished : `${card.interestRateApr}%`,
           }),
           canonicalPath: cardPath ?? undefined,
           jsonLd: cardPath
@@ -162,20 +217,35 @@ const CardDetailPage: React.FC = () => {
         // Check watch status
         checkWatchStatus(foundCard.id);
 
-        // Fetch similar cards (same bank or similar fee range)
-        if (foundCard.bankId) {
-          const similarResponse = await apiService.getCreditCards({
-            bankId: foundCard.bankId,
-            page_size: 5,
+        // Similar cards: cross-bank, nearest CreditMate Score first
+        // (plan Section 4.3) — never same-bank siblings. The catalogue
+        // is small, so one score-ordered page covers the candidates.
+        try {
+          const poolResponse = await apiService.getCreditCards({
+            ordering: '-creditmate_score',
+            page_size: 100,
           });
           if (cancelled) return;
-          const similar = similarResponse.results
+          const pool = poolResponse.results
             .map(c => apiService.transformCreditCard(c))
-            .filter(c => c.id !== foundCard.id)
-            .slice(0, 3);
-          setSimilarCards(similar);
-        } else {
-          setSimilarCards([]);
+            .filter(c => c.id !== foundCard.id && c.bankId !== foundCard.bankId);
+          const byProximity = [...pool].sort((a, b) => {
+            const aScore = a.creditmateScore ?? null;
+            const bScore = b.creditmateScore ?? null;
+            if (foundCard.creditmateScore != null && aScore !== null && bScore !== null) {
+              const diff =
+                Math.abs(aScore - foundCard.creditmateScore) -
+                Math.abs(bScore - foundCard.creditmateScore);
+              if (diff !== 0) return diff;
+              return bScore - aScore;
+            }
+            if (aScore !== null && bScore === null) return -1;
+            if (aScore === null && bScore !== null) return 1;
+            return 0;
+          });
+          setSimilarCards(byProximity.slice(0, 3));
+        } catch {
+          if (!cancelled) setSimilarCards([]);
         }
       } catch (err) {
         if (cancelled) return;
@@ -257,14 +327,14 @@ const CardDetailPage: React.FC = () => {
   };
 
   const formatAnnualFee = (fee: number | null): string => {
-    if (fee === null) return copy.dataNotAvailable;
+    if (fee === null) return copy.notPublished;
     if (fee === 0) return copy.noAnnualFee;
     return `${copy.bdt} ${fee.toLocaleString()}`;
   };
 
-  // null = field absent (unknown), '' = explicitly no access.
+  // null = the bank publishes no figure for the field, '' = explicitly no access.
   const loungeText = (value: string | null): string =>
-    value === null ? copy.unknown : value === '' ? copy.none : value;
+    value === null ? copy.notPublished : value === '' ? copy.none : value;
 
   const waiverLabels: FeeWaiverLabels = {
     keys: {
@@ -283,11 +353,28 @@ const CardDetailPage: React.FC = () => {
       ? feature
       : describeFeeWaiverPolicy(feature as Record<string, unknown>, waiverLabels).join('; ');
 
+  // Estimated reward value at the user's profile spend. All spend is
+  // allocated to the base "other" category — the conservative base-rate
+  // assumption, stated on screen. A BDT value exists only when the bank
+  // states a point value (the calculator's rule; never invented).
+  const estimate = useMemo(() => {
+    if (!card) return null;
+    return computeCardEstimate(card, {
+      dining: 0,
+      travel: 0,
+      groceries: 0,
+      fuel: 0,
+      other: profile.monthlySpend,
+    });
+  }, [card, profile.monthlySpend]);
+
   if (isLoading) {
     return (
       <div className={CARD_DETAIL_PAGE}>
         <div className="loading-state" role="status" aria-live="polite">
-          <div className="spinner" aria-hidden="true"></div>
+          <Skeleton width="55%" height="32px" />
+          <Skeleton width="100%" height="180px" />
+          <Skeleton width="100%" height="320px" />
           <p>{copy.loading}</p>
         </div>
       </div>
@@ -339,12 +426,12 @@ const CardDetailPage: React.FC = () => {
   const aprLabel =
     card.isIslamic && card.interestRateApr === null ? copy.specProfitFeeShariah : copy.apr;
   const networkLabel = getNetworkLabel(copy, card.cardNetwork);
-  const unknownIfEmpty = (value?: string): string => value || copy.unknown;
+  const notPublishedIfEmpty = (value?: string): string => value || copy.notPublished;
 
   // QA #12: Islamic cards publish their profit/fee wording in additionalFeatures
   // as an "Interest/charges details: ..." item while interestRateApr is null by
   // design. Show that wording in the Shariah profit/fee row (without the
-  // prefix) instead of a generic "data not available".
+  // prefix) instead of a generic "not published".
   const PROFIT_FEE_PREFIX = 'Interest/charges details: ';
   const shariahProfitFeeText = (): string => {
     if (card.interestRateApr !== null || !card.isIslamic) return '';
@@ -353,6 +440,46 @@ const CardDetailPage: React.FC = () => {
     );
     return typeof item === 'string' ? item.slice(PROFIT_FEE_PREFIX.length) : '';
   };
+
+  const aprText =
+    card.interestRateApr === null
+      ? shariahProfitFeeText() || copy.notPublished
+      : `${card.interestRateApr}% ${copy.apr}`;
+
+  const verdictText = (verdict: string): string =>
+    verdict === 'eligible'
+      ? eligibilityCopy.verdictEligible
+      : verdict === 'likely'
+      ? eligibilityCopy.verdictLikely
+      : verdict === 'unknown'
+      ? eligibilityCopy.verdictUnknown
+      : eligibilityCopy.verdictNotYet;
+
+  const score = card.creditmateScore ?? null;
+  const netValue =
+    estimate && estimate.annualValueBdt !== null && card.annualFee !== null
+      ? estimate.annualValueBdt - card.annualFee
+      : null;
+  const sessionVerdict = sessionVerdictForCard(card.id);
+  const inShortlist = shortlist.isInShortlist('cards', String(card.id));
+  const handleShortlistToggle = () => {
+    shortlist.toggle({
+      vertical: 'cards',
+      key: String(card.id),
+      name: card.name,
+      bankName: card.bankName ?? '',
+      detailHref: cardPath ?? `/card/${bankSlug}/${cardSlug}`,
+      cardId: card.id,
+    });
+  };
+
+  const verdictItems = [
+    ...(score !== null ? [{ label: detail.verdictScore, value: `${score.toFixed(1)} / 10` }] : []),
+    ...(netValue !== null
+      ? [{ label: detail.verdictNetValue, value: <Money key="nv" value={netValue} /> }]
+      : []),
+    { label: detail.verdictAnnualFee, value: formatAnnualFee(card.annualFee) },
+  ];
 
   // Render watch toggle or login prompt
   const renderWatchToggle = () => {
@@ -393,8 +520,401 @@ const CardDetailPage: React.FC = () => {
     );
   };
 
+  const feesTab = (
+    <section className="specs-section" aria-label={detail.tabFees}>
+      <table className="specs-table">
+        <tbody>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specAnnualFee}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>{formatAnnualFee(card.annualFee)}</td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specSupplementaryFee}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>{notPublishedIfEmpty(card.supplementaryCardFee)}</td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specForeignTransactionFee}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>{notPublishedIfEmpty(card.foreignTransactionFee)}</td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specCashAdvanceFee}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>{card.cashAdvanceFee || copy.notPublished}</td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specLatePaymentFee}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>{card.latePaymentFee || copy.notPublished}</td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specFeeWaiverPolicy}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>
+              {waiverLines.length ? (
+                <ul className="waiver-policy-list">
+                  {waiverLines.map(line => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              ) : (
+                copy.notPublished
+              )}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Fee Waiver Calculator */}
+      {feeWaiverThreshold && card.annualFee !== null && card.annualFee > 0 && (
+        <section className="fee-waiver-section">
+          <h3>{copy.waiverHeading}</h3>
+          <div className="waiver-info">
+            <p>
+              {fillCopy(copy.waiverSummary, {
+                fee: `${copy.bdt} ${card.annualFee.toLocaleString()}`,
+                threshold: `${copy.bdt} ${feeWaiverThreshold}`,
+              })}
+            </p>
+            <div className="waiver-breakdown">
+              <p>
+                {fillCopy(copy.waiverMonthly, {
+                  amount: annualWaiverSpend
+                    ? `${copy.bdt} ${(annualWaiverSpend / 12).toLocaleString('en-US', {
+                        maximumFractionDigits: 0,
+                      })}`
+                    : copy.notPublished,
+                })}
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+    </section>
+  );
+
+  const rewardsTab = (
+    <div>
+      {/* Value-back maths at the user's profile spend */}
+      <section className="rewards-estimate-section" aria-label={detail.tabRewards}>
+        <dl className="rewards-list">
+          <div className="rewards-row">
+            <dt className={SPEC_KEY_CLASS}>
+              {fillCopy(detail.estNetValueLabel, {
+                spend: `${copy.bdt} ${profile.monthlySpend.toLocaleString()}`,
+              })}
+            </dt>
+            <dd className={SPEC_VALUE_CLASS}>
+              {estimate && estimate.annualValueBdt !== null ? (
+                <>
+                  {netValue !== null ? (
+                    <Money value={netValue} />
+                  ) : (
+                    <Money value={estimate.annualValueBdt} />
+                  )}{' '}
+                  <span className="p2-section-note">
+                    {netValue !== null ? detail.estNetValueNote : detail.estValueNote}
+                  </span>
+                </>
+              ) : (
+                <UnknownValue kind="not-published" />
+              )}
+            </dd>
+          </div>
+          {estimate && estimate.annualPoints !== null && (
+            <div className="rewards-row">
+              <dt className={SPEC_KEY_CLASS}>{copy.rewardsEarnRules}</dt>
+              <dd className={SPEC_VALUE_CLASS}>
+                {Math.round(estimate.annualPoints).toLocaleString()}
+              </dd>
+            </div>
+          )}
+        </dl>
+      </section>
+
+      {/* Reward program details (structured fields; hidden when the bank publishes none) */}
+      {(() => {
+        const earnRules = card.rewardEarnRules ?? [];
+        const cashbackRules = card.cashbackRules ?? [];
+        const hasRewardDetails = Boolean(
+          card.rewardProgramName ||
+            earnRules.length ||
+            cashbackRules.length ||
+            card.rewardPointValueBdt != null ||
+            card.pointsExpiryText
+        );
+        if (!hasRewardDetails) return null;
+        const rewardCategoryLabel = (category: RewardCategory): string =>
+          copy[REWARD_CATEGORY_LABELS[category]] as string;
+        return (
+          <section className="rewards-section" aria-labelledby="rewards-heading">
+            <h3 id="rewards-heading">{copy.rewardsHeading}</h3>
+            <dl className="rewards-list">
+              {card.rewardProgramName && (
+                <div className="rewards-row">
+                  <dt className={SPEC_KEY_CLASS}>{copy.rewardsProgram}</dt>
+                  <dd className={SPEC_VALUE_CLASS}>{card.rewardProgramName}</dd>
+                </div>
+              )}
+              {earnRules.length > 0 && (
+                <div className="rewards-row">
+                  <dt className={SPEC_KEY_CLASS}>{copy.rewardsEarnRules}</dt>
+                  <dd className={SPEC_VALUE_CLASS}>
+                    <ul className="rewards-rule-list">
+                      {earnRules.map(rule => (
+                        <li key={`${rule.category}-${rule.text}`}>
+                          <strong>{rewardCategoryLabel(rule.category)}</strong>:{' '}
+                          {fillCopy(copy.rewardsEarnRuleSummary, {
+                            points: String(rule.pointsPerUnit),
+                            unit: String(rule.spendUnitBdt),
+                          })}
+                          {rule.text && <span className="reward-rule-text"> — {rule.text}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+              )}
+              {cashbackRules.length > 0 && (
+                <div className="rewards-row">
+                  <dt className={SPEC_KEY_CLASS}>{copy.rewardsCashbackRules}</dt>
+                  <dd className={SPEC_VALUE_CLASS}>
+                    <ul className="rewards-rule-list">
+                      {cashbackRules.map(rule => (
+                        <li key={`${rule.category}-${rule.text}`}>
+                          <strong>{rewardCategoryLabel(rule.category)}</strong>:{' '}
+                          {fillCopy(copy.rewardsCashbackSummary, {
+                            percent: String(rule.percent),
+                          })}
+                          {rule.capText && <span> ({rule.capText})</span>}
+                          {rule.text && <span className="reward-rule-text"> — {rule.text}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+              )}
+              <div className="rewards-row">
+                <dt className={SPEC_KEY_CLASS}>{copy.rewardsPointValue}</dt>
+                <dd className={SPEC_VALUE_CLASS}>
+                  {card.rewardPointValueBdt != null
+                    ? `${copy.bdt} ${card.rewardPointValueBdt}`
+                    : copy.rewardsPointValueNone}
+                </dd>
+              </div>
+              {card.pointsExpiryText && (
+                <div className="rewards-row">
+                  <dt className={SPEC_KEY_CLASS}>{copy.rewardsExpiry}</dt>
+                  <dd className={SPEC_VALUE_CLASS}>{card.pointsExpiryText}</dd>
+                </div>
+              )}
+              {card.rewardSourceUrl && (
+                <div className="rewards-row">
+                  <dt className={SPEC_KEY_CLASS}>{copy.rewardsSourceLabel}</dt>
+                  <dd className={SPEC_VALUE_CLASS}>
+                    <a
+                      href={card.rewardSourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                    >
+                      {card.rewardSourceUrl}
+                    </a>
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </section>
+        );
+      })()}
+
+      <table className="specs-table">
+        <tbody>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specRewardsPolicy}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>{card.rewardPointsPolicy || copy.notPublished}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const eligibilityTab = (
+    <section className="specs-section" aria-label={detail.tabEligibility}>
+      {sessionVerdict ? (
+        <div className="p2-eligibility-signal" role="note">
+          <strong>
+            {detail.eligibilitySignalLabel}: {verdictText(sessionVerdict.verdict)}
+          </strong>
+          <span className="p2-section-note">{detail.eligibilityFromSession}</span>
+          {sessionVerdict.reasons.length > 0 && (
+            <ul>
+              {sessionVerdict.reasons.map(reason => (
+                <li key={reason}>{reason}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : (
+        <p>
+          <Link to="/eligibility-checker" className="btn btn-secondary">
+            {detail.checkEligibility}
+          </Link>
+        </p>
+      )}
+      <table className="specs-table">
+        <tbody>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specMinIncome}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>
+              {card.minMonthlyIncome == null
+                ? copy.notPublished
+                : fillCopy(copy.minIncomePerMonth, {
+                    amount: `${copy.bdt} ${card.minMonthlyIncome.toLocaleString()}`,
+                  })}
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specIslamic}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>
+              {card.isIslamic ? copy.islamicValue : copy.conventionalValue}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  );
+
+  const featuresTab = (
+    <section className="specs-section" aria-label={detail.tabFeatures}>
+      <table className="specs-table">
+        <tbody>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specCardName}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>{card.name}</td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specBank}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>{card.bankName || copy.notPublished}</td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {card.isIslamic && card.interestRateApr === null
+                ? copy.specProfitFeeShariah
+                : copy.specApr}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>{aprText}</td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specInternationalLounge}
+            </th>
+            <td id="spec-international-lounge" tabIndex={-1} className={SPEC_VALUE_CLASS}>
+              {loungeText(card.loungeAccessInternational)}
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specDomesticLounge}
+            </th>
+            <td id="spec-domestic-lounge" tabIndex={-1} className={SPEC_VALUE_CLASS}>
+              {loungeText(card.loungeAccessDomestic)}
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specIslamic}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>
+              {card.isIslamic ? copy.islamicValue : copy.conventionalValue}
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specNetwork}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>{networkLabel ?? copy.notPublished}</td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specDualCurrency}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>
+              {card.isDualCurrency == null
+                ? copy.notPublished
+                : card.isDualCurrency
+                ? copy.yes
+                : copy.no}
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specCardStatus}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>
+              {card.isActive ? copy.statusActive : copy.statusInactive}
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specLastUpdated}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>
+              {card.lastUpdated
+                ? new Date(card.lastUpdated).toLocaleDateString()
+                : copy.notPublished}
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" className={SPEC_KEY_CLASS}>
+              {copy.specOfficialSource}
+            </th>
+            <td className={SPEC_VALUE_CLASS}>
+              {card.sourceUrl ? (
+                <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">
+                  {copy.bankWebsite}
+                </a>
+              ) : (
+                copy.notPublished
+              )}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Additional Features */}
+      {card.additionalFeatures && card.additionalFeatures.length > 0 && (
+        <section className="features-section">
+          <h3>{copy.additionalFeaturesHeading}</h3>
+          <ul className="features-list">
+            {card.additionalFeatures.map((feature, idx) => (
+              <li key={idx}>{formatFeature(feature)}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </section>
+  );
+
   return (
-    <div className="card-detail-page">
+    <div className="card-detail-page p2-detail">
       <script data-testid="card-json-ld" type="application/ld+json">
         {JSON.stringify({
           '@context': 'https://schema.org',
@@ -423,122 +943,150 @@ const CardDetailPage: React.FC = () => {
         </span>
       </nav>
 
-      <div className="card-detail-container">
-        {/* Left section: Card image and key details */}
-        <div className="card-detail-left">
-          {card.images && card.images.length > 0 && (
-            <div className="card-image-section">
-              <img src={card.images[0].full} alt={card.name} className="card-large-image" />
-            </div>
-          )}
+      <header className="card-detail-header">
+        <h1>{card.name}</h1>
+        <p className="bank-name">{card.bankName}</p>
+        {card.images && card.images.length > 0 && (
+          <div className="card-image-section">
+            <img src={card.images[0].full} alt={card.name} className="card-large-image" />
+          </div>
+        )}
+      </header>
 
-          <div className="card-key-details">
-            <h1>{card.name}</h1>
-            <p className="bank-name">{card.bankName}</p>
-            <section className="card-insight" aria-label={copy.cardInsight}>
-              <h2>{copy.cardInsight}</h2>
-              <p>{cardInsight}</p>
-            </section>
-
-            <div className="key-metrics">
-              <div className={METRIC_CLASS}>
-                <span className={LABEL_CLASS}>{copy.annualFee}</span>
-                <span className={VALUE_CLASS}>{formatAnnualFee(card.annualFee)}</span>
-              </div>
-              <div className={METRIC_CLASS}>
-                <span className={LABEL_CLASS}>{aprLabel}</span>
-                <span className={VALUE_CLASS}>
-                  {card.interestRateApr === null
-                    ? shariahProfitFeeText() || copy.dataNotAvailable
-                    : `${card.interestRateApr}% ${copy.apr}`}
+      <div className="p2-detail-grid">
+        <aside className="p2-detail-aside">
+          <DetailSummary
+            identity={{ bankName: card.bankName ?? '', productName: card.name }}
+            heroValue={
+              score !== null ? (
+                <span>
+                  {score.toFixed(1)} <span className="p2-section-note">/ 10</span>
                 </span>
-              </div>
-              {card.loungeAccessInternational && (
-                <div className={METRIC_CLASS}>
-                  <span className={LABEL_CLASS}>{copy.internationalLounge}</span>
-                  <span className={VALUE_CLASS}>
-                    {summarizeCardText(card.loungeAccessInternational, true)}
-                  </span>
-                  <a className="metric-details-link" href="#spec-international-lounge">
-                    {common.fullDetails}
-                  </a>
-                </div>
-              )}
-              {card.loungeAccessDomestic && (
-                <div className={METRIC_CLASS}>
-                  <span className={LABEL_CLASS}>{copy.domesticLounge}</span>
-                  <span className={VALUE_CLASS}>
-                    {summarizeCardText(card.loungeAccessDomestic, true)}
-                  </span>
-                  <a className="metric-details-link" href="#spec-domestic-lounge">
-                    {common.fullDetails}
-                  </a>
-                </div>
-              )}
-            </div>
-
-            {/* Watch Toggle */}
-            <div className="watch-section">
-              {renderWatchToggle()}
-              {watchError && (
-                <p className="watch-error" role="alert">
-                  {watchError}
-                </p>
-              )}
-            </div>
-
-            {applyHref && (
-              <a
-                className={`btn btn-primary apply-cta ${ctaClicked ? 'clicked' : ''}`}
-                href={applyHref}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                onClick={handleApplyNow}
-              >
-                {ctaClicked ? copy.openingApplication : copy.applyOnBankSite}
-              </a>
-            )}
-
-            {feeScheduleHref && (
-              <a
-                className="btn btn-secondary apply-cta fee-schedule-cta"
-                href={feeScheduleHref}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-              >
-                {copy.viewFeeSchedule}
-              </a>
-            )}
-
-            {(card.sourceUrl || verifiedText) && (
-              <p className="data-provenance">
-                {card.sourceUrl && (
-                  <>
-                    {copy.sourceLabel}{' '}
-                    <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">
+              ) : (
+                formatAnnualFee(card.annualFee)
+              )
+            }
+            heroLabel={score !== null ? detail.scoreHeroLabel : detail.feeHeroLabel}
+            facts={[
+              {
+                label: detail.verdictNetValue,
+                value:
+                  netValue !== null ? (
+                    <Money value={netValue} />
+                  ) : estimate && estimate.annualValueBdt !== null ? (
+                    <Money value={estimate.annualValueBdt} />
+                  ) : (
+                    <UnknownValue kind="not-published" />
+                  ),
+              },
+              { label: aprLabel, value: aprText },
+              { label: copy.annualFee, value: formatAnnualFee(card.annualFee) },
+              ...(card.loungeAccessInternational
+                ? [
+                    {
+                      label: copy.internationalLounge,
+                      value: summarizeCardText(card.loungeAccessInternational, true),
+                    },
+                  ]
+                : []),
+              ...(card.loungeAccessDomestic
+                ? [
+                    {
+                      label: copy.domesticLounge,
+                      value: summarizeCardText(card.loungeAccessDomestic, true),
+                    },
+                  ]
+                : []),
+              ...(sessionVerdict
+                ? [
+                    {
+                      label: detail.eligibilitySignalLabel,
+                      value: verdictText(sessionVerdict.verdict),
+                    },
+                  ]
+                : []),
+            ]}
+            trustChip={
+              card.sourceUrl ? (
+                <TrustChip
+                  source={
+                    <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer">
                       {copy.sourceScheduleOfCharges}
                     </a>
-                  </>
+                  }
+                  dateLabel={
+                    card.verifiedAt
+                      ? fillCopy(copy.verifiedOn, {
+                          date: formatLocalizedDate(card.verifiedAt, lang),
+                        })
+                      : detail.trustChipUnverified
+                  }
+                />
+              ) : undefined
+            }
+            actions={
+              <>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleShortlistToggle}
+                  aria-pressed={inShortlist}
+                >
+                  {inShortlist ? detail.inShortlist : detail.addToShortlist}
+                </button>
+                <Link to="/eligibility-checker" className="btn btn-secondary">
+                  {detail.checkEligibility}
+                </Link>
+                {applyHref && (
+                  <a
+                    className={`btn btn-outline apply-cta ${ctaClicked ? 'clicked' : ''}`}
+                    href={applyHref}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    onClick={handleApplyNow}
+                  >
+                    {ctaClicked ? copy.openingApplication : copy.applyOnBankSite}
+                  </a>
                 )}
-                {card.sourceUrl && verifiedText && ' · '}
-                {verifiedText}
+                {feeScheduleHref && (
+                  <a
+                    className="btn btn-outline apply-cta fee-schedule-cta"
+                    href={feeScheduleHref}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                  >
+                    {copy.viewFeeSchedule}
+                  </a>
+                )}
+              </>
+            }
+          />
+
+          {score !== null && (
+            <p className="p2-section-note">
+              {detail.scoreHeroLabel}: <Link to="/methodology">{detail.scoreHowCalculated}</Link>
+            </p>
+          )}
+
+          {/* Watch Toggle */}
+          <div className="watch-section">
+            {renderWatchToggle()}
+            {watchError && (
+              <p className="watch-error" role="alert">
+                {watchError}
               </p>
             )}
-            <p className="data-disclaimer">
-              {copy.dataDisclaimer} <Link to="/disclaimer">{copy.disclaimerLink}</Link>
-            </p>
-            <button
-              type="button"
-              className="btn btn-outline report-issue-btn"
-              onClick={() => setReportOpen(true)}
-            >
-              {copy.reportButton}
-            </button>
           </div>
-        </div>
+        </aside>
 
-        {/* Right section: Details and specs */}
-        <div className="card-detail-right">
+        <div className="p2-detail-main">
+          <VerdictStrip items={verdictItems} />
+
+          <section className="card-insight" aria-label={copy.cardInsight}>
+            <h2>{copy.cardInsight}</h2>
+            <p>{cardInsight}</p>
+          </section>
+
           {/* Pros and Cons */}
           <section className="pros-cons-section">
             <h2>{copy.prosConsHeading}</h2>
@@ -599,331 +1147,85 @@ const CardDetailPage: React.FC = () => {
             </div>
           </section>
 
-          {/* Complete Specs Table */}
-          <section className="specs-section">
-            <h2>{copy.specsHeading}</h2>
-            <table className="specs-table">
-              <tbody>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specCardName}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{card.name}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specBank}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{card.bankName || copy.na}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specAnnualFee}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{formatAnnualFee(card.annualFee)}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {card.isIslamic && card.interestRateApr === null
-                      ? copy.specProfitFeeShariah
-                      : copy.specApr}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>
-                    {card.interestRateApr === null
-                      ? shariahProfitFeeText() || copy.dataNotAvailable
-                      : `${card.interestRateApr}% ${copy.apr}`}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specInternationalLounge}
-                  </th>
-                  <td id="spec-international-lounge" tabIndex={-1} className={SPEC_VALUE_CLASS}>
-                    {loungeText(card.loungeAccessInternational)}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specDomesticLounge}
-                  </th>
-                  <td id="spec-domestic-lounge" tabIndex={-1} className={SPEC_VALUE_CLASS}>
-                    {loungeText(card.loungeAccessDomestic)}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specNetwork}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{networkLabel ?? copy.unknown}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specIslamic}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>
-                    {card.isIslamic ? copy.islamicValue : copy.conventionalValue}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specDualCurrency}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>
-                    {card.isDualCurrency == null
-                      ? copy.unknown
-                      : card.isDualCurrency
-                      ? copy.yes
-                      : copy.no}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specMinIncome}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>
-                    {card.minMonthlyIncome == null
-                      ? copy.unknown
-                      : fillCopy(copy.minIncomePerMonth, {
-                          amount: `${copy.bdt} ${card.minMonthlyIncome.toLocaleString()}`,
-                        })}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specSupplementaryFee}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{unknownIfEmpty(card.supplementaryCardFee)}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specForeignTransactionFee}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{unknownIfEmpty(card.foreignTransactionFee)}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specCashAdvanceFee}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{card.cashAdvanceFee || copy.na}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specLatePaymentFee}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{card.latePaymentFee || copy.na}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specRewardsPolicy}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>{card.rewardPointsPolicy || copy.na}</td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specFeeWaiverPolicy}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>
-                    {waiverLines.length ? (
-                      <ul className="waiver-policy-list">
-                        {waiverLines.map(line => (
-                          <li key={line}>{line}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      copy.dataNotAvailable
+          <Tabs
+            ariaLabel={detail.tabsLabel}
+            tabs={[
+              { id: 'fees', label: detail.tabFees, content: feesTab },
+              { id: 'rewards', label: detail.tabRewards, content: rewardsTab },
+              { id: 'eligibility', label: detail.tabEligibility, content: eligibilityTab },
+              { id: 'features', label: detail.tabFeatures, content: featuresTab },
+              {
+                id: 'reviews',
+                label: detail.tabReviews,
+                content: (
+                  <ReviewsSection
+                    cardId={card.id}
+                    cardName={card.name}
+                    cardUrl={cardPath || window.location.pathname}
+                  />
+                ),
+              },
+            ]}
+          />
+
+          {/* Trust block — once: score breakdown, provenance, fee history */}
+          <div className="p2-trust">
+            <Suspense fallback={null}>
+              <ScoreSection card={card} />
+            </Suspense>
+            <Suspense fallback={null}>
+              <CardTrustSections card={card} />
+            </Suspense>
+            <p className="data-disclaimer">
+              {copy.dataDisclaimer} <Link to="/disclaimer">{copy.disclaimerLink}</Link>
+              {verifiedText ? ` · ${verifiedText}` : ''}
+            </p>
+            <button
+              type="button"
+              className="btn btn-outline report-issue-btn"
+              onClick={() => setReportOpen(true)}
+            >
+              {copy.reportButton}
+            </button>
+          </div>
+
+          {/* Similar Cards — cross-bank, by CreditMate Score proximity */}
+          {similarCards.length > 0 && (
+            <section className="similar-cards-section">
+              <h2>{detail.similarCardsHeading}</h2>
+              <div className="p2-similar-grid">
+                {similarCards.map(similarCard => (
+                  <div key={similarCard.id} className="similar-card-item">
+                    {similarCard.images && similarCard.images.length > 0 && (
+                      <img
+                        src={similarCard.images[0].small}
+                        alt={similarCard.name}
+                        className="similar-card-image"
+                      />
                     )}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specAdditionalFeatures}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>
-                    {card.additionalFeatures.length
-                      ? card.additionalFeatures.map(formatFeature).join(', ')
-                      : copy.dataNotAvailable}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specCardStatus}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>
-                    {card.isActive ? copy.statusActive : copy.statusInactive}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specLastUpdated}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>
-                    {card.lastUpdated
-                      ? new Date(card.lastUpdated).toLocaleDateString()
-                      : copy.unknown}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className={SPEC_KEY_CLASS}>
-                    {copy.specOfficialSource}
-                  </th>
-                  <td className={SPEC_VALUE_CLASS}>
-                    {card.sourceUrl ? (
-                      <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer nofollow">
-                        {copy.bankWebsite}
-                      </a>
-                    ) : (
-                      copy.dataNotAvailable
+                    <p className="bank-name">{similarCard.bankName}</p>
+                    <h3>{similarCard.name}</h3>
+                    <p className="annual-fee">{formatAnnualFee(similarCard.annualFee)}</p>
+                    {similarCard.creditmateScore != null && (
+                      <p className="similar-score">
+                        {scoreCopy.detailHeading}: {similarCard.creditmateScore.toFixed(1)} / 10
+                      </p>
                     )}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-
-          {/* CreditMate Score with its per-component breakdown */}
-          <Suspense fallback={null}>
-            <ScoreSection card={card} />
-          </Suspense>
-
-          {/* Data source, verification status and recorded field changes */}
-          <Suspense fallback={null}>
-            <CardTrustSections card={card} />
-          </Suspense>
-
-          {/* Reward program details (structured fields; hidden when the bank publishes none) */}
-          {(() => {
-            const earnRules = card.rewardEarnRules ?? [];
-            const cashbackRules = card.cashbackRules ?? [];
-            const hasRewardDetails = Boolean(
-              card.rewardProgramName ||
-                earnRules.length ||
-                cashbackRules.length ||
-                card.rewardPointValueBdt != null ||
-                card.pointsExpiryText
-            );
-            if (!hasRewardDetails) return null;
-            const rewardCategoryLabel = (category: RewardCategory): string =>
-              copy[REWARD_CATEGORY_LABELS[category]] as string;
-            return (
-              <section className="rewards-section" aria-labelledby="rewards-heading">
-                <h2 id="rewards-heading">{copy.rewardsHeading}</h2>
-                <dl className="rewards-list">
-                  {card.rewardProgramName && (
-                    <div className="rewards-row">
-                      <dt className={SPEC_KEY_CLASS}>{copy.rewardsProgram}</dt>
-                      <dd className={SPEC_VALUE_CLASS}>{card.rewardProgramName}</dd>
-                    </div>
-                  )}
-                  {earnRules.length > 0 && (
-                    <div className="rewards-row">
-                      <dt className={SPEC_KEY_CLASS}>{copy.rewardsEarnRules}</dt>
-                      <dd className={SPEC_VALUE_CLASS}>
-                        <ul className="rewards-rule-list">
-                          {earnRules.map(rule => (
-                            <li key={`${rule.category}-${rule.text}`}>
-                              <strong>{rewardCategoryLabel(rule.category)}</strong>:{' '}
-                              {fillCopy(copy.rewardsEarnRuleSummary, {
-                                points: String(rule.pointsPerUnit),
-                                unit: String(rule.spendUnitBdt),
-                              })}
-                              {rule.text && (
-                                <span className="reward-rule-text"> — {rule.text}</span>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </dd>
-                    </div>
-                  )}
-                  {cashbackRules.length > 0 && (
-                    <div className="rewards-row">
-                      <dt className={SPEC_KEY_CLASS}>{copy.rewardsCashbackRules}</dt>
-                      <dd className={SPEC_VALUE_CLASS}>
-                        <ul className="rewards-rule-list">
-                          {cashbackRules.map(rule => (
-                            <li key={`${rule.category}-${rule.text}`}>
-                              <strong>{rewardCategoryLabel(rule.category)}</strong>:{' '}
-                              {fillCopy(copy.rewardsCashbackSummary, {
-                                percent: String(rule.percent),
-                              })}
-                              {rule.capText && <span> ({rule.capText})</span>}
-                              {rule.text && (
-                                <span className="reward-rule-text"> — {rule.text}</span>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </dd>
-                    </div>
-                  )}
-                  <div className="rewards-row">
-                    <dt className={SPEC_KEY_CLASS}>{copy.rewardsPointValue}</dt>
-                    <dd className={SPEC_VALUE_CLASS}>
-                      {card.rewardPointValueBdt != null
-                        ? `${copy.bdt} ${card.rewardPointValueBdt}`
-                        : copy.rewardsPointValueNone}
-                    </dd>
+                    <p className="p2-reason">
+                      {similarReason(card, similarCard, detail, networkLabel)}
+                    </p>
+                    <Link
+                      to={`/card/${slugify(similarCard.bankName ?? '')}/${slugify(
+                        similarCard.name
+                      )}`}
+                      className="btn btn-outline"
+                      aria-label={fillCopy(copy.viewDetailsFor, { name: similarCard.name })}
+                    >
+                      {copy.viewDetails}
+                    </Link>
                   </div>
-                  {card.pointsExpiryText && (
-                    <div className="rewards-row">
-                      <dt className={SPEC_KEY_CLASS}>{copy.rewardsExpiry}</dt>
-                      <dd className={SPEC_VALUE_CLASS}>{card.pointsExpiryText}</dd>
-                    </div>
-                  )}
-                  {card.rewardSourceUrl && (
-                    <div className="rewards-row">
-                      <dt className={SPEC_KEY_CLASS}>{copy.rewardsSourceLabel}</dt>
-                      <dd className={SPEC_VALUE_CLASS}>
-                        <a
-                          href={card.rewardSourceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer nofollow"
-                        >
-                          {card.rewardSourceUrl}
-                        </a>
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </section>
-            );
-          })()}
-
-          {/* Fee Waiver Calculator */}
-          {feeWaiverThreshold && card.annualFee !== null && card.annualFee > 0 && (
-            <section className="fee-waiver-section">
-              <h2>{copy.waiverHeading}</h2>
-              <div className="waiver-info">
-                <p>
-                  {fillCopy(copy.waiverSummary, {
-                    fee: `${copy.bdt} ${card.annualFee.toLocaleString()}`,
-                    threshold: `${copy.bdt} ${feeWaiverThreshold}`,
-                  })}
-                </p>
-                <div className="waiver-breakdown">
-                  <p>
-                    {fillCopy(copy.waiverMonthly, {
-                      amount: annualWaiverSpend
-                        ? `${copy.bdt} ${(annualWaiverSpend / 12).toLocaleString('en-US', {
-                            maximumFractionDigits: 0,
-                          })}`
-                        : copy.na,
-                    })}
-                  </p>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Additional Features */}
-          {card.additionalFeatures && card.additionalFeatures.length > 0 && (
-            <section className="features-section">
-              <h2>{copy.additionalFeaturesHeading}</h2>
-              <ul className="features-list">
-                {card.additionalFeatures.map((feature, idx) => (
-                  <li key={idx}>{formatFeature(feature)}</li>
                 ))}
-              </ul>
+              </div>
             </section>
           )}
         </div>
@@ -934,44 +1236,6 @@ const CardDetailPage: React.FC = () => {
           cardId={card.id}
           cardName={card.name}
           onClose={() => setReportOpen(false)}
-        />
-      )}
-
-      {/* Similar Cards */}
-      {similarCards.length > 0 && (
-        <section className="similar-cards-section">
-          <h2>{fillCopy(copy.similarCardsHeading, { bank: card.bankName ?? '' })}</h2>
-          <div className="similar-cards-grid">
-            {similarCards.map(similarCard => (
-              <div key={similarCard.id} className="similar-card-item">
-                {similarCard.images && similarCard.images.length > 0 && (
-                  <img
-                    src={similarCard.images[0].small}
-                    alt={similarCard.name}
-                    className="similar-card-image"
-                  />
-                )}
-                <h3>{similarCard.name}</h3>
-                <p className="annual-fee">{formatAnnualFee(similarCard.annualFee)}</p>
-                <Link
-                  to={`/card/${bankSlug}/${similarCard.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="btn btn-outline"
-                  aria-label={fillCopy(copy.viewDetailsFor, { name: similarCard.name })}
-                >
-                  {copy.viewDetails}
-                </Link>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Reviews Section */}
-      {card && (
-        <ReviewsSection
-          cardId={card.id}
-          cardName={card.name}
-          cardUrl={cardPath || window.location.pathname}
         />
       )}
     </div>

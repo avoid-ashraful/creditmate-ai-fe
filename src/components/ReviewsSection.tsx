@@ -57,7 +57,11 @@ const StarRating: React.FC<{
   }
 
   return (
-    <span className="star-rating" aria-label={ariaLabel || `${rating} out of ${maxRating} stars`}>
+    <span
+      className="star-rating"
+      role="img"
+      aria-label={ariaLabel || `${rating} out of ${maxRating} stars`}
+    >
       {stars}
     </span>
   );
@@ -78,7 +82,7 @@ const DistributionBar: React.FC<{
   const isFull = rating <= Math.floor(average);
 
   return (
-    <div className={`distribution-bar ${size}`}>
+    <div className={`distribution-bar ${size}`} role="listitem">
       <span className="distribution-label">{rating}★</span>
       <div
         className="distribution-track"
@@ -173,7 +177,7 @@ const ReviewItem: React.FC<ReviewItemProps> = ({ review, copy, onHelpfulClick })
   const date = review.created ? formatGregorianDate(review.created) : '';
 
   return (
-    <article className="review-item">
+    <div className="review-item" role="listitem">
       <header className="review-header">
         <div className="review-author">
           <span className="display-name">{review.reviewerName}</span>
@@ -226,7 +230,7 @@ const ReviewItem: React.FC<ReviewItemProps> = ({ review, copy, onHelpfulClick })
           <span className="helpful-count">({review.helpfulCount})</span>
         </button>
       </footer>
-    </article>
+    </div>
   );
 };
 

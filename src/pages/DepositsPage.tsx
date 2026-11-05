@@ -199,13 +199,27 @@ const DepositsPage: React.FC = () => {
     cataloguePage * CATALOGUE_PAGE_SIZE
   );
 
+  // Scenario carry-forward (redesign Phase 2): detail links keep the
+  // scenario inputs, so the detail page's calculator strip opens
+  // prefilled with the same amount/instalment and term.
+  const detailHrefFor = (slug: string): string => {
+    const params = new URLSearchParams();
+    params.set('kind', kind);
+    if (kind === 'fdr' && amount) params.set('amount', amount);
+    if (kind === 'dps' && instalment) params.set('instalment', instalment);
+    if (months) params.set('months', months);
+    if (!hasTin) params.set('tin', '0');
+    if (islamicOnly) params.set('islamic', '1');
+    return `/deposits/${slug}?${params.toString()}`;
+  };
+
   const toggleShortlist = (result: DepositScenarioResult) => {
     const outcome = shortlist.toggle({
       vertical: 'deposits',
       key: result.product.slug,
       name: result.product.name,
       bankName: result.product.institutionDisplayName,
-      detailHref: `/deposits/${result.product.slug}`,
+      detailHref: detailHrefFor(result.product.slug),
     });
     if (outcome === 'full') {
       toast({ message: fillCopy(shellCopy.shortlistFull, { count: '4' }), variant: 'warning' });
@@ -224,7 +238,7 @@ const DepositsPage: React.FC = () => {
         key={product.id}
         bankName={product.institutionDisplayName}
         productName={product.name}
-        detailHref={`/deposits/${product.slug}`}
+        detailHref={detailHrefFor(product.slug)}
         heroValue={<Money value={result.netMaturity} decimals={2} />}
         heroLabel={copy.colNet}
         supportingFacts={[
@@ -395,7 +409,7 @@ const DepositsPage: React.FC = () => {
             <ul className="cm-catalogue-list">
               {catalogueSlice.map(product => (
                 <li key={product.id} className="cm-catalogue-item">
-                  <Link to={`/deposits/${product.slug}`} className="cm-catalogue-link">
+                  <Link to={detailHrefFor(product.slug)} className="cm-catalogue-link">
                     <span className="cm-catalogue-name">{product.name}</span>
                     <span className="cm-catalogue-bank">{product.institutionDisplayName}</span>
                   </Link>

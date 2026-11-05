@@ -82,7 +82,9 @@
 
 .history-item {
   padding: var(--spacing-md) 0 var(--spacing-md) var(--spacing-lg);
-  border-left: 2px solid var(--color-border-strong);
+  border-left-width: 2px;
+  border-left-style: solid;
+  border-left-color: var(--color-border-strong);
   position: relative;
 }
 

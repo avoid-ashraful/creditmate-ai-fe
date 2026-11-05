@@ -14,6 +14,7 @@ export * from './common';
 export * from './alerts';
 export * from './reviews';
 export * from './cardDetail';
+export * from './detail';
 export * from './categories';
 export * from './shell';
 export * from './discovery';

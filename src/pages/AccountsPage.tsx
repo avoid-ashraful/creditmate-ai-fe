@@ -176,13 +176,19 @@ const AccountsPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [balance, accountType, bank, segment, islamicOnly, retryNonce]);
 
+  // Scenario carry-forward (redesign Phase 2): detail links keep the
+  // balance the user is evaluating, so the detail page's calculator
+  // strip opens prefilled with the same balance.
+  const detailHrefFor = (slug: string): string =>
+    balance ? `/accounts/${slug}?balance=${encodeURIComponent(balance)}` : `/accounts/${slug}`;
+
   const toggleShortlist = (result: AccountScenarioResult) => {
     const outcome = shortlist.toggle({
       vertical: 'accounts',
       key: result.product.slug,
       name: result.product.name,
       bankName: result.product.bank.name,
-      detailHref: `/accounts/${result.product.slug}`,
+      detailHref: detailHrefFor(result.product.slug),
     });
     if (outcome === 'full') {
       toast({ message: fillCopy(shellCopy.shortlistFull, { count: '4' }), variant: 'warning' });
@@ -203,7 +209,7 @@ const AccountsPage: React.FC = () => {
         key={product.id}
         bankName={product.bank.name}
         productName={product.name}
-        detailHref={`/accounts/${product.slug}`}
+        detailHref={detailHrefFor(product.slug)}
         heroValue={<Money value={result.netAnnualValue} decimals={2} />}
         heroLabel={copy.colNet}
         supportingFacts={[

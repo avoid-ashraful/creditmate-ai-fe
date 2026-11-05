@@ -24,6 +24,11 @@ export interface ResultCardProps {
   onToggleShortlist?: () => void;
   /** Layer-2 detail, revealed by the "Details" disclosure. */
   children?: React.ReactNode;
+  /**
+   * Start with the details region open. For surfaces where the children
+   * ARE the content (e.g. eligibility reasons quoting the criteria).
+   */
+  defaultExpanded?: boolean;
   className?: string;
 }
 
@@ -45,10 +50,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
   inShortlist = false,
   onToggleShortlist,
   children,
+  defaultExpanded = false,
   className,
 }) => {
   const regionId = useId().replace(/[^a-zA-Z0-9-]/g, '');
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const classes = ['cm-result-card', className].filter(Boolean).join(' ');
 
   return (

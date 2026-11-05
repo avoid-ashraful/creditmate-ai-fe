@@ -55,6 +55,8 @@ export interface EligibilityCopy {
   apr: string;
   minIncome: string;
   noMinIncome: string;
+  /** §3.6 term for a value that structurally does not apply (e.g. APR on an Islamic card). */
+  notApplicable: string;
   viewDetails: string;
   compare: string;
   notesHeading: string;
@@ -63,6 +65,13 @@ export interface EligibilityCopy {
   errorResults: string;
   retry: string;
   checkAnother: string;
+  topPicksHeading: string;
+  scoreLabel: string;
+  sourceLabel: string;
+  topPicksNote: string;
+  sortLabel: string;
+  sortScore: string;
+  sortFeeAsc: string;
   loadingLabel: string;
 }
 
@@ -117,6 +126,7 @@ const en: EligibilityCopy = {
   apr: 'APR',
   minIncome: 'Published minimum income',
   noMinIncome: 'Not published',
+  notApplicable: 'Not applicable',
   viewDetails: 'View details',
   compare: 'Compare',
   notesHeading: 'Good to know before you apply',
@@ -125,6 +135,14 @@ const en: EligibilityCopy = {
   errorResults: 'We could not run the check just now. Please try again.',
   retry: 'Try again',
   checkAnother: 'Check another profile',
+  topPicksHeading: 'Your top matches',
+  scoreLabel: 'CreditMate Score',
+  sourceLabel: "Bank's published criteria",
+  topPicksNote:
+    'The highest-scored cards you are eligible or likely eligible for, with the reasons quoted from the published criteria.',
+  sortLabel: 'Sort results by',
+  sortScore: 'CreditMate Score',
+  sortFeeAsc: 'Lowest annual fee',
   loadingLabel: 'Checking eligibility…',
 };
 
@@ -180,6 +198,7 @@ const bn: EligibilityCopy = {
   apr: 'এপিআর',
   minIncome: 'প্রকাশিত ন্যূনতম আয়',
   noMinIncome: 'প্রকাশিত নয়',
+  notApplicable: 'প্রযোজ্য নয়',
   viewDetails: 'বিস্তারিত দেখুন',
   compare: 'তুলনা করুন',
   notesHeading: 'আবেদনের আগে জেনে রাখুন',
@@ -188,6 +207,14 @@ const bn: EligibilityCopy = {
   errorResults: 'এই মুহূর্তে যাচাই করা যায়নি। আবার চেষ্টা করুন।',
   retry: 'আবার চেষ্টা করুন',
   checkAnother: 'অন্য তথ্য দিয়ে যাচাই করুন',
+  topPicksHeading: 'আপনার সেরা মিল',
+  scoreLabel: 'ক্রেডিটমেট স্কোর',
+  sourceLabel: 'ব্যাংকের প্রকাশিত শর্ত',
+  topPicksNote:
+    'আপনি যোগ্য বা সম্ভবত যোগ্য এমন সর্বোচ্চ স্কোরের কার্ড, প্রকাশিত শর্ত থেকে উদ্ধৃত কারণসহ।',
+  sortLabel: 'ফলাফল সাজান',
+  sortScore: 'ক্রেডিটমেট স্কোর',
+  sortFeeAsc: 'সর্বনিম্ন বার্ষিক ফি',
   loadingLabel: 'যোগ্যতা যাচাই করা হচ্ছে…',
 };
 

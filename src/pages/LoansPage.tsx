@@ -230,13 +230,26 @@ const LoansPage: React.FC = () => {
     return map;
   }, [scenario]);
 
+  // Scenario carry-forward (redesign Phase 2): detail links keep the
+  // scenario the user is looking at, so the detail page's own calculator
+  // strip opens prefilled with the same amount and term.
+  const detailHrefFor = (slug: string): string => {
+    const params = new URLSearchParams();
+    params.set('type', loanType);
+    if (amount) params.set('amount', amount);
+    if (tenure) params.set('tenure', tenure);
+    if (income) params.set('income', income);
+    if (islamicOnly) params.set('islamic', '1');
+    return `/loans/${slug}?${params.toString()}`;
+  };
+
   const toggleShortlist = (product: LoanProductListItem) => {
     const outcome = shortlist.toggle({
       vertical: 'loans',
       key: product.slug,
       name: product.name,
       bankName: product.lenderName,
-      detailHref: `/loans/${product.slug}`,
+      detailHref: detailHrefFor(product.slug),
     });
     if (outcome === 'full') {
       toast({ message: fillCopy(shellCopy.shortlistFull, { count: '4' }), variant: 'warning' });
@@ -258,7 +271,7 @@ const LoansPage: React.FC = () => {
         key={product.id}
         bankName={product.lenderName}
         productName={product.name}
-        detailHref={`/loans/${product.slug}`}
+        detailHref={detailHrefFor(product.slug)}
         heroValue={
           result.atMinRate && result.atMaxRate ? (
             <>
@@ -359,7 +372,7 @@ const LoansPage: React.FC = () => {
         key={product.id}
         bankName={product.lenderName}
         productName={product.name}
-        detailHref={`/loans/${product.slug}`}
+        detailHref={detailHrefFor(product.slug)}
         heroValue={band ? `${band.min}–${band.max}%` : <UnknownValue kind="not-published" />}
         heroLabel={copy.colBand}
         supportingFacts={[
