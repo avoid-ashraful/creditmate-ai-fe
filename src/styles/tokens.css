@@ -114,10 +114,10 @@
   --color-info-subtle: #f0f9ff;
   --color-info-border: #bae6fd;
   --color-info-contrast: #ffffff;
-  --color-background-base: #f8fafc;
+  --color-background-base: #eceef3;
   --color-background-surface: #ffffff;
   --color-background-elevated: #ffffff;
-  --color-background-muted: #f1f5f9;
+  --color-background-muted: #dfe2eb;
   --color-background-inverse: #0f172a;
   --color-background-overlay: rgba(15, 23, 42, 0.6);
   --color-text-primary: #1e293b;
@@ -126,24 +126,24 @@
   --color-text-disabled: #94a3b8;
   --color-text-inverse: #ffffff;
   --color-text-inverse-secondary: #94a3b8;
-  --color-text-link: #2563eb;
-  --color-text-link-hover: #1d4ed8;
+  --color-text-link: #1d4ed8;
+  --color-text-link-hover: #1e40af;
   --color-text-on-primary: #ffffff;
   --color-border-base: #64748b;
   --color-border-strong: #64748b;
-  --color-border-subtle: #f1f5f9;
+  --color-border-subtle: #d8dce6;
   --color-border-focus: #2563eb;
   --color-border-error: #ef4444;
-  --color-state-hover-surface: #f1f5f9;
+  --color-state-hover-surface: #e4e7ef;
   --color-state-selected-surface: #eff6ff;
-  --color-state-disabled-surface: #f1f5f9;
-  --color-state-disabled-border: #e2e8f0;
+  --color-state-disabled-surface: #e4e7ef;
+  --color-state-disabled-border: #d8dce6;
   --color-gradient-brand: linear-gradient(135deg, #4f46b8 0%, #663c91 100%);
   --color-gradient-header: linear-gradient(-45deg, #1e40af, #1d4ed8, #4338ca, #4f46e5);
   --color-gradient-primary-button: linear-gradient(90deg, #2563eb, #1d4ed8);
   --color-gradient-accent-button: linear-gradient(90deg, #047857, #065f46);
   --color-gradient-footer: linear-gradient(to right, #0f172a, #1e293b);
-  --color-gradient-background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  --color-gradient-background: linear-gradient(135deg, #eceef3 0%, #eef2ff 100%);
   --color-gradient-card-accent: linear-gradient(90deg, #2563eb, #047857);
 
   /* motion */
@@ -169,6 +169,7 @@
   --shadow-none: none;
   --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 1px 2px 0 rgba(30, 41, 59, 0.05), 0 12px 32px -12px rgba(30, 41, 59, 0.16);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
@@ -486,10 +487,10 @@
   --color-info-subtle: #f0f9ff;
   --color-info-border: #bae6fd;
   --color-info-contrast: #ffffff;
-  --color-background-base: #f8fafc;
+  --color-background-base: #eceef3;
   --color-background-surface: #ffffff;
   --color-background-elevated: #ffffff;
-  --color-background-muted: #f1f5f9;
+  --color-background-muted: #dfe2eb;
   --color-background-inverse: #0f172a;
   --color-background-overlay: rgba(15, 23, 42, 0.6);
   --color-text-primary: #1e293b;
@@ -498,24 +499,24 @@
   --color-text-disabled: #94a3b8;
   --color-text-inverse: #ffffff;
   --color-text-inverse-secondary: #94a3b8;
-  --color-text-link: #2563eb;
-  --color-text-link-hover: #1d4ed8;
+  --color-text-link: #1d4ed8;
+  --color-text-link-hover: #1e40af;
   --color-text-on-primary: #ffffff;
   --color-border-base: #64748b;
   --color-border-strong: #64748b;
-  --color-border-subtle: #f1f5f9;
+  --color-border-subtle: #d8dce6;
   --color-border-focus: #2563eb;
   --color-border-error: #ef4444;
-  --color-state-hover-surface: #f1f5f9;
+  --color-state-hover-surface: #e4e7ef;
   --color-state-selected-surface: #eff6ff;
-  --color-state-disabled-surface: #f1f5f9;
-  --color-state-disabled-border: #e2e8f0;
+  --color-state-disabled-surface: #e4e7ef;
+  --color-state-disabled-border: #d8dce6;
   --color-gradient-brand: linear-gradient(135deg, #4f46b8 0%, #663c91 100%);
   --color-gradient-header: linear-gradient(-45deg, #1e40af, #1d4ed8, #4338ca, #4f46e5);
   --color-gradient-primary-button: linear-gradient(90deg, #2563eb, #1d4ed8);
   --color-gradient-accent-button: linear-gradient(90deg, #047857, #065f46);
   --color-gradient-footer: linear-gradient(to right, #0f172a, #1e293b);
-  --color-gradient-background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  --color-gradient-background: linear-gradient(135deg, #eceef3 0%, #eef2ff 100%);
   --color-gradient-card-accent: linear-gradient(90deg, #2563eb, #047857);
 
   /* motion */
@@ -541,6 +542,7 @@
   --shadow-none: none;
   --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 1px 2px 0 rgba(30, 41, 59, 0.05), 0 12px 32px -12px rgba(30, 41, 59, 0.16);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);

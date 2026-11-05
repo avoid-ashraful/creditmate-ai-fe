@@ -6,7 +6,7 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   background: var(--color-background-surface);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
 }
 
 .cm-result-card-top {

@@ -143,7 +143,8 @@
         "info": {
           "base": {
             "type": "color",
-            "value": "#38bdf8"
+            "value": "#7dd3fc",
+            "description": "Brightened sky so info-base text on info-subtle keeps WCAG AA in dark mode (Phase 4)."
           },
           "subtle": {
             "type": "color",
@@ -220,11 +221,12 @@
           },
           "link": {
             "type": "color",
-            "value": "#60a5fa"
+            "value": "#93c5fd",
+            "description": "Brightened blue so link text on muted wells keeps WCAG AA in dark mode (Phase 4)."
           },
           "linkHover": {
             "type": "color",
-            "value": "#93c5fd"
+            "value": "#bfdbfe"
           },
           "onPrimary": {
             "type": "color",
@@ -694,7 +696,8 @@
       "warning": {
         "base": {
           "type": "color",
-          "value": "#f59e0b"
+          "value": "#b45309",
+          "description": "Darkened amber so warning-base text on warning-subtle keeps WCAG AA (Phase 4)."
         },
         "hover": {
           "type": "color",
@@ -710,8 +713,8 @@
         },
         "contrast": {
           "type": "color",
-          "value": "#0f172a",
-          "description": "Amber needs dark text for AA contrast."
+          "value": "#ffffff",
+          "description": "White text on the darkened amber base for AA contrast (Phase 4)."
         }
       },
       "error": {
@@ -757,8 +760,8 @@
       "background": {
         "base": {
           "type": "color",
-          "value": "#f8fafc",
-          "description": "App canvas behind all content."
+          "value": "#ECEEF3",
+          "description": "App canvas behind all content. Cool lavender-grey tint (Clay-style tinted ground): white surfaces step up from it as a deliberate layer instead of blending into a near-white canvas."
         },
         "surface": {
           "type": "color",
@@ -771,8 +774,8 @@
         },
         "muted": {
           "type": "color",
-          "value": "#f1f5f9",
-          "description": "Striped rows, code blocks, disabled areas."
+          "value": "#DFE2EB",
+          "description": "Striped rows, code blocks, disabled areas. Recessed step between the tinted canvas and white surfaces, in the same lavender-grey family."
         },
         "inverse": {
           "type": "color",
@@ -816,11 +819,12 @@
         },
         "link": {
           "type": "color",
-          "value": "#2563eb"
+          "value": "#1d4ed8",
+          "description": "Link text. One step deeper than the primary action blue so links keep WCAG AA (4.5:1+) when they sit directly on the tinted page ground, not only on white surfaces."
         },
         "linkHover": {
           "type": "color",
-          "value": "#1d4ed8"
+          "value": "#1e40af"
         },
         "onPrimary": {
           "type": "color",
@@ -840,7 +844,8 @@
         },
         "subtle": {
           "type": "color",
-          "value": "#f1f5f9"
+          "value": "#D8DCE6",
+          "description": "Hairline dividers and card edges. Strengthened with the tinted ground so white cards keep a crisp edge on the deeper canvas."
         },
         "focus": {
           "type": "color",
@@ -855,8 +860,8 @@
       "state": {
         "hoverSurface": {
           "type": "color",
-          "value": "#f1f5f9",
-          "description": "Row / list-item hover background."
+          "value": "#E4E7EF",
+          "description": "Row / list-item hover background. Between canvas and muted so hover reads as a step on both white surfaces and the tinted canvas."
         },
         "selectedSurface": {
           "type": "color",
@@ -864,11 +869,11 @@
         },
         "disabledSurface": {
           "type": "color",
-          "value": "#f1f5f9"
+          "value": "#E4E7EF"
         },
         "disabledBorder": {
           "type": "color",
-          "value": "#e2e8f0"
+          "value": "#D8DCE6"
         }
       },
       "gradient": {
@@ -896,7 +901,7 @@
         },
         "background": {
           "type": "other",
-          "value": "linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)"
+          "value": "linear-gradient(135deg, #ECEEF3 0%, #eef2ff 100%)"
         },
         "cardAccent": {
           "type": "other",
@@ -1012,6 +1017,28 @@
           "type": "dropShadow"
         },
         "description": "Matches the legacy --shadow-sm already used by inputs, cards and popovers."
+      },
+      "card": {
+        "type": "boxShadow",
+        "value": [
+          {
+            "x": "0",
+            "y": "1px",
+            "blur": "2px",
+            "spread": "0",
+            "color": "rgba(30, 41, 59, 0.05)",
+            "type": "dropShadow"
+          },
+          {
+            "x": "0",
+            "y": "12px",
+            "blur": "32px",
+            "spread": "-12px",
+            "color": "rgba(30, 41, 59, 0.16)",
+            "type": "dropShadow"
+          }
+        ],
+        "description": "Resting elevation for cards and panels that sit directly on the tinted page ground (Clay-style soft diffuse depth: large blur, low opacity, slate-tinted). Not for nested elements."
       },
       "md": {
         "type": "boxShadow",
