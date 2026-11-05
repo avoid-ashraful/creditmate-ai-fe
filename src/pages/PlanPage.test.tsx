@@ -71,7 +71,7 @@ describe('PlanPage', () => {
       screen.getAllByRole('link', { name }).map(link => link.getAttribute('href'));
     expect(hrefsFor(/EMI calculator/).every(href => href === '/plan/emi')).toBe(true);
     expect(hrefsFor(/Loan comparison/).every(href => href === '/plan/loan')).toBe(true);
-    expect(hrefsFor(/Eligibility check/).every(href => href === '/eligibility')).toBe(true);
+    expect(hrefsFor(/Eligibility check/).every(href => href === '/eligibility-checker')).toBe(true);
   });
 
   it('tells guests plainly that saving scenarios needs an account', async () => {

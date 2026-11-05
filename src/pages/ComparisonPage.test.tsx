@@ -91,6 +91,19 @@ describe('ComparisonPage shortlist workspace (Phase 3)', () => {
     window.localStorage.clear();
   });
 
+  it('frames the workspace with the flat shortlist header, not the comparison hero', async () => {
+    renderWithAuth(
+      <Routes>
+        <Route path="/compare" element={page} />
+      </Routes>,
+      { route: '/compare' }
+    );
+    expect(await screen.findByRole('heading', { name: 'Your shortlist' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Credit Card Comparison' })
+    ).not.toBeInTheDocument();
+  });
+
   it('teaches what shortlisting is for when the shortlist is empty', async () => {
     renderWithAuth(
       <Routes>

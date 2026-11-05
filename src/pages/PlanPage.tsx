@@ -63,7 +63,7 @@ const PlanPage: React.FC = () => {
     { href: '/plan/deposit', title: copy.toolDeposit, desc: copy.toolDepositDesc },
     { href: '/plan/loan', title: copy.toolLoan, desc: copy.toolLoanDesc },
     { href: '/plan/account', title: copy.toolAccount, desc: copy.toolAccountDesc },
-    { href: '/eligibility', title: copy.toolEligibility, desc: copy.toolEligibilityDesc },
+    { href: '/eligibility-checker', title: copy.toolEligibility, desc: copy.toolEligibilityDesc },
   ];
 
   const confirmDelete = () => {

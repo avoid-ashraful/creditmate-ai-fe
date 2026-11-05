@@ -278,7 +278,7 @@ export const AppRoutes: React.FC = () => {
         />
         <Route path="/plan/loan" element={lazyRoute('Loading plan...', <PlanLoanPage />)} />
         <Route path="/plan/account" element={lazyRoute('Loading plan...', <PlanAccountPage />)} />
-        <Route path="/plan/eligibility" element={<QueryRedirect to="/eligibility" />} />
+        <Route path="/plan/eligibility" element={<QueryRedirect to="/eligibility-checker" />} />
         <Route path="/loans" element={lazyRoute('Loading loans...', <LoansPage />)} />
         <Route path="/loans/:slug" element={lazyRoute('Loading loan...', <LoanDetailPage />)} />
         <Route path="/deposits" element={lazyRoute('Loading deposits...', <DepositsPage />)} />

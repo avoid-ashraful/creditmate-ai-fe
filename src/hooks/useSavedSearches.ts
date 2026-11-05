@@ -4,15 +4,20 @@
  * Signed-in users read and write the account's server rows, so searches
  * follow them across devices. On first load, whatever this device holds
  * in the account and guest local scopes is merged into the account (the
- * server de-duplicates on name+path+query; the merge is safe to repeat).
- * Signed-out users keep the Phase 1 on-device behaviour. If the server
- * cannot be reached, signed-in users fall back to the device list rather
- * than an empty hole — with `error` set so surfaces can say so.
+ * server de-duplicates on name+path+query; the merge is safe to repeat)
+ * — and the import CONSUMES both scopes: they are cleared once their
+ * contents are on the server, and deleting a server search also removes
+ * any local twin, so a deleted search can never be re-imported back
+ * into existence on a later sign-in. Signed-out users keep the Phase 1
+ * on-device behaviour. If the server cannot be reached, signed-in users
+ * fall back to the device list rather than an empty hole — with `error`
+ * set so surfaces can say so.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
+  clearSavedSearches,
   deleteSavedSearch,
   listSavedSearches,
   saveSearch,
@@ -80,6 +85,12 @@ export const useSavedSearches = (): UseSavedSearches => {
             await savedSearchesApi.importSearches(
               local.map(entry => ({ name: entry.name, path: entry.path, query: entry.query }))
             );
+            // The import consumed both local scopes. Clearing them is
+            // what stops a search deleted later (server-side) from
+            // being re-imported — resurrected — by the next sign-in or
+            // reload, when this ref has reset and the import runs again.
+            clearSavedSearches(userId);
+            clearSavedSearches(null);
           }
         }
         const rows = await savedSearchesApi.list();
@@ -126,6 +137,20 @@ export const useSavedSearches = (): UseSavedSearches => {
       if (signedIn && serverId !== null) {
         try {
           await savedSearchesApi.remove(serverId);
+          // Remove any on-device twin of the deleted search from both
+          // local scopes: a surviving twin would be re-imported on the
+          // next sign-in and silently undo this deletion.
+          for (const scope of [userId, null] as const) {
+            for (const twin of listSavedSearches(scope)) {
+              if (
+                twin.name === entry.name &&
+                twin.path === entry.path &&
+                twin.query === entry.query
+              ) {
+                deleteSavedSearch(scope, twin.id);
+              }
+            }
+          }
           await loadServer();
           return;
         } catch {

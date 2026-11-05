@@ -335,7 +335,9 @@ const AlertsPage: React.FC = () => {
                       </div>
                       <div className="subscription-date">
                         {formatDate(entry.changed_at)}
-                        {entry.source ? ` · ${copy.feedSourceLabel}: ${entry.source}` : ''}
+                        {entry.source
+                          ? ` · ${copy.feedSourceLabel}: ${feedSourceName(entry.source)}`
+                          : ''}
                       </div>
                     </div>
                   </li>
@@ -447,6 +449,26 @@ const humaniseField = (fieldName: string): string => {
   const spaced = fieldName.replace(/_/g, ' ');
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 };
+
+/**
+ * Display names for the history `source` values the feed can carry.
+ * The stored value is a machine slug (e.g. the loans history records
+ * `bangladesh_bank_chart`); users see the source's real name. Unknown
+ * values fall back to the humanised slug, and values that are already
+ * human-readable pass through unchanged — the name is never invented,
+ * only formatted.
+ */
+const FEED_SOURCE_NAMES: Record<string, string> = {
+  bangladesh_bank_chart: 'Bangladesh Bank chart',
+  bangladesh_bank_lending_chart: 'Bangladesh Bank lending chart',
+  bangladesh_bank: 'Bangladesh Bank',
+  bb_chart: 'Bangladesh Bank chart',
+  bank_website: 'Bank website',
+  schedule_of_charges: 'Bank schedule of charges',
+};
+
+const feedSourceName = (source: string): string =>
+  FEED_SOURCE_NAMES[source] ?? humaniseField(source);
 
 /**
  * Render a stored history value. Null means the field was not published

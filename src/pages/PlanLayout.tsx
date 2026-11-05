@@ -53,7 +53,7 @@ const PlanLayout: React.FC<{
         <NavLink to="/plan/account" className={linkClass}>
           {copy.toolAccount}
         </NavLink>
-        <NavLink to="/eligibility" className={linkClass}>
+        <NavLink to="/eligibility-checker" className={linkClass}>
           {copy.toolEligibility}
         </NavLink>
       </nav>

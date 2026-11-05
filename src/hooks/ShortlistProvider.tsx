@@ -7,14 +7,21 @@
  *
  * - On sign-in, the device's guest-scope items are merged into the
  *   account (the server import de-duplicates, so this is safe to repeat)
- *   and the tray then mirrors the server list. The mirror is never
- *   imported back, so an item removed on another device is not
- *   resurrected here.
+ *   and the tray then mirrors the server list. A successful import
+ *   CONSUMES the guest scope — it is cleared — so the guest scope only
+ *   ever holds items that have not been imported yet. Neither the mirror
+ *   nor a consumed guest scope is ever imported back, so an item removed
+ *   on another device is not resurrected here.
  * - Toggles while signed in update the tray immediately and persist to
- *   the server; a failed write reconciles from the server list.
- * - On sign-out, the tray returns to the guest-scope items from before
- *   sign-in — one user's account shortlist never leaks into the next
- *   person's guest session on a shared device.
+ *   the server; a failed write reconciles from the server list. A
+ *   signed-in removal also prunes the item from the guest scope, should
+ *   it still be sitting there un-imported (e.g. an earlier import failed
+ *   offline): a deliberate removal must never come back either.
+ * - On sign-out, the tray returns to the guest scope as it stands —
+ *   only never-imported guest items — so removals made while signed in
+ *   stay removed across a sign-out/sign-in cycle, and one user's account
+ *   shortlist never leaks into the next person's guest session on a
+ *   shared device.
  */
 
 import React, {
@@ -136,6 +143,23 @@ export const ShortlistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!signedInRef.current) writeKey(SHORTLIST_GUEST_KEY, next);
   }, []);
 
+  /**
+   * Drop items from the guest scope. The guest scope is consumed by a
+   * successful import, so while signed in it should already be empty —
+   * but if an import failed earlier and left items un-imported, a
+   * signed-in removal of one of them must prune it here too, or it would
+   * be imported (resurrected) by the next successful sign-in sync.
+   */
+  const pruneGuestScope = useCallback((removed: Array<Pick<ShortlistItem, 'vertical' | 'key'>>) => {
+    if (removed.length === 0) return;
+    const guest = readGuestItems();
+    if (guest.length === 0) return;
+    const next = guest.filter(
+      item => !removed.some(r => r.vertical === item.vertical && r.key === item.key)
+    );
+    if (next.length !== guest.length) writeKey(SHORTLIST_GUEST_KEY, next);
+  }, []);
+
   /** Reconcile the tray from the server list (the source of truth). */
   const reconcileFromServer = useCallback(async () => {
     try {
@@ -149,9 +173,16 @@ export const ShortlistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
-  // Sign-in: merge the guest scope into the account, then mirror the
-  // server list. Sign-out: restore the guest scope.
+  // Sign-in: merge the guest scope into the account (consuming it),
+  // then mirror the server list. Sign-out: restore the guest scope —
+  // only never-imported guest items can be in it.
   useEffect(() => {
+    // Track the previous run's sign-in state up front: the sign-in
+    // branch returns early (its cleanup), so updating the ref at the
+    // bottom of the effect would skip exactly the transition the
+    // sign-out branch below needs to observe.
+    const wasSignedIn = prevSignedInRef.current;
+    prevSignedInRef.current = signedIn;
     if (signedIn && userId !== null && syncedUserRef.current !== userId) {
       syncedUserRef.current = userId;
       let cancelled = false;
@@ -162,6 +193,12 @@ export const ShortlistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             guestItems.map(item => ({ vertical: item.vertical, key: item.key }))
           );
           if (cancelled) return;
+          // The import consumed the guest scope: those items now live
+          // on the server, and the server list (mirrored below) is the
+          // only source of truth. Clearing the scope is what stops an
+          // item removed later — here or on another device — from being
+          // re-imported on the next sign-in.
+          writeKey(SHORTLIST_GUEST_KEY, []);
           const serverItems = result.results.map(toShortlistItem);
           itemsRef.current = serverItems;
           setItems(serverItems);
@@ -176,14 +213,13 @@ export const ShortlistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         cancelled = true;
       };
     }
-    if (!signedIn && prevSignedInRef.current && authStatus === 'anonymous') {
+    if (!signedIn && wasSignedIn && authStatus === 'anonymous') {
       syncedUserRef.current = null;
       const guestItems = readGuestItems();
       itemsRef.current = guestItems;
       setItems(guestItems);
       persist(guestItems);
     }
-    prevSignedInRef.current = signedIn;
     return undefined;
   }, [signedIn, userId, authStatus]);
 
@@ -204,6 +240,7 @@ export const ShortlistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (current.some(i => i.vertical === item.vertical && i.key === item.key)) {
         update(current.filter(i => !(i.vertical === item.vertical && i.key === item.key)));
         if (signedInRef.current) {
+          pruneGuestScope([item]);
           void shortlistService.remove(item.vertical, item.key).catch(() => {
             void reconcileFromServer();
           });
@@ -223,32 +260,34 @@ export const ShortlistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
       return 'added';
     },
-    [update, reconcileFromServer]
+    [update, reconcileFromServer, pruneGuestScope]
   );
 
   const remove = useCallback(
     (vertical: ShortlistVertical, key: string) => {
       update(itemsRef.current.filter(i => !(i.vertical === vertical && i.key === key)));
       if (signedInRef.current) {
+        pruneGuestScope([{ vertical, key }]);
         void shortlistService.remove(vertical, key).catch(() => {
           void reconcileFromServer();
         });
       }
     },
-    [update, reconcileFromServer]
+    [update, reconcileFromServer, pruneGuestScope]
   );
 
   const clear = useCallback(() => {
     const current = itemsRef.current;
     update([]);
     if (signedInRef.current) {
+      pruneGuestScope(current);
       void Promise.all(current.map(item => shortlistService.remove(item.vertical, item.key))).catch(
         () => {
           void reconcileFromServer();
         }
       );
     }
-  }, [update, reconcileFromServer]);
+  }, [update, reconcileFromServer, pruneGuestScope]);
 
   const value = useMemo<ShortlistContextValue>(() => {
     const cardIds = items

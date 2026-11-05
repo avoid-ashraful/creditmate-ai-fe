@@ -104,6 +104,16 @@ export const deleteSavedSearch = (userId: number | null | undefined, id: string)
   writeList(storageKey(userId), list);
 };
 
+/**
+ * Empty one local scope. Used once the scope's contents have been
+ * imported into the server account: the scope is consumed by the
+ * import, so anything left in it would be re-imported — resurrecting
+ * searches the user has since deleted — on the next sign-in.
+ */
+export const clearSavedSearches = (userId: number | null | undefined): void => {
+  writeList(storageKey(userId), []);
+};
+
 interface LegacySavedSearch {
   normalized_query?: Record<string, string | undefined>;
   savedAt?: string;

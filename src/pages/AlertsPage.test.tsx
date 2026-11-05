@@ -269,6 +269,51 @@ describe('AlertsPage', () => {
     expect(screen.getByText(/Source: Bangladesh Bank lending chart/)).toBeInTheDocument();
   });
 
+  it('renders feed source slugs as display names, never the raw slug', async () => {
+    (alertsClient.listBankFollows as jest.Mock).mockResolvedValue({ results: mockBankFollows });
+    (alertsClient.getBankFollowFeed as jest.Mock).mockResolvedValue({
+      results: [
+        {
+          id: 'loans:9',
+          vertical: 'loans',
+          product_name: 'BRAC Bank Personal Loan',
+          product_key: 'brac-personal-loan',
+          bank_id: 7,
+          bank_name: 'BRAC Bank',
+          field_name: 'rate_max',
+          old_value: 13.5,
+          new_value: 14,
+          source: 'bangladesh_bank_chart',
+          changed_at: '2026-09-15T10:00:00Z',
+        },
+        {
+          id: 'loans:10',
+          vertical: 'loans',
+          product_name: 'BRAC Bank Home Loan',
+          product_key: 'brac-home-loan',
+          bank_id: 7,
+          bank_name: 'BRAC Bank',
+          field_name: 'rate_min',
+          old_value: 11,
+          new_value: 11.5,
+          source: 'internal_audit_trail',
+          changed_at: '2026-09-10T10:00:00Z',
+        },
+      ],
+      page: 1,
+      page_size: 20,
+      has_more: false,
+    });
+    renderAlertsPage();
+
+    // The known slug maps to the source's real display name.
+    expect(await screen.findByText(/Source: Bangladesh Bank chart/)).toBeInTheDocument();
+    expect(screen.queryByText(/bangladesh_bank_chart/)).not.toBeInTheDocument();
+    // An unknown slug falls back to a humanised form, not the raw slug.
+    expect(screen.getByText(/Source: Internal audit trail/)).toBeInTheDocument();
+    expect(screen.queryByText(/internal_audit_trail/)).not.toBeInTheDocument();
+  });
+
   it('appends the next feed page when the API says there is more', async () => {
     (alertsClient.listBankFollows as jest.Mock).mockResolvedValue({ results: mockBankFollows });
     const entry = (id: string, name: string) => ({

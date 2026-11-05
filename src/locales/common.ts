@@ -118,6 +118,7 @@ export interface CommonCopy {
 
   // ComparisonPage
   comparisonTitle: string;
+  comparisonWorkspaceTitle: string;
   comparisonBackLink: string;
   comparisonShareButton: string;
   comparisonSaveButton: string;
@@ -556,6 +557,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
 
     // ComparisonPage
     comparisonTitle: 'Credit Card Comparison',
+    comparisonWorkspaceTitle: 'Your shortlist',
     comparisonBackLink: '← Back to All Cards',
     comparisonShareButton: 'Share Comparison',
     comparisonSaveButton: 'Save comparison',
@@ -1017,6 +1019,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
 
     // ComparisonPage
     comparisonTitle: 'ক্রেডিট কার্ড তুলনা',
+    comparisonWorkspaceTitle: 'আপনার তালিকা',
     comparisonBackLink: '← সব কার্ডে ফিরে যান',
     comparisonShareButton: 'তুলনা শেয়ার করুন',
     comparisonSaveButton: 'তুলনা সংরক্ষণ করুন',

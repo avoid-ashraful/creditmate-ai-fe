@@ -238,7 +238,7 @@ const ComparisonPage: React.FC = () => {
             <h2>{common.comparisonEmptyTitle}</h2>
             <p>{common.comparisonEmptyTeach}</p>
             <p>
-              <Link to="/cards" className="footer-button">
+              <Link to="/cards" className="workspace-cta">
                 {common.comparisonBrowseCards}
               </Link>{' '}
               <Link to="/deposits">{common.comparisonGroupDeposits}</Link> ·{' '}
@@ -253,7 +253,7 @@ const ComparisonPage: React.FC = () => {
               <p>
                 <Link
                   to={`/compare?ids=${cards.map(item => item.key).join(',')}`}
-                  className="footer-button"
+                  className="workspace-cta"
                 >
                   {common.comparisonCompareShortlisted} ({cards.length})
                 </Link>
@@ -272,30 +272,39 @@ const ComparisonPage: React.FC = () => {
 
   return (
     <div className="comparison-page">
-      <div className="comparison-hero">
-        <div className="comparison-header">
-          <h1>{common.comparisonTitle}</h1>
-          <div className="comparison-actions">
-            <Link to="/" className="back-link">
-              {common.comparisonBackLink}
-            </Link>
-            {hasComparisonParams && selectedCards.length > 0 && (
-              <>
-                <button className="share-button" onClick={generateShareableLink}>
-                  {common.comparisonShareButton}
-                </button>
-                <button className="share-button" onClick={openSaveDialog}>
-                  {savedCopy.save}
-                </button>
-              </>
-            )}
+      {hasComparisonParams ? (
+        <div className="comparison-hero">
+          <div className="comparison-header">
+            <h1>{common.comparisonTitle}</h1>
+            <div className="comparison-actions">
+              <Link to="/" className="back-link">
+                {common.comparisonBackLink}
+              </Link>
+              {selectedCards.length > 0 && (
+                <>
+                  <button className="share-button" onClick={generateShareableLink}>
+                    {common.comparisonShareButton}
+                  </button>
+                  <button className="share-button" onClick={openSaveDialog}>
+                    {savedCopy.save}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
+          <Toast className="share-status" message={shareMessage} />
+          <p role="status" aria-live="polite">
+            {saveMessage}
+          </p>
         </div>
-        <Toast className="share-status" message={shareMessage} />
-        <p role="status" aria-live="polite">
-          {saveMessage}
-        </p>
-      </div>
+      ) : (
+        <div className="workspace-header">
+          <h1>{common.comparisonWorkspaceTitle}</h1>
+          <Link to="/" className="workspace-back-link">
+            {common.comparisonBackLink}
+          </Link>
+        </div>
+      )}
 
       <div className="comparison-content">
         {!hasComparisonParams ? (
