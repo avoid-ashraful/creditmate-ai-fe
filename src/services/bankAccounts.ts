@@ -459,18 +459,18 @@ interface AccountHistoryApiEntry {
 }
 
 /**
- * Fetch a product's fee/rate-change history. Like the card and deposit
- * history endpoints, this requires authentication (anonymous requests
- * get a 403), so the access token comes from AuthProvider.
+ * Fetch a product's fee/rate-change history. The endpoint is public
+ * (redesign decision D1); the access token is attached when a session
+ * exists, but anonymous requests are served identically.
  */
 export const getAccountFieldHistory = async (slug: string): Promise<AccountHistoryEntry[]> => {
-  if (!authClient.hasSession()) {
-    throw new ApiError(401, 'No active session');
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (authClient.hasSession()) {
+    const token = await authClient.getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
   }
-  const token = await authClient.getAccessToken();
-  if (!token) throw new ApiError(401, 'No active session');
   const response = await resilientFetch(`${BASE_URL}/account-products/${slug}/field-history/`, {
-    headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+    headers,
   });
   if (!response.ok) throw await responseApiError(response);
   const data = (await response.json()) as ApiResponse<AccountHistoryApiEntry>;

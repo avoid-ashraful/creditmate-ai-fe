@@ -1,10 +1,12 @@
 /* eslint-disable testing-library/no-wait-for-multiple-assertions, testing-library/no-node-access */
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
 import { expectNoAxeViolations } from '../a11y/axe';
 import { AuthProvider } from '../hooks/AuthProvider';
+import { ShortlistProvider } from '../hooks/ShortlistProvider';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { LanguageProvider } from '../locales';
 import { apiService } from '../services/api';
@@ -127,14 +129,22 @@ const renderWithRouter = (
   return render(
     <LanguageProvider initialLang={lang}>
       <AuthProvider>
-        <MemoryRouter initialEntries={[initialRoute]}>
-          <Routes>
-            <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
-          </Routes>
-        </MemoryRouter>
+        <ShortlistProvider>
+          <MemoryRouter initialEntries={[initialRoute]}>
+            <Routes>
+              <Route path="/card/:bankSlug/:cardSlug" element={<CardDetailPage />} />
+            </Routes>
+          </MemoryRouter>
+        </ShortlistProvider>
       </AuthProvider>
     </LanguageProvider>
   );
+};
+
+// Redesign Phase 2: the full card data lives in Layer-2 tabs; only the
+// active panel is rendered, so tests open the tab they assert on.
+const openTab = async (name: string | RegExp) => {
+  await userEvent.click(screen.getByRole('tab', { name }));
 };
 
 describe('CardDetailPage', () => {
@@ -267,11 +277,14 @@ describe('CardDetailPage', () => {
     renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getByText('Complete Specifications')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Fees & charges' })).toBeInTheDocument();
     });
 
+    // Fee rows live in the Fees tab, the rewards policy in the Rewards tab.
+    await openTab('Fees & charges');
     expect(screen.getByText('Cash Advance Fee')).toBeInTheDocument();
     expect(screen.getByText('Late Payment Fee')).toBeInTheDocument();
+    await openTab('Rewards');
     expect(screen.getByText('Rewards Policy')).toBeInTheDocument();
   });
 
@@ -323,6 +336,10 @@ describe('CardDetailPage', () => {
 
     renderWithRouter();
 
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: 'Rewards' })).toBeInTheDocument();
+    });
+    await openTab('Rewards');
     const rewardsSection = (await screen.findByRole('heading', { name: 'Rewards' })).closest(
       'section'
     ) as HTMLElement;
@@ -348,26 +365,70 @@ describe('CardDetailPage', () => {
       expect(screen.getByText('Pros & Cons')).toBeInTheDocument();
     });
 
+    // The lounge spec rows live in the Features tab.
+    await openTab('Features & limits');
     expect(screen.getAllByText(/international lounge access/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/domestic lounge access/i).length).toBeGreaterThan(0);
   });
 
-  test('displays similar cards from same bank', async () => {
+  test('displays similar cards from other banks by score proximity', async () => {
+    const rawCard = (overrides: Record<string, unknown>) => ({
+      id: mockCard.id,
+      bank_id: mockCard.bankId,
+      bank_name: mockCard.bankName,
+      name: mockCard.name,
+      annual_fee: mockCard.annualFee,
+      interest_rate_apr: mockCard.interestRateApr,
+      lounge_access_international: mockCard.loungeAccessInternational || undefined,
+      lounge_access_domestic: mockCard.loungeAccessDomestic || undefined,
+      cash_advance_fee: mockCard.cashAdvanceFee,
+      late_payment_fee: mockCard.latePaymentFee,
+      annual_fee_waiver_policy: mockCard.annualFeeWaiverPolicy,
+      reward_points_policy: mockCard.rewardPointsPolicy,
+      additional_features: mockCard.additionalFeatures,
+      source_url: mockCard.sourceUrl,
+      apply_url: mockCard.applyUrl,
+      is_active: true,
+      modified: '2025-05-15',
+      images: mockCard.images,
+      ...overrides,
+    });
+    mockApiService.getCreditCards.mockResolvedValue({
+      count: 3,
+      next: null,
+      previous: null,
+      results: [
+        rawCard({ creditmate_score: 6.4 }),
+        rawCard({ id: 2, name: 'EBL Gold Card', annual_fee: 2000, creditmate_score: 6.9 }),
+        rawCard({
+          id: 3,
+          bank_id: 2,
+          bank_name: 'BRAC Bank',
+          name: 'BRAC Platinum Card',
+          creditmate_score: 6.6,
+        }),
+      ],
+    });
     renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getByText(/Similar Cards from/)).toBeInTheDocument();
+      expect(screen.getByText('Similar cards at other banks')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('EBL Gold Card')).toBeInTheDocument();
+    // Cross-bank by Score proximity: the BRAC card (6.6, closest to 6.4)
+    // is offered; the same-bank EBL Gold Card is not a "similar" pick.
+    expect(screen.getByText('BRAC Platinum Card')).toBeInTheDocument();
+    expect(screen.queryByText('EBL Gold Card')).not.toBeInTheDocument();
   });
 
   test('displays reviews section with summary and reviews', async () => {
     renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getByText('Customer Reviews')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Reviews' })).toBeInTheDocument();
     });
+    await openTab('Reviews');
+    expect(screen.getByText('Customer Reviews')).toBeInTheDocument();
 
     // Summary - wait for loading to complete
     await waitFor(
@@ -401,6 +462,11 @@ describe('CardDetailPage', () => {
     renderWithRouter();
 
     await waitFor(() => {
+      expect(screen.getByRole('tab', { name: 'Reviews' })).toBeInTheDocument();
+    });
+    await openTab('Reviews');
+
+    await waitFor(() => {
       expect(
         screen.getByText('You need to be logged in to share your experience.')
       ).toBeInTheDocument();
@@ -412,8 +478,10 @@ describe('CardDetailPage', () => {
     const { container } = renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getByText('Customer Reviews')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Reviews' })).toBeInTheDocument();
     });
+    await openTab('Reviews');
+    expect(screen.getByText('Customer Reviews')).toBeInTheDocument();
 
     await expectNoAxeViolations(container);
   }, 15000);
@@ -575,8 +643,10 @@ describe('CardDetailPage', () => {
     renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getAllByText('Additional Features').length).toBeGreaterThan(0);
+      expect(screen.getByRole('tab', { name: 'Features & limits' })).toBeInTheDocument();
     });
+    await openTab('Features & limits');
+    expect(screen.getAllByText('Additional Features').length).toBeGreaterThan(0);
 
     expect(screen.getByText('Feature 1')).toBeInTheDocument();
     expect(screen.getByText('Feature 2')).toBeInTheDocument();
@@ -673,8 +743,10 @@ describe('CardDetailPage', () => {
     renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getByText('Customer Reviews')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Reviews' })).toBeInTheDocument();
     });
+    await openTab('Reviews');
+    expect(screen.getByText('Customer Reviews')).toBeInTheDocument();
 
     await waitFor(() => {
       const script = document.querySelector('script[data-review-aggregate]');
@@ -731,7 +803,9 @@ describe('CardDetailPage data display', () => {
   test('never renders a literal 0 for a no-fee, 0% APR card', async () => {
     showCard({ annual_fee: 0, interest_rate_apr: 0 });
 
-    expect(await screen.findByRole('heading', { name: 'EBL Platinum Card' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'EBL Platinum Card' })
+    ).toBeInTheDocument();
     expect(screen.getAllByText('No annual fee').length).toBeGreaterThan(0);
     const considerations = screen.getByRole('heading', { name: 'Considerations' }).parentElement;
     expect(considerations?.textContent).not.toMatch(/0/);
@@ -741,17 +815,20 @@ describe('CardDetailPage data display', () => {
   test('says lounge data is unavailable, not absent, when it is unknown', async () => {
     showCard({});
 
-    await screen.findByRole('heading', { name: 'EBL Platinum Card' });
+    await screen.findByRole('heading', { level: 1, name: 'EBL Platinum Card' });
     expect(screen.getByText('Lounge access data not available')).toBeInTheDocument();
     expect(screen.queryByText('No lounge access included')).not.toBeInTheDocument();
+    // The lounge spec rows (Features tab) label the unknowns, never 0/No.
+    await openTab('Features & limits');
     expect(screen.getAllByText('Unknown').length).toBeGreaterThanOrEqual(2);
   });
 
   test('says no lounge access only when the bank states there is none', async () => {
     showCard({ lounge_access_international: 0, lounge_access_domestic: 0 });
 
-    await screen.findByRole('heading', { name: 'EBL Platinum Card' });
+    await screen.findByRole('heading', { level: 1, name: 'EBL Platinum Card' });
     expect(screen.getByText('No lounge access included')).toBeInTheDocument();
+    await openTab('Features & limits');
     expect(screen.getAllByText('None').length).toBeGreaterThanOrEqual(2);
   });
 
@@ -760,7 +837,9 @@ describe('CardDetailPage data display', () => {
       annual_fee_waiver_policy: { spendThreshold: 300000, period: 'yearly', minTransactions: 12 },
     });
 
-    await screen.findByRole('heading', { name: 'EBL Platinum Card' });
+    await screen.findByRole('heading', { level: 1, name: 'EBL Platinum Card' });
+    // The waiver policy list lives in the Fees tab.
+    await openTab('Fees & charges');
     expect(screen.getByText('Spend threshold: BDT 300,000')).toBeInTheDocument();
     expect(screen.getByText('Period: Yearly')).toBeInTheDocument();
     expect(screen.getByText('Min transactions: 12')).toBeInTheDocument();
@@ -770,7 +849,8 @@ describe('CardDetailPage data display', () => {
   test('shows Bengali labels when the language is Bengali', async () => {
     showCard({ annual_fee: 0 }, 'bn');
 
-    expect(await screen.findByRole('heading', { name: 'সম্পূর্ণ বিবরণ' })).toBeInTheDocument();
+    // The old "Complete Specifications" section is now the Features tab.
+    expect(await screen.findByRole('tab', { name: 'বৈশিষ্ট্য ও সীমা' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'সুবিধা ও বিবেচ্য বিষয়' })).toBeInTheDocument();
     expect(screen.getAllByText('বার্ষিক ফি নেই').length).toBeGreaterThan(0);
     expect(screen.queryByText('Complete Specifications')).not.toBeInTheDocument();

@@ -29,7 +29,7 @@
 
 .deposits-tab-active {
   background: var(--color-primary-base);
-  color: #fff;
+  color: var(--color-white);
 }
 
 .deposits-form {
@@ -66,7 +66,7 @@
   border: none;
   border-radius: 8px;
   background: var(--color-primary-base);
-  color: #fff;
+  color: var(--color-white);
   font-size: 1rem;
   cursor: pointer;
 }
@@ -97,13 +97,13 @@
   margin-left: 0.5rem;
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
-  background: var(--badge-bg, #eef2ff);
+  background: var(--badge-bg, var(--color-indigo-50));
   font-size: 0.75rem;
   white-space: nowrap;
 }
 
 .deposits-badge-derived {
-  background: var(--badge-derived-bg, #fff4e5);
+  background: var(--badge-derived-bg, var(--color-warning-subtle));
 }
 
 .deposits-rate-kind {

@@ -17,7 +17,9 @@
   margin: 1.5rem 0;
   padding: 1rem 1.25rem;
   border: 1px solid var(--color-border-strong);
-  border-left: 4px solid var(--color-primary-base);
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-left-color: var(--color-primary-base);
   border-radius: 8px;
   max-width: 820px;
 }
@@ -48,7 +50,7 @@
 
 .accounts-tab-active {
   background: var(--color-primary-base);
-  color: #fff;
+  color: var(--color-white);
 }
 
 .accounts-form {
@@ -103,7 +105,7 @@
   border: none;
   border-radius: 8px;
   background: var(--color-primary-base);
-  color: #fff;
+  color: var(--color-white);
   font-size: 1rem;
   cursor: pointer;
 }
@@ -140,17 +142,17 @@
   margin-left: 0.5rem;
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
-  background: var(--badge-bg, #eef2ff);
+  background: var(--badge-bg, var(--color-indigo-50));
   font-size: 0.75rem;
   white-space: nowrap;
 }
 
 .accounts-badge-partial {
-  background: var(--badge-derived-bg, #fff4e5);
+  background: var(--badge-derived-bg, var(--color-warning-subtle));
 }
 
 .accounts-badge-waived {
-  background: var(--badge-waived-bg, #e6f7e6);
+  background: var(--badge-waived-bg, var(--color-success-subtle));
 }
 
 .accounts-rate-kind {

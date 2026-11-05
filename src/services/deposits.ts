@@ -60,6 +60,8 @@ export interface DepositProduct {
   maxAmount: number | null;
   minInstalment: number | null;
   maxInstalment: number | null;
+  /** Published rate span across the product's tenures (list serializer's rate_range). */
+  rateRange: { min: number; max: number } | null;
   tenuresMonths: number[];
   loanAgainstPercent: number | null;
   sourceUrl: string;
@@ -130,6 +132,7 @@ interface DepositProductApi {
   max_instalment: string | null;
   tenures_months: number[];
   loan_against_percent: string | null;
+  rate_range: { min: string; max: string } | null;
   source_url: string;
   source_kind: string;
   rate_effective_date: string | null;
@@ -188,6 +191,9 @@ const transformProduct = (api: DepositProductApi): DepositProduct => ({
   minInstalment: num(api.min_instalment),
   maxInstalment: num(api.max_instalment),
   tenuresMonths: api.tenures_months ?? [],
+  rateRange: api.rate_range
+    ? { min: Number(api.rate_range.min), max: Number(api.rate_range.max) }
+    : null,
   loanAgainstPercent: num(api.loan_against_percent),
   sourceUrl: api.source_url,
   sourceKind: api.source_kind,
@@ -363,18 +369,18 @@ interface DepositHistoryApiEntry {
 }
 
 /**
- * Fetch a product's rate-change history. Like the card history endpoint,
- * this requires authentication (anonymous requests get a 403), so the
- * access token comes from AuthProvider.
+ * Fetch a product's rate-change history. The endpoint is public
+ * (redesign decision D1); the access token is attached when a session
+ * exists, but anonymous requests are served identically.
  */
 export const getDepositFieldHistory = async (slug: string): Promise<DepositHistoryEntry[]> => {
-  if (!authClient.hasSession()) {
-    throw new ApiError(401, 'No active session');
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (authClient.hasSession()) {
+    const token = await authClient.getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
   }
-  const token = await authClient.getAccessToken();
-  if (!token) throw new ApiError(401, 'No active session');
   const response = await resilientFetch(`${BASE_URL}/deposit-products/${slug}/field-history/`, {
-    headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+    headers,
   });
   if (!response.ok) throw await responseApiError(response);
   const data = (await response.json()) as ApiResponse<DepositHistoryApiEntry>;

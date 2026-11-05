@@ -78,8 +78,9 @@ export class CardHistoryClient {
    * silently drop every change beyond the newest 20. Pagination stops
    * after MAX_HISTORY_PAGES pages as a guard against a pathological
    * backend that never stops emitting `next`.
-   * Throws ApiError(401) when there is no active session, matching the
-   * backend's authentication requirement for this endpoint.
+   * The endpoint is public (redesign decision D1): the request is sent
+   * anonymously when there is no session, and carries the access token
+   * when one exists (the payload is identical either way).
    */
   async getFieldHistory(cardId: number): Promise<FieldHistoryResponse> {
     const firstPage = await this.fetchFieldHistoryPage(cardId, 1);
@@ -96,25 +97,23 @@ export class CardHistoryClient {
 
   /** Fetch one page of a card's field history, newest first. */
   private async fetchFieldHistoryPage(cardId: number, page: number): Promise<FieldHistoryResponse> {
-    if (!authClient.hasSession()) {
-      throw new ApiError(401, 'No active session');
-    }
-    const token = await authClient.getAccessToken();
-    if (!token) throw new ApiError(401, 'No active session');
-
     const params = new URLSearchParams();
     params.append('page', page.toString());
     const url = `${this.baseUrl}/credit-cards/${cardId}/field-history/?${params.toString()}`;
 
-    let response = await resilientFetch(url, {
-      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
-    });
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (authClient.hasSession()) {
+      const token = await authClient.getAccessToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+    }
+
+    let response = await resilientFetch(url, { headers });
 
     if (response.status === 401 && authClient.hasSession()) {
       // Another request may have refreshed already; try once more.
       const retryToken = await authClient.refreshAccessToken();
       response = await resilientFetch(url, {
-        headers: { Accept: 'application/json', Authorization: `Bearer ${retryToken}` },
+        headers: { ...headers, Authorization: `Bearer ${retryToken}` },
       });
     }
 

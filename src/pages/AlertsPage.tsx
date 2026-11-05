@@ -11,7 +11,13 @@ import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { useLanguage } from '../locales';
 import { getAlertsCopy } from '../locales/alerts';
 import { alertsClient } from '../services/alerts';
-import { AlertSubscription, AlertPreferences, getAlertKindLabel } from '../types/alerts';
+import { bankPath } from '../services/banks';
+import {
+  AlertSubscription,
+  AlertPreferences,
+  BankFollow,
+  getAlertKindLabel,
+} from '../types/alerts';
 import '../styles/AlertsPage.css';
 
 const AlertsPage: React.FC = () => {
@@ -20,6 +26,7 @@ const AlertsPage: React.FC = () => {
   const copy = getAlertsCopy(lang);
 
   const [subscriptions, setSubscriptions] = useState<AlertSubscription[]>([]);
+  const [bankFollows, setBankFollows] = useState<BankFollow[]>([]);
   const [preferences, setPreferences] = useState<AlertPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,11 +50,29 @@ const AlertsPage: React.FC = () => {
       ]);
       setSubscriptions(subsRes.results);
       setPreferences(prefsRes);
+      // Followed banks (D4) load independently: a failure here must not
+      // take the whole alerts page down.
+      try {
+        const followsRes = await alertsClient.listBankFollows();
+        setBankFollows(followsRes.results);
+      } catch {
+        setBankFollows([]);
+      }
     } catch (err) {
       console.error('Failed to load alerts data:', err);
       setError('Failed to load alert settings. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleUnfollowBank = async (bankId: number, bankName: string) => {
+    try {
+      await alertsClient.unfollowBank(bankId);
+      setBankFollows(prev => prev.filter(follow => follow.bank !== bankId));
+    } catch (err) {
+      console.error(`Failed to unfollow ${bankName}:`, err);
+      showToast(copy.followBankError, 'error');
     }
   };
 
@@ -185,6 +210,37 @@ const AlertsPage: React.FC = () => {
                     )}`}
                   >
                     {deleteId === sub.id ? copy.deleting : copy.deleteSubscriptionButton}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* Followed Banks Section (redesign Phase 2, D4 groundwork) */}
+        <section
+          className="alerts-section followed-banks-section"
+          aria-labelledby="followed-banks-heading"
+        >
+          <h2 id="followed-banks-heading">{copy.followedBanksHeading}</h2>
+          {bankFollows.length === 0 ? (
+            <div className="empty-state">
+              <p>{copy.noFollowedBanks}</p>
+            </div>
+          ) : (
+            <ul className="subscriptions-list">
+              {bankFollows.map(follow => (
+                <li key={follow.id} className="subscription-item">
+                  <div className="subscription-info">
+                    <Link to={bankPath({ name: follow.bank_name })}>{follow.bank_name}</Link>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    aria-label={`${copy.unfollowBank}: ${follow.bank_name}`}
+                    onClick={() => handleUnfollowBank(follow.bank, follow.bank_name)}
+                  >
+                    {copy.unfollowBank}
                   </button>
                 </li>
               ))}

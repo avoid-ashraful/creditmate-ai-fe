@@ -5,17 +5,29 @@ import { Link, useParams } from 'react-router-dom';
 import CardDetailsPopup from '../components/CardDetailsPopup';
 import CardList from '../components/CardList';
 import ComparisonBar from '../components/ComparisonBar';
+import FollowBankButton from '../components/FollowBankButton';
 import { SkeletonCardGrid } from '../components/Skeleton';
 import Toast from '../components/Toast';
+import { VerdictStrip } from '../components/ui';
 import { useSeoMeta } from '../hooks/useSeoMeta';
-import { useLanguage, getCommonCopy } from '../locales';
+import {
+  useLanguage,
+  getCommonCopy,
+  fillCopy,
+  formatLocalizedDate,
+  getDetailCopy,
+} from '../locales';
 import { apiService, BankApiResponse } from '../services/api';
+import { getAccountProducts, AccountProduct } from '../services/bankAccounts';
 import { bankPath, computeBankCardStats, fetchAllBanks, findBankBySlug } from '../services/banks';
+import { getDepositProducts, DepositProduct } from '../services/deposits';
+import { fetchLoanProducts, LoanProductListItem } from '../services/loans';
 import { CreditCard } from '../types';
 import { breadcrumbJsonLd } from '../utils/structuredData';
 import '../styles/HomePage.css';
 import '../styles/CategoryPage.css';
 import '../styles/BankPage.css';
+import '../styles/DecisionDetail.css';
 
 const PAGE_SIZE = 100;
 
@@ -47,9 +59,13 @@ const BankPage: React.FC = () => {
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [bank, setBank] = useState<BankApiResponse | null>(null);
   const [cards, setCards] = useState<CreditCard[]>([]);
+  const [deposits, setDeposits] = useState<DepositProduct[] | null>(null);
+  const [loans, setLoans] = useState<LoanProductListItem[] | null>(null);
+  const [accounts, setAccounts] = useState<AccountProduct[] | null>(null);
   const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
   const [viewedCard, setViewedCard] = useState<CreditCard | null>(null);
   const [selectionMessage, setSelectionMessage] = useState<string>('');
+  const detail = getDetailCopy(lang);
 
   useSeoMeta(
     bank
@@ -71,6 +87,9 @@ const BankPage: React.FC = () => {
     setLoadState('loading');
     setBank(null);
     setCards([]);
+    setDeposits(null);
+    setLoans(null);
+    setAccounts(null);
     setSelectedCardIds([]);
     setSelectionMessage('');
 
@@ -88,6 +107,24 @@ const BankPage: React.FC = () => {
         if (cancelled) return;
         setCards(bankCards);
         setLoadState('ready');
+        // Cross-vertical hub data (redesign Phase 2): each vertical loads
+        // independently; a failed vertical simply doesn't render its
+        // section rather than failing the whole institution page.
+        getDepositProducts({ bank: found.id, pageSize: 100 })
+          .then(response => {
+            if (!cancelled) setDeposits(response.results);
+          })
+          .catch(() => undefined);
+        fetchLoanProducts({ bank: found.id })
+          .then(items => {
+            if (!cancelled) setLoans(items);
+          })
+          .catch(() => undefined);
+        getAccountProducts({ bank: found.id, pageSize: 100 })
+          .then(response => {
+            if (!cancelled) setAccounts(response.results);
+          })
+          .catch(() => undefined);
       } catch (fetchError) {
         if (cancelled) return;
         console.error('Failed to load bank page:', fetchError);
@@ -128,6 +165,39 @@ const BankPage: React.FC = () => {
   }
 
   const stats = computeBankCardStats(cards);
+  // Cross-vertical notables: flagship = highest CreditMate Score at the
+  // bank; best deposit rate = top of the published rate ranges; the loan
+  // figure spans the published bands, never a single point rate.
+  const flagshipCard = cards
+    .filter(card => card.creditmateScore != null)
+    .sort((a, b) => (b.creditmateScore ?? 0) - (a.creditmateScore ?? 0))[0];
+  const bestDeposit = (deposits ?? [])
+    .filter(product => product.rateRange !== null)
+    .sort((a, b) => (b.rateRange?.max ?? 0) - (a.rateRange?.max ?? 0))[0];
+  const loanBandRange = (() => {
+    const bands = (loans ?? []).flatMap(item => (item.effectiveRate ? [item.effectiveRate] : []));
+    if (bands.length === 0) return null;
+    const min = Math.min(...bands.map(band => band.min));
+    const max = Math.max(...bands.map(band => band.max));
+    return min === max ? `${min}%` : `${min}–${max}%`;
+  })();
+  const lastVerified = (() => {
+    const dates: Date[] = [];
+    cards.forEach(card => {
+      if (card.verifiedAt) dates.push(new Date(card.verifiedAt));
+    });
+    (deposits ?? []).forEach(product => {
+      if (product.verifiedAt) dates.push(new Date(product.verifiedAt));
+    });
+    (loans ?? []).forEach(item => {
+      if (item.verifiedAt) dates.push(new Date(item.verifiedAt));
+    });
+    (accounts ?? []).forEach(product => {
+      if (product.verifiedAt) dates.push(new Date(product.verifiedAt));
+    });
+    if (dates.length === 0) return null;
+    return new Date(Math.max(...dates.map(date => date.getTime())));
+  })();
   const feeRange = formatFeeRange(stats.annualFeeMin, stats.annualFeeMax);
   const aprRange =
     stats.aprMin === null || stats.aprMax === null
@@ -170,7 +240,44 @@ const BankPage: React.FC = () => {
                 </a>
               </p>
             )}
+            <FollowBankButton bankId={bank.id} bankName={bank.name} />
           </div>
+
+          {(flagshipCard || bestDeposit || loanBandRange || lastVerified) && (
+            <VerdictStrip
+              items={[
+                ...(flagshipCard
+                  ? [
+                      {
+                        label: detail.hubFlagshipCard,
+                        value: `${flagshipCard.name} · ${flagshipCard.creditmateScore?.toFixed(
+                          1
+                        )}/10`,
+                      },
+                    ]
+                  : []),
+                ...(bestDeposit?.rateRange
+                  ? [
+                      {
+                        label: detail.hubBestFdrRate,
+                        value: `${bestDeposit.name} · ${bestDeposit.rateRange.max}%`,
+                      },
+                    ]
+                  : []),
+                ...(loanBandRange
+                  ? [{ label: detail.hubLoanBandRange, value: loanBandRange }]
+                  : []),
+                ...(lastVerified
+                  ? [
+                      {
+                        label: detail.hubLastVerified,
+                        value: formatLocalizedDate(lastVerified, lang),
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+          )}
 
           {cards.length > 0 && (
             <dl className="bank-stats">
@@ -201,7 +308,7 @@ const BankPage: React.FC = () => {
             </dl>
           )}
 
-          <h2 className="bank-cards-heading">{common.bankCardsHeading}</h2>
+          <h2 className="bank-cards-heading">{detail.hubCardsHeading}</h2>
 
           {cards.length === 0 ? (
             <div className="bank-empty">
@@ -240,6 +347,76 @@ const BankPage: React.FC = () => {
 
               <Toast className="selection-message" message={selectionMessage} />
             </>
+          )}
+
+          {deposits !== null && (
+            <section className="p2-section" aria-labelledby="bank-deposits-heading">
+              <h2 id="bank-deposits-heading">
+                {detail.hubDepositsHeading} ·{' '}
+                {fillCopy(detail.hubProductsCount, { count: String(deposits.length) })}
+              </h2>
+              <ul className="bank-hub-list">
+                {deposits.slice(0, 3).map(product => (
+                  <li key={product.slug}>
+                    <Link to={`/deposits/${product.slug}`}>{product.name}</Link>
+                    {product.rateRange && (
+                      <span>
+                        {' '}
+                        · {product.rateRange.min}–{product.rateRange.max}%
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <Link to={`/deposits?bank=${bank.id}`}>{detail.hubViewDeposits}</Link>
+            </section>
+          )}
+
+          {loans !== null && (
+            <section className="p2-section" aria-labelledby="bank-loans-heading">
+              <h2 id="bank-loans-heading">
+                {detail.hubLoansHeading} ·{' '}
+                {fillCopy(detail.hubProductsCount, { count: String(loans.length) })}
+              </h2>
+              <ul className="bank-hub-list">
+                {loans.slice(0, 3).map(item => (
+                  <li key={item.slug}>
+                    <Link to={`/loans/${item.slug}`}>{item.name}</Link>
+                    {item.effectiveRate && (
+                      <span>
+                        {' '}
+                        · {item.effectiveRate.min}–{item.effectiveRate.max}%
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/loans">{detail.hubViewLoans}</Link>
+            </section>
+          )}
+
+          {accounts !== null && (
+            <section className="p2-section" aria-labelledby="bank-accounts-heading">
+              <h2 id="bank-accounts-heading">
+                {detail.hubAccountsHeading} ·{' '}
+                {fillCopy(detail.hubProductsCount, { count: String(accounts.length) })}
+              </h2>
+              <ul className="bank-hub-list">
+                {accounts.slice(0, 3).map(product => (
+                  <li key={product.slug}>
+                    <Link to={`/accounts/${product.slug}`}>{product.name}</Link>
+                    {product.rateSlabs.length > 0 && (
+                      <span>
+                        {' '}
+                        · {Math.min(...product.rateSlabs.map(slab => slab.rate))}–
+                        {Math.max(...product.rateSlabs.map(slab => slab.rateMax ?? slab.rate))}%
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <Link to={`/accounts?bank=${bank.id}`}>{detail.hubViewAccounts}</Link>
+            </section>
           )}
         </>
       )}

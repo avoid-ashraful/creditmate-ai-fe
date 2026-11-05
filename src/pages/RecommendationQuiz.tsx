@@ -1,75 +1,129 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import CardListItem from '../components/CardListItem';
-import ComparisonBar from '../components/ComparisonBar';
 import Toast from '../components/Toast';
+import { Badge, Money, MoneyInput, ResultCard } from '../components/ui';
+import { useShortlist } from '../hooks/ShortlistProvider';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { fillCopy, toBanglaNumerals, useLanguage, getCommonCopy } from '../locales';
-import { apiService } from '../services/api';
+import { getCardDetailCopy } from '../locales/cardDetail';
+import { getQuizCopy } from '../locales/quiz';
+import { apiService, BankApiResponse } from '../services/api';
+import { fetchAllBanks } from '../services/banks';
 import { CreditCard } from '../types';
 import { fetchAllPages } from '../utils/fetchAllPages';
-import { rankCards, encodeQuizResult, decodeQuizResult } from '../utils/quizScoringAlgorithm';
+import {
+  applyQuizConstraints,
+  decodeQuizResult,
+  emptyQuizAnswersV2,
+  encodeQuizResult,
+  FEE_TOLERANCE_CAPS,
+  INCOME_BAND_CAPS,
+  IncomeBand,
+  NetworkPreference,
+  QuizAnswers,
+  QuizAnswersV2,
+  quizDiscoveryParams,
+  rankCards,
+  rankQuizCardsV2,
+} from '../utils/quizScoringAlgorithm';
 import { resetSeoMeta, setSeoMeta } from '../utils/seo';
+import { slugify } from '../utils/slugify';
 import '../styles/RecommendationQuiz.css';
 
+/**
+ * Perfect-card finder, rebuilt for redesign Phase 2 (plan Section 4.10).
+ *
+ * First-order CONSTRAINT questions come first (income, Islamic
+ * preference, annual fee, network, bank), then preference questions
+ * (spend, main use, travel). Nothing is preselected: every answer
+ * starts unset and a step cannot be passed until it is answered (or,
+ * for pure preference steps, explicitly skipped). Results are the
+ * canonical ResultCards with working shortlist actions, and "See all
+ * cards" lands on /cards with the answers carried as its filters.
+ */
+
 const STEPS = {
+  income: 'income',
+  islamic: 'islamic',
+  fee: 'fee',
+  network: 'network',
+  bank: 'bank',
   spend: 'spend',
   use: 'use',
   travel: 'travel',
-  fee: 'fee',
-  tier: 'tier',
   results: 'results',
 } as const;
 type StepType = (typeof STEPS)[keyof typeof STEPS];
 
-interface QuizState {
-  monthlySpend: number;
-  primaryUse: 'travel' | 'dining' | 'shopping' | 'cashback' | 'premium';
-  travelFrequency: 'frequent' | 'occasional' | 'never';
-  feeTolerance: 'none' | 'low' | 'moderate' | 'high';
-  cardTier: 'basic' | 'standard' | 'premium';
-}
+const QUESTION_STEPS: StepType[] = [
+  STEPS.income,
+  STEPS.islamic,
+  STEPS.fee,
+  STEPS.network,
+  STEPS.bank,
+  STEPS.spend,
+  STEPS.use,
+  STEPS.travel,
+];
+
+const INCOME_BANDS: IncomeBand[] = ['up_to_30k', '30k_50k', '50k_100k', 'above_100k'];
+const FEE_TOLERANCES: Array<QuizAnswers['feeTolerance']> = ['none', 'low', 'moderate', 'high'];
+const NETWORKS: NetworkPreference[] = ['visa', 'mastercard', 'amex'];
+const PRIMARY_USES: Array<QuizAnswers['primaryUse']> = [
+  'travel',
+  'dining',
+  'shopping',
+  'cashback',
+  'premium',
+];
+const TRAVEL_FREQUENCIES: Array<QuizAnswers['travelFrequency']> = [
+  'frequent',
+  'occasional',
+  'never',
+];
 
 type LoadingState = 'idle' | 'loading' | 'error' | 'empty';
+
+interface RankedResult {
+  card: CreditCard;
+  score: number;
+  reason: string;
+}
 
 const RecommendationQuiz: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { lang } = useLanguage();
   const common = getCommonCopy(lang);
-  const [currentStep, setCurrentStep] = useState<StepType>('spend');
-  const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
-  const [quizState, setQuizState] = useState<QuizState>({
-    monthlySpend: 50000,
-    primaryUse: 'shopping',
-    travelFrequency: 'occasional',
-    feeTolerance: 'moderate',
-    cardTier: 'standard',
-  });
-  const [recommendedCards, setRecommendedCards] = useState<
-    Array<{ card: CreditCard; score: number; reason: string }>
-  >([]);
+  const quiz = getQuizCopy(lang);
+  const cardCopy = getCardDetailCopy(lang);
+  const shortlist = useShortlist();
+
+  const [currentStep, setCurrentStep] = useState<StepType>(STEPS.income);
+  const [answers, setAnswers] = useState<QuizAnswersV2>(emptyQuizAnswersV2());
+  // "No preference" is an explicit answer on these steps, distinct from
+  // leaving the underlying constraint unset.
+  const [networkChoice, setNetworkChoice] = useState<NetworkPreference | 'any' | null>(null);
+  const [bankChoice, setBankChoice] = useState<number | 'any' | null>(null);
+  const [banks, setBanks] = useState<BankApiResponse[]>([]);
+  const [recommendedCards, setRecommendedCards] = useState<RankedResult[]>([]);
+  const [matchCount, setMatchCount] = useState(0);
   const [allCards, setAllCards] = useState<CreditCard[]>([]);
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [apiError, setApiError] = useState<string | null>(null);
   const [shareMessage, setShareMessage] = useState<string>('');
 
-  // Steps in order for navigation
-  const steps: StepType[] = [
-    STEPS.spend,
-    STEPS.use,
-    STEPS.travel,
-    STEPS.fee,
-    STEPS.tier,
-    STEPS.results,
-  ];
+  const setAnswer = <K extends keyof QuizAnswersV2>(key: K, value: QuizAnswersV2[K]) => {
+    analytics.track(ANALYTICS_EVENTS.quizStart);
+    setAnswers(prev => ({ ...prev, [key]: value }));
+  };
 
   useEffect(() => {
     setSeoMeta({
       title: 'Smart Credit Card Finder Quiz',
       description:
-        'Answer 5 quick questions to get personalized credit card recommendations tailored to your spending habits.',
+        'Answer a few questions to get personalized credit card recommendations tailored to your spending habits.',
       canonicalPath: '/perfect-card-finder',
     });
     return () => {
@@ -77,7 +131,6 @@ const RecommendationQuiz: React.FC = () => {
     };
   }, []);
 
-  // Fetch all active credit cards on mount
   useEffect(() => {
     const fetchCards = async () => {
       try {
@@ -98,159 +151,135 @@ const RecommendationQuiz: React.FC = () => {
       }
     };
     fetchCards();
+    fetchAllBanks()
+      .then(setBanks)
+      .catch(() => setBanks([]));
   }, []);
 
-  // Load shared result if query param present and cards loaded
+  // Shared results (links minted by the pre-rebuild quiz and by the
+  // share button below) keep working: decode the legacy payload and
+  // rank exactly as the legacy quiz did.
   useEffect(() => {
     const quizResultParam = searchParams.get('quiz_result');
     if (quizResultParam && allCards.length > 0) {
       const decoded = decodeQuizResult(quizResultParam);
       if (decoded) {
-        // Validate that all card IDs exist in fetched cards
         const validCardIds = decoded.cardIds.filter(id => allCards.some(card => card.id === id));
-
         if (validCardIds.length > 0) {
-          // Recompute against fresh API data
           const results = rankCards(allCards, decoded.answers, 3);
-          setQuizState(decoded.answers);
-          setRecommendedCards(results);
-          setSelectedCardIds(results.map(r => r.card.id));
-          setCurrentStep(STEPS.results);
-          analytics.track(ANALYTICS_EVENTS.quizComplete, {
-            cardIds: validCardIds,
+          setAnswers({
+            ...emptyQuizAnswersV2(),
+            monthlySpend: decoded.answers.monthlySpend,
+            primaryUse: decoded.answers.primaryUse,
+            travelFrequency: decoded.answers.travelFrequency,
+            feeTolerance: decoded.answers.feeTolerance,
           });
+          setRecommendedCards(results);
+          setMatchCount(
+            applyQuizConstraints(allCards, {
+              ...emptyQuizAnswersV2(),
+              feeTolerance: decoded.answers.feeTolerance,
+            }).length
+          );
+          setCurrentStep(STEPS.results);
+          analytics.track(ANALYTICS_EVENTS.quizComplete, { cardIds: validCardIds });
         }
       }
     }
   }, [searchParams, allCards]);
 
-  const handleSpendChange = (spend: number) => {
-    analytics.track(ANALYTICS_EVENTS.quizStart);
-    setQuizState(prev => ({ ...prev, monthlySpend: spend }));
-  };
-
-  const handlePrimaryUseChange = (use: QuizState['primaryUse']) => {
-    analytics.track(ANALYTICS_EVENTS.quizStart);
-    setQuizState(prev => ({ ...prev, primaryUse: use }));
-  };
-
-  const handleTravelFrequencyChange = (freq: QuizState['travelFrequency']) => {
-    analytics.track(ANALYTICS_EVENTS.quizStart);
-    setQuizState(prev => ({ ...prev, travelFrequency: freq }));
-  };
-
-  const handleFeeToleranceChange = (tolerance: QuizState['feeTolerance']) => {
-    analytics.track(ANALYTICS_EVENTS.quizStart);
-    setQuizState(prev => ({ ...prev, feeTolerance: tolerance }));
-  };
-
-  const handleCardTierChange = (tier: QuizState['cardTier']) => {
-    analytics.track(ANALYTICS_EVENTS.quizStart);
-    setQuizState(prev => ({ ...prev, cardTier: tier }));
-  };
-
-  const handleNext = () => {
-    const steps: StepType[] = [
-      STEPS.spend,
-      STEPS.use,
-      STEPS.travel,
-      STEPS.fee,
-      STEPS.tier,
-      STEPS.results,
-    ];
-    const currentIndex = steps.indexOf(currentStep);
-    if (currentIndex < steps.length - 1) {
-      // Validate that an answer has been selected for the current step
-      if (!isStepAnswered(currentStep)) {
-        return; // Don't advance if no answer selected
-      }
-      const nextStep = steps[currentIndex + 1];
-      if (currentStep === STEPS.spend) {
-        analytics.track(ANALYTICS_EVENTS.quizStart);
-      }
-      setCurrentStep(nextStep);
-
-      if (nextStep === STEPS.results) {
-        generateResults();
-      }
-    }
-  };
-
   const isStepAnswered = (step: StepType): boolean => {
     switch (step) {
-      case STEPS.spend:
-        return quizState.monthlySpend > 0;
-      case STEPS.use:
-        return !!quizState.primaryUse;
-      case STEPS.travel:
-        return !!quizState.travelFrequency;
+      case STEPS.income:
+        return answers.incomeBand !== null;
+      case STEPS.islamic:
+        return answers.islamicPreference !== null;
       case STEPS.fee:
-        return !!quizState.feeTolerance;
-      case STEPS.tier:
-        return !!quizState.cardTier;
+        return answers.feeTolerance !== null;
+      case STEPS.network:
+        return networkChoice !== null;
+      case STEPS.bank:
+        return bankChoice !== null;
+      case STEPS.spend:
+        return answers.monthlySpend !== null;
+      case STEPS.use:
+        return answers.primaryUse !== null;
+      case STEPS.travel:
+        return answers.travelFrequency !== null;
       default:
         return true;
     }
   };
 
-  const generateResults = () => {
-    const results = rankCards(
-      allCards,
-      {
-        monthlySpend: quizState.monthlySpend,
-        primaryUse: quizState.primaryUse,
-        travelFrequency: quizState.travelFrequency,
-        feeTolerance: quizState.feeTolerance,
-        cardTier: quizState.cardTier,
-      },
-      3
-    );
+  const generateResults = (finalAnswers: QuizAnswersV2) => {
+    const results = rankQuizCardsV2(allCards, finalAnswers, 3);
     setRecommendedCards(results);
-    setSelectedCardIds(results.map(r => r.card.id));
+    setMatchCount(applyQuizConstraints(allCards, finalAnswers).length);
     analytics.track(ANALYTICS_EVENTS.quizComplete, {
       cardIds: results.map(result => result.card.id),
     });
   };
 
+  const goToStep = (index: number, finalAnswers: QuizAnswersV2 = answers) => {
+    if (index >= QUESTION_STEPS.length) {
+      generateResults(finalAnswers);
+      setCurrentStep(STEPS.results);
+    } else {
+      setCurrentStep(QUESTION_STEPS[index]);
+    }
+  };
+
+  const stepIndex = QUESTION_STEPS.indexOf(currentStep);
+  const isLastQuestion = stepIndex === QUESTION_STEPS.length - 1;
+
+  const handleNext = () => {
+    if (!isStepAnswered(currentStep)) return;
+    goToStep(stepIndex + 1);
+  };
+
+  const handleSkip = () => {
+    // Preference steps only: skipping leaves the answer unset, so it
+    // neither filters nor steers the ranking.
+    goToStep(stepIndex + 1);
+  };
+
   const handlePrevious = () => {
-    const steps: StepType[] = [
-      STEPS.spend,
-      STEPS.use,
-      STEPS.travel,
-      STEPS.fee,
-      STEPS.tier,
-      STEPS.results,
-    ];
-    const currentIndex = steps.indexOf(currentStep);
-    if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1]);
+    if (currentStep === STEPS.results) {
+      setCurrentStep(QUESTION_STEPS[QUESTION_STEPS.length - 1]);
+    } else if (stepIndex > 0) {
+      setCurrentStep(QUESTION_STEPS[stepIndex - 1]);
     }
   };
 
   const handleRetake = () => {
-    setCurrentStep(STEPS.spend);
+    setAnswers(emptyQuizAnswersV2());
+    setNetworkChoice(null);
+    setBankChoice(null);
     setRecommendedCards([]);
-    setSelectedCardIds([]);
+    setMatchCount(0);
+    setCurrentStep(STEPS.income);
   };
 
   const handleSeeAllCards = () => {
-    navigate('/cards');
+    const params = quizDiscoveryParams(answers);
+    const query = params.toString();
+    navigate(query ? `/cards?${query}` : '/cards');
   };
 
   const handleShareResult = () => {
-    const result = {
-      cardIds: selectedCardIds,
-      answers: {
-        monthlySpend: quizState.monthlySpend,
-        primaryUse: quizState.primaryUse,
-        travelFrequency: quizState.travelFrequency,
-        feeTolerance: quizState.feeTolerance,
-        cardTier: quizState.cardTier,
-      },
+    const legacyAnswers: QuizAnswers = {
+      monthlySpend: answers.monthlySpend ?? 50000,
+      primaryUse: answers.primaryUse ?? 'shopping',
+      travelFrequency: answers.travelFrequency ?? 'occasional',
+      feeTolerance: answers.feeTolerance ?? 'high',
+      cardTier: 'standard',
     };
-    const encoded = encodeQuizResult(result);
+    const encoded = encodeQuizResult({
+      cardIds: recommendedCards.map(result => result.card.id),
+      answers: legacyAnswers,
+    });
     analytics.track(ANALYTICS_EVENTS.compareShare, {
-      cardIds: selectedCardIds,
+      cardIds: recommendedCards.map(result => result.card.id),
     });
     const shareUrl = `${window.location.origin}/perfect-card-finder?quiz_result=${encoded}`;
     const copyPromise = navigator.clipboard?.writeText(shareUrl);
@@ -264,17 +293,51 @@ const RecommendationQuiz: React.FC = () => {
   };
 
   const progressSteps = [
-    common.quizStepSpend,
+    quiz.stepIncome,
+    quiz.stepIslamic,
+    common.quizStepFee,
+    quiz.stepNetwork,
+    quiz.stepBank,
+    quiz.stepSpend,
     common.quizStepUse,
     common.quizStepTravel,
-    common.quizStepFee,
-    common.quizStepTier,
   ];
-  const allSteps = [STEPS.spend, STEPS.use, STEPS.travel, STEPS.fee, STEPS.tier] as const;
-  const stepIndex = allSteps.indexOf(currentStep as (typeof allSteps)[number]);
   const progress = ((stepIndex + 1) / progressSteps.length) * 100;
 
-  // Show loading state for quiz steps if cards still loading
+  const formatBdt = (value: number): string => {
+    const text = Math.round(value).toLocaleString('en-US');
+    return lang === 'bn' ? toBanglaNumerals(text) : text;
+  };
+
+  const appliedChips = useMemo(() => {
+    const chips: string[] = [];
+    if (answers.incomeBand && Number.isFinite(INCOME_BAND_CAPS[answers.incomeBand])) {
+      chips.push(
+        fillCopy(quiz.chipIncome, { cap: formatBdt(INCOME_BAND_CAPS[answers.incomeBand]) })
+      );
+    }
+    if (answers.islamicPreference === 'islamic_only') chips.push(quiz.chipIslamicOnly);
+    if (answers.feeTolerance === 'none') chips.push(quiz.chipFeeNone);
+    else if (answers.feeTolerance === 'low' || answers.feeTolerance === 'moderate') {
+      chips.push(
+        fillCopy(quiz.chipFeeUpTo, { cap: formatBdt(FEE_TOLERANCE_CAPS[answers.feeTolerance]) })
+      );
+    }
+    if (answers.network) {
+      chips.push(
+        fillCopy(quiz.chipNetwork, {
+          network: quiz.networkOptions[NETWORKS.indexOf(answers.network)],
+        })
+      );
+    }
+    if (answers.bankId !== null) {
+      const bank = banks.find(candidate => candidate.id === answers.bankId);
+      if (bank) chips.push(fillCopy(quiz.chipBank, { bank: bank.name }));
+    }
+    return chips;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answers, banks, lang]);
+
   if (loadingState === 'loading' && currentStep !== STEPS.results) {
     return (
       <div className="recommendation-quiz-page">
@@ -321,9 +384,26 @@ const RecommendationQuiz: React.FC = () => {
     );
   }
 
+  const optionButton = (
+    label: string,
+    selected: boolean,
+    onSelect: () => void,
+    key?: string
+  ): React.ReactNode => (
+    <button
+      key={key ?? label}
+      type="button"
+      onClick={onSelect}
+      className={`option-btn ${selected ? 'selected' : ''}`}
+      aria-pressed={selected}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <div className="recommendation-quiz-page">
-      {currentStep !== 'results' && (
+      {currentStep !== STEPS.results && (
         <div className="quiz-progress-bar">
           <div className="progress-fill" style={{ width: `${progress}%` }} />
           <div className="progress-label">
@@ -340,44 +420,134 @@ const RecommendationQuiz: React.FC = () => {
           {currentStep !== STEPS.results && <p>{common.quizSubtitle}</p>}
         </div>
 
-        {currentStep === STEPS.spend && (
+        {currentStep === STEPS.income && (
+          <div className="quiz-step" role="region" aria-live="polite" aria-label={quiz.stepIncome}>
+            <h2>{quiz.incomeLabel}</h2>
+            <div className="step-content options-grid">
+              {INCOME_BANDS.map((band, idx) =>
+                optionButton(
+                  quiz.incomeOptions[idx],
+                  answers.incomeBand === band,
+                  () => setAnswer('incomeBand', band),
+                  band
+                )
+              )}
+            </div>
+          </div>
+        )}
+
+        {currentStep === STEPS.islamic && (
+          <div className="quiz-step" role="region" aria-live="polite" aria-label={quiz.stepIslamic}>
+            <h2>{quiz.islamicLabel}</h2>
+            <div className="step-content options-grid">
+              {optionButton(quiz.islamicOptions[0], answers.islamicPreference === 'any', () =>
+                setAnswer('islamicPreference', 'any')
+              )}
+              {optionButton(
+                quiz.islamicOptions[1],
+                answers.islamicPreference === 'islamic_only',
+                () => setAnswer('islamicPreference', 'islamic_only')
+              )}
+            </div>
+          </div>
+        )}
+
+        {currentStep === STEPS.fee && (
           <div
             className="quiz-step"
             role="region"
             aria-live="polite"
-            aria-label={common.quizStepSpend}
+            aria-label={common.quizStepFee}
           >
-            <h2>{common.quizMonthlySpendLabel}</h2>
+            <h2>{common.quizFeeToleranceLabel}</h2>
+            <div className="step-content options-grid">
+              {FEE_TOLERANCES.map((tolerance, idx) =>
+                optionButton(
+                  common.quizFeeToleranceOptions[idx],
+                  answers.feeTolerance === tolerance,
+                  () => setAnswer('feeTolerance', tolerance),
+                  tolerance
+                )
+              )}
+            </div>
+          </div>
+        )}
+
+        {currentStep === STEPS.network && (
+          <div className="quiz-step" role="region" aria-live="polite" aria-label={quiz.stepNetwork}>
+            <h2>{quiz.networkLabel}</h2>
+            <div className="step-content options-grid">
+              {NETWORKS.map((network, idx) =>
+                optionButton(
+                  quiz.networkOptions[idx],
+                  networkChoice === network,
+                  () => {
+                    setNetworkChoice(network);
+                    setAnswer('network', network);
+                  },
+                  network
+                )
+              )}
+              {optionButton(quiz.noPreference, networkChoice === 'any', () => {
+                setNetworkChoice('any');
+                setAnswer('network', null);
+              })}
+            </div>
+          </div>
+        )}
+
+        {currentStep === STEPS.bank && (
+          <div className="quiz-step" role="region" aria-live="polite" aria-label={quiz.stepBank}>
+            <h2>{quiz.bankLabel}</h2>
+            <div className="step-content options-grid">
+              {optionButton(quiz.anyBank, bankChoice === 'any', () => {
+                setBankChoice('any');
+                setAnswer('bankId', null);
+              })}
+              {banks.map(bank =>
+                optionButton(
+                  bank.name,
+                  bankChoice === bank.id,
+                  () => {
+                    setBankChoice(bank.id);
+                    setAnswer('bankId', bank.id);
+                  },
+                  `bank-${bank.id}`
+                )
+              )}
+            </div>
+          </div>
+        )}
+
+        {currentStep === STEPS.spend && (
+          <div className="quiz-step" role="region" aria-live="polite" aria-label={quiz.stepSpend}>
+            <h2>{quiz.spendLabel}</h2>
             <div className="step-content">
               <input
                 type="range"
                 min="10000"
                 max="500000"
                 step="10000"
-                value={quizState.monthlySpend}
-                onChange={e => handleSpendChange(Number(e.target.value))}
-                aria-label="Monthly spending amount"
+                value={answers.monthlySpend ?? 10000}
+                onChange={event => setAnswer('monthlySpend', Number(event.target.value))}
+                aria-label={quiz.spendLabel}
                 className="spend-slider"
               />
-              <div className="spend-display">
-                <span className="spend-value">
-                  {common.quizMonthlySpendValue}
-                  {(quizState.monthlySpend / 1000).toFixed(0)}k
-                </span>
-                <span className="spend-label">{common.quizMonthlySpendPerMonth}</span>
-              </div>
+              <MoneyInput
+                label={quiz.stepSpend}
+                placeholder={quiz.spendPlaceholder}
+                value={answers.monthlySpend}
+                onValueChange={value => setAnswer('monthlySpend', value)}
+              />
               <div className="spend-presets">
-                {[20000, 50000, 100000, 200000].map(amount => (
-                  <button
-                    key={amount}
-                    onClick={() => handleSpendChange(amount)}
-                    className={`preset-btn ${quizState.monthlySpend === amount ? 'active' : ''}`}
-                    aria-pressed={quizState.monthlySpend === amount}
-                  >
-                    {common.quizMonthlySpendValue}
-                    {(amount / 1000).toFixed(0)}k
-                  </button>
-                ))}
+                {[20000, 50000, 100000, 200000].map(amount =>
+                  optionButton(
+                    `${common.quizMonthlySpendValue}${formatBdt(amount)}`,
+                    answers.monthlySpend === amount,
+                    () => setAnswer('monthlySpend', amount),
+                    `preset-${amount}`
+                  )
+                )}
               </div>
             </div>
           </div>
@@ -392,30 +562,14 @@ const RecommendationQuiz: React.FC = () => {
           >
             <h2>{common.quizPrimaryUseLabel}</h2>
             <div className="step-content options-grid">
-              {common.quizPrimaryUseOptions.map((use, idx) => (
-                <button
-                  key={use}
-                  onClick={() =>
-                    handlePrimaryUseChange(
-                      ['travel', 'dining', 'shopping', 'cashback', 'premium'][
-                        idx
-                      ] as QuizState['primaryUse']
-                    )
-                  }
-                  className={`option-btn ${
-                    quizState.primaryUse ===
-                    ['travel', 'dining', 'shopping', 'cashback', 'premium'][idx]
-                      ? 'selected'
-                      : ''
-                  }`}
-                  aria-pressed={
-                    quizState.primaryUse ===
-                    ['travel', 'dining', 'shopping', 'cashback', 'premium'][idx]
-                  }
-                >
-                  {use}
-                </button>
-              ))}
+              {PRIMARY_USES.map((use, idx) =>
+                optionButton(
+                  common.quizPrimaryUseOptions[idx],
+                  answers.primaryUse === use,
+                  () => setAnswer('primaryUse', use),
+                  use
+                )
+              )}
             </div>
           </div>
         )}
@@ -429,86 +583,14 @@ const RecommendationQuiz: React.FC = () => {
           >
             <h2>{common.quizTravelFrequencyLabel}</h2>
             <div className="step-content options-grid">
-              {common.quizTravelFrequencyOptions.map((freq, idx) => (
-                <button
-                  key={freq}
-                  onClick={() =>
-                    handleTravelFrequencyChange(
-                      ['frequent', 'occasional', 'never'][idx] as QuizState['travelFrequency']
-                    )
-                  }
-                  className={`option-btn ${
-                    quizState.travelFrequency === ['frequent', 'occasional', 'never'][idx]
-                      ? 'selected'
-                      : ''
-                  }`}
-                  aria-pressed={
-                    quizState.travelFrequency === ['frequent', 'occasional', 'never'][idx]
-                  }
-                >
-                  {freq}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {currentStep === STEPS.fee && (
-          <div
-            className="quiz-step"
-            role="region"
-            aria-live="polite"
-            aria-label={common.quizStepFee}
-          >
-            <h2>{common.quizFeeToleranceLabel}</h2>
-            <div className="step-content options-grid">
-              {common.quizFeeToleranceOptions.map((tolerance, idx) => (
-                <button
-                  key={tolerance}
-                  onClick={() =>
-                    handleFeeToleranceChange(
-                      ['none', 'low', 'moderate', 'high'][idx] as QuizState['feeTolerance']
-                    )
-                  }
-                  className={`option-btn ${
-                    quizState.feeTolerance === ['none', 'low', 'moderate', 'high'][idx]
-                      ? 'selected'
-                      : ''
-                  }`}
-                  aria-pressed={quizState.feeTolerance === ['none', 'low', 'moderate', 'high'][idx]}
-                >
-                  {tolerance}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {currentStep === STEPS.tier && (
-          <div
-            className="quiz-step"
-            role="region"
-            aria-live="polite"
-            aria-label={common.quizStepTier}
-          >
-            <h2>{common.quizCardTierLabel}</h2>
-            <div className="step-content options-grid">
-              {common.quizCardTierOptions.map((tier, idx) => (
-                <button
-                  key={tier}
-                  onClick={() =>
-                    handleCardTierChange(
-                      ['basic', 'standard', 'premium'][idx] as QuizState['cardTier']
-                    )
-                  }
-                  className={`option-btn ${
-                    quizState.cardTier === ['basic', 'standard', 'premium'][idx] ? 'selected' : ''
-                  }`}
-                  aria-pressed={quizState.cardTier === ['basic', 'standard', 'premium'][idx]}
-                >
-                  {tier}
-                </button>
-              ))}
+              {TRAVEL_FREQUENCIES.map((frequency, idx) =>
+                optionButton(
+                  common.quizTravelFrequencyOptions[idx],
+                  answers.travelFrequency === frequency,
+                  () => setAnswer('travelFrequency', frequency),
+                  frequency
+                )
+              )}
             </div>
           </div>
         )}
@@ -521,27 +603,69 @@ const RecommendationQuiz: React.FC = () => {
             aria-label={common.quizStepResults}
           >
             <h2>{common.quizResultsTitle}</h2>
-            <div className="results-container">
-              <div className="recommended-cards">
-                {recommendedCards.map(({ card, score, reason }, idx) => (
-                  <div key={card.id} className="result-card">
-                    <div className="result-rank">
-                      {common.quizResultRank}
-                      {idx + 1}
-                    </div>
-                    <div className="result-score">
-                      {fillCopy(common.quizResultScore, {
-                        score: lang === 'bn' ? toBanglaNumerals(score) : score,
-                      })}
-                    </div>
-                    <CardListItem card={card} isSelected={false} onSelect={() => undefined} />
-                    <div className="result-reason">
-                      <strong>{common.quizResultReason}</strong> {reason}
-                    </div>
-                  </div>
+            <p>{fillCopy(quiz.resultsCount, { count: String(matchCount) })}</p>
+            {appliedChips.length > 0 && (
+              <div className="quiz-applied-filters">
+                <span>{quiz.appliedFiltersLabel}:</span>
+                {appliedChips.map(chip => (
+                  <Badge key={chip}>{chip}</Badge>
                 ))}
               </div>
-            </div>
+            )}
+            {recommendedCards.length === 0 ? (
+              <div className="quiz-no-matches">
+                <p>{quiz.noMatches}</p>
+                <p>{quiz.noMatchesNote}</p>
+              </div>
+            ) : (
+              <div className="results-container">
+                <div className="recommended-cards">
+                  {recommendedCards.map(({ card, score, reason }, idx) => (
+                    <div key={card.id} className="result-card">
+                      <ResultCard
+                        bankName={card.bankName ?? ''}
+                        productName={card.name}
+                        detailHref={`/card/${slugify(card.bankName ?? '')}/${slugify(card.name)}`}
+                        heroValue={<Money value={card.annualFee} />}
+                        heroLabel={cardCopy.annualFee}
+                        supportingFacts={[
+                          {
+                            label: common.quizResultScore.replace(' {score}', ''),
+                            value: lang === 'bn' ? toBanglaNumerals(score) : String(score),
+                          },
+                          {
+                            label: cardCopy.specApr,
+                            value: card.interestRateApr != null ? `${card.interestRateApr}%` : '—',
+                          },
+                        ]}
+                        badges={
+                          <Badge variant="primary">{`${common.quizResultRank}${idx + 1}`}</Badge>
+                        }
+                        islamic={card.isIslamic}
+                        inShortlist={shortlist.isInShortlist('cards', String(card.id))}
+                        onToggleShortlist={() =>
+                          shortlist.toggle({
+                            vertical: 'cards',
+                            key: String(card.id),
+                            cardId: card.id,
+                            name: card.name,
+                            bankName: card.bankName ?? '',
+                            detailHref: `/card/${slugify(card.bankName ?? '')}/${slugify(
+                              card.name
+                            )}`,
+                          })
+                        }
+                        defaultExpanded
+                      >
+                        <p className="result-reason">
+                          <strong>{common.quizResultReason}</strong> {reason}
+                        </p>
+                      </ResultCard>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="results-actions">
               <button
                 onClick={handleShareResult}
@@ -581,25 +705,24 @@ const RecommendationQuiz: React.FC = () => {
             >
               {common.quizNavBack}
             </button>
+            {(currentStep === STEPS.spend ||
+              currentStep === STEPS.use ||
+              currentStep === STEPS.travel) && (
+              <button onClick={handleSkip} className="nav-btn skip-btn">
+                {quiz.skipButton}
+              </button>
+            )}
             <button
               onClick={handleNext}
               className="nav-btn next-btn"
-              disabled={!isStepAnswered(steps[stepIndex])}
-              aria-label={`${stepIndex === 4 ? common.quizNavSeeResults : common.quizNavNext}: ${
+              disabled={!isStepAnswered(currentStep)}
+              aria-label={`${isLastQuestion ? common.quizNavSeeResults : common.quizNavNext}: ${
                 lang === 'bn' ? 'পরের ধাপ বা ফলাফল দেখুন' : 'Go to next step or see results'
               }`}
             >
-              {stepIndex === 4 ? common.quizNavSeeResults : common.quizNavNext}
+              {isLastQuestion ? common.quizNavSeeResults : common.quizNavNext}
             </button>
           </div>
-        )}
-
-        {currentStep === STEPS.results && selectedCardIds.length > 0 && (
-          <ComparisonBar
-            selectedCards={allCards.filter(card => selectedCardIds.includes(card.id))}
-            onRemoveCard={() => undefined}
-            maxSelections={4}
-          />
         )}
       </div>
     </div>

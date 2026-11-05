@@ -1,0 +1,168 @@
+/**
+ * Shared detail-page grammar (redesign plan Section 4.12): one layout for
+ * card, deposit, loan and account detail pages — sticky DetailSummary,
+ * the user's scenario reopened, Layer-2 sections, one trust block,
+ * related products. Token-only values.
+ */
+
+.p2-detail {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+.p2-detail-grid {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: var(--spacing-xl);
+  align-items: start;
+  margin-top: var(--spacing-md);
+}
+
+.p2-detail-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 0;
+}
+
+.p2-detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  min-width: 0;
+}
+
+.p2-section {
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-surface);
+}
+
+.p2-section > h2,
+.p2-section > h3 {
+  margin-top: 0;
+  color: var(--color-text-primary);
+}
+
+.p2-section-note {
+  color: var(--color-text-secondary);
+  font-size: var(--typography-font-size-sm);
+}
+
+/* The user's scenario, reopened on the detail page (carry-forward). */
+.p2-scenario {
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-muted);
+}
+
+.p2-scenario > h2 {
+  margin-top: 0;
+  color: var(--color-text-primary);
+  font-size: var(--typography-font-size-lg);
+}
+
+.p2-scenario-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: end;
+}
+
+.p2-scenario-inputs label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  color: var(--color-text-secondary);
+  font-size: var(--typography-font-size-sm);
+  font-weight: var(--typography-font-weight-medium);
+}
+
+.p2-scenario-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.p2-scenario-result {
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-surface);
+}
+
+.p2-scenario-result dt {
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-font-size-xs);
+}
+
+.p2-scenario-result dd {
+  margin: var(--spacing-2xs) 0 0;
+  color: var(--color-text-primary);
+  font-size: var(--typography-font-size-lg);
+  font-weight: var(--typography-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.p2-scenario-breakdown {
+  margin: var(--spacing-md) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--typography-font-size-sm);
+}
+
+/* Trust block: provenance + history + methodology, once per page. */
+.p2-trust {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Related products across banks. */
+.p2-similar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.p2-reason {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--typography-font-size-sm);
+}
+
+.p2-eligibility-signal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+}
+
+.p2-eligibility-signal strong {
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 1024px) {
+  .p2-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* On mobile the summary stacks above the content and does not stick:
+     the sticky budget (plan Section 6) belongs to the shell + one bar. */
+  .p2-detail-aside .cm-detail-summary {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .p2-detail {
+    padding: var(--spacing-md);
+  }
+
+  .p2-scenario-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -1,8 +1,12 @@
 import { CreditCard } from '../types';
 
 import {
+  applyQuizConstraints,
   calculateCardScore,
+  emptyQuizAnswersV2,
+  quizDiscoveryParams,
   rankCards,
+  rankQuizCardsV2,
   encodeQuizResult,
   decodeQuizResult,
 } from './quizScoringAlgorithm';
@@ -368,6 +372,83 @@ describe('quizScoringAlgorithm', () => {
         },
       });
       expect(encoded).not.toMatch(/[+/=]/);
+    });
+  });
+
+  describe('V2 constraints (redesign Phase 2)', () => {
+    const cards = [
+      mockCard({ id: 1, minMonthlyIncome: 30000, annualFee: 0, cardNetwork: 'visa', bankId: 1 }),
+      mockCard({
+        id: 2,
+        minMonthlyIncome: null,
+        annualFee: null,
+        cardNetwork: 'mastercard',
+        bankId: 2,
+        isIslamic: true,
+      }),
+      mockCard({ id: 3, minMonthlyIncome: 80000, annualFee: 9000, cardNetwork: 'amex', bankId: 1 }),
+    ];
+    const ids = (list: CreditCard[]) => list.map(card => card.id);
+
+    it('empty answers filter nothing out', () => {
+      expect(ids(applyQuizConstraints(cards, emptyQuizAnswersV2()))).toEqual([1, 2, 3]);
+    });
+
+    it('income band keeps cards at or below the cap and unpublished-income cards', () => {
+      const answers = { ...emptyQuizAnswersV2(), incomeBand: '30k_50k' as const };
+      expect(ids(applyQuizConstraints(cards, answers))).toEqual([1, 2]);
+    });
+
+    it('fee cap mirrors discovery: unpublished fees never pass a cap', () => {
+      const answers = { ...emptyQuizAnswersV2(), feeTolerance: 'low' as const };
+      expect(ids(applyQuizConstraints(cards, answers))).toEqual([1]);
+      const none = { ...emptyQuizAnswersV2(), feeTolerance: 'none' as const };
+      expect(ids(applyQuizConstraints(cards, none))).toEqual([1]);
+    });
+
+    it('islamic-only, network and bank constraints compose', () => {
+      const answers = {
+        ...emptyQuizAnswersV2(),
+        islamicPreference: 'islamic_only' as const,
+        network: 'mastercard' as const,
+        bankId: 2,
+      };
+      expect(ids(applyQuizConstraints(cards, answers))).toEqual([2]);
+    });
+
+    it('rankQuizCardsV2 ranks only the survivors', () => {
+      const answers = { ...emptyQuizAnswersV2(), feeTolerance: 'none' as const };
+      const ranked = rankQuizCardsV2(cards, answers, 3);
+      expect(ranked.map(result => result.card.id)).toEqual([1]);
+    });
+
+    it('discovery params carry exactly the expressible constraints', () => {
+      const params = quizDiscoveryParams({
+        ...emptyQuizAnswersV2(),
+        incomeBand: 'up_to_30k',
+        islamicPreference: 'islamic_only',
+        feeTolerance: 'low',
+        network: 'visa',
+        bankId: 7,
+        monthlySpend: 40000,
+      });
+      expect(params.get('max_min_monthly_income')).toBe('30000');
+      expect(params.get('include_unknown_income')).toBe('true');
+      expect(params.get('is_islamic')).toBe('true');
+      expect(params.get('annual_fee_max')).toBe('1500');
+      expect(params.get('card_network')).toBe('visa');
+      expect(params.get('bank_ids')).toBe('7');
+      // Spend is a ranking preference, never a discovery filter.
+      expect(params.has('monthly_spend')).toBe(false);
+    });
+
+    it('no-fee tolerance maps to no_annual_fee, high maps to nothing', () => {
+      expect(
+        quizDiscoveryParams({ ...emptyQuizAnswersV2(), feeTolerance: 'none' }).get('no_annual_fee')
+      ).toBe('true');
+      expect(
+        quizDiscoveryParams({ ...emptyQuizAnswersV2(), feeTolerance: 'high' }).toString()
+      ).toBe('');
     });
   });
 });

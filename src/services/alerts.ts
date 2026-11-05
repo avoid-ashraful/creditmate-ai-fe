@@ -10,6 +10,8 @@ import {
   AlertSubscription,
   AlertSubscriptionsResponse,
   AlertPreferences,
+  BankFollow,
+  BankFollowsResponse,
   UpdateAlertPreferencesRequest,
   CreateAlertSubscriptionRequest,
   UnsubscribePreview,
@@ -113,6 +115,30 @@ export class AlertsClient {
   /** Delete an alert subscription by ID. */
   async deleteSubscription(id: number): Promise<void> {
     await this.request<void>(`/subscriptions/${id}/`, {
+      method: HTTP_METHOD.delete,
+      authenticated: true,
+    });
+  }
+
+  // ==================== Bank follows ====================
+
+  /** List the banks the current user follows (server-backed, D4). */
+  async listBankFollows(): Promise<BankFollowsResponse> {
+    return this.request<BankFollowsResponse>('/bank-follows/', { authenticated: true });
+  }
+
+  /** Follow a bank. Idempotent server-side: re-following returns the row. */
+  async followBank(bankId: number): Promise<BankFollow> {
+    return this.request<BankFollow>('/bank-follows/', {
+      method: HTTP_METHOD.post,
+      body: { bank: bankId },
+      authenticated: true,
+    });
+  }
+
+  /** Unfollow a bank by bank id. Idempotent server-side. */
+  async unfollowBank(bankId: number): Promise<void> {
+    await this.request<void>(`/bank-follows/${bankId}/`, {
       method: HTTP_METHOD.delete,
       authenticated: true,
     });

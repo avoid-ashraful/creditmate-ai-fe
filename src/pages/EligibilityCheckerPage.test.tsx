@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
+import { ShortlistProvider } from '../hooks/ShortlistProvider';
+import { ELIGIBILITY_SESSION_KEY } from '../lib/eligibilitySession';
 import { checkEligibility, EligibilityResponse } from '../services/eligibility';
 import { CreditCard } from '../types';
 
@@ -71,7 +73,9 @@ const response: EligibilityResponse = {
 const renderPage = () =>
   render(
     <BrowserRouter>
-      <EligibilityCheckerPage />
+      <ShortlistProvider>
+        <EligibilityCheckerPage />
+      </ShortlistProvider>
     </BrowserRouter>
   );
 
@@ -81,7 +85,10 @@ const fillAndSubmit = async () => {
 };
 
 describe('EligibilityCheckerPage', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    window.sessionStorage.clear();
+  });
 
   it('shows the estimate banner at the top before any check', () => {
     renderPage();
@@ -115,10 +122,11 @@ describe('EligibilityCheckerPage', () => {
     expect(screen.getByText(/Eligible on published criteria \(1\)/)).toBeInTheDocument();
     expect(screen.getByText(/Not yet \(1\)/)).toBeInTheDocument();
     expect(screen.getByText(/No published requirement \(1\)/)).toBeInTheDocument();
-    expect(screen.getByText('Eligible Card')).toBeInTheDocument();
+    // Appears in the top-matches shortlist and again in its verdict group.
+    expect(screen.getAllByText('Eligible Card').length).toBeGreaterThan(0);
     expect(
-      screen.getByText(/Your income of BDT 30,000 meets the published minimum/)
-    ).toBeInTheDocument();
+      screen.getAllByText(/Your income of BDT 30,000 meets the published minimum/).length
+    ).toBeGreaterThan(0);
     expect(screen.getByText(/No published income requirement/)).toBeInTheDocument();
     // Transparency: only 3 of 4 fixture cards publish a minimum income.
     expect(screen.getByText(/Only 3 of 4 cards publish a minimum income/)).toBeInTheDocument();
@@ -138,14 +146,47 @@ describe('EligibilityCheckerPage', () => {
     expect(groupHeadings[groupHeadings.length - 1]).toContain('Not yet');
   });
 
-  it('card tiles link to the card detail and compare pages', async () => {
+  it('result cards link to the card detail and offer working shortlist actions', async () => {
     mockCheck.mockResolvedValue(response);
     renderPage();
     await fillAndSubmit();
-    const detailLink = await screen.findByRole('link', { name: 'Eligible Card' });
-    expect(detailLink).toHaveAttribute('href', '/card/test-bank/eligible-card');
-    const compareLinks = screen.getAllByRole('link', { name: 'Compare' });
-    expect(compareLinks[0]).toHaveAttribute('href', '/compare?ids=1');
+    const detailLinks = await screen.findAllByRole('link', { name: 'Eligible Card' });
+    expect(detailLinks[0]).toHaveAttribute('href', '/card/test-bank/eligible-card');
+    // Phase 2: the single-card compare link is gone; shortlist actions
+    // (top picks + groups) replace it.
+    expect(screen.queryByRole('link', { name: 'Compare' })).not.toBeInTheDocument();
+    const shortlistButtons = screen.getAllByRole('button', { name: /shortlist/i });
+    expect(shortlistButtons.length).toBeGreaterThan(0);
+    await userEvent.click(shortlistButtons[0]);
+    await waitFor(() =>
+      expect(screen.getAllByRole('button', { name: /in shortlist/i }).length).toBeGreaterThan(0)
+    );
+  });
+
+  it('leads with a top-matches shortlist drawn from eligible and likely cards', async () => {
+    mockCheck.mockResolvedValue(response);
+    renderPage();
+    await fillAndSubmit();
+    expect(await screen.findByText('Your top matches')).toBeInTheDocument();
+    // Both the eligible and the likely card appear in the shortlist.
+    expect(screen.getAllByRole('link', { name: 'Eligible Card' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: 'Likely Card' }).length).toBeGreaterThan(0);
+  });
+
+  it('saves the check to session storage only, and prefills on return', async () => {
+    mockCheck.mockResolvedValue(response);
+    const { unmount } = renderPage();
+    await fillAndSubmit();
+    await screen.findByText('Your estimated results');
+    const raw = window.sessionStorage.getItem(ELIGIBILITY_SESSION_KEY);
+    expect(raw).toBeTruthy();
+    expect(window.localStorage.getItem(ELIGIBILITY_SESSION_KEY)).toBeNull();
+    const saved = JSON.parse(raw as string);
+    expect(saved.profile.monthlyIncome).toBe(30000);
+    expect(saved.verdicts[1].verdict).toBe('eligible');
+    unmount();
+    renderPage();
+    expect(screen.getByLabelText(/Monthly income/)).toHaveValue(30000);
   });
 
   it('sends islamic_only and CIB answers when chosen', async () => {

@@ -1,20 +1,31 @@
+/**
+ * RecommendationQuiz (redesign Phase 2 rebuild, plan Section 4.10).
+ *
+ * Pins the new contract: constraint questions first (income, Islamic,
+ * fee, network, bank), nothing preselected, constraints really filter,
+ * results are ResultCards with working shortlist actions, and "See
+ * all cards" lands on /cards WITH the answers as filters. Legacy
+ * shared links (quiz_result) keep decoding.
+ */
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
+import { ShortlistProvider } from '../hooks/ShortlistProvider';
 import { apiService } from '../services/api';
+import { fetchAllBanks } from '../services/banks';
 import * as quizAlgorithm from '../utils/quizScoringAlgorithm';
 
 import RecommendationQuiz from './RecommendationQuiz';
 
 jest.mock('../services/api');
+jest.mock('../services/banks', () => ({ fetchAllBanks: jest.fn() }));
 jest.mock('../utils/seo');
 
 const mockClipboard = {
   writeText: jest.fn(() => Promise.resolve()),
 };
-
 Object.defineProperty(navigator, 'clipboard', {
   value: mockClipboard,
   writable: true,
@@ -22,6 +33,40 @@ Object.defineProperty(navigator, 'clipboard', {
 });
 
 const mockApiService = apiService as jest.Mocked<typeof apiService>;
+const mockFetchBanks = fetchAllBanks as jest.Mock;
+
+const banks = [
+  {
+    id: 1,
+    name: 'Bank A',
+    logo: '',
+    website: '',
+    is_active: true,
+    credit_card_count: 1,
+    created: '',
+    modified: '',
+  },
+  {
+    id: 2,
+    name: 'Bank B',
+    logo: '',
+    website: '',
+    is_active: true,
+    credit_card_count: 1,
+    created: '',
+    modified: '',
+  },
+  {
+    id: 3,
+    name: 'Bank C',
+    logo: '',
+    website: '',
+    is_active: true,
+    credit_card_count: 1,
+    created: '',
+    modified: '',
+  },
+];
 
 const mockCards = [
   {
@@ -40,7 +85,11 @@ const mockCards = [
     isActive: true,
     lastUpdated: null,
     images: [],
+    bankId: 1,
     bankName: 'Bank A',
+    minMonthlyIncome: 30000,
+    cardNetwork: 'visa',
+    isIslamic: false,
   },
   {
     id: 2,
@@ -58,7 +107,11 @@ const mockCards = [
     isActive: true,
     lastUpdated: null,
     images: [],
+    bankId: 2,
     bankName: 'Bank B',
+    minMonthlyIncome: null,
+    cardNetwork: 'mastercard',
+    isIslamic: false,
   },
   {
     id: 3,
@@ -76,14 +129,56 @@ const mockCards = [
     isActive: true,
     lastUpdated: null,
     images: [],
+    bankId: 3,
     bankName: 'Bank C',
+    minMonthlyIncome: 100000,
+    cardNetwork: 'amex',
+    isIslamic: false,
   },
 ];
+
+const renderQuiz = () =>
+  render(
+    <BrowserRouter>
+      <ShortlistProvider>
+        <RecommendationQuiz />
+      </ShortlistProvider>
+    </BrowserRouter>
+  );
+
+const clickOption = async (name: string | RegExp) => {
+  await userEvent.click(screen.getByRole('button', { name }));
+};
+
+const clickNext = async () => {
+  await userEvent.click(screen.getByRole('button', { name: /Next|See Results/i }));
+};
+
+/** Answer every question with the permissive choice and finish. */
+const completeQuiz = async () => {
+  await clickOption(/Above BDT 100,000/);
+  await clickNext();
+  await clickOption('No preference');
+  await clickNext();
+  await clickOption('High');
+  await clickNext();
+  await clickOption('No preference');
+  await clickNext();
+  await clickOption('Any bank');
+  await clickNext();
+  await clickOption(/50,000/);
+  await clickNext();
+  await clickOption('Shopping');
+  await clickNext();
+  await clickOption('Occasional');
+  await clickNext();
+};
 
 describe('RecommendationQuiz', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     window.history.replaceState({}, '', '/perfect-card-finder');
+    mockFetchBanks.mockResolvedValue(banks);
     mockApiService.getCreditCards.mockResolvedValue({
       count: mockCards.length,
       next: null,
@@ -105,276 +200,174 @@ describe('RecommendationQuiz', () => {
         images: card.images,
       })),
     });
-
-    mockApiService.transformCreditCard.mockImplementation(card => mockCards[card.id - 1]);
+    mockApiService.transformCreditCard.mockImplementation(card => mockCards[card.id - 1] as never);
   });
 
-  const renderQuiz = () => {
-    return render(
-      <BrowserRouter>
-        <RecommendationQuiz />
-      </BrowserRouter>
-    );
-  };
-
-  describe('API and Loading', () => {
+  describe('API and loading', () => {
     it('fetches cards on mount', async () => {
       renderQuiz();
-      await waitFor(() => {
-        expect(mockApiService.getCreditCards).toHaveBeenCalledWith({
-          page_size: 100,
-          isActive: true,
-        });
-      });
-    });
-
-    it('shows loading state while fetching cards', async () => {
-      mockApiService.getCreditCards.mockImplementationOnce(
-        () =>
-          new Promise(resolve =>
-            setTimeout(
-              () =>
-                resolve({
-                  count: 3,
-                  next: null,
-                  previous: null,
-                  results: [],
-                }),
-              100
-            )
-          )
-      );
-
-      renderQuiz();
-      expect(screen.getByText('Loading available cards...')).toBeInTheDocument();
+      await waitFor(() => expect(mockApiService.getCreditCards).toHaveBeenCalled());
     });
 
     it('shows error state when API fails', async () => {
-      mockApiService.getCreditCards.mockRejectedValueOnce(new Error('Network error'));
-
+      mockApiService.getCreditCards.mockRejectedValue(new Error('API Error'));
       renderQuiz();
-      await waitFor(() => {
-        expect(screen.getByText(/couldn't load the cards/i)).toBeInTheDocument();
-      });
+      expect(await screen.findByText(/couldn't load the cards/i)).toBeInTheDocument();
     });
 
     it('shows empty state when no cards available', async () => {
-      mockApiService.getCreditCards.mockResolvedValueOnce({
+      mockApiService.getCreditCards.mockResolvedValue({
         count: 0,
         next: null,
         previous: null,
         results: [],
       });
-
       renderQuiz();
-      await waitFor(() => {
-        expect(screen.getByText(/No cards available/i)).toBeInTheDocument();
-      });
+      expect(await screen.findByText(/No cards available/i)).toBeInTheDocument();
     });
   });
 
-  describe('Quiz Flow', () => {
-    it('opens a shared result against currently fetched cards', async () => {
-      const result = quizAlgorithm.encodeQuizResult({
-        cardIds: [1],
-        answers: {
-          monthlySpend: 80000,
-          primaryUse: 'travel',
-          travelFrequency: 'frequent',
-          feeTolerance: 'moderate',
-          cardTier: 'premium',
-        },
-      });
-      window.history.replaceState({}, '', `/perfect-card-finder?quiz_result=${result}`);
-
+  describe('question flow', () => {
+    it('starts at the income constraint question with nothing preselected', async () => {
       renderQuiz();
+      expect(await screen.findByText(/What is your monthly income/i)).toBeInTheDocument();
+      const options = screen.getAllByRole('button', { name: /BDT/ });
+      options.forEach(option => expect(option).toHaveAttribute('aria-pressed', 'false'));
+      expect(screen.getByRole('button', { name: /Next/i })).toBeDisabled();
+    });
 
+    it('asks constraint questions before preference questions', async () => {
+      renderQuiz();
+      await screen.findByText(/What is your monthly income/i);
+      await clickOption(/Up to BDT 30,000/);
+      await clickNext();
+      expect(await screen.findByText(/Shariah-compliant/i)).toBeInTheDocument();
+      await clickOption('Islamic cards only');
+      await clickNext();
+      expect(await screen.findByText(/annual fee tolerance/i)).toBeInTheDocument();
+      await clickOption('No fees');
+      await clickNext();
+      expect(await screen.findByText(/card network/i)).toBeInTheDocument();
+      await clickOption('Visa');
+      await clickNext();
+      expect(await screen.findByText(/specific bank/i)).toBeInTheDocument();
+      await clickOption('Any bank');
+      await clickNext();
+      // Only now do preference questions start.
+      expect(await screen.findByText(/typical month/i)).toBeInTheDocument();
+    });
+
+    it('previous button is disabled on the first step and enabled later', async () => {
+      renderQuiz();
+      await screen.findByText(/What is your monthly income/i);
+      expect(screen.getByRole('button', { name: /Back/i })).toBeDisabled();
+      await clickOption(/Up to BDT 30,000/);
+      await clickNext();
+      expect(await screen.findByText(/Shariah-compliant/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Back/i })).toBeEnabled();
+    });
+
+    it('preference steps can be skipped without inventing an answer', async () => {
+      renderQuiz();
+      await screen.findByText(/What is your monthly income/i);
+      await clickOption(/Above BDT 100,000/);
+      await clickNext();
+      await clickOption('No preference');
+      await clickNext();
+      await clickOption('High');
+      await clickNext();
+      await clickOption('No preference');
+      await clickNext();
+      await clickOption('Any bank');
+      await clickNext();
+      // Spend step: skip it, then skip use and travel too.
+      expect(await screen.findByText(/typical month/i)).toBeInTheDocument();
+      await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
       expect(await screen.findByText(/Your Top Recommendations/i)).toBeInTheDocument();
-      expect(screen.getAllByText('Travel Card').length).toBeGreaterThan(0);
-    });
-
-    it('starts at spend step', async () => {
-      renderQuiz();
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
-    });
-
-    it('navigates through all 5 steps', async () => {
-      renderQuiz();
-      const user = userEvent;
-
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
-
-      const nextButton = screen.getByRole('button', {
-        name: /Next|See Results/i,
-      });
-      await user.click(nextButton);
-      expect(screen.getByText(/What will you use the card for/i)).toBeInTheDocument();
-
-      await user.click(nextButton);
-      expect(screen.getByText(/How often do you travel/i)).toBeInTheDocument();
-
-      await user.click(nextButton);
-      expect(screen.getByText(/What's your annual fee tolerance/i)).toBeInTheDocument();
-
-      await user.click(nextButton);
-      expect(screen.getByText(/What card tier interests you/i)).toBeInTheDocument();
-
-      await user.click(nextButton);
-      await waitFor(() => {
-        expect(screen.getByText(/Your Top Recommendations/i)).toBeInTheDocument();
-      });
-    });
-
-    it('shows previous button disabled on first step', async () => {
-      renderQuiz();
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
-
-      const prevButton = screen.getByText(/Back/);
-      expect(prevButton).toBeDisabled();
-    });
-
-    it('enables previous button after first step', async () => {
-      renderQuiz();
-      const user = userEvent;
-
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByText(/Next/));
-      const prevButton = screen.getByText(/Back/);
-      expect(prevButton).not.toBeDisabled();
     });
   });
 
-  describe('Spending Selection', () => {
-    it('updates spend value when slider changes', async () => {
+  describe('results', () => {
+    it('renders recommended cards with reasons and working shortlist actions', async () => {
       renderQuiz();
-      const user = userEvent;
-
-      await waitFor(() => {
-        const slider = screen.getByRole('slider', { name: /Monthly spending/i });
-        expect(slider).toBeInTheDocument();
-      });
-
-      const slider = screen.getByRole('slider', { name: /Monthly spending/i });
-      await user.pointer({ keys: '[MouseLeft>]', target: slider });
-      await user.pointer({ keys: '[/MouseLeft]', target: slider });
+      await screen.findByText(/What is your monthly income/i);
+      await completeQuiz();
+      expect(await screen.findByText(/Your Top Recommendations/i)).toBeInTheDocument();
+      expect(screen.getByText(/cards match your answers/)).toBeInTheDocument();
+      const shortlistButtons = screen.getAllByRole('button', { name: /shortlist/i });
+      expect(shortlistButtons.length).toBeGreaterThan(0);
+      await userEvent.click(shortlistButtons[0]);
+      await waitFor(() =>
+        expect(screen.getAllByRole('button', { name: /in shortlist/i }).length).toBeGreaterThan(0)
+      );
     });
 
-    it('allows preset button selection', async () => {
+    it('constraints really filter: a no-fee answer excludes fee-charging cards', async () => {
       renderQuiz();
-      const user = userEvent;
-
-      await waitFor(() => {
-        expect(screen.getByText(/20k/)).toBeInTheDocument();
-      });
-
-      const btn50k = screen.getByRole('button', { name: /50k/ });
-      expect(btn50k).toHaveClass('active');
-
-      const btn100k = screen.getByRole('button', { name: /100k/ });
-      await user.click(btn100k);
-      expect(btn100k).toHaveClass('active');
-    });
-  });
-
-  describe('Results Display', () => {
-    it('renders recommended cards after quiz completion', async () => {
-      renderQuiz();
-      const user = userEvent;
-
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
-
-      for (let i = 0; i < 5; i++) {
-        const nextBtn = screen.getByRole('button', {
-          name: /Next|See Results/i,
-        });
-        await user.click(nextBtn);
-      }
-
-      await waitFor(() => {
-        expect(screen.getByText(/Your Top Recommendations/i)).toBeInTheDocument();
-      });
-      const rankings = screen.getAllByText(/#1/);
-      expect(rankings.length).toBeGreaterThan(0);
+      await screen.findByText(/What is your monthly income/i);
+      await clickOption(/Above BDT 100,000/);
+      await clickNext();
+      await clickOption('No preference');
+      await clickNext();
+      await clickOption('No fees');
+      await clickNext();
+      await clickOption('No preference');
+      await clickNext();
+      await clickOption('Any bank');
+      await clickNext();
+      await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
+      expect(await screen.findByText(/Your Top Recommendations/i)).toBeInTheDocument();
+      expect(screen.getByText(/1 cards match your answers/)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Cashback Card' })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Premium Card' })).not.toBeInTheDocument();
+      // The applied filter is shown as a chip.
+      expect(screen.getByText('No annual fee')).toBeInTheDocument();
     });
 
-    it('labels each result with a match score instead of a bare number', async () => {
+    it('"See All Cards" navigates to /cards WITH the quiz filters applied', async () => {
       renderQuiz();
-      const user = userEvent;
-
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
-
-      for (let i = 0; i < 5; i++) {
-        const btn = screen.getByRole('button', {
-          name: /Next|See Results/i,
-        });
-        await user.click(btn);
-      }
-
-      await screen.findByText(/Your Top Recommendations/i);
-      // The composite score is always labelled; digits use Bangla numerals in bn.
-      const scores = screen.queryAllByText(/^Match score: \d+$/);
-      expect(scores).toHaveLength(3);
-      expect(screen.queryByText(/^167$|^168$|^169$/)).not.toBeInTheDocument();
-    });
-
-    it('shows action buttons on results step', async () => {
-      renderQuiz();
-      const user = userEvent;
-
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
-
-      for (let i = 0; i < 5; i++) {
-        const btn = screen.getByRole('button', {
-          name: /Next|See Results/i,
-        });
-        await user.click(btn);
-      }
-
-      await waitFor(() => {
-        expect(screen.getByText(/Share Results/i)).toBeInTheDocument();
-      });
-      expect(screen.getByText(/See All Cards/i)).toBeInTheDocument();
-      expect(screen.getByText(/Retake Quiz/i)).toBeInTheDocument();
-    });
-
-    it('"See All Cards" navigates to the card discovery at /cards', async () => {
-      renderQuiz();
-      const user = userEvent;
-
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
-
-      for (let i = 0; i < 5; i++) {
-        const btn = screen.getByRole('button', {
-          name: /Next|See Results/i,
-        });
-        await user.click(btn);
-      }
-
+      await screen.findByText(/What is your monthly income/i);
+      await clickOption(/Up to BDT 30,000/);
+      await clickNext();
+      await clickOption('Islamic cards only');
+      await clickNext();
+      await clickOption('No fees');
+      await clickNext();
+      await clickOption('Visa');
+      await clickNext();
+      await clickOption('Bank A');
+      await clickNext();
+      await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
       const seeAll = await screen.findByRole('button', { name: /See All Cards/i });
-      await user.click(seeAll);
-      // The catalogue lives at /cards now; Home (/) is the dashboard.
+      await userEvent.click(seeAll);
       expect(window.location.pathname).toBe('/cards');
+      const params = new URLSearchParams(window.location.search);
+      expect(params.get('max_min_monthly_income')).toBe('30000');
+      expect(params.get('include_unknown_income')).toBe('true');
+      expect(params.get('is_islamic')).toBe('true');
+      expect(params.get('no_annual_fee')).toBe('true');
+      expect(params.get('card_network')).toBe('visa');
+      expect(params.get('bank_ids')).toBe('1');
+    });
+
+    it('shows share and retake actions; retake returns to the first question unanswered', async () => {
+      renderQuiz();
+      await screen.findByText(/What is your monthly income/i);
+      await completeQuiz();
+      expect(await screen.findByText(/Share Results/i)).toBeInTheDocument();
+      await userEvent.click(screen.getByRole('button', { name: /Retake Quiz/i }));
+      expect(await screen.findByText(/What is your monthly income/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Next/i })).toBeDisabled();
     });
   });
 
-  describe('Shared Results', () => {
+  describe('shared results', () => {
     it('decodes and loads shared quiz results from URL param', async () => {
       const answers = {
         monthlySpend: 100000,
@@ -383,21 +376,13 @@ describe('RecommendationQuiz', () => {
         feeTolerance: 'high' as const,
         cardTier: 'premium' as const,
       };
-      const encoded = quizAlgorithm.encodeQuizResult({
-        cardIds: [1, 2],
-        answers,
-      });
-
-      window.history.replaceState({}, '', `/?quiz_result=${encoded}`);
-
+      const encoded = quizAlgorithm.encodeQuizResult({ cardIds: [1, 3], answers });
+      window.history.replaceState({}, '', `/perfect-card-finder?quiz_result=${encoded}`);
       renderQuiz();
-
-      await waitFor(() => {
-        expect(mockApiService.getCreditCards).toHaveBeenCalled();
-      });
+      expect(await screen.findByText(/Your Top Recommendations/i)).toBeInTheDocument();
     });
 
-    it('validates card IDs against fetched cards', async () => {
+    it('ignores a shared link whose cards no longer exist', async () => {
       const answers = {
         monthlySpend: 100000,
         primaryUse: 'travel' as const,
@@ -405,124 +390,10 @@ describe('RecommendationQuiz', () => {
         feeTolerance: 'high' as const,
         cardTier: 'premium' as const,
       };
-      const encoded = quizAlgorithm.encodeQuizResult({
-        cardIds: [999],
-        answers,
-      });
-
-      window.history.replaceState({}, '', `/?quiz_result=${encoded}`);
-
+      const encoded = quizAlgorithm.encodeQuizResult({ cardIds: [999], answers });
+      window.history.replaceState({}, '', `/perfect-card-finder?quiz_result=${encoded}`);
       renderQuiz();
-
-      await waitFor(() => {
-        expect(mockApiService.getCreditCards).toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('Accessibility', () => {
-    it('has proper ARIA labels for quiz steps', async () => {
-      renderQuiz();
-
-      await waitFor(() => {
-        const stepRegion = screen.getByRole('region', { name: /Spending/i });
-        expect(stepRegion).toBeInTheDocument();
-      });
-    });
-
-    it('uses aria-live for status updates', async () => {
-      renderQuiz();
-
-      await waitFor(() => {
-        const steps = screen.getAllByRole('region');
-        const liveStep = steps.find(el => el.getAttribute('aria-live') === 'polite');
-        expect(liveStep).toBeInTheDocument();
-      });
-    });
-
-    it('supports keyboard navigation', async () => {
-      renderQuiz();
-      const user = userEvent;
-
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
-
-      // Tab to Next button and press Enter
-      const nextButton = screen.getByRole('button', { name: /Next/i });
-      nextButton.focus();
-      expect(nextButton).toHaveFocus();
-      await user.keyboard('{Enter}');
-
-      await waitFor(() => {
-        expect(screen.getByText(/What will you use the card for/i)).toBeInTheDocument();
-      });
-    });
-
-    it('buttons have descriptive aria-labels', async () => {
-      renderQuiz();
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Go to previous step/i })).toBeInTheDocument();
-      });
-      expect(
-        screen.getByRole('button', { name: /Go to next step or see results/i })
-      ).toBeInTheDocument();
-    });
-  });
-
-  describe('Share Functionality', () => {
-    it('shows share button and is clickable', async () => {
-      renderQuiz();
-      const user = userEvent;
-
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
-
-      for (let i = 0; i < 5; i++) {
-        const btn = screen.getByRole('button', {
-          name: /Next|See Results/i,
-        });
-        await user.click(btn);
-      }
-
-      await waitFor(() => {
-        expect(screen.getByText(/Share Results/i)).toBeInTheDocument();
-      });
-
-      const shareButton = screen.getByText(/Share Results/);
-      expect(shareButton).toBeInTheDocument();
-      expect(shareButton).not.toBeDisabled();
-    });
-  });
-
-  describe('Retake Quiz', () => {
-    it('resets quiz to first step when retaking', async () => {
-      renderQuiz();
-      const user = userEvent;
-
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
-
-      for (let i = 0; i < 5; i++) {
-        const btn = screen.getByRole('button', {
-          name: /Next|See Results/i,
-        });
-        await user.click(btn);
-      }
-
-      await waitFor(() => {
-        expect(screen.getByText(/Retake Quiz/i)).toBeInTheDocument();
-      });
-
-      const retakeButton = screen.getByText(/Retake Quiz/);
-      await user.click(retakeButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
-      });
+      expect(await screen.findByText(/What is your monthly income/i)).toBeInTheDocument();
     });
   });
 });

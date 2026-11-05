@@ -101,13 +101,28 @@ describe('CardHistoryTimeline', () => {
     mockAuthStatus = 'anonymous';
   });
 
-  it('prompts anonymous visitors to log in and does not fetch', () => {
+  it('fetches and renders history for anonymous visitors (D1: public history)', async () => {
+    mockGetFieldHistory.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 1,
+          card_id: 1,
+          field_name: 'annual_fee',
+          old_value: '3000.00',
+          new_value: '3500.00',
+          created: '2026-11-03T20:34:10Z',
+        },
+      ],
+    });
+
     renderWithProviders(<CardHistoryTimeline cardId={1} />);
-    expect(
-      screen.getByText(/Log in to see how this card's fees and rates have changed/)
-    ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
-    expect(mockGetFieldHistory).not.toHaveBeenCalled();
+
+    expect(mockGetFieldHistory).toHaveBeenCalledWith(1);
+    expect(await screen.findByText('Annual fee')).toBeInTheDocument();
+    expect(screen.queryByText(/Log in to see/)).not.toBeInTheDocument();
   });
 
   it('renders friendly labels with formatted old and new values', async () => {
@@ -155,18 +170,15 @@ describe('CardHistoryTimeline', () => {
     expect(await screen.findByText(/No recorded changes yet/)).toBeInTheDocument();
   });
 
-  it('falls back to the login prompt when the server rejects an authenticated user with 403', async () => {
-    mockAuthStatus = 'authenticated';
-    mockGetFieldHistory.mockRejectedValue(
-      new ApiError({ status: 403, detail: 'Authentication required to view field history.' })
-    );
+  it('shows the error state when the server rejects the request', async () => {
+    mockGetFieldHistory.mockRejectedValue(new ApiError({ status: 403, detail: 'Forbidden.' }));
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
     renderWithProviders(<CardHistoryTimeline cardId={1} />);
 
-    expect(
-      await screen.findByText(/Log in to see how this card's fees and rates have changed/)
-    ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
+    expect(await screen.findByText(/couldn't load the change history/)).toBeInTheDocument();
+    expect(screen.queryByText(/Log in to see/)).not.toBeInTheDocument();
+    (console.error as jest.Mock).mockRestore();
   });
 
   it('shows an error state when the history cannot be loaded', async () => {

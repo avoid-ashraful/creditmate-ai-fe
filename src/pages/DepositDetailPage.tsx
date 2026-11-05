@@ -1,20 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 
-import { useAuth } from '../hooks/AuthProvider';
+import { DetailSummary, Money, MoneyInput, TrustChip, VerdictStrip } from '../components/ui';
+import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
-import { toBanglaNumerals, useLanguage } from '../locales';
+import { formatLocalizedDate, getDetailCopy, toBanglaNumerals, useLanguage } from '../locales';
 import { DepositsCopy, getDepositsCopy } from '../locales/deposits';
 import {
-  ApiError,
   DepositHistoryEntry,
   DepositProductDetail,
   DepositRate,
+  DepositScenarioResult,
   getDepositFieldHistory,
   getDepositProduct,
+  runDepositScenario,
 } from '../services/deposits';
 
 import './DepositsPage.css';
+import '../styles/DecisionDetail.css';
 
 interface Formatters {
   money: (value: number) => string;
@@ -68,46 +71,35 @@ const historyFieldLabel = (entry: DepositHistoryEntry, copy: DepositsCopy): stri
   return entry.fieldName;
 };
 
+/**
+ * Rate-change history is public (redesign decision D1): everyone sees the
+ * same dated record, signed in or not.
+ */
 const HistorySection: React.FC<{
   slug: string;
   copy: DepositsCopy;
 }> = ({ slug, copy }) => {
-  const { status: authStatus } = useAuth();
   const [entries, setEntries] = useState<DepositHistoryEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const [needsLogin, setNeedsLogin] = useState(false);
 
   useEffect(() => {
-    if (authStatus !== 'authenticated') return;
     let cancelled = false;
     getDepositFieldHistory(slug)
       .then(history => {
         if (!cancelled) setEntries(history);
       })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
-          setNeedsLogin(true);
-          return;
-        }
-        setFailed(true);
+      .catch(() => {
+        if (!cancelled) setFailed(true);
       });
     return () => {
       cancelled = true;
     };
-  }, [authStatus, slug]);
-
-  const showLoginPrompt = authStatus !== 'authenticated' || needsLogin;
+  }, [slug]);
 
   return (
-    <section className="deposits-history" aria-labelledby="deposit-history-heading">
+    <section className="deposits-history p2-section" aria-labelledby="deposit-history-heading">
       <h2 id="deposit-history-heading">{copy.historyHeading}</h2>
       <p>{copy.historyIntro}</p>
-      {showLoginPrompt && (
-        <p className="deposits-login-prompt">
-          {copy.historyLoginPrompt} <Link to="/login">{copy.historyLoginLink}</Link>
-        </p>
-      )}
       {failed && <p role="alert">{copy.historyError}</p>}
       {entries !== null && entries.length === 0 && <p>{copy.historyEmpty}</p>}
       {entries !== null && entries.length > 0 && (
@@ -129,11 +121,136 @@ const HistorySection: React.FC<{
   );
 };
 
+/**
+ * Scenario carry-forward strip (redesign Phase 2): arriving from the
+ * discovery scenario keeps the user's amount/instalment/term prefilled;
+ * the figures come from the same scenario endpoint discovery uses — this
+ * page never recomputes deposit maths itself.
+ */
+const ScenarioStrip: React.FC<{
+  product: DepositProductDetail;
+}> = ({ product }) => {
+  const { lang } = useLanguage();
+  const detail = getDetailCopy(lang);
+  const [searchParams] = useSearchParams();
+  const scenarioKind = product.kind === 'fdr' ? 'fdr' : 'dps';
+  const [amount, setAmount] = useState<number | null>(() => {
+    const value = Number(searchParams.get('amount'));
+    return Number.isFinite(value) && value > 0 ? value : 500000;
+  });
+  const [instalment, setInstalment] = useState<number | null>(() => {
+    const value = Number(searchParams.get('instalment'));
+    return Number.isFinite(value) && value > 0 ? value : 5000;
+  });
+  const [months, setMonths] = useState<number>(() => {
+    const value = Number(searchParams.get('months'));
+    return Number.isFinite(value) && value > 0 ? value : 12;
+  });
+  const [hasTin] = useState<boolean>(() => searchParams.get('tin') !== '0');
+  const [result, setResult] = useState<DepositScenarioResult | null>(null);
+  const [responded, setResponded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const runTokenRef = useRef(0);
+
+  useEffect(() => {
+    const principal = scenarioKind === 'fdr' ? amount : instalment;
+    if (!principal || principal <= 0 || !months || months <= 0) return;
+    const token = ++runTokenRef.current;
+    const timer = setTimeout(() => {
+      runDepositScenario({
+        kind: scenarioKind,
+        amount: scenarioKind === 'fdr' ? principal : undefined,
+        monthlyInstalment: scenarioKind === 'dps' ? principal : undefined,
+        months,
+        hasTin,
+      })
+        .then(response => {
+          if (runTokenRef.current !== token) return;
+          const mine = [...response.results, ...response.benchmarks].find(
+            entry => entry.product.slug === product.slug
+          );
+          setResult(mine ?? null);
+          setResponded(true);
+          setFailed(false);
+        })
+        .catch(() => {
+          if (runTokenRef.current !== token) return;
+          setFailed(true);
+          setResponded(true);
+        });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [scenarioKind, amount, instalment, months, hasTin, product.slug]);
+
+  return (
+    <section className="p2-scenario" aria-labelledby="deposit-scenario-heading">
+      <h2 id="deposit-scenario-heading">{detail.depositScenarioHeading}</h2>
+      <div className="p2-scenario-inputs">
+        {scenarioKind === 'fdr' ? (
+          <MoneyInput label={detail.depositAmountLabel} value={amount} onValueChange={setAmount} />
+        ) : (
+          <MoneyInput
+            label={detail.instalmentLabel}
+            value={instalment}
+            onValueChange={setInstalment}
+          />
+        )}
+        <label>
+          {detail.monthsLabel}
+          <input
+            type="number"
+            min={1}
+            max={360}
+            value={months}
+            onChange={event => setMonths(Number(event.target.value))}
+          />
+        </label>
+      </div>
+      {failed && <p role="alert">{detail.scenarioError}</p>}
+      {!failed && responded && !result && <p>{detail.scenarioNotRanked}</p>}
+      {!failed && result && (
+        <dl className="p2-scenario-results">
+          <div className="p2-scenario-result">
+            <dt>{detail.grossMaturityLabel}</dt>
+            <dd>
+              <Money value={result.grossMaturity} decimals={2} />
+            </dd>
+          </div>
+          <div className="p2-scenario-result">
+            <dt>{detail.interestEarnedLabel}</dt>
+            <dd>
+              <Money value={result.interestEarned} decimals={2} />
+            </dd>
+          </div>
+          <div className="p2-scenario-result">
+            <dt>{detail.taxDeductedLabel}</dt>
+            <dd>
+              <Money value={result.sourceTax} decimals={2} />
+            </dd>
+          </div>
+          <div className="p2-scenario-result">
+            <dt>{detail.netMaturityLabel}</dt>
+            <dd>
+              <Money value={result.netMaturity} decimals={2} />
+            </dd>
+          </div>
+          <div className="p2-scenario-result">
+            <dt>{detail.effectiveYieldLabel}</dt>
+            <dd>{result.effectiveYieldPercent}%</dd>
+          </div>
+        </dl>
+      )}
+    </section>
+  );
+};
+
 const DepositDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { lang } = useLanguage();
   const copy = getDepositsCopy(lang);
+  const detail = getDetailCopy(lang);
   const isBn = lang === 'bn';
+  const shortlist = useShortlist();
   const [product, setProduct] = useState<DepositProductDetail | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -172,6 +289,13 @@ const DepositDetailPage: React.FC = () => {
     count: (value: number) => (isBn ? toBanglaNumerals(String(value)) : String(value)),
   };
 
+  const rateRange = useMemo(() => {
+    if (!product || product.rates.length === 0) return null;
+    const min = Math.min(...product.rates.map(rate => rate.rateMin));
+    const max = Math.max(...product.rates.map(rate => rate.rateMax));
+    return { min, max };
+  }, [product]);
+
   if (failed) {
     return (
       <div className="deposits-page">
@@ -188,123 +312,201 @@ const DepositDetailPage: React.FC = () => {
     );
   }
 
+  const inShortlist = shortlist.isInShortlist('deposits', product.slug);
+  const rateLabel =
+    product.rateType === 'expected_profit' ? copy.expectedProfitLabel : copy.detailRateCol;
+  const heroRate = rateRange
+    ? rateRange.min === rateRange.max
+      ? `${formatters.rate(rateRange.max)}%`
+      : `${formatters.rate(rateRange.min)}–${formatters.rate(rateRange.max)}%`
+    : '—';
+
   return (
-    <div className="deposits-page deposits-detail">
+    <div className="deposits-page deposits-detail p2-detail">
       <Link to="/deposits" className="deposits-back">
         ← {copy.backToDeposits}
       </Link>
-      <h1>{product.name}</h1>
-      <p className="deposits-detail-bank">
-        {product.institutionDisplayName}
-        {product.isIslamic && <span className="deposits-badge">{copy.islamicBadge}</span>}
-        {product.isBenchmark && <span className="deposits-badge">{copy.benchmarkBadge}</span>}
-      </p>
+      <header className="p2-detail-header">
+        <h1>{product.name}</h1>
+        <p className="deposits-detail-bank">
+          {product.institutionDisplayName}
+          {product.isIslamic && <span className="deposits-badge">{copy.islamicBadge}</span>}
+          {product.isBenchmark && <span className="deposits-badge">{copy.benchmarkBadge}</span>}
+        </p>
+      </header>
 
-      <dl className="deposits-facts">
-        {product.minInstalment !== null && (
-          <div>
-            <dt>{copy.instalmentRangeLabel}</dt>
-            <dd>
-              {formatters.money(product.minInstalment)}
-              {product.maxInstalment !== null && ` – ${formatters.money(product.maxInstalment)}`}
-            </dd>
-          </div>
-        )}
-        {product.loanAgainstPercent !== null && (
-          <div>
-            <dt>{copy.loanAgainstLabel}</dt>
-            <dd>
-              {copy.loanAgainstValue.replace(
-                '{percent}',
-                formatters.rate(product.loanAgainstPercent)
+      <div className="p2-detail-grid">
+        <aside className="p2-detail-aside">
+          <DetailSummary
+            identity={{ bankName: product.institutionDisplayName, productName: product.name }}
+            heroValue={heroRate}
+            heroLabel={rateLabel}
+            facts={[
+              ...(product.minInstalment !== null
+                ? [
+                    {
+                      label: copy.instalmentRangeLabel,
+                      value: `${formatters.money(product.minInstalment)}${
+                        product.maxInstalment !== null
+                          ? ` – ${formatters.money(product.maxInstalment)}`
+                          : ''
+                      }`,
+                    },
+                  ]
+                : []),
+              ...(product.loanAgainstPercent !== null
+                ? [
+                    {
+                      label: copy.loanAgainstLabel,
+                      value: copy.loanAgainstValue.replace(
+                        '{percent}',
+                        formatters.rate(product.loanAgainstPercent)
+                      ),
+                    },
+                  ]
+                : []),
+              ...(product.rateEffectiveDate
+                ? [{ label: copy.rateEffectiveLabel, value: product.rateEffectiveDate }]
+                : []),
+            ]}
+            trustChip={
+              product.sourceUrl ? (
+                <TrustChip
+                  source={
+                    <a href={product.sourceUrl} target="_blank" rel="noreferrer">
+                      {copy.sourceLabel}
+                    </a>
+                  }
+                  dateLabel={
+                    product.verifiedAt
+                      ? formatLocalizedDate(new Date(product.verifiedAt), lang)
+                      : detail.trustChipUnverified
+                  }
+                />
+              ) : undefined
+            }
+            actions={
+              <button
+                type="button"
+                className="btn btn-primary"
+                aria-pressed={inShortlist}
+                onClick={() =>
+                  shortlist.toggle({
+                    vertical: 'deposits',
+                    key: product.slug,
+                    name: product.name,
+                    bankName: product.institutionDisplayName,
+                    detailHref: `/deposits/${product.slug}`,
+                  })
+                }
+              >
+                {inShortlist ? detail.inShortlist : detail.addToShortlist}
+              </button>
+            }
+          />
+        </aside>
+
+        <div className="p2-detail-main">
+          <VerdictStrip
+            items={[
+              { label: rateLabel, value: heroRate },
+              {
+                label: copy.detailTenureCol,
+                value: formatters.count(product.rates.length),
+              },
+              ...(product.verifiedAt
+                ? [
+                    {
+                      label: copy.verifiedLabel,
+                      value: formatLocalizedDate(new Date(product.verifiedAt), lang),
+                    },
+                  ]
+                : []),
+            ]}
+          />
+
+          <ScenarioStrip product={product} />
+
+          <section className="p2-section" aria-labelledby="deposit-rates-heading">
+            <h2 id="deposit-rates-heading">{copy.detailRatesHeading}</h2>
+            <div className="deposits-table-wrap">
+              <table className="deposits-table">
+                <thead>
+                  <tr>
+                    <th scope="col">{copy.detailTenureCol}</th>
+                    <th scope="col">{copy.detailSlabCol}</th>
+                    <th scope="col">{rateLabel}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {product.rates.map(rate => (
+                    <tr key={rate.id}>
+                      <td>{tenureText(rate, copy, formatters)}</td>
+                      <td>{slabText(rate, copy, formatters)}</td>
+                      <td>
+                        {rate.isRange
+                          ? `${formatters.rate(rate.rateMin)}–${formatters.rate(rate.rateMax)}%`
+                          : `${formatters.rate(rate.rateMax)}%`}
+                        {rate.isDerived && (
+                          <span className="deposits-badge deposits-badge-derived">
+                            {copy.derivedRateBadge}
+                          </span>
+                        )}
+                        {rate.note && <span className="deposits-rate-note">{rate.note}</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {product.prematureEncashmentTerms && (
+            <section className="p2-section">
+              <h2>{copy.encashmentHeading}</h2>
+              <p>{product.prematureEncashmentTerms}</p>
+            </section>
+          )}
+          {product.eligibilityNotes && (
+            <section className="p2-section">
+              <h2>{copy.eligibilityHeading}</h2>
+              <p>{product.eligibilityNotes}</p>
+            </section>
+          )}
+
+          <section className="deposits-provenance p2-section">
+            <h2>{copy.provenanceHeading}</h2>
+            <dl className="deposits-facts">
+              <div>
+                <dt>{copy.sourceLabel}</dt>
+                <dd>
+                  {product.sourceUrl ? (
+                    <a href={product.sourceUrl} target="_blank" rel="noreferrer">
+                      {product.sourceUrl}
+                    </a>
+                  ) : (
+                    '—'
+                  )}
+                </dd>
+              </div>
+              {product.rateEffectiveDate && (
+                <div>
+                  <dt>{copy.rateEffectiveLabel}</dt>
+                  <dd>{product.rateEffectiveDate}</dd>
+                </div>
               )}
-            </dd>
-          </div>
-        )}
-      </dl>
+              {product.verifiedAt && (
+                <div>
+                  <dt>{copy.verifiedLabel}</dt>
+                  <dd>{new Date(product.verifiedAt).toLocaleDateString()}</dd>
+                </div>
+              )}
+            </dl>
+          </section>
 
-      <section aria-labelledby="deposit-rates-heading">
-        <h2 id="deposit-rates-heading">{copy.detailRatesHeading}</h2>
-        <div className="deposits-table-wrap">
-          <table className="deposits-table">
-            <thead>
-              <tr>
-                <th scope="col">{copy.detailTenureCol}</th>
-                <th scope="col">{copy.detailSlabCol}</th>
-                <th scope="col">
-                  {product.rateType === 'expected_profit'
-                    ? copy.expectedProfitLabel
-                    : copy.detailRateCol}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {product.rates.map(rate => (
-                <tr key={rate.id}>
-                  <td>{tenureText(rate, copy, formatters)}</td>
-                  <td>{slabText(rate, copy, formatters)}</td>
-                  <td>
-                    {rate.isRange
-                      ? `${formatters.rate(rate.rateMin)}–${formatters.rate(rate.rateMax)}%`
-                      : `${formatters.rate(rate.rateMax)}%`}
-                    {rate.isDerived && (
-                      <span className="deposits-badge deposits-badge-derived">
-                        {copy.derivedRateBadge}
-                      </span>
-                    )}
-                    {rate.note && <span className="deposits-rate-note">{rate.note}</span>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <HistorySection slug={product.slug} copy={copy} />
         </div>
-      </section>
-
-      {product.prematureEncashmentTerms && (
-        <section>
-          <h2>{copy.encashmentHeading}</h2>
-          <p>{product.prematureEncashmentTerms}</p>
-        </section>
-      )}
-      {product.eligibilityNotes && (
-        <section>
-          <h2>{copy.eligibilityHeading}</h2>
-          <p>{product.eligibilityNotes}</p>
-        </section>
-      )}
-
-      <section className="deposits-provenance">
-        <h2>{copy.provenanceHeading}</h2>
-        <dl className="deposits-facts">
-          <div>
-            <dt>{copy.sourceLabel}</dt>
-            <dd>
-              {product.sourceUrl ? (
-                <a href={product.sourceUrl} target="_blank" rel="noreferrer">
-                  {product.sourceUrl}
-                </a>
-              ) : (
-                '—'
-              )}
-            </dd>
-          </div>
-          {product.rateEffectiveDate && (
-            <div>
-              <dt>{copy.rateEffectiveLabel}</dt>
-              <dd>{product.rateEffectiveDate}</dd>
-            </div>
-          )}
-          {product.verifiedAt && (
-            <div>
-              <dt>{copy.verifiedLabel}</dt>
-              <dd>{new Date(product.verifiedAt).toLocaleDateString()}</dd>
-            </div>
-          )}
-        </dl>
-      </section>
-
-      <HistorySection slug={product.slug} copy={copy} />
+      </div>
     </div>
   );
 };

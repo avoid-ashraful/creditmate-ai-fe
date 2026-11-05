@@ -342,8 +342,9 @@ export const fetchLoanProduct = async (slug: string): Promise<LoanProductDetail>
 };
 
 /**
- * Field history for a product. The endpoint requires authentication;
- * anonymous callers get an empty list (the detail page explains why).
+ * Field history for a product. The endpoint is public (redesign
+ * decision D1); the token is attached when a session exists. A 401/403
+ * still degrades to an empty list rather than failing the page.
  */
 export const fetchLoanFieldHistory = async (slug: string): Promise<LoanFieldHistoryEntry[]> => {
   const headers: Record<string, string> = {};

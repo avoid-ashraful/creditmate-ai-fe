@@ -1,0 +1,48 @@
+.cm-follow-bank {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cm-follow-bank-button {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-surface);
+  color: var(--color-text-primary);
+  font-size: var(--typography-font-size-sm);
+  font-weight: var(--typography-font-weight-medium);
+  cursor: pointer;
+}
+
+.cm-follow-bank-button:hover {
+  background: var(--color-state-hover-surface);
+}
+
+.cm-follow-bank-button.is-following {
+  border-color: var(--color-border-focus);
+  background: var(--color-primary-subtle);
+  color: var(--color-text-link);
+}
+
+.cm-follow-bank-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.cm-follow-bank-prompt {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--typography-font-size-sm);
+}
+
+.cm-follow-bank-login {
+  color: var(--color-text-link);
+  font-weight: var(--typography-font-weight-medium);
+}
+
+.cm-follow-bank-error {
+  margin: 0;
+  color: var(--color-error-base);
+  font-size: var(--typography-font-size-sm);
+}

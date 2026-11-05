@@ -83,10 +83,21 @@ describe('CardHistoryClient.getFieldHistory', () => {
     expect(response.results[0].field_name).toBe('interest_rate_apr');
   });
 
-  it('throws a 401 ApiError without a session and never calls the API', async () => {
+  it('fetches anonymously without a session and sends no Authorization header (D1)', async () => {
     mockAuthClient.hasSession.mockReturnValue(false);
-    await expect(cardHistoryClient.getFieldHistory(1)).rejects.toMatchObject({ status: 401 });
-    await expect(cardHistoryClient.getFieldHistory(1)).rejects.toBeInstanceOf(ApiError);
+    let authHeader: string | null = 'unset';
+    server.use(
+      rest.get('*/api/v1/credit-cards/1/field-history/', (req, res, ctx) => {
+        authHeader = req.headers.get('Authorization');
+        return res(ctx.json(historyPage));
+      })
+    );
+
+    const response = await cardHistoryClient.getFieldHistory(1);
+
+    expect(authHeader).toBeNull();
+    expect(response.count).toBe(2);
+    expect(response.results).toHaveLength(2);
   });
 
   it('propagates a backend 403 as an ApiError', async () => {
