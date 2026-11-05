@@ -2,9 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import Toast from '../components/Toast';
-import { Badge, Money, MoneyInput, ResultCard } from '../components/ui';
+import { Badge, Money, MoneyInput, ResultCard, SliderWithBubble } from '../components/ui';
 import { useShortlist } from '../hooks/ShortlistProvider';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
+import { formatTaka } from '../lib/format';
 import { fillCopy, toBanglaNumerals, useLanguage, getCommonCopy } from '../locales';
 import { getCardDetailCopy } from '../locales/cardDetail';
 import { getQuizCopy } from '../locales/quiz';
@@ -523,14 +524,14 @@ const RecommendationQuiz: React.FC = () => {
           <div className="quiz-step" role="region" aria-live="polite" aria-label={quiz.stepSpend}>
             <h2>{quiz.spendLabel}</h2>
             <div className="step-content">
-              <input
-                type="range"
-                min="10000"
-                max="500000"
-                step="10000"
+              <SliderWithBubble
+                min={10000}
+                max={500000}
+                step={10000}
                 value={answers.monthlySpend ?? 10000}
-                onChange={event => setAnswer('monthlySpend', Number(event.target.value))}
-                aria-label={quiz.spendLabel}
+                onChange={value => setAnswer('monthlySpend', value)}
+                formatValue={value => formatTaka(value)}
+                ariaLabel={quiz.spendLabel}
                 className="spend-slider"
               />
               <MoneyInput

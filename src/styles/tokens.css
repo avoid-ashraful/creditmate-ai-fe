@@ -100,11 +100,11 @@
   --color-success-subtle: #ecfdf5;
   --color-success-border: #a7f3d0;
   --color-success-contrast: #ffffff;
-  --color-warning-base: #f59e0b;
+  --color-warning-base: #b45309;
   --color-warning-hover: #d97706;
   --color-warning-subtle: #fffbeb;
   --color-warning-border: #fde68a;
-  --color-warning-contrast: #0f172a;
+  --color-warning-contrast: #ffffff;
   --color-error-base: #b91c1c;
   --color-error-hover: #991b1b;
   --color-error-subtle: #fef2f2;
@@ -275,7 +275,7 @@
     --color-error-subtle: #7f1d1d;
     --color-error-border: #b91c1c;
     --color-error-contrast: #0f172a;
-    --color-info-base: #38bdf8;
+    --color-info-base: #7dd3fc;
     --color-info-subtle: #0c4a6e;
     --color-info-border: #0369a1;
     --color-info-contrast: #0f172a;
@@ -291,8 +291,8 @@
     --color-text-disabled: #475569;
     --color-text-inverse: #0f172a;
     --color-text-inverse-secondary: #475569;
-    --color-text-link: #60a5fa;
-    --color-text-link-hover: #93c5fd;
+    --color-text-link: #93c5fd;
+    --color-text-link-hover: #bfdbfe;
     --color-text-on-primary: #0f172a;
     --color-border-base: #94a3b8;
     --color-border-strong: #94a3b8;
@@ -339,7 +339,7 @@
   --color-error-subtle: #7f1d1d;
   --color-error-border: #b91c1c;
   --color-error-contrast: #0f172a;
-  --color-info-base: #38bdf8;
+  --color-info-base: #7dd3fc;
   --color-info-subtle: #0c4a6e;
   --color-info-border: #0369a1;
   --color-info-contrast: #0f172a;
@@ -355,8 +355,8 @@
   --color-text-disabled: #475569;
   --color-text-inverse: #0f172a;
   --color-text-inverse-secondary: #475569;
-  --color-text-link: #60a5fa;
-  --color-text-link-hover: #93c5fd;
+  --color-text-link: #93c5fd;
+  --color-text-link-hover: #bfdbfe;
   --color-text-on-primary: #0f172a;
   --color-border-base: #94a3b8;
   --color-border-strong: #94a3b8;
@@ -472,11 +472,11 @@
   --color-success-subtle: #ecfdf5;
   --color-success-border: #a7f3d0;
   --color-success-contrast: #ffffff;
-  --color-warning-base: #f59e0b;
+  --color-warning-base: #b45309;
   --color-warning-hover: #d97706;
   --color-warning-subtle: #fffbeb;
   --color-warning-border: #fde68a;
-  --color-warning-contrast: #0f172a;
+  --color-warning-contrast: #ffffff;
   --color-error-base: #b91c1c;
   --color-error-hover: #991b1b;
   --color-error-subtle: #fef2f2;

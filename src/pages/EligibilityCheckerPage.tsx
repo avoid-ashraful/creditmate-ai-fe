@@ -1,6 +1,13 @@
 import React, { useMemo, useState } from 'react';
 
-import { Badge, Money, ResultCard, TrustChip } from '../components/ui';
+import {
+  Badge,
+  Money,
+  ResultCard,
+  StatusChip,
+  TrustChip,
+  type StatusChipTone,
+} from '../components/ui';
 import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { readEligibilitySession, saveEligibilitySession } from '../lib/eligibilitySession';
@@ -30,6 +37,14 @@ const VERDICT_CLASS: Record<EligibilityVerdict, string> = {
   likely: 'verdict-likely',
   unknown: 'verdict-unknown',
   not_yet: 'verdict-not-yet',
+};
+
+/** Verdicts in the one StatusChip grammar (Phase 4 inventory). */
+const VERDICT_TONE: Record<EligibilityVerdict, StatusChipTone> = {
+  eligible: 'positive',
+  likely: 'info',
+  unknown: 'neutral',
+  not_yet: 'negative',
 };
 
 const EligibilityCheckerPage: React.FC = () => {
@@ -192,9 +207,7 @@ const EligibilityCheckerPage: React.FC = () => {
         ]}
         badges={
           showVerdictBadge ? (
-            <Badge variant={item.verdict === 'eligible' ? 'success' : 'info'}>
-              {verdictLabel(item.verdict)}
-            </Badge>
+            <StatusChip tone={VERDICT_TONE[item.verdict]}>{verdictLabel(item.verdict)}</StatusChip>
           ) : undefined
         }
         trustChip={
@@ -381,8 +394,10 @@ const EligibilityCheckerPage: React.FC = () => {
 
           <ul className="eligibility-counts">
             {(['eligible', 'likely', 'unknown', 'not_yet'] as EligibilityVerdict[]).map(verdict => (
-              <li key={verdict} className={`eligibility-count-chip ${VERDICT_CLASS[verdict]}`}>
-                {verdictLabel(verdict)}: {formatCount(result.counts[verdict])}
+              <li key={verdict}>
+                <StatusChip tone={VERDICT_TONE[verdict]}>
+                  {verdictLabel(verdict)}: {formatCount(result.counts[verdict])}
+                </StatusChip>
               </li>
             ))}
           </ul>

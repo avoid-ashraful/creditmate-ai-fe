@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { getVocabularyCopy, useLanguage } from '../../locales';
+
 import './TrustChip.css';
 
 export type TrustChipMarker = 'derived' | 'changed';
@@ -18,16 +20,18 @@ export interface TrustChipProps {
   className?: string;
 }
 
-const MARKER_LABELS: Record<TrustChipMarker, string> = {
-  derived: 'Derived',
-  changed: 'Changed',
-};
+const markerLabel = (
+  marker: TrustChipMarker,
+  vocabulary: ReturnType<typeof getVocabularyCopy>
+): string => (marker === 'derived' ? vocabulary.derived : vocabulary.changedMarker);
 
 /**
  * A quiet provenance chip: where a figure came from and when it was current.
  * Text only — the marker is a small coloured dot plus its label.
  */
 const TrustChip: React.FC<TrustChipProps> = ({ source, dateLabel, marker, onClick, className }) => {
+  const { lang } = useLanguage();
+  const vocabulary = getVocabularyCopy(lang);
   const classes = ['cm-trust-chip', className].filter(Boolean).join(' ');
   const content = (
     <>
@@ -37,7 +41,7 @@ const TrustChip: React.FC<TrustChipProps> = ({ source, dateLabel, marker, onClic
       {marker ? (
         <span className="cm-trust-chip-marker">
           <span className={`cm-trust-chip-dot cm-trust-chip-dot-${marker}`} aria-hidden="true" />
-          {MARKER_LABELS[marker]}
+          {markerLabel(marker, vocabulary)}
         </span>
       ) : null}
     </>

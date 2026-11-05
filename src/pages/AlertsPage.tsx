@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import ChangeCard from '../components/ChangeCard';
 import { Alert, Button, ConfirmDialog } from '../components/ui';
 import { useAuth } from '../hooks/AuthProvider';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
@@ -20,7 +21,6 @@ import {
   BankFollowFeedEntry,
   getAlertKindLabel,
 } from '../types/alerts';
-import { cardPathFor } from '../utils/sitemap';
 import '../styles/AlertsPage.css';
 
 const AlertsPage: React.FC = () => {
@@ -40,12 +40,15 @@ const AlertsPage: React.FC = () => {
     useState<AlertSubscription | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   // Bank-follow change feed (Phase 3): real field-history events for the
-  // banks this user follows, paged by the API's has_more flag.
+  // banks this user follows, paged by the API's has_more flag. Phase 4
+  // adds the per-user seen watermark: entries arrive flagged is_new
+  // against it, and displaying page 1 advances it (see loadFeed).
   const [feedEntries, setFeedEntries] = useState<BankFollowFeedEntry[]>([]);
   const [feedPage, setFeedPage] = useState(1);
   const [feedHasMore, setFeedHasMore] = useState(false);
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedError, setFeedError] = useState(false);
+  const [feedSeenAt, setFeedSeenAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -75,6 +78,15 @@ const AlertsPage: React.FC = () => {
       setFeedPage(page);
       setFeedHasMore(res.has_more);
       setFeedError(false);
+      if (page === 1) {
+        setFeedSeenAt(res.seen_at);
+        // The entries have been displayed: advance the watermark to the
+        // newest change shown (the feed is newest-first, so that is the
+        // first entry). Fire-and-forget — a failed mark only re-flags
+        // the same items next visit; it must never break the feed.
+        const newest = res.results[0]?.changed_at;
+        void alertsClient.markBankFollowFeedSeen(newest).catch(() => undefined);
+      }
     } catch (err) {
       console.error('Failed to load the bank-follow feed:', err);
       setFeedError(true);
@@ -180,6 +192,23 @@ const AlertsPage: React.FC = () => {
       return dateString;
     }
   };
+
+  // One feed group: an optional heading + the delta-poster change cards.
+  const renderFeedGroup = (
+    entries: BankFollowFeedEntry[],
+    heading: string | null,
+    headingId: string
+  ) =>
+    entries.length === 0 ? null : (
+      <div key={headingId}>
+        {heading ? <h3 id={headingId}>{heading}</h3> : null}
+        <div className="feed-cards">
+          {entries.map(entry => (
+            <ChangeCard key={entry.id} entry={entry} />
+          ))}
+        </div>
+      </div>
+    );
 
   return (
     <div className="alerts-page">
@@ -315,34 +344,18 @@ const AlertsPage: React.FC = () => {
             </div>
           ) : (
             <>
-              <ul className="subscriptions-list">
-                {feedEntries.map(entry => (
-                  <li
-                    key={`${entry.vertical}-${entry.id}`}
-                    className="subscription-card feed-entry"
-                  >
-                    <div className="subscription-info">
-                      <div className="subscription-kind">
-                        <Link to={feedEntryHref(entry)}>{entry.product_name}</Link>
-                        {' · '}
-                        {entry.bank_name}
-                      </div>
-                      <div className="subscription-card-info">
-                        {humaniseField(entry.field_name)}:{' '}
-                        {formatFeedValue(entry.old_value, copy.feedNotPublished, lang)}
-                        {' → '}
-                        {formatFeedValue(entry.new_value, copy.feedNotPublished, lang)}
-                      </div>
-                      <div className="subscription-date">
-                        {formatDate(entry.changed_at)}
-                        {entry.source
-                          ? ` · ${copy.feedSourceLabel}: ${feedSourceName(entry.source)}`
-                          : ''}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              {renderFeedGroup(
+                feedSeenAt !== null ? feedEntries.filter(entry => entry.is_new) : [],
+                copy.feedNewHeading,
+                'feed-new-heading'
+              )}
+              {renderFeedGroup(
+                feedSeenAt !== null ? feedEntries.filter(entry => !entry.is_new) : feedEntries,
+                feedSeenAt !== null && feedEntries.some(entry => entry.is_new)
+                  ? copy.feedEarlierHeading
+                  : null,
+                'feed-earlier-heading'
+              )}
               {feedHasMore ? (
                 <Button
                   variant="ghost"
@@ -428,71 +441,6 @@ const AlertsPage: React.FC = () => {
       </div>
     </div>
   );
-};
-
-/** Detail-page link for a feed entry, using the same key the row uses. */
-const feedEntryHref = (entry: BankFollowFeedEntry): string => {
-  if (entry.vertical === 'cards') {
-    return cardPathFor(entry.bank_name, entry.product_name) ?? '/cards';
-  }
-  const base =
-    entry.vertical === 'deposits'
-      ? '/deposits'
-      : entry.vertical === 'loans'
-      ? '/loans'
-      : '/accounts';
-  return `${base}/${entry.product_key}`;
-};
-
-/** `annual_fee` -> `Annual fee` — labels only, values stay verbatim. */
-const humaniseField = (fieldName: string): string => {
-  const spaced = fieldName.replace(/_/g, ' ');
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
-};
-
-/**
- * Display names for the history `source` values the feed can carry.
- * The stored value is a machine slug (e.g. the loans history records
- * `bangladesh_bank_chart`); users see the source's real name. Unknown
- * values fall back to the humanised slug, and values that are already
- * human-readable pass through unchanged — the name is never invented,
- * only formatted.
- */
-const FEED_SOURCE_NAMES: Record<string, string> = {
-  bangladesh_bank_chart: 'Bangladesh Bank chart',
-  bangladesh_bank_lending_chart: 'Bangladesh Bank lending chart',
-  bangladesh_bank: 'Bangladesh Bank',
-  bb_chart: 'Bangladesh Bank chart',
-  bank_website: 'Bank website',
-  schedule_of_charges: 'Bank schedule of charges',
-};
-
-const feedSourceName = (source: string): string =>
-  FEED_SOURCE_NAMES[source] ?? humaniseField(source);
-
-/**
- * Render a stored history value. Null means the field was not published
- * on that side of the change and is labelled as such — never blanked or
- * zero-filled. Rate-band objects keep both ends visible.
- */
-const formatFeedValue = (value: unknown, notPublished: string, lang: 'en' | 'bn'): string => {
-  if (value === null || value === undefined) return notPublished;
-  if (typeof value === 'boolean')
-    return value ? (lang === 'bn' ? 'হ্যাঁ' : 'Yes') : lang === 'bn' ? 'না' : 'No';
-  if (typeof value === 'number' || typeof value === 'string') return String(value);
-  if (Array.isArray(value)) {
-    return value.map(item => formatFeedValue(item, notPublished, lang)).join(', ');
-  }
-  if (typeof value === 'object') {
-    const record = value as Record<string, unknown>;
-    if ('rate_min' in record || 'rate_max' in record) {
-      return `${record.rate_min ?? '…'}% – ${record.rate_max ?? '…'}%`;
-    }
-    return Object.entries(record)
-      .map(([key, item]) => `${key}: ${formatFeedValue(item, notPublished, lang)}`)
-      .join(', ');
-  }
-  return String(value);
 };
 
 export default AlertsPage;

@@ -5,11 +5,13 @@
   background: var(--color-background-surface);
   border: 2px solid transparent;
   border-radius: 20px;
-  padding: 28px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: var(--spacing-lg);
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   position: relative;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--color-black) 6%, transparent);
   overflow: hidden;
 }
 
@@ -20,15 +22,15 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.02) 100%);
+  background: color-mix(in srgb, var(--color-indigo-500) 10%, transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .card-list-item:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--color-black) 12%, transparent);
   transform: translateY(-4px);
-  border-color: rgba(102, 126, 234, 0.2);
+  border-color: color-mix(in srgb, var(--color-indigo-500) 20%, transparent);
 }
 
 .card-list-item:hover::before {
@@ -36,7 +38,7 @@
 }
 
 .card-list-item.selected {
-  border-color: var(--color-brand-gradient-from);
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
-  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+  border-color: var(--color-primary-base);
+  background: color-mix(in srgb, var(--color-indigo-500) 10%, transparent);
+  box-shadow: 0 8px 30px color-mix(in srgb, var(--color-indigo-500) 20%, transparent);
 }

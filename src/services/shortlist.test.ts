@@ -38,6 +38,7 @@ describe('shortlistService wire contract', () => {
             bank_name: 'Example Bank',
             card_id: 42,
             slug: null,
+            latest_change: null,
             created: '2026-11-05T00:00:00Z',
           })
         );
@@ -77,6 +78,7 @@ describe('shortlistService wire contract', () => {
         bank_name: 'Pubali Bank PLC',
         card_id: null,
         slug: 'pubali-fdr',
+        latest_change: null,
         created: '2026-11-05T00:00:00Z',
       })
     ).toMatchObject({
@@ -94,6 +96,7 @@ describe('shortlistService wire contract', () => {
         bank_name: 'Example Bank',
         card_id: 42,
         slug: null,
+        latest_change: null,
         created: '2026-11-05T00:00:00Z',
       })
     ).toMatchObject({ vertical: 'cards', key: '42', cardId: 42 });

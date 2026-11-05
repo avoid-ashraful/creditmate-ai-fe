@@ -177,3 +177,8 @@
   display: inline-block;
   margin-bottom: 0.75rem;
 }
+
+.deposits-facts a {
+  color: var(--color-text-link-hover);
+  text-decoration: underline;
+}

@@ -90,7 +90,7 @@
 
 .bank-tile-link:hover,
 .bank-tile-link:focus-visible {
-  border-color: var(--color-brand-gradient-from, var(--color-indigo-500));
+  border-color: var(--color-primary-base);
 }
 
 .bank-tile-logo {
@@ -105,11 +105,7 @@
   justify-content: center;
   width: 48px;
   border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    var(--color-brand-gradient-from) 0%,
-    var(--color-brand-gradient-to) 100%
-  );
+  background: var(--color-primary-base);
   color: var(--color-white);
   font-size: 1.4rem;
   font-weight: 700;

@@ -94,7 +94,11 @@ describe('PlanPage', () => {
       },
     ]);
     renderWithAuth(routes, { route: '/plan' });
-    const reopen = await screen.findByRole('link', { name: 'House loan sketch' });
+    // Ghost-preview (Phase 4): the scenario name first shows its computed
+    // outcome; the apply action inside the preview carries the reopen href.
+    const nameButton = await screen.findByRole('button', { name: 'House loan sketch' });
+    await userEvent.click(nameButton);
+    const reopen = await screen.findByRole('link', { name: 'Open with these numbers' });
     expect(reopen).toHaveAttribute('href', '/plan/loan?amount=2000000&months=120&type=home');
 
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));

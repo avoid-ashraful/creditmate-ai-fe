@@ -157,6 +157,19 @@ export class AlertsClient {
     });
   }
 
+  /**
+   * Advance the seen watermark (Phase 4, D4) to the newest change the
+   * user was actually shown. Fire-and-forget by design: a failed mark
+   * only means the same items are flagged "new" again next visit.
+   */
+  async markBankFollowFeedSeen(through?: string): Promise<void> {
+    await this.request<{ last_seen_at: string | null }>('/feed/seen/', {
+      method: HTTP_METHOD.post,
+      body: through ? { through } : {},
+      authenticated: true,
+    });
+  }
+
   /** Follow a bank. Idempotent server-side: re-following returns the row. */
   async followBank(bankId: number): Promise<BankFollow> {
     return this.request<BankFollow>('/bank-follows/', {

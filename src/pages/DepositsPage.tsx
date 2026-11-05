@@ -24,6 +24,7 @@ import {
   MoneyInput,
   Pagination,
   ResultCard,
+  Sparkline,
   Tabs,
   TrustChip,
   useToast,
@@ -31,9 +32,11 @@ import {
 import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { fillCopy, getDiscoveryCopy, getShellCopy, useLanguage } from '../locales';
+import { getChangesCopy, type ChangesCopy } from '../locales/changes';
 import { getDepositsCopy } from '../locales/deposits';
 import {
   DepositProduct,
+  DepositProductRateHistory,
   DepositScenarioResponse,
   DepositScenarioResult,
   getDepositProducts,
@@ -42,6 +45,14 @@ import {
 import { fetchAllPages } from '../utils/fetchAllPages';
 
 const CATALOGUE_PAGE_SIZE = 10;
+
+/** The tenure band a product's headline rate history describes. */
+const historyBandLabel = (history: DepositProductRateHistory, copy: ChangesCopy): string =>
+  history.tenureMonthsMax !== null
+    ? copy.bandRange
+        .replace('{min}', String(history.tenureMonthsMin))
+        .replace('{max}', String(history.tenureMonthsMax))
+    : copy.bandOpen.replace('{min}', String(history.tenureMonthsMin));
 
 type ScenarioKind = 'fdr' | 'dps';
 
@@ -63,6 +74,7 @@ const formatDate = (iso: string | null): string =>
 const DepositsPage: React.FC = () => {
   const { lang } = useLanguage();
   const copy = getDepositsCopy(lang);
+  const changesCopy = getChangesCopy(lang);
   const discoveryCopy = getDiscoveryCopy(lang);
   const shellCopy = getShellCopy(lang);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -420,6 +432,22 @@ const DepositsPage: React.FC = () => {
                         )} ${copy.monthsUnit}`
                       : ''}
                   </span>
+                  {product.rateHistory && product.rateHistory.points.length >= 3 ? (
+                    <span className="cm-catalogue-history">
+                      <Sparkline
+                        points={product.rateHistory.points}
+                        label={`${changesCopy.historyBandLabel} (${historyBandLabel(
+                          product.rateHistory,
+                          changesCopy
+                        )}): ${product.rateHistory.points[0].value}% → ${
+                          product.rateHistory.points[product.rateHistory.points.length - 1].value
+                        }%`}
+                      />
+                      <span className="cm-catalogue-history-label">
+                        {historyBandLabel(product.rateHistory, changesCopy)}
+                      </span>
+                    </span>
+                  ) : null}
                 </li>
               ))}
             </ul>

@@ -8,10 +8,12 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import MirrorLine from '../components/MirrorLine';
 import SaveScenarioButton from '../components/SaveScenarioButton';
 import { Button, Money, ResultCard, UnknownValue } from '../components/ui';
+import { formatTaka } from '../lib/format';
 import { useProfile } from '../lib/profile';
-import { useLanguage } from '../locales';
+import { fillCopy, useLanguage } from '../locales';
 import { getLoansCopy } from '../locales/loans';
 import { getPlanCopy } from '../locales/plan';
 import { runLoanScenario, type LoanScenarioResponse, type LoanType } from '../services/loans';
@@ -69,6 +71,15 @@ const PlanLoanPage: React.FC = () => {
   return (
     <PlanLayout titleKey="toolLoan">
       <p className="cm-discovery-note">{copy.loanBandNote}</p>
+      {Number(amount) > 0 && Number(tenure) > 0 ? (
+        <MirrorLine>
+          {fillCopy(copy.mirrorLoan, {
+            amount: formatTaka(Number(amount)),
+            months: tenure,
+            type: loanType,
+          })}
+        </MirrorLine>
+      ) : null}
       <form onSubmit={event => void run(event)} className="plan-tool-form">
         <div className="input-group">
           <label htmlFor="plan-loan-amount">{copy.loanAmountLabel}</label>

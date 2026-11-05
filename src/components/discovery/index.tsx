@@ -256,7 +256,7 @@ export const DiscoveryError: React.FC<DiscoveryErrorProps> = ({ message, onRetry
   return (
     <Alert variant="danger">
       <p>{message}</p>
-      <Button variant="ghost" onClick={onRetry}>
+      <Button variant="secondary" onClick={onRetry}>
         {copy.retry}
       </Button>
     </Alert>

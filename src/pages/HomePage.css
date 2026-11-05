@@ -121,7 +121,7 @@
 }
 
 .cm-home-list a {
-  color: var(--color-text-link);
+  color: var(--color-text-link-hover);
   text-decoration: none;
 }
 
@@ -157,7 +157,7 @@
 }
 
 .cm-home-trust a {
-  color: var(--color-text-link);
+  color: var(--color-text-link-hover);
   font-weight: var(--typography-font-weight-semibold);
   text-decoration: none;
 }

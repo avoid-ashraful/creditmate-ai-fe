@@ -9,10 +9,12 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import MirrorLine from '../components/MirrorLine';
 import SaveScenarioButton from '../components/SaveScenarioButton';
 import { Button, Money, ResultCard, UnknownValue } from '../components/ui';
+import { formatTaka } from '../lib/format';
 import { useProfile } from '../lib/profile';
-import { useLanguage } from '../locales';
+import { fillCopy, useLanguage } from '../locales';
 import { getAccountsCopy } from '../locales/accounts';
 import { getPlanCopy } from '../locales/plan';
 import { runAccountScenario, type AccountScenarioResponse } from '../services/bankAccounts';
@@ -52,6 +54,11 @@ const PlanAccountPage: React.FC = () => {
 
   return (
     <PlanLayout titleKey="toolAccount">
+      {balance !== '' && Number(balance) >= 0 ? (
+        <MirrorLine>
+          {fillCopy(copy.mirrorAccount, { amount: formatTaka(Number(balance)) })}
+        </MirrorLine>
+      ) : null}
       <form onSubmit={event => void run(event)} className="plan-tool-form">
         <div className="input-group">
           <label htmlFor="plan-account-balance">{copy.accountBalanceLabel}</label>

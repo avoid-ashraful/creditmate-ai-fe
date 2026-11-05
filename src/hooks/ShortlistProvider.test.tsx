@@ -143,6 +143,7 @@ describe('ShortlistProvider server sync (Phase 3)', () => {
     bank_name: 'Example Bank',
     card_id: vertical === 'cards' ? Number(key.replace('card-', '')) || null : null,
     slug: vertical === 'cards' ? null : key,
+    latest_change: null,
     created: '2026-01-01T00:00:00Z',
   });
 

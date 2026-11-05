@@ -1,0 +1,66 @@
+.cm-change-card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-surface);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cm-change-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.cm-change-card-product {
+  margin: 0;
+  font-weight: var(--typography-font-weight-medium);
+}
+
+.cm-change-card-bank {
+  color: var(--color-text-secondary);
+  font-weight: var(--typography-font-weight-regular);
+}
+
+.cm-change-card-field {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--typography-font-size-sm);
+}
+
+.cm-change-card-values {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.cm-change-card-old {
+  color: var(--color-text-secondary);
+  font-size: var(--typography-font-size-lg);
+}
+
+.cm-change-card-arrow {
+  color: var(--color-text-secondary);
+}
+
+.cm-change-card-new {
+  color: var(--color-text-primary);
+  font-size: var(--typography-font-size-2xl);
+  font-weight: var(--typography-font-weight-bold);
+}
+
+.cm-change-card-meta {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--typography-font-size-sm);
+}

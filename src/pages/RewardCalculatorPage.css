@@ -11,26 +11,26 @@
 
 .calculator-hero h1 {
   font-size: 2rem;
-  color: #1e293b;
+  color: var(--color-slate-800);
   margin-bottom: 0.5rem;
 }
 
 .calculator-hero p {
-  color: #64748b;
+  color: var(--color-slate-500);
 }
 
 .calculator-form-section {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-background-surface);
+  border: 1px solid var(--color-slate-200);
   border-radius: 0.5rem;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px color-mix(in srgb, var(--color-black) 10%, transparent);
   margin-bottom: 2rem;
 }
 
 .calculator-form-section h2 {
   font-size: 1.25rem;
-  color: #1e293b;
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
 }
 
@@ -43,45 +43,46 @@
 
 .spend-form label {
   font-weight: 500;
-  color: #1e293b;
+  color: var(--color-text-primary);
 }
 
 .spend-form input {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-slate-200);
   border-radius: 0.375rem;
   font-size: 1rem;
 }
 
 .spend-form input[aria-invalid='true'] {
-  border-color: #dc2626;
+  border-color: var(--color-red-600);
 }
 
 .field-error {
-  color: #dc2626;
+  color: var(--color-red-600);
   font-size: 0.875rem;
   margin: 0.25rem 0 0;
 }
 
 .total-spend {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-text-primary);
   margin: 1rem 0;
 }
 
 .calculate-button {
-  background: linear-gradient(90deg, #2563eb, #1d4ed8);
-  color: #ffffff;
+  background: var(--color-primary-base);
+  color: var(--color-primary-contrast);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 0.375rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .calculate-button:hover:not(:disabled) {
-  box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 6px 8px -1px color-mix(in srgb, var(--color-blue-500) 40%, transparent);
 }
 
 .calculate-button:disabled {
@@ -92,21 +93,21 @@
 .assumptions-note {
   margin-top: 1.5rem;
   padding: 1rem;
-  background: #f8fafc;
-  border-left: 3px solid #2563eb;
+  background: var(--color-slate-50);
+  border-left: var(--spacing-2xs) solid var(--color-blue-500);
   border-radius: 0 0.375rem 0.375rem 0;
 }
 
 .assumptions-note h3 {
   font-size: 1rem;
   margin-bottom: 0.5rem;
-  color: #1e293b;
+  color: var(--color-slate-800);
 }
 
 .assumptions-note ul {
   margin: 0;
   padding-left: 1.25rem;
-  color: #64748b;
+  color: var(--color-slate-500);
   font-size: 0.9rem;
   display: flex;
   flex-direction: column;
@@ -115,7 +116,7 @@
 
 .calculator-results h2 {
   font-size: 1.5rem;
-  color: #1e293b;
+  color: var(--color-slate-800);
   margin-bottom: 1rem;
 }
 
@@ -124,20 +125,23 @@
 .empty-state {
   padding: 3rem 1.5rem;
   text-align: center;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-background-surface);
+  border: 1px solid var(--color-slate-200);
   border-radius: 0.5rem;
-  color: #64748b;
+  color: var(--color-text-secondary);
 }
 
 .error-state {
-  color: #dc2626;
-  border-color: #fecaca;
-  background: #fef2f2;
+  /* Error text sits on the surface, not error-subtle: --color-error-base
+     on error-subtle is 5.91:1 in light but only 3.62:1 in dark, while
+     error-base on background-surface is 6.47:1 light / 5.93:1 dark. */
+  color: var(--color-error-base);
+  border-color: var(--color-error-border);
+  background: var(--color-background-surface);
 }
 
 .empty-state h2 {
-  color: #1e293b;
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
 }
 
@@ -151,22 +155,22 @@
 }
 
 .ranked-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-background-surface);
+  border: 1px solid var(--color-slate-200);
   border-radius: 0.5rem;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-black) 8%, transparent);
 }
 
 .ranked-card-name {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-slate-800);
   display: block;
 }
 
 .ranked-card-bank {
-  color: #64748b;
+  color: var(--color-slate-500);
   font-size: 0.9rem;
   display: block;
   margin-bottom: 0.75rem;
@@ -181,13 +185,13 @@
 
 .ranked-card-metrics dt {
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--color-slate-500);
 }
 
 .ranked-card-metrics dd {
   margin: 0.15rem 0 0;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-slate-800);
 }
 
 /* Effective value-back % — the headline figure on each ranked card */
@@ -196,8 +200,8 @@
   align-items: baseline;
   flex-wrap: wrap;
   gap: 0.5rem 0.75rem;
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
+  background: var(--color-emerald-50);
+  border: 1px solid var(--color-emerald-200);
   border-radius: 0.5rem;
   padding: 0.6rem 0.9rem;
   margin: 0 0 1rem;
@@ -206,7 +210,7 @@
 .value-back-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #065f46;
+  color: var(--color-emerald-800);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -215,16 +219,16 @@
   font-size: 1.6rem;
   font-weight: 800;
   line-height: 1;
-  color: #059669;
+  color: var(--color-emerald-600);
 }
 
 .value-back-figure.negative {
-  color: #dc2626;
+  color: var(--color-red-600);
 }
 
 .value-back-badge {
-  background: #059669;
-  color: #ffffff;
+  background: var(--color-emerald-600);
+  color: var(--color-white);
   font-size: 0.75rem;
   font-weight: 700;
   border-radius: 999px;
@@ -233,65 +237,66 @@
 
 .value-back-hint {
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--color-slate-600);
 }
 
 .value-back-explainer {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--color-blue-50);
+  border: 1px solid var(--color-blue-200);
   border-radius: 0.5rem;
-  color: #1e3a8a;
+  color: var(--color-blue-800);
   font-size: 0.92rem;
   padding: 0.6rem 0.9rem;
   margin: 0 0 1rem;
 }
 
 .ranked-card-metrics dd.positive {
-  color: #059669;
+  color: var(--color-emerald-600);
 }
 
 .ranked-card-metrics dd.negative {
-  color: #dc2626;
+  color: var(--color-red-600);
 }
 
 .export-compare-button {
-  background: linear-gradient(90deg, #10b981, #059669);
-  color: #ffffff;
+  background: var(--color-success-base);
+  color: var(--color-white);
   border: none;
   padding: 0.5rem 1.25rem;
   border-radius: 0.375rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .export-compare-button:hover {
-  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 6px -1px color-mix(in srgb, var(--color-emerald-500) 40%, transparent);
   transform: translateY(-2px);
 }
 
 /* Ranked-result groups (bank-valued cards vs estimated points only) */
 .ranking-group-heading {
   font-size: 1.05rem;
-  color: #1e293b;
+  color: var(--color-slate-800);
   margin: 1.25rem 0 0.75rem;
 }
 
 .ranked-card-rules-applied {
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--color-slate-600);
   margin: 0 0 0.5rem;
 }
 
 .ranked-card-rule-details {
   margin: 0 0 1rem;
   font-size: 0.875rem;
-  color: #475569;
+  color: var(--color-slate-600);
 }
 
 .ranked-card-rule-details summary {
   cursor: pointer;
-  color: #2563eb;
+  color: var(--color-blue-500);
   font-weight: 500;
 }
 
@@ -307,5 +312,5 @@
 .ranked-card-reward-source {
   margin: 0.5rem 0 0;
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--color-slate-500);
 }

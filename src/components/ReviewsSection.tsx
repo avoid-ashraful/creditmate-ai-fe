@@ -18,6 +18,7 @@ import { Review } from '../types';
 import { aggregateRatingJsonLd } from '../utils/structuredData';
 
 import { ResendVerification } from './ResendVerification';
+import StatusChip from './ui/StatusChip';
 import './ReviewsSection.css';
 import './ProductReviews.css';
 
@@ -44,30 +45,18 @@ const toListReview = (review: ProductReview): Review => ({
   modified: review.modified,
 });
 
-/** Moderation state chip (in-place state card grammar: icon + word). */
+/**
+ * Moderation state chip — drawn from the one StatusChip grammar
+ * (Phase 4): approved -> positive, pending -> caution, rejected ->
+ * negative; grammar glyph + word, never an emoji or a colour alone.
+ */
 const ReviewStateChip: React.FC<{
   status: 'pending' | 'approved' | 'rejected';
   copy: ReturnType<typeof getReviewsCopy>;
 }> = ({ status, copy }) => {
-  if (status === 'approved') {
-    return (
-      <span className="review-state-chip review-state-approved">
-        <span aria-hidden="true">✅</span> {copy.stateApproved}
-      </span>
-    );
-  }
-  if (status === 'rejected') {
-    return (
-      <span className="review-state-chip review-state-rejected">
-        <span aria-hidden="true">⚠</span> {copy.stateRejected}
-      </span>
-    );
-  }
-  return (
-    <span className="review-state-chip review-state-pending">
-      <span aria-hidden="true">⏳</span> {copy.statePending}
-    </span>
-  );
+  if (status === 'approved') return <StatusChip tone="positive">{copy.stateApproved}</StatusChip>;
+  if (status === 'rejected') return <StatusChip tone="negative">{copy.stateRejected}</StatusChip>;
+  return <StatusChip tone="caution">{copy.statePending}</StatusChip>;
 };
 
 /**
@@ -212,9 +201,7 @@ const ReviewSummaryCard: React.FC<{
       </div>
       {summary.community_reviewed && (
         <div className="community-reviewed">
-          <span className="community-chip">
-            <span aria-hidden="true">✅</span> {copy.communityReviewed}
-          </span>
+          <StatusChip tone="accent">{copy.communityReviewed}</StatusChip>
           <p className="community-note">{copy.communityReviewedNote.replace('{count}', '50')}</p>
         </div>
       )}

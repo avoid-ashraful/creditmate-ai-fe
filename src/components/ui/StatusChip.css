@@ -1,0 +1,54 @@
+.cm-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  font-size: var(--typography-font-size-xs);
+  font-weight: var(--typography-font-weight-medium);
+  line-height: var(--typography-line-height-snug);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.cm-status-chip-icon {
+  flex: none;
+  font-size: var(--typography-font-size-xs);
+  line-height: 1;
+}
+
+.cm-status-chip--neutral {
+  background: var(--color-background-muted);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-subtle);
+}
+
+.cm-status-chip--positive {
+  background: var(--color-success-subtle);
+  color: var(--color-success-base);
+  border-color: var(--color-success-border);
+}
+
+.cm-status-chip--caution {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning-base);
+  border-color: var(--color-warning-border);
+}
+
+.cm-status-chip--negative {
+  background: var(--color-error-subtle);
+  color: var(--color-error-base);
+  border-color: var(--color-error-border);
+}
+
+.cm-status-chip--info {
+  background: var(--color-info-subtle);
+  color: var(--color-info-base);
+  border-color: var(--color-info-border);
+}
+
+.cm-status-chip--accent {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-base);
+  border-color: var(--color-primary-border);
+}

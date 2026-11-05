@@ -14,6 +14,7 @@
 import React, { useEffect, useMemo, useState, useCallback, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
+import FeeAnatomy from '../components/FeeAnatomy';
 import ReportIssueDialog from '../components/ReportIssueDialog';
 import { ReviewsSection } from '../components/ReviewsSection';
 import { Skeleton } from '../components/Skeleton';
@@ -520,8 +521,48 @@ const CardDetailPage: React.FC = () => {
     );
   };
 
+  // Fee anatomy (Phase 4): the page's own yearly figures as layers —
+  // reward value at the profile spend, minus the annual fee, plus the
+  // fee waiver when the published threshold is met at that spend. The
+  // total is shown only when every layer is published/computable.
+  const anatomyRewards = estimate?.annualValueBdt ?? null;
+  const anatomyWaiverMet =
+    annualWaiverSpend !== null &&
+    card.annualFee !== null &&
+    profile.monthlySpend * 12 >= annualWaiverSpend;
+  const anatomyWaiverValue = anatomyWaiverMet ? card.annualFee ?? 0 : 0;
+  const anatomyTotal =
+    anatomyRewards !== null && card.annualFee !== null
+      ? anatomyRewards - card.annualFee + anatomyWaiverValue
+      : null;
+
   const feesTab = (
     <section className="specs-section" aria-label={detail.tabFees}>
+      <FeeAnatomy
+        heading={detail.anatomyHeading}
+        intro={detail.anatomyIntro}
+        layers={[
+          { label: detail.anatomyRewardsLayer, value: anatomyRewards, sign: 'add' },
+          { label: detail.anatomyFeeLayer, value: card.annualFee, sign: 'subtract' },
+          ...(card.annualFeeWaiverPolicy
+            ? [
+                {
+                  label: detail.anatomyWaiverLayer,
+                  value: anatomyWaiverValue,
+                  sign: 'add' as const,
+                  note: anatomyWaiverMet
+                    ? detail.anatomyWaiverMet
+                    : fillCopy(detail.anatomyWaiverUnmet, {
+                        threshold: feeWaiverThreshold ?? '',
+                      }),
+                },
+              ]
+            : []),
+        ]}
+        totalLabel={detail.anatomyTotalLabel}
+        total={anatomyTotal}
+        noTotalNote={detail.anatomyNoTotal}
+      />
       <table className="specs-table">
         <tbody>
           <tr>

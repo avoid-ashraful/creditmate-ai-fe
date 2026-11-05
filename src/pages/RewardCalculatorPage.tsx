@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import MirrorLine from '../components/MirrorLine';
 import SaveScenarioButton from '../components/SaveScenarioButton';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
+import { formatTaka } from '../lib/format';
 import { useLanguage, getCommonCopy, fillCopy } from '../locales';
+import { getPlanCopy } from '../locales/plan';
 import { apiService } from '../services/api';
 import { CreditCard, RewardCategory } from '../types';
 import { fetchAllPages } from '../utils/fetchAllPages';
@@ -454,6 +457,11 @@ const RewardCalculatorPage: React.FC<{ planEmbedded?: boolean }> = ({ planEmbedd
 
       <section className="calculator-form-section" aria-labelledby="spend-form-heading">
         <h2 id="spend-form-heading">{common.calcFormTitle}</h2>
+        {totalMonthlySpend > 0 ? (
+          <MirrorLine>
+            {fillCopy(getPlanCopy(lang).mirrorRewards, { amount: formatTaka(totalMonthlySpend) })}
+          </MirrorLine>
+        ) : null}
         <form className="spend-form" onSubmit={handleSubmit} noValidate>
           {CATEGORY_LABELS.map(({ key, labelKey }) => {
             return (

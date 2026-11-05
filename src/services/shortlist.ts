@@ -44,6 +44,8 @@ export interface ServerShortlistItem {
   bank_name: string;
   card_id: number | null;
   slug: string | null;
+  /** Newest recorded field change for the product (Phase 4, D4), or null. */
+  latest_change: { field_name: string; changed_at: string } | null;
   created: string;
 }
 
@@ -106,4 +108,12 @@ export const toShortlistItem = (row: ServerShortlistItem): ShortlistItem => ({
       ? cardPathFor(row.bank_name, row.name) ?? '/cards'
       : detailHrefForServerItem(row),
   ...(row.card_id !== null ? { cardId: row.card_id } : {}),
+  ...(row.latest_change
+    ? {
+        latestChange: {
+          fieldName: row.latest_change.field_name,
+          changedAt: row.latest_change.changed_at,
+        },
+      }
+    : {}),
 });

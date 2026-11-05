@@ -598,6 +598,16 @@ describe('design tokens — WCAG contrast ratios', () => {
     ],
     ['--color-error-contrast', '--color-error-base', 'Error text on error background (light)', 4.5],
     ['--color-info-contrast', '--color-info-base', 'Info text on info background (light)', 4.5],
+    // Legacy .error-state pairing (Phase 4 review F2): error-base text on
+    // the surface / page background — error-subtle is NOT pinned because
+    // in dark it drops to 3.62:1.
+    [
+      '--color-error-base',
+      '--color-background-surface',
+      'Error state text on surface (light)',
+      4.5,
+    ],
+    ['--color-error-base', '--color-background-base', 'Error state text on base (light)', 4.5],
     // Light mode UI elements (borders, focus)
     ['--color-border-base', '--color-background-base', 'Border on base background (light)', 3.0],
     [
@@ -662,6 +672,9 @@ describe('design tokens — WCAG contrast ratios', () => {
     ],
     ['--color-error-contrast', '--color-error-base', 'Error text on error background (dark)', 4.5],
     ['--color-info-contrast', '--color-info-base', 'Info text on info background (dark)', 4.5],
+    // Legacy .error-state pairing (Phase 4 review F2), dark values.
+    ['--color-error-base', '--color-background-surface', 'Error state text on surface (dark)', 4.5],
+    ['--color-error-base', '--color-background-base', 'Error state text on base (dark)', 4.5],
     // Dark mode UI elements
     ['--color-border-base', '--color-background-base', 'Border on base background (dark)', 3.0],
     [

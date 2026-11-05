@@ -49,6 +49,11 @@ export interface ShortlistItem {
   detailHref: string;
   /** Cards only: numeric id, used to build /compare?ids= links. */
   cardId?: number;
+  /**
+   * Newest recorded change for this product (Phase 4, D4), present only
+   * on server-backed items whose product has a real field-history row.
+   */
+  latestChange?: { fieldName: string; changedAt: string };
 }
 
 export type ToggleResult = 'added' | 'removed' | 'full';

@@ -12,6 +12,23 @@
     <link rel="icon" href="%BASE_URL%favicon.ico" sizes="32x32" />
     <link rel="icon" href="%BASE_URL%favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
+    <!-- Hind Siliguri 400 (the body weight) in both subsets the UI ships:
+         preloaded so first paint uses the real face, with font-display:
+         swap in fonts.css as the fallback contract. -->
+    <link
+      rel="preload"
+      href="%BASE_URL%fonts/hind-siliguri-400-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="%BASE_URL%fonts/hind-siliguri-400-bengali.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <title>CreditMate AI</title>
     <script src="%BASE_URL%theme-init.js"></script>
   </head>

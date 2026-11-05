@@ -32,6 +32,18 @@ export interface DetailCopy {
 
   // Card tabs
   tabFees: string;
+  // Fee anatomy (Phase 4, addendum B5)
+  anatomyHeading: string;
+  anatomyIntro: string;
+  anatomyRewardsLayer: string;
+  anatomyFeeLayer: string;
+  anatomyWaiverLayer: string;
+  /** Template: {threshold} — spend needed to waive the fee. */
+  anatomyWaiverUnmet: string;
+  anatomyWaiverMet: string;
+  anatomyTotalLabel: string;
+  anatomyTotalPartialNote: string;
+  anatomyNoTotal: string;
   tabRewards: string;
   tabEligibility: string;
   tabFeatures: string;
@@ -119,6 +131,18 @@ const DETAIL_COPY: Record<Language, DetailCopy> = {
     verdictAnnualFee: 'Annual fee',
 
     tabFees: 'Fees & charges',
+    anatomyHeading: 'How the net value is built',
+    anatomyIntro:
+      'The estimated net value for this card, layer by layer. Every layer is a published figure or your own profile spend — nothing is estimated in place of a missing number.',
+    anatomyRewardsLayer: 'Reward value at your spend',
+    anatomyFeeLayer: 'Annual fee',
+    anatomyWaiverLayer: 'Fee waiver at your spend',
+    anatomyWaiverUnmet: 'Spend {threshold} in a year to waive the fee',
+    anatomyWaiverMet: 'Your spend meets the waiver threshold',
+    anatomyTotalLabel: 'Estimated net value a year',
+    anatomyTotalPartialNote: 'The total counts the published layers only.',
+    anatomyNoTotal:
+      "A net value can't be computed for this card — a layer it needs isn't published, and we don't estimate missing figures.",
     tabRewards: 'Rewards',
     tabEligibility: 'Eligibility',
     tabFeatures: 'Features & limits',
@@ -200,6 +224,18 @@ const DETAIL_COPY: Record<Language, DetailCopy> = {
     verdictAnnualFee: 'বার্ষিক ফি',
 
     tabFees: 'ফি ও চার্জ',
+    anatomyHeading: 'নিট মান যেভাবে হিসাব হয়',
+    anatomyIntro:
+      'এই কার্ডের আনুমানিক নিট মান, স্তরে স্তরে। প্রতিটি স্তর হয় প্রকাশিত একটি সংখ্যা, নয়তো আপনার নিজের প্রোফাইল খরচ — অনুপস্থিত সংখ্যার জায়গায় কিছু অনুমান করা হয় না।',
+    anatomyRewardsLayer: 'আপনার খরচ অনুযায়ী রিওয়ার্ডের মান',
+    anatomyFeeLayer: 'বার্ষিক ফি',
+    anatomyWaiverLayer: 'আপনার খরচে ফি মওকুফ',
+    anatomyWaiverUnmet: 'ফি মওকুফের জন্য বছরে {threshold} খরচ করুন',
+    anatomyWaiverMet: 'আপনার খরচ মওকুফের শর্ত পূরণ করে',
+    anatomyTotalLabel: 'বছরে আনুমানিক নিট মান',
+    anatomyTotalPartialNote: 'মোট হিসাবে শুধু প্রকাশিত স্তরগুলোই ধরা হয়েছে।',
+    anatomyNoTotal:
+      'এই কার্ডের নিট মান হিসাব করা যায় না — প্রয়োজনীয় একটি স্তর প্রকাশিত নয়, এবং আমরা অনুপস্থিত সংখ্যা অনুমান করি না।',
     tabRewards: 'পুরস্কার',
     tabEligibility: 'যোগ্যতা',
     tabFeatures: 'বৈশিষ্ট্য ও সীমা',

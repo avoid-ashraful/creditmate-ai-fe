@@ -17,12 +17,8 @@
   display: inline-block;
   padding: 0.25rem 0.9rem;
   border-radius: 999px;
-  background: linear-gradient(
-    135deg,
-    var(--color-brand-gradient-from) 0%,
-    var(--color-brand-gradient-to) 100%
-  );
-  color: #fff;
+  background: var(--color-primary-base);
+  color: var(--color-white);
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -32,7 +28,7 @@
 .category-count {
   display: block;
   margin-top: 0.5rem;
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 0.95rem;
 }
 
@@ -44,7 +40,9 @@
 .error-state {
   text-align: center;
   padding: 3rem 1rem;
-  color: #c0392b;
+  /* Semantic error text on the page background: --color-error-base is
+     6.18:1 on background-base in light and 6.93:1 in dark. */
+  color: var(--color-error-base);
 }
 
 .load-more-container {
@@ -57,12 +55,8 @@
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(
-    135deg,
-    var(--color-brand-gradient-from) 0%,
-    var(--color-brand-gradient-to) 100%
-  );
-  color: #fff;
+  background: var(--color-primary-base);
+  color: var(--color-white);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;

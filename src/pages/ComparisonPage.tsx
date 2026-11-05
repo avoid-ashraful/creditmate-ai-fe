@@ -9,7 +9,8 @@ import { useShortlist, type ShortlistItem } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { compareVerdicts } from '../lib/verdicts';
-import { useLanguage, getSavedCopy, getCommonCopy } from '../locales';
+import { useLanguage, getSavedCopy, getCommonCopy, formatLocalizedDate } from '../locales';
+import { describeFieldChange, getChangesCopy } from '../locales/changes';
 import { apiService } from '../services/api';
 import { savedService, savedErrorMessage } from '../services/saved';
 import { CreditCard } from '../types';
@@ -210,6 +211,12 @@ const ComparisonPage: React.FC = () => {
               <Link to={item.detailHref}>
                 {item.name} · {item.bankName}
               </Link>{' '}
+              {item.latestChange ? (
+                <span className="workspace-change-badge">
+                  {describeFieldChange(item.latestChange.fieldName, getChangesCopy(lang))} ·{' '}
+                  {formatLocalizedDate(new Date(item.latestChange.changedAt), lang)}
+                </span>
+              ) : null}{' '}
               <button
                 type="button"
                 className="workspace-remove"

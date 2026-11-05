@@ -57,7 +57,7 @@ describe('AccountMenu', () => {
     const user = userEvent.setup();
     renderWithAuth(routes);
 
-    const trigger = await screen.findByRole('button', { name: 'Account menu' });
+    const trigger = await screen.findByRole('button', { name: /Account menu/ });
     expect(trigger).toHaveTextContent('JD');
     expect(trigger).not.toHaveTextContent(AUTH_USER.email);
     expect(document.body.textContent).not.toContain(AUTH_USER.email);
@@ -82,7 +82,7 @@ describe('AccountMenu', () => {
     const user = userEvent.setup();
     renderWithAuth(routes);
 
-    const trigger = await screen.findByRole('button', { name: 'Account menu' });
+    const trigger = await screen.findByRole('button', { name: /Account menu/ });
     await user.click(trigger);
     await user.keyboard('{Escape}');
 
@@ -96,7 +96,7 @@ describe('AccountMenu', () => {
     const user = userEvent.setup();
     renderWithAuth(routes);
 
-    await user.click(await screen.findByRole('button', { name: 'Account menu' }));
+    await user.click(await screen.findByRole('button', { name: /Account menu/ }));
     await user.click(screen.getByRole('menuitem', { name: 'Profile & settings' }));
 
     expect(await screen.findByText('profile page')).toBeInTheDocument();
@@ -108,7 +108,7 @@ describe('AccountMenu', () => {
     const user = userEvent.setup();
     renderWithAuth(routes, { route: '/my/profile' });
 
-    await user.click(await screen.findByRole('button', { name: 'Account menu' }));
+    await user.click(await screen.findByRole('button', { name: /Account menu/ }));
     await user.click(screen.getByRole('button', { name: 'Log out' }));
 
     expect(await screen.findByRole('link', { name: 'Sign in' })).toBeInTheDocument();

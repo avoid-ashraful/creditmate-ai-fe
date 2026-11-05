@@ -204,7 +204,7 @@
 
 .preference-description {
   margin: 0;
-  padding-left: calc(18px + var(--spacing-sm));
+  padding-left: calc(var(--spacing-md) + var(--spacing-sm));
   font-size: var(--typography-font-size-sm);
   color: var(--color-text-secondary);
 }
@@ -277,7 +277,7 @@
 }
 
 /* Responsive */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .alerts-page {
     padding: var(--spacing-md) var(--spacing-sm);
   }
@@ -304,4 +304,11 @@
     right: var(--spacing-md);
     bottom: var(--spacing-md);
   }
+}
+
+/* Phase 4: the follow feed renders as delta-poster change cards. */
+.feed-cards {
+  display: grid;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
 }

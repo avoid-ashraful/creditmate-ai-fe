@@ -1,0 +1,12 @@
+/* Phase 4: deposit catalogue rate-history sparkline + band label. */
+.cm-catalogue-history {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-left: auto;
+}
+
+.cm-catalogue-history-label {
+  color: var(--color-text-secondary);
+  font-size: var(--typography-font-size-sm);
+}

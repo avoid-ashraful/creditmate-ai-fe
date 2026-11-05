@@ -14,9 +14,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import ChangeCard from '../components/ChangeCard';
+import ProfilePrimer from '../components/ProfilePrimer';
 import { Button, MoneyInput, TrustChip, useToast } from '../components/ui';
 import { guidesForLanguage } from '../content/guides';
 import type { Guide } from '../content/guides';
+import { useAuth } from '../hooks/AuthProvider';
 import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSavedSearches } from '../hooks/useSavedSearches';
 import { useSeoMeta } from '../hooks/useSeoMeta';
@@ -24,6 +27,7 @@ import { formatTaka } from '../lib/format';
 import { isDefaultProfile, useProfile } from '../lib/profile';
 import { fillCopy, getCardDetailCopy, getHomeCopy, getShellCopy, useLanguage } from '../locales';
 import { getAccountsCopy } from '../locales/accounts';
+import { describeFieldChange, getChangesCopy } from '../locales/changes';
 import { getDepositsCopy } from '../locales/deposits';
 import {
   advancedSearchService,
@@ -31,11 +35,13 @@ import {
   uiStateToParams,
   DEFAULT_UI_STATE,
 } from '../services/advancedSearch';
+import { alertsClient } from '../services/alerts';
 import { apiService } from '../services/api';
 import { getAccountProducts, runAccountScenario } from '../services/bankAccounts';
 import { fetchAllBanks } from '../services/banks';
 import { getDepositProducts, runDepositScenario } from '../services/deposits';
 import { fetchLoanProducts, runLoanScenario } from '../services/loans';
+import type { BankFollowFeedEntry } from '../types/alerts';
 import { fetchAllPages } from '../utils/fetchAllPages';
 import { organizationJsonLd, websiteJsonLd } from '../utils/structuredData';
 
@@ -61,6 +67,7 @@ const HomePage: React.FC = () => {
   const shellCopy = getShellCopy(lang);
   const cardDetailCopy = getCardDetailCopy(lang);
   const { toast } = useToast();
+  const { user } = useAuth();
   const shortlist = useShortlist();
   const { profile, setProfile } = useProfile();
 
@@ -80,6 +87,15 @@ const HomePage: React.FC = () => {
   }>({ card: null, deposit: null, account: null, loan: null });
   const [recentlyVerified, setRecentlyVerified] = useState<VerifiedEntry[] | null>(null);
   const { searches: savedSearches } = useSavedSearches();
+  // Phase 4: catalogue counts for the metric-led Learn cards, and the
+  // signed-in user's personal follow feed (null = not loaded / guest).
+  const [catalogCounts, setCatalogCounts] = useState<{
+    cards: number | null;
+    deposits: number | null;
+    loans: number | null;
+  }>({ cards: null, deposits: null, loans: null });
+  const changesCopy = getChangesCopy(lang);
+  const [followFeed, setFollowFeed] = useState<BankFollowFeedEntry[] | null>(null);
 
   const [draftBalance, setDraftBalance] = useState<number | null>(profile.balance);
   const [draftSpend, setDraftSpend] = useState<number | null>(profile.monthlySpend);
@@ -116,11 +132,43 @@ const HomePage: React.FC = () => {
       if (banks !== null && products > 0) {
         setCoverage({ banks: banks.length, products });
       }
+      setCatalogCounts({
+        cards: cards?.count ?? null,
+        deposits: deposits ? deposits.results.length : null,
+        loans: loans ? loans.length : null,
+      });
     })();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // Personal what-changed (Phase 4, D4): signed-in users see recorded
+  // changes at banks they follow, flagged against their own seen
+  // watermark. Displaying them here advances the watermark, exactly
+  // like viewing the alerts feed. Fault-isolated: a failed feed simply
+  // leaves the section out; guests keep the edition-level section below.
+  useEffect(() => {
+    if (!user) {
+      setFollowFeed(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await alertsClient.getBankFollowFeed(1);
+        if (cancelled) return;
+        setFollowFeed(res.results.slice(0, 4));
+        const newest = res.results[0]?.changed_at;
+        void alertsClient.markBankFollowFeedSeen(newest).catch(() => undefined);
+      } catch {
+        if (!cancelled) setFollowFeed(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   // Mode headlines from the same scenario engines as discovery.
   useEffect(() => {
@@ -295,6 +343,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="home-page">
+      <ProfilePrimer />
       <section className="cm-home-hero">
         <h1>{copy.heading}</h1>
         <p className="cm-home-promise">{copy.promise}</p>
@@ -383,6 +432,12 @@ const HomePage: React.FC = () => {
                     <Link to={item.detailHref}>
                       {item.name} · {item.bankName}
                     </Link>
+                    {item.latestChange ? (
+                      <span className="cm-home-change-badge">
+                        {describeFieldChange(item.latestChange.fieldName, changesCopy)} ·{' '}
+                        {formatDate(item.latestChange.changedAt)}
+                      </span>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -410,6 +465,21 @@ const HomePage: React.FC = () => {
         )}
       </section>
 
+      {user && followFeed !== null && followFeed.length > 0 ? (
+        <section aria-labelledby="home-changed-heading">
+          <h2 id="home-changed-heading">{changesCopy.homeChangedHeading}</h2>
+          <p className="cm-discovery-note">{changesCopy.homeChangedIntro}</p>
+          <div className="cm-home-change-cards">
+            {followFeed.map(entry => (
+              <ChangeCard key={entry.id} entry={entry} />
+            ))}
+          </div>
+          <p>
+            <Link to="/my/alerts">{changesCopy.homeChangedViewAll}</Link>
+          </p>
+        </section>
+      ) : null}
+
       <section aria-labelledby="home-verified-heading">
         <h2 id="home-verified-heading">{copy.verifiedHeading}</h2>
         <p className="cm-discovery-note">{copy.verifiedIntro}</p>
@@ -431,6 +501,27 @@ const HomePage: React.FC = () => {
 
       <section aria-labelledby="home-learn-heading">
         <h2 id="home-learn-heading">{copy.learnHeading}</h2>
+        <div className="cm-home-metrics">
+          {(
+            [
+              { count: catalogCounts.cards, label: changesCopy.learnMetricCards, to: '/cards' },
+              {
+                count: catalogCounts.deposits,
+                label: changesCopy.learnMetricDeposits,
+                to: '/deposits',
+              },
+              { count: catalogCounts.loans, label: changesCopy.learnMetricLoans, to: '/loans' },
+            ] as const
+          )
+            .filter(card => card.count !== null && card.count > 0)
+            .map(card => (
+              <Link key={card.to} to={card.to} className="cm-home-metric-card">
+                <span className="cm-home-metric-value">{card.count}</span>
+                <span className="cm-home-metric-label">{card.label}</span>
+                <span className="cm-home-metric-source">{changesCopy.learnMetricSource}</span>
+              </Link>
+            ))}
+        </div>
         <div className="cm-home-modes">
           {learnGuides.map(guide => (
             <article key={guide.slug} className="cm-home-mode">
