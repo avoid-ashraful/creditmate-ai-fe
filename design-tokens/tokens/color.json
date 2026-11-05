@@ -447,8 +447,8 @@
     },
     "background": {
       "base": {
-        "value": "{color.slate.50}",
-        "comment": "App canvas behind all content.",
+        "value": "#ECEEF3",
+        "comment": "App canvas behind all content. Cool lavender-grey tint (Clay-style tinted ground): white surfaces step up from it as a deliberate layer instead of blending into a near-white canvas.",
         "type": "color"
       },
       "surface": {
@@ -461,8 +461,8 @@
         "type": "color"
       },
       "muted": {
-        "value": "{color.slate.100}",
-        "comment": "Striped rows, code blocks, disabled areas.",
+        "value": "#DFE2EB",
+        "comment": "Striped rows, code blocks, disabled areas. Recessed step between the tinted canvas and white surfaces, in the same lavender-grey family.",
         "type": "color"
       },
       "inverse": {
@@ -506,11 +506,12 @@
         "type": "color"
       },
       "link": {
-        "value": "{color.blue.500}",
+        "value": "{color.blue.600}",
+        "comment": "Link text. One step deeper than the primary action blue so links keep WCAG AA (4.5:1+) when they sit directly on the tinted page ground, not only on white surfaces.",
         "type": "color"
       },
       "linkHover": {
-        "value": "{color.blue.600}",
+        "value": "{color.blue.700}",
         "type": "color"
       },
       "onPrimary": {
@@ -530,7 +531,8 @@
         "type": "color"
       },
       "subtle": {
-        "value": "{color.slate.100}",
+        "value": "#D8DCE6",
+        "comment": "Hairline dividers and card edges. Strengthened with the tinted ground so white cards keep a crisp edge on the deeper canvas.",
         "type": "color"
       },
       "focus": {
@@ -545,8 +547,8 @@
     },
     "state": {
       "hoverSurface": {
-        "value": "{color.slate.100}",
-        "comment": "Row / list-item hover background.",
+        "value": "#E4E7EF",
+        "comment": "Row / list-item hover background. Between canvas and muted so hover reads as a step on both white surfaces and the tinted canvas.",
         "type": "color"
       },
       "selectedSurface": {
@@ -554,11 +556,11 @@
         "type": "color"
       },
       "disabledSurface": {
-        "value": "{color.slate.100}",
+        "value": "#E4E7EF",
         "type": "color"
       },
       "disabledBorder": {
-        "value": "{color.slate.200}",
+        "value": "#D8DCE6",
         "type": "color"
       }
     },

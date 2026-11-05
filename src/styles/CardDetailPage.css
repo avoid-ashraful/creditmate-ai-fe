@@ -514,7 +514,9 @@
 
 .btn-outline {
   background: transparent;
-  color: var(--color-primary-base);
+  /* Label sits on the page ground: AA-tuned link text token; the border
+     keeps primary-base (UI contrast, 3:1). */
+  color: var(--color-text-link);
   border: 2px solid var(--color-primary-base);
 }
 

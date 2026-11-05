@@ -54,12 +54,14 @@
 
 .cm-button--ghost {
   background: transparent;
-  color: var(--color-primary-base);
+  /* Text on the page ground uses the link text token, which is tuned for
+     AA on the tinted canvas; primary-base is for filled controls. */
+  color: var(--color-text-link);
 }
 
 .cm-button--ghost:hover:not(:disabled) {
   background: var(--color-state-hover-surface);
-  color: var(--color-primary-hover);
+  color: var(--color-text-link-hover);
 }
 
 .cm-button--ghost:active:not(:disabled) {

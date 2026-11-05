@@ -31,6 +31,17 @@
     />
     <title>CreditMate AI</title>
     <script src="%BASE_URL%theme-init.js"></script>
+    <!-- First-paint ground: mirrors --color-background-base per theme (set by
+         theme-init.js above) so the canvas never flashes white before the
+         bundle CSS arrives. Keep in step with design-tokens color bases. -->
+    <style>
+      html {
+        background-color: #eceef3;
+      }
+      html.dark {
+        background-color: #0a0f1a;
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

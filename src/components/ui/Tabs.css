@@ -26,7 +26,8 @@
 
 .cm-tabs-tab[aria-selected='true'] {
   border-bottom-color: var(--color-primary-base);
-  color: var(--color-primary-base);
+  /* Label text sits on the page ground: use the AA-tuned link text token. */
+  color: var(--color-text-link);
   font-weight: var(--typography-font-weight-semibold);
 }
 
