@@ -43,6 +43,7 @@ import {
 import { useAuth } from '../hooks/AuthProvider';
 import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
+import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import {
   fillCopy,
   getCardDetailCopy,
@@ -241,10 +242,17 @@ const CardsDiscoveryPage: React.FC = () => {
     [copy.errorResults]
   );
 
+  const prevSearchRef = useRef('');
   useEffect(() => {
     const timer = setTimeout(() => {
       void executeSearch(uiState);
       syncToUrl(uiState);
+      if (uiState.search !== prevSearchRef.current) {
+        prevSearchRef.current = uiState.search;
+        if (uiState.search) {
+          analytics.track(ANALYTICS_EVENTS.search);
+        }
+      }
     }, 300);
     return () => clearTimeout(timer);
   }, [uiState, executeSearch, syncToUrl]);
@@ -256,6 +264,13 @@ const CardsDiscoveryPage: React.FC = () => {
       ...updates,
       page: isPagination ? updates.page ?? prev.page : 1,
     }));
+    const filterKeys = Object.keys(updates).filter(k => k !== 'page');
+    if (filterKeys.length > 0) {
+      analytics.track(ANALYTICS_EVENTS.filterApply, {
+        filterCount: filterKeys.length,
+        filterKeys,
+      });
+    }
   }, []);
 
   const handleCategoryToggle = useCallback((slug: string) => {
@@ -266,6 +281,10 @@ const CardsDiscoveryPage: React.FC = () => {
         : [...prev.categories, slug],
       page: 1,
     }));
+    analytics.track(ANALYTICS_EVENTS.filterApply, {
+      filterCount: 1,
+      filterKeys: [`category:${slug}`],
+    });
   }, []);
 
   const facetCounts = useMemo(
@@ -532,10 +551,12 @@ const CardsDiscoveryPage: React.FC = () => {
 
   const clearAll = useCallback(() => {
     setUiState({ ...DEFAULT_UI_STATE, pageSize: PAGE_SIZE, ordering: '-creditmate_score' });
+    analytics.track(ANALYTICS_EVENTS.filterApply, { filterCount: 0, filterKeys: [] });
   }, []);
 
   const handleToggleShortlist = useCallback(
     (card: CreditCard) => {
+      analytics.track(ANALYTICS_EVENTS.cardSelect, { cardId: card.id });
       const detailHref = cardPathFor(card.bankName ?? '', card.name) ?? '/cards';
       const result = shortlist.toggle({
         vertical: 'cards',

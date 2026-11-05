@@ -202,8 +202,9 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
     });
   };
 
+  const legalNavCopy = getLegalNav(lang);
   const legalLinks = useMemo(() => {
-    const nav = getLegalNav(lang);
+    const nav = legalNavCopy;
     const keys = ['terms', 'privacy', 'disclaimer', 'howWeMakeMoney', 'methodology', 'contact'];
     return keys
       .filter(key => key in LEGAL_PAGE_PATHS && key in nav.titles)
@@ -212,7 +213,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         label: (nav.titles as Record<string, string>)[key],
         href: (LEGAL_PAGE_PATHS as Record<string, string>)[key],
       }));
-  }, [lang]);
+  }, [legalNavCopy]);
 
   const mainModes = MODE_DEFINITIONS.filter(m =>
     ['cards', 'save', 'borrow', 'tools'].includes(m.id)
@@ -262,7 +263,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         {copy.skipToContent}
       </a>
 
-      <aside className="cm-rail" aria-label={copy.navAriaLabel}>
+      <aside className="cm-rail">
         <Link to="/" className="cm-rail-logo" aria-label="CreditMate AI">
           <span className="cm-logo-mark" aria-hidden="true">
             CM
@@ -368,8 +369,8 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 </li>
               </ul>
             </nav>
-            <nav className="cm-footer-group" aria-label={copy.footerLegalHeading}>
-              <h2 className="cm-footer-heading">{copy.footerLegalHeading}</h2>
+            <nav className="cm-footer-group" aria-label={legalNavCopy.footerLegalHeading}>
+              <h2 className="cm-footer-heading">{legalNavCopy.footerLegalHeading}</h2>
               <ul>
                 {legalLinks.map(page => (
                   <li key={page.key}>
@@ -396,7 +397,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         </div>
       ) : null}
 
-      <nav className="cm-bottombar" aria-label={copy.navAriaLabel}>
+      <nav className="cm-bottombar" aria-label={copy.mobileNavAriaLabel}>
         {mainModes.map(mode => {
           const isActive = activeMode === mode.id;
           return (

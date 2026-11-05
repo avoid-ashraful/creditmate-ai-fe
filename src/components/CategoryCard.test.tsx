@@ -30,7 +30,7 @@ test('CategoryCard renders name, description and link', () => {
   );
   expect(screen.getByText('Travel')).toBeInTheDocument();
   const link = screen.getByRole('link');
-  expect(link).toHaveAttribute('href', '/category/travel');
+  expect(link).toHaveAttribute('href', '/cards?categories=travel');
 });
 
 test('each category has SEO metadata', () => {
@@ -50,6 +50,9 @@ test('CategoryCard uses the visible Bengali text as its accessible name', () => 
     </LanguageProvider>
   );
   expect(screen.getByText('ভ্রমণ')).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /ভ্রমণ/ })).toHaveAttribute('href', '/category/travel');
+  expect(screen.getByRole('link', { name: /ভ্রমণ/ })).toHaveAttribute(
+    'href',
+    '/cards?categories=travel'
+  );
   expect(screen.queryByText('Travel')).not.toBeInTheDocument();
 });

@@ -31,7 +31,7 @@ import { useSeoMeta } from '../hooks/useSeoMeta';
 import { formatTaka } from '../lib/format';
 import { useProfile } from '../lib/profile';
 import { fillCopy, getDiscoveryCopy, getShellCopy, useLanguage } from '../locales';
-import { AccountsCopy, getAccountsCopy, segmentLabel } from '../locales/accounts';
+import { getAccountsCopy, segmentLabel } from '../locales/accounts';
 import {
   AccountProduct,
   AccountScenarioResponse,
@@ -66,7 +66,7 @@ const formatDate = (iso: string | null): string =>
       })
     : '';
 
-const feeValue = (value: number | null, copy: AccountsCopy): React.ReactNode =>
+const feeValue = (value: number | null): React.ReactNode =>
   value === null ? <UnknownValue kind="not-published" /> : <Money value={value} decimals={2} />;
 
 const AccountsPage: React.FC = () => {
@@ -216,7 +216,7 @@ const AccountsPage: React.FC = () => {
           { label: copy.colInterest, value: <Money value={result.interestEarned} decimals={2} /> },
           {
             label: copy.colMaintenance,
-            value: feeValue(result.maintenanceFeeAnnual, copy),
+            value: feeValue(result.maintenanceFeeAnnual),
           },
         ]}
         badges={
@@ -247,19 +247,29 @@ const AccountsPage: React.FC = () => {
         <dl className="cm-card-facts">
           <div>
             <dt>{copy.colCard}</dt>
-            <dd>{feeValue(result.debitCardFeeAnnual, copy)}</dd>
+            <dd>{feeValue(result.debitCardFeeAnnual)}</dd>
           </div>
           <div>
             <dt>{copy.colSms}</dt>
-            <dd>{feeValue(result.smsFeeAnnual, copy)}</dd>
+            <dd>{feeValue(result.smsFeeAnnual)}</dd>
           </div>
           <div>
             <dt>{copy.colOnline}</dt>
-            <dd>{feeValue(result.onlineBankingFeeAnnual, copy)}</dd>
+            <dd>{feeValue(result.onlineBankingFeeAnnual)}</dd>
           </div>
         </dl>
+        {result.isRange && result.interestEarnedAtMaxRate !== null ? (
+          <p className="cm-discovery-note">
+            {copy.colInterest}:{' '}
+            {fillCopy(copy.atMaxRateNote, {
+              rate: String(result.rateMax ?? result.rate),
+              amount: formatTaka(result.interestEarnedAtMaxRate, { decimals: 2 }),
+            })}
+          </p>
+        ) : null}
         {result.isRange && result.netAnnualValueAtMaxRate !== null ? (
           <p className="cm-discovery-note">
+            {copy.colNet}:{' '}
             {fillCopy(copy.atMaxRateNote, {
               rate: String(result.rateMax ?? result.rate),
               amount: formatTaka(result.netAnnualValueAtMaxRate, { decimals: 2 }),

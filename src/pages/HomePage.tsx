@@ -38,6 +38,7 @@ import { getDepositProducts, runDepositScenario } from '../services/deposits';
 import { fetchLoanProducts, runLoanScenario } from '../services/loans';
 import { listSavedSearches, SavedSearch } from '../services/savedSearches';
 import { fetchAllPages } from '../utils/fetchAllPages';
+import { organizationJsonLd, websiteJsonLd } from '../utils/structuredData';
 
 import './HomePage.css';
 
@@ -65,7 +66,12 @@ const HomePage: React.FC = () => {
   const shortlist = useShortlist();
   const { profile, setProfile } = useProfile();
 
-  useSeoMeta({ title: copy.seoTitle, description: copy.seoDescription, canonicalPath: '/' });
+  useSeoMeta({
+    title: copy.seoTitle,
+    description: copy.seoDescription,
+    canonicalPath: '/',
+    jsonLd: [organizationJsonLd(window.location.origin), websiteJsonLd(window.location.origin)],
+  });
 
   const [coverage, setCoverage] = useState<{ banks: number; products: number } | null>(null);
   const [headlines, setHeadlines] = useState<{

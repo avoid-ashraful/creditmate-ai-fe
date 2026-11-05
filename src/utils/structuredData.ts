@@ -53,7 +53,7 @@ export const websiteJsonLd = (origin: string) => ({
     '@type': 'SearchAction',
     target: {
       '@type': 'EntryPoint',
-      urlTemplate: `${origin}/?search={search_term_string}`,
+      urlTemplate: `${origin}/cards?search={search_term_string}`,
     },
     'query-input': 'required name=search_term_string',
   },

@@ -102,6 +102,18 @@ const VerifyEmailPage = lazyLoad(() => import('./pages/VerifyEmailPage'));
 // (ComparisonPage moved to lazyLoad above: the main chunk was at its size
 // budget, and /compare is reached by an explicit user action, not on landing.)
 
+/**
+ * Home route. Legacy `/?search=` deep links (the old WebSite SearchAction
+ * target) forward to the canonical discovery with the term preserved.
+ */
+const HomeRoute: React.FC = () => {
+  const location = useLocation();
+  if (new URLSearchParams(location.search).has('search')) {
+    return <Navigate to={`/cards${location.search}`} replace />;
+  }
+  return <HomePage />;
+};
+
 /** /search is retired: the canonical discovery lives at /cards (query preserved). */
 const SearchRedirect: React.FC = () => {
   const location = useLocation();
@@ -142,7 +154,7 @@ export const AppRoutes: React.FC = () => {
       animate="visible"
     >
       <Routes location={location}>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomeRoute />} />
         <Route path="/cards" element={lazyRoute('Loading cards...', <CardsDiscoveryPage />)} />
         <Route path="/search" element={<SearchRedirect />} />
         <Route path="/category/:slug" element={<CategoryRedirect />} />

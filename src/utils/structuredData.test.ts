@@ -25,7 +25,7 @@ describe('organizationJsonLd', () => {
 });
 
 describe('websiteJsonLd', () => {
-  test('declares a SearchAction that targets the ?search= query on the home page', () => {
+  test('declares a SearchAction that targets the ?search= query on the cards discovery page', () => {
     const data = websiteJsonLd(ORIGIN);
 
     expect(data).toMatchObject({
@@ -36,7 +36,7 @@ describe('websiteJsonLd', () => {
         '@type': 'SearchAction',
         target: {
           '@type': 'EntryPoint',
-          urlTemplate: `${ORIGIN}/?search={search_term_string}`,
+          urlTemplate: `${ORIGIN}/cards?search={search_term_string}`,
         },
         'query-input': 'required name=search_term_string',
       },

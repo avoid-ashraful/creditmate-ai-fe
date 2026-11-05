@@ -1,8 +1,11 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
+import { ToastProvider } from '../components/ui';
+import { ShortlistProvider } from '../hooks/ShortlistProvider';
 import { LanguageProvider } from '../locales';
 import { ACCOUNTS_COPY } from '../locales/accounts';
 import {
@@ -135,93 +138,110 @@ const renderPage = () =>
   render(
     <LanguageProvider>
       <BrowserRouter>
-        <AccountsPage />
+        <ShortlistProvider>
+          <ToastProvider>
+            <AccountsPage />
+          </ToastProvider>
+        </ShortlistProvider>
       </BrowserRouter>
     </LanguageProvider>
   );
 
+// Cards render in backend order, so the nth "Details" disclosure belongs to
+// the nth result card.
+const expandCardDetails = async (index: number) => {
+  const buttons = await screen.findAllByRole('button', { name: 'Details' });
+  await userEvent.click(buttons[index]);
+};
+
+const linkSequence = (names: string[]) =>
+  screen
+    .getAllByRole('link')
+    .map(link => link.textContent)
+    .filter(text => (text ? names.includes(text) : false));
+
 describe('AccountsPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    window.localStorage.clear();
+    // URL state persists across tests in the shared jsdom history — reset it.
+    window.history.pushState({}, '', '/accounts');
     mockList.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
     mockScenario.mockResolvedValue(scenarioResponse);
   });
 
   it('renders the ranked breakdown in backend order with visible arithmetic', async () => {
-    const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
 
     await waitFor(() => expect(mockScenario).toHaveBeenCalled());
     expect(mockScenario).toHaveBeenCalledWith(
       expect.objectContaining({ averageBalance: 50000, accountType: 'savings' })
     );
 
-    const tables = screen.getAllByRole('table');
-    const rows = within(tables[0]).getAllByRole('row');
-    // Header + 2 ranked rows, in the backend's order (never re-sorted).
-    expect(rows).toHaveLength(3);
-    expect(rows[1]).toHaveTextContent('Fee Free Savings');
-    expect(rows[2]).toHaveTextContent('Fee Heavy Savings');
-    // Breakdown arithmetic is visible: 1,500 interest − 1,300 fees = 200 net.
-    expect(rows[2]).toHaveTextContent('BDT 1,500.00');
-    expect(rows[2]).toHaveTextContent('BDT 400.00');
-    expect(rows[2]).toHaveTextContent('BDT 600.00');
-    expect(rows[2]).toHaveTextContent('BDT 300.00');
-    expect(rows[2]).toHaveTextContent('BDT 200.00');
+    await screen.findByRole('link', { name: 'Fee Heavy Savings' });
+    // Backend ranking order is preserved in the DOM (never re-sorted).
+    expect(linkSequence(['Fee Free Savings', 'Fee Heavy Savings'])).toEqual([
+      'Fee Free Savings',
+      'Fee Heavy Savings',
+    ]);
+    // Layer-1 arithmetic for the fee-heavy card: 400 maintenance, 200 net hero.
+    expect(screen.getAllByText('৳400.00').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('৳200.00').length).toBeGreaterThan(0);
+    // Layer-2 fee split (card 600 + SMS 300 + maintenance 400 = 1,300 fees).
+    await expandCardDetails(1);
+    expect(screen.getByText('৳600.00')).toBeInTheDocument();
+    expect(screen.getByText('৳300.00')).toBeInTheDocument();
   });
 
-  it('keeps salary accounts out of the ranking table, in their own section', async () => {
-    const user = userEvent.setup();
+  it('keeps salary accounts out of the ranking, in their own section', async () => {
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
 
     expect(await screen.findByText('Salary & employer-agreement accounts')).toBeInTheDocument();
-    const tables = screen.getAllByRole('table');
-    expect(within(tables[0]).queryByText('Payroll Savings')).not.toBeInTheDocument();
-    expect(within(tables[1]).getByText('Payroll Savings')).toBeInTheDocument();
+    // DOM sequence proves the grouping: ranked first, then the salary group,
+    // then the unranked group.
+    expect(
+      linkSequence([
+        'Fee Free Savings',
+        'Fee Heavy Savings',
+        'Payroll Savings',
+        'Mystery Bank Savings',
+      ])
+    ).toEqual(['Fee Free Savings', 'Fee Heavy Savings', 'Payroll Savings', 'Mystery Bank Savings']);
   });
 
   it('shows unpublished fees as "Not published", never as zero', async () => {
-    const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
 
     expect(await screen.findByText('Interest known, fees not published')).toBeInTheDocument();
-    const tables = screen.getAllByRole('table');
-    const unrankedRow = within(tables[2]).getAllByRole('row')[1];
-    expect(unrankedRow).toHaveTextContent('Mystery Bank Savings');
-    expect(unrankedRow).toHaveTextContent('Not published');
-    expect(unrankedRow).toHaveTextContent('Partial fees');
+    await screen.findByRole('link', { name: 'Mystery Bank Savings' });
+    expect(screen.getAllByText('Not published').length).toBeGreaterThan(0);
+    expect(screen.getByText(/Partial fees/)).toBeInTheDocument();
   });
 
   it('reports how many accounts had no covering rate', async () => {
-    const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
     expect(await screen.findByText(/21 account\(s\) publish no rate/)).toBeInTheDocument();
   });
 
   it('switches to current accounts and sends the account type', async () => {
     const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('tab', { name: 'Current' }));
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
-    await waitFor(() => expect(mockScenario).toHaveBeenCalled());
-    expect(mockScenario).toHaveBeenCalledWith(expect.objectContaining({ accountType: 'current' }));
+    await user.click(screen.getByRole('button', { name: 'Current' }));
+    await waitFor(() =>
+      expect(mockScenario).toHaveBeenCalledWith(expect.objectContaining({ accountType: 'current' }))
+    );
   });
 
   it('uses a balance preset', async () => {
     const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'BDT 100,000.00' }));
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
-    await waitFor(() => expect(mockScenario).toHaveBeenCalled());
-    expect(mockScenario).toHaveBeenCalledWith(expect.objectContaining({ averageBalance: 100000 }));
+    await user.click(screen.getByRole('button', { name: '৳1,00,000' }));
+    await waitFor(() =>
+      expect(mockScenario).toHaveBeenCalledWith(expect.objectContaining({ averageBalance: 100000 }))
+    );
   });
 
   it('explains when interest is blocked by the published minimum balance', async () => {
-    const user = userEvent.setup();
     mockScenario.mockResolvedValue({
       ...scenarioResponse,
       results: [
@@ -239,18 +259,16 @@ describe('AccountsPage', () => {
       unrankedWithoutFees: [],
     });
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
 
-    await screen.findByText('Threshold Savings');
-    const row = within(screen.getAllByRole('table')[0]).getAllByRole('row')[1];
-    expect(row).toHaveTextContent('BDT 0.00');
-    expect(row).toHaveTextContent(
-      'No interest or profit below the published minimum balance of BDT 100,000.00'
-    );
+    await screen.findByRole('link', { name: 'Threshold Savings' });
+    expect(screen.getByText('৳0.00')).toBeInTheDocument();
+    await expandCardDetails(0);
+    expect(
+      screen.getByText(/No interest or profit below the published minimum balance of ৳1,00,000/)
+    ).toBeInTheDocument();
   });
 
   it('renders the per-product basis note supplied by the API', async () => {
-    const user = userEvent.setup();
     mockScenario.mockResolvedValue({
       ...scenarioResponse,
       results: [
@@ -263,17 +281,15 @@ describe('AccountsPage', () => {
       unrankedWithoutFees: [],
     });
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
 
-    await screen.findByText('Lowest Balance Savings');
-    const row = within(screen.getAllByRole('table')[0]).getAllByRole('row')[1];
-    expect(row).toHaveTextContent(
-      'Estimate assumes your balance never dips below this average in any month.'
-    );
+    await screen.findByRole('link', { name: 'Lowest Balance Savings' });
+    await expandCardDetails(0);
+    expect(
+      screen.getByText('Estimate assumes your balance never dips below this average in any month.')
+    ).toBeInTheDocument();
   });
 
   it('shows the at-max interest and net figures for range-rate rows', async () => {
-    const user = userEvent.setup();
     mockScenario.mockResolvedValue({
       ...scenarioResponse,
       results: [
@@ -291,16 +307,14 @@ describe('AccountsPage', () => {
       unrankedWithoutFees: [],
     });
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
 
-    await screen.findByText('Range Savings');
-    const row = within(screen.getAllByRole('table')[0]).getAllByRole('row')[1];
-    expect(row).toHaveTextContent('At 3.85%: BDT 1,925.00');
-    expect(row).toHaveTextContent('At 3.85%: BDT 625.00');
+    await screen.findByRole('link', { name: 'Range Savings' });
+    await expandCardDetails(0);
+    expect(screen.getByText(/At 3\.85%: ৳1,925\.00/)).toBeInTheDocument();
+    expect(screen.getByText(/At 3\.85%: ৳625\.00/)).toBeInTheDocument();
   });
 
   it('labels scenario rows that are variants of another product', async () => {
-    const user = userEvent.setup();
     mockScenario.mockResolvedValue({
       ...scenarioResponse,
       results: [
@@ -317,18 +331,15 @@ describe('AccountsPage', () => {
       unrankedWithoutFees: [],
     });
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
 
-    await screen.findByText('Alo Savings');
-    const row = within(screen.getAllByRole('table')[0]).getAllByRole('row')[1];
-    expect(row).toHaveTextContent('Variant of Base Savings');
+    await screen.findByRole('link', { name: 'Alo Savings' });
+    await expandCardDetails(0);
+    expect(screen.getByText('Variant of Base Savings')).toBeInTheDocument();
   });
 
   it('shows a scenario-specific error when the comparison fails', async () => {
     mockScenario.mockRejectedValue(new Error('boom'));
-    const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Failed to run the comparison. Please check your balance and try again.'
@@ -339,16 +350,19 @@ describe('AccountsPage', () => {
   });
 
   it('rounds the balance to 2 decimal places before posting', async () => {
-    const user = userEvent.setup();
+    // The balance can arrive with paisa precision via the shareable URL.
+    window.history.pushState({}, '', '/accounts?balance=50000.567');
     renderPage();
-    const input = screen.getByLabelText('Your average balance (BDT)');
-    await user.clear(input);
-    await user.type(input, '50000.567');
-    await user.click(screen.getByRole('button', { name: 'Compare accounts' }));
     await waitFor(() => expect(mockScenario).toHaveBeenCalled());
     expect(mockScenario).toHaveBeenCalledWith(
       expect.objectContaining({ averageBalance: 50000.57 })
     );
+  });
+
+  it('has no axe violations with results rendered', async () => {
+    const { container } = renderPage();
+    await screen.findByRole('link', { name: 'Fee Heavy Savings' });
+    await expectNoAxeViolations(container);
   });
 
   it('explains that the maintenance fee is BB-fixed and identical at every bank', async () => {

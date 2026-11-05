@@ -16,6 +16,7 @@ export interface ShellCopy {
   navLearn: string;
   navMy: string;
   navAriaLabel: string;
+  mobileNavAriaLabel: string;
   skipToContent: string;
   languageLabel: string;
   subCardsDiscover: string;
@@ -101,6 +102,7 @@ const en: ShellCopy = {
   navLearn: 'Learn',
   navMy: 'My CreditMate',
   navAriaLabel: 'Main navigation',
+  mobileNavAriaLabel: 'Modes',
   skipToContent: 'Skip to content',
   languageLabel: 'Language',
   subCardsDiscover: 'Discover cards',
@@ -185,6 +187,7 @@ const bn: ShellCopy = {
   navLearn: 'শিখুন',
   navMy: 'আমার ক্রেডিটমেট',
   navAriaLabel: 'প্রধান নেভিগেশন',
+  mobileNavAriaLabel: 'মোডসমূহ',
   skipToContent: 'মূল বিষয়বস্তুতে যান',
   languageLabel: 'ভাষা',
   subCardsDiscover: 'কার্ড খুঁজুন',

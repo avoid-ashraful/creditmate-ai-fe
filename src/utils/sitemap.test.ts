@@ -194,8 +194,8 @@ describe('buildSitemapEntries', () => {
     const paths = entries.map(entry => entry.path);
     expect(paths.slice(0, STATIC_PATHS.length)).toEqual([...STATIC_PATHS]);
     expect(paths.slice(STATIC_PATHS.length)).toEqual([
-      '/category/travel',
-      '/category/cashback',
+      '/cards?categories=travel',
+      '/cards?categories=cashback',
       '/guides/first-card',
       '/card/city-bank/gold',
     ]);
@@ -207,13 +207,13 @@ describe('buildSitemapEntries', () => {
 
   test('does not duplicate a static path that a category also produces', () => {
     const entries = buildSitemapEntries({
-      staticPaths: ['/category/travel'],
+      staticPaths: ['/cards?categories=travel'],
       categorySlugs: ['travel'],
       guides: [],
       cards: [],
     });
 
-    expect(entries.filter(entry => entry.path === '/category/travel')).toHaveLength(1);
+    expect(entries.filter(entry => entry.path === '/cards?categories=travel')).toHaveLength(1);
   });
 });
 

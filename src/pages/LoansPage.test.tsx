@@ -3,6 +3,10 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
+import { ToastProvider } from '../components/ui';
+import { ShortlistProvider } from '../hooks/ShortlistProvider';
+import { LanguageProvider } from '../locales';
 import {
   fetchLoanProducts,
   fetchRegulatoryCaps,
@@ -144,14 +148,30 @@ const scenario: LoanScenarioResponse = {
 
 const renderPage = () =>
   render(
-    <BrowserRouter>
-      <LoansPage />
-    </BrowserRouter>
+    <LanguageProvider>
+      <BrowserRouter>
+        <ShortlistProvider>
+          <ToastProvider>
+            <LoansPage />
+          </ToastProvider>
+        </ShortlistProvider>
+      </BrowserRouter>
+    </LanguageProvider>
   );
+
+// Cards render in backend order, so the nth "Details" disclosure belongs to
+// the nth result card (Fits Loan first, Too Small Loan second in the fixture).
+const expandCardDetails = async (index: number) => {
+  const buttons = await screen.findAllByRole('button', { name: 'Details' });
+  await userEvent.click(buttons[index]);
+};
 
 describe('LoansPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    window.localStorage.clear();
+    // URL state persists across tests in the shared jsdom history — reset it.
+    window.history.pushState({}, '', '/loans');
     mockFetchProducts.mockResolvedValue([scenario.results[0].product, scenario.results[1].product]);
     mockFetchCaps.mockResolvedValue([]);
     mockRunScenario.mockResolvedValue(scenario);
@@ -161,28 +181,33 @@ describe('LoansPage', () => {
     renderPage();
     expect(await screen.findByText('Fits Loan')).toBeInTheDocument();
     expect(screen.getAllByText(/Bangladesh Bank lending chart/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText('9.72% – 11.72%').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('9.72–11.72%').length).toBeGreaterThan(0);
   });
 
-  it('runs the scenario and shows both band-end EMI figures', async () => {
+  it('auto-runs the scenario and shows both band-end EMI figures', async () => {
     renderPage();
-    await screen.findByText('Fits Loan');
-    await userEvent.click(screen.getByRole('button', { name: /compare this scenario/i }));
     await waitFor(() => expect(mockRunScenario).toHaveBeenCalled());
-    expect(await screen.findByText(/21,110 – BDT 22,103/)).toBeInTheDocument();
-    expect(screen.getByText(/1,272,322 – BDT 1,331,943/)).toBeInTheDocument();
+    // Hero EMI range and total-cost range, formatted by the shared Money
+    // component (taka sign, lakh grouping, rounded taka).
+    expect(await screen.findByText(/৳21,110/)).toBeInTheDocument();
+    expect(screen.getByText(/৳22,103/)).toBeInTheDocument();
+    expect(screen.getByText(/৳12,72,322/)).toBeInTheDocument();
+    expect(screen.getByText(/৳13,31,943/)).toBeInTheDocument();
+    // The ranking basis is labelled: total cost at the band's upper end.
+    expect(screen.getByText(/Ranked by total cost at the highest rate/)).toBeInTheDocument();
   });
 
-  it('keeps ineligible products visible, greyed, with the reason', async () => {
+  it('keeps ineligible products visible, with the reason', async () => {
     renderPage();
-    await screen.findByText('Fits Loan');
-    await userEvent.click(screen.getByRole('button', { name: /compare this scenario/i }));
-    const row = await screen.findByTestId('scenario-row-too-small-loan');
-    expect(row).toHaveClass('loans-row-ineligible');
+    await waitFor(() => expect(mockRunScenario).toHaveBeenCalled());
+    await expandCardDetails(1);
     expect(
-      screen.getByText(/exceeds this product's published maximum of Tk 500,000/)
+      await screen.findByText(
+        /exceeds this product's published maximum of Tk 500,000/,
+        {},
+        { timeout: 3000 }
+      )
     ).toBeInTheDocument();
-    expect(screen.getByText('Too Small Loan')).toBeInTheDocument();
   });
 
   it('filters the catalogue by segment tag', async () => {
@@ -195,64 +220,91 @@ describe('LoansPage', () => {
 
   it('shows the supervision charge separately from the total cost', async () => {
     renderPage();
-    await screen.findByText('Fits Loan');
-    await userEvent.click(screen.getByRole('button', { name: /compare this scenario/i }));
-    expect(await screen.findByText(/Supervision charge: BDT 1,200/)).toBeInTheDocument();
+    await waitFor(() => expect(mockRunScenario).toHaveBeenCalled());
+    await expandCardDetails(0);
+    expect(
+      await screen.findByText(/Supervision charge:/, {}, { timeout: 3000 })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/৳1,200/)).toBeInTheDocument();
     expect(screen.getByText(/not included in total cost/)).toBeInTheDocument();
   });
 
   it('labels a chart fallback band with its chart category', async () => {
     renderPage();
-    await screen.findByText('Fits Loan');
+    await waitFor(() => expect(mockRunScenario).toHaveBeenCalled());
+    await expandCardDetails(0);
     expect(
-      screen.getAllByText(/announced consumer-credit band \(Bangladesh Bank chart\)/).length
+      (
+        await screen.findAllByText(
+          /announced consumer-credit band \(Bangladesh Bank chart\)/,
+          {},
+          { timeout: 3000 }
+        )
+      ).length
     ).toBeGreaterThan(0);
   });
 
   it('shows an alert when the scenario request fails', async () => {
     mockRunScenario.mockRejectedValue(new Error('network down'));
     renderPage();
-    await screen.findByText('Fits Loan');
-    await userEvent.click(screen.getByRole('button', { name: /compare this scenario/i }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/could not run this comparison/i);
+    // The catalogue still renders (band heroes) alongside the error.
+    expect(await screen.findByText('Fits Loan', {}, { timeout: 3000 })).toBeInTheDocument();
   });
 
-  it('rejects a fractional amount client-side without calling the scenario API', async () => {
+  it('never lets a fractional amount reach the scenario API', async () => {
     renderPage();
-    await screen.findByText('Fits Loan');
+    await screen.findByText('Fits Loan', {}, { timeout: 3000 });
     const amountInput = screen.getByLabelText(/loan amount/i);
+    // MoneyInput is digit-only by construction: the decimal point is stripped
+    // as the user types, so the API only ever sees whole taka.
     fireEvent.change(amountInput, { target: { value: '1000000.5' } });
-    await userEvent.click(screen.getByRole('button', { name: /compare this scenario/i }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(/whole number of taka/i);
-    expect(mockRunScenario).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(mockRunScenario).toHaveBeenCalledWith(expect.objectContaining({ amount: 10000005 }))
+    );
+    expect(mockRunScenario.mock.calls.every(([arg]) => Number.isInteger(arg.amount))).toBe(true);
   });
 
   it('rejects a tenure above the backend cap client-side', async () => {
     renderPage();
-    await screen.findByText('Fits Loan');
+    await screen.findByText('Fits Loan', {}, { timeout: 3000 });
     const tenureInput = screen.getByLabelText(/tenure/i);
     await userEvent.clear(tenureInput);
     await userEvent.type(tenureInput, '601');
-    await userEvent.click(screen.getByRole('button', { name: /compare this scenario/i }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(/between 1 and 600/i);
-    expect(mockRunScenario).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText(/between 1 and 600/i, {}, { timeout: 3000 })
+    ).toBeInTheDocument();
+    await new Promise(resolve => setTimeout(resolve, 600));
+    expect(mockRunScenario.mock.calls.every(([arg]) => arg.tenureMonths !== 601)).toBe(true);
   });
 
-  it('rejects a non-numeric income instead of silently dropping it', async () => {
+  it('never lets a negative income reach the scenario API', async () => {
     renderPage();
-    await screen.findByText('Fits Loan');
+    await screen.findByText('Fits Loan', {}, { timeout: 3000 });
     const incomeInput = screen.getByLabelText(/monthly income/i);
+    // The digit-only MoneyInput strips the minus sign as the user types.
     fireEvent.change(incomeInput, { target: { value: '-5' } });
-    await userEvent.click(screen.getByRole('button', { name: /compare this scenario/i }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(/monthly income/i);
-    expect(mockRunScenario).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(mockRunScenario).toHaveBeenCalledWith(expect.objectContaining({ monthlyIncome: 5 }))
+    );
+    expect(
+      mockRunScenario.mock.calls.every(
+        ([arg]) => arg.monthlyIncome === undefined || arg.monthlyIncome >= 0
+      )
+    ).toBe(true);
+  });
+
+  it('has no axe violations with results rendered', async () => {
+    const { container } = renderPage();
+    await waitFor(() => expect(mockRunScenario).toHaveBeenCalled());
+    await screen.findByText('Fits Loan');
+    await expectNoAxeViolations(container);
   });
 
   it('never uses banned approval language anywhere on the page', async () => {
     renderPage();
-    await screen.findByText('Fits Loan');
-    await userEvent.click(screen.getByRole('button', { name: /compare this scenario/i }));
-    await screen.findByTestId('scenario-row-too-small-loan');
+    await waitFor(() => expect(mockRunScenario).toHaveBeenCalled());
+    expect(await screen.findByText('Too Small Loan')).toBeInTheDocument();
     const text = document.body.textContent ?? '';
     expect(text).not.toMatch(/pre-approved/i);
     expect(text).not.toMatch(/guaranteed/i);

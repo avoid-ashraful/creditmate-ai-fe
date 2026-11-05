@@ -34,7 +34,7 @@ import {
 import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { useProfile } from '../lib/profile';
-import { fillCopy, getDiscoveryCopy, getShellCopy, useLanguage } from '../locales';
+import { fillCopy, getDiscoveryCopy, getShellCopy, Language, useLanguage } from '../locales';
 import { getLoansCopy, segmentLabel } from '../locales/loans';
 import type { LoansCopy } from '../locales/loans';
 import {
@@ -76,6 +76,16 @@ const bandCategoryLabel = (
 ): string | null => {
   if (source !== 'bb_chart' || !category) return null;
   return category === 'consumer_credit' ? copy.bandChartConsumerCredit : copy.bandChartHousing;
+};
+
+const formatVerifiedDate = (iso: string, lang: Language): string => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
 };
 
 const LoansPage: React.FC = () => {
@@ -300,7 +310,11 @@ const LoansPage: React.FC = () => {
           result.band && result.band.source !== 'none' ? (
             <TrustChip
               source={bandSourceLabel(copy, result.band.source)}
-              dateLabel={categoryNote ?? bandText ?? ''}
+              dateLabel={
+                product.verifiedAt
+                  ? formatVerifiedDate(product.verifiedAt, lang)
+                  : categoryNote ?? bandText ?? ''
+              }
             />
           ) : undefined
         }
@@ -379,6 +393,19 @@ const LoansPage: React.FC = () => {
               <Badge key={tag}>{segmentLabel(tag, lang)}</Badge>
             ))}
           </>
+        }
+        trustChip={
+          band && band.source !== 'none' ? (
+            <TrustChip
+              source={bandSourceLabel(copy, band.source)}
+              dateLabel={
+                product.verifiedAt
+                  ? formatVerifiedDate(product.verifiedAt, lang)
+                  : bandCategoryLabel(copy, band.source, band.category) ??
+                    `${band.min}–${band.max}%`
+              }
+            />
+          ) : undefined
         }
         islamic={product.isIslamic}
         inShortlist={shortlist.isInShortlist('loans', product.slug)}
@@ -524,7 +551,7 @@ const LoansPage: React.FC = () => {
           </>
         ) : null}
 
-        {catalogueState === 'done' && !showScenario && !scenarioError ? (
+        {catalogueState === 'done' && !showScenario ? (
           <>
             <h3 className="cm-discovery-section-label">{copy.catalogueHeading}</h3>
             <div className="cm-discovery-list">
