@@ -40,7 +40,9 @@
 .error-state {
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--color-red-600);
+  /* Semantic error text on the page background: --color-error-base is
+     6.18:1 on background-base in light and 6.93:1 in dark. */
+  color: var(--color-error-base);
 }
 
 .load-more-container {

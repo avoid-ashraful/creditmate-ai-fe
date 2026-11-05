@@ -97,8 +97,14 @@ export const computeScenarioPreview = async (
           tenureMonths: months,
         });
         // "Lowest total cost" = the cheapest band-end across products,
-        // exactly as the loan tool ranks them.
-        const costed = response.results.filter(result => result.atMinRate !== null);
+        // exactly as the loan tool ranks them. The scenario endpoint
+        // sorts eligible products first and still costs ineligible ones
+        // (amount outside their published range), so skip results the
+        // payload flags ineligible — the preview must name the cheapest
+        // ELIGIBLE product, mirroring the endpoint's ordering.
+        const costed = response.results.filter(
+          result => result.eligible && result.atMinRate !== null
+        );
         if (costed.length === 0) return null;
         const cheapest = costed.reduce((a, b) =>
           (a.atMinRate?.totalCost ?? Infinity) <= (b.atMinRate?.totalCost ?? Infinity) ? a : b

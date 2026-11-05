@@ -60,9 +60,12 @@
 }
 
 .calculators-page .error-state {
-  color: var(--color-red-600);
+  /* Error text sits on the surface, not error-subtle: --color-error-base
+     on error-subtle is 5.91:1 in light but only 3.62:1 in dark, while
+     error-base on background-surface is 6.47:1 light / 5.93:1 dark. */
+  color: var(--color-error-base);
   border-color: var(--color-error-border);
-  background: var(--color-error-subtle);
+  background: var(--color-background-surface);
 }
 
 .calculators-tabs {
@@ -82,7 +85,7 @@
 }
 
 .calculators-tab-active {
-  background: var(--color-gradient-primary-button);
+  background: var(--color-primary-base);
   color: var(--color-text-inverse);
   border-color: transparent;
 }
@@ -165,7 +168,7 @@
 }
 
 .calculators-page .calculate-button {
-  background: var(--color-gradient-primary-button);
+  background: var(--color-primary-base);
   color: var(--color-text-inverse);
   border: none;
   padding: 0.75rem 1.5rem;
