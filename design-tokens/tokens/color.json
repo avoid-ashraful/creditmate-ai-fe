@@ -384,7 +384,8 @@
     },
     "warning": {
       "base": {
-        "value": "{color.amber.500}",
+        "value": "{color.amber.700}",
+        "comment": "Darkened amber so warning-base text on warning-subtle keeps WCAG AA (Phase 4).",
         "type": "color"
       },
       "hover": {
@@ -400,8 +401,8 @@
         "type": "color"
       },
       "contrast": {
-        "value": "{color.slate.900}",
-        "comment": "Amber needs dark text for AA contrast.",
+        "value": "{color.white}",
+        "comment": "White text on the darkened amber base for AA contrast (Phase 4).",
         "type": "color"
       }
     },

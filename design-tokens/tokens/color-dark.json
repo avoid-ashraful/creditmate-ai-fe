@@ -114,7 +114,8 @@
       },
       "info": {
         "base": {
-          "value": "{color.sky.400}",
+          "value": "{color.sky.300}",
+          "comment": "Brightened sky so info-base text on info-subtle keeps WCAG AA in dark mode (Phase 4).",
           "type": "color"
         },
         "subtle": {
@@ -191,11 +192,12 @@
           "type": "color"
         },
         "link": {
-          "value": "{color.blue.400}",
+          "value": "{color.blue.300}",
+          "comment": "Brightened blue so link text on muted wells keeps WCAG AA in dark mode (Phase 4).",
           "type": "color"
         },
         "linkHover": {
-          "value": "{color.blue.300}",
+          "value": "{color.blue.200}",
           "type": "color"
         },
         "onPrimary": {

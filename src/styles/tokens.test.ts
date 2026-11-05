@@ -87,7 +87,7 @@ describe('design tokens — semantic colours', () => {
     expect(color.primary.base).toBe(color.blue['500']);
     expect(color.secondary.base).toBe(color.slate['900']);
     expect(color.success.base).toBe(color.emerald['700']);
-    expect(color.warning.base).toBe(color.amber['500']);
+    expect(color.warning.base).toBe(color.amber['700']);
     expect(color.error.base).toBe(color.red['700']);
     expect(color.info.base).toBe(color.sky['700']);
   });
@@ -596,6 +596,16 @@ describe('design tokens — WCAG contrast ratios', () => {
       'Warning text on warning background (light)',
       4.5,
     ],
+    // StatusChip caution variant renders warning-base as TEXT on
+    // warning-subtle. Phase 4 darkened warning-base for exactly this
+    // pairing; a later token regeneration silently reverted it to
+    // 2.07:1, so pin it here.
+    [
+      '--color-warning-base',
+      '--color-warning-subtle',
+      'Warning chip text on warning subtle (light)',
+      4.5,
+    ],
     ['--color-error-contrast', '--color-error-base', 'Error text on error background (light)', 4.5],
     ['--color-info-contrast', '--color-info-base', 'Info text on info background (light)', 4.5],
     // Legacy .error-state pairing (Phase 4 review F2): error-base text on
@@ -672,6 +682,12 @@ describe('design tokens — WCAG contrast ratios', () => {
     ],
     ['--color-error-contrast', '--color-error-base', 'Error text on error background (dark)', 4.5],
     ['--color-info-contrast', '--color-info-base', 'Info text on info background (dark)', 4.5],
+    // Links inside muted wells in dark mode (the Phase 4 axe failure on
+    // /compare at 4.07:1): link text must keep AA on background-muted.
+    ['--color-text-link', '--color-background-muted', 'Link text on muted background (dark)', 4.5],
+    // StatusChip info variant in dark mode renders info-base as TEXT on
+    // info-subtle; the brightened sky-300 base keeps this at AA.
+    ['--color-info-base', '--color-info-subtle', 'Info chip text on info subtle (dark)', 4.5],
     // Legacy .error-state pairing (Phase 4 review F2), dark values.
     ['--color-error-base', '--color-background-surface', 'Error state text on surface (dark)', 4.5],
     ['--color-error-base', '--color-background-base', 'Error state text on base (dark)', 4.5],

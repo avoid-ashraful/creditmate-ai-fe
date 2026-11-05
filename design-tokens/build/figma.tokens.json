@@ -143,7 +143,8 @@
         "info": {
           "base": {
             "type": "color",
-            "value": "#38bdf8"
+            "value": "#7dd3fc",
+            "description": "Brightened sky so info-base text on info-subtle keeps WCAG AA in dark mode (Phase 4)."
           },
           "subtle": {
             "type": "color",
@@ -220,11 +221,12 @@
           },
           "link": {
             "type": "color",
-            "value": "#60a5fa"
+            "value": "#93c5fd",
+            "description": "Brightened blue so link text on muted wells keeps WCAG AA in dark mode (Phase 4)."
           },
           "linkHover": {
             "type": "color",
-            "value": "#93c5fd"
+            "value": "#bfdbfe"
           },
           "onPrimary": {
             "type": "color",
@@ -694,7 +696,8 @@
       "warning": {
         "base": {
           "type": "color",
-          "value": "#f59e0b"
+          "value": "#b45309",
+          "description": "Darkened amber so warning-base text on warning-subtle keeps WCAG AA (Phase 4)."
         },
         "hover": {
           "type": "color",
@@ -710,8 +713,8 @@
         },
         "contrast": {
           "type": "color",
-          "value": "#0f172a",
-          "description": "Amber needs dark text for AA contrast."
+          "value": "#ffffff",
+          "description": "White text on the darkened amber base for AA contrast (Phase 4)."
         }
       },
       "error": {
