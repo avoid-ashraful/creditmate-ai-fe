@@ -291,8 +291,8 @@
     --color-text-disabled: #475569;
     --color-text-inverse: #0f172a;
     --color-text-inverse-secondary: #475569;
-    --color-text-link: #60a5fa;
-    --color-text-link-hover: #93c5fd;
+    --color-text-link: #93c5fd;
+    --color-text-link-hover: #bfdbfe;
     --color-text-on-primary: #0f172a;
     --color-border-base: #94a3b8;
     --color-border-strong: #94a3b8;
@@ -355,8 +355,8 @@
   --color-text-disabled: #475569;
   --color-text-inverse: #0f172a;
   --color-text-inverse-secondary: #475569;
-  --color-text-link: #60a5fa;
-  --color-text-link-hover: #93c5fd;
+  --color-text-link: #93c5fd;
+  --color-text-link-hover: #bfdbfe;
   --color-text-on-primary: #0f172a;
   --color-border-base: #94a3b8;
   --color-border-strong: #94a3b8;
