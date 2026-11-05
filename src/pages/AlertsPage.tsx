@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Alert, Button } from '../components/ui';
+import { Alert, Button, ConfirmDialog } from '../components/ui';
 import { useAuth } from '../hooks/AuthProvider';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { useLanguage } from '../locales';
@@ -17,8 +17,10 @@ import {
   AlertSubscription,
   AlertPreferences,
   BankFollow,
+  BankFollowFeedEntry,
   getAlertKindLabel,
 } from '../types/alerts';
+import { cardPathFor } from '../utils/sitemap';
 import '../styles/AlertsPage.css';
 
 const AlertsPage: React.FC = () => {
@@ -34,7 +36,16 @@ const AlertsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [pendingSubscriptionDelete, setPendingSubscriptionDelete] =
+    useState<AlertSubscription | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  // Bank-follow change feed (Phase 3): real field-history events for the
+  // banks this user follows, paged by the API's has_more flag.
+  const [feedEntries, setFeedEntries] = useState<BankFollowFeedEntry[]>([]);
+  const [feedPage, setFeedPage] = useState(1);
+  const [feedHasMore, setFeedHasMore] = useState(false);
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [feedError, setFeedError] = useState(false);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -56,6 +67,22 @@ const AlertsPage: React.FC = () => {
     }
   };
 
+  const loadFeed = async (page: number) => {
+    setFeedLoading(true);
+    try {
+      const res = await alertsClient.getBankFollowFeed(page);
+      setFeedEntries(prev => (page === 1 ? res.results : [...prev, ...res.results]));
+      setFeedPage(page);
+      setFeedHasMore(res.has_more);
+      setFeedError(false);
+    } catch (err) {
+      console.error('Failed to load the bank-follow feed:', err);
+      setFeedError(true);
+    } finally {
+      setFeedLoading(false);
+    }
+  };
+
   const loadData = async () => {
     setIsLoading(true);
     setError(null);
@@ -67,6 +94,7 @@ const AlertsPage: React.FC = () => {
       setSubscriptions(subsRes.results);
       setPreferences(prefsRes);
       await loadBankFollows();
+      await loadFeed(1);
     } catch (err) {
       console.error('Failed to load alerts data:', err);
       setError('Failed to load alert settings. Please try again.');
@@ -79,6 +107,9 @@ const AlertsPage: React.FC = () => {
     try {
       await alertsClient.unfollowBank(bankId);
       setBankFollows(prev => prev.filter(follow => follow.bank !== bankId));
+      // The feed is scoped to followed banks — refresh it so the
+      // unfollowed bank's changes leave the list immediately.
+      void loadFeed(1);
     } catch (err) {
       console.error(`Failed to unfollow ${bankName}:`, err);
       showToast(copy.followBankError, 'error');
@@ -109,7 +140,6 @@ const AlertsPage: React.FC = () => {
   };
 
   const handleDeleteSubscription = async (id: number) => {
-    if (!window.confirm(copy.deleteConfirmation)) return;
     setDeleteId(id);
     try {
       await alertsClient.deleteSubscription(id);
@@ -211,7 +241,7 @@ const AlertsPage: React.FC = () => {
                   </div>
                   <button
                     className="btn btn-danger delete-btn"
-                    onClick={() => handleDeleteSubscription(sub.id)}
+                    onClick={() => setPendingSubscriptionDelete(sub)}
                     disabled={deleteId === sub.id}
                     aria-label={`${copy.deleteSubscriptionButton} ${getAlertKindLabel(
                       sub.kind,
@@ -261,6 +291,66 @@ const AlertsPage: React.FC = () => {
                 </li>
               ))}
             </ul>
+          )}
+        </section>
+
+        {/* Bank-follow change feed (Phase 3) */}
+        <section className="alerts-section feed-section" aria-labelledby="follow-feed-heading">
+          <h2 id="follow-feed-heading">{copy.feedHeading}</h2>
+          <p className="empty-description">{copy.feedIntro}</p>
+          {feedError && !bankFollowsError ? (
+            <Alert variant="danger">
+              <p>{copy.feedLoadError}</p>
+              <Button variant="ghost" onClick={() => void loadFeed(1)}>
+                {copy.retry}
+              </Button>
+            </Alert>
+          ) : bankFollowsError ? null : bankFollows.length === 0 ? (
+            <div className="empty-state">
+              <p>{copy.feedNoFollows}</p>
+            </div>
+          ) : feedEntries.length === 0 && !feedLoading ? (
+            <div className="empty-state">
+              <p>{copy.feedNoChanges}</p>
+            </div>
+          ) : (
+            <>
+              <ul className="subscriptions-list">
+                {feedEntries.map(entry => (
+                  <li
+                    key={`${entry.vertical}-${entry.id}`}
+                    className="subscription-card feed-entry"
+                  >
+                    <div className="subscription-info">
+                      <div className="subscription-kind">
+                        <Link to={feedEntryHref(entry)}>{entry.product_name}</Link>
+                        {' · '}
+                        {entry.bank_name}
+                      </div>
+                      <div className="subscription-card-info">
+                        {humaniseField(entry.field_name)}:{' '}
+                        {formatFeedValue(entry.old_value, copy.feedNotPublished, lang)}
+                        {' → '}
+                        {formatFeedValue(entry.new_value, copy.feedNotPublished, lang)}
+                      </div>
+                      <div className="subscription-date">
+                        {formatDate(entry.changed_at)}
+                        {entry.source ? ` · ${copy.feedSourceLabel}: ${entry.source}` : ''}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {feedHasMore ? (
+                <Button
+                  variant="ghost"
+                  disabled={feedLoading}
+                  onClick={() => void loadFeed(feedPage + 1)}
+                >
+                  {copy.feedLoadMore}
+                </Button>
+              ) : null}
+            </>
           )}
         </section>
 
@@ -319,9 +409,68 @@ const AlertsPage: React.FC = () => {
             {toast.message}
           </div>
         )}
+
+        <ConfirmDialog
+          open={pendingSubscriptionDelete !== null}
+          title={copy.deleteSubscriptionButton}
+          message={copy.deleteConfirmation}
+          confirmLabel={copy.deleteSubscriptionButton}
+          onConfirm={() => {
+            if (pendingSubscriptionDelete) {
+              void handleDeleteSubscription(pendingSubscriptionDelete.id);
+            }
+            setPendingSubscriptionDelete(null);
+          }}
+          onCancel={() => setPendingSubscriptionDelete(null)}
+        />
       </div>
     </div>
   );
+};
+
+/** Detail-page link for a feed entry, using the same key the row uses. */
+const feedEntryHref = (entry: BankFollowFeedEntry): string => {
+  if (entry.vertical === 'cards') {
+    return cardPathFor(entry.bank_name, entry.product_name) ?? '/cards';
+  }
+  const base =
+    entry.vertical === 'deposits'
+      ? '/deposits'
+      : entry.vertical === 'loans'
+      ? '/loans'
+      : '/accounts';
+  return `${base}/${entry.product_key}`;
+};
+
+/** `annual_fee` -> `Annual fee` — labels only, values stay verbatim. */
+const humaniseField = (fieldName: string): string => {
+  const spaced = fieldName.replace(/_/g, ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+};
+
+/**
+ * Render a stored history value. Null means the field was not published
+ * on that side of the change and is labelled as such — never blanked or
+ * zero-filled. Rate-band objects keep both ends visible.
+ */
+const formatFeedValue = (value: unknown, notPublished: string, lang: 'en' | 'bn'): string => {
+  if (value === null || value === undefined) return notPublished;
+  if (typeof value === 'boolean')
+    return value ? (lang === 'bn' ? 'হ্যাঁ' : 'Yes') : lang === 'bn' ? 'না' : 'No';
+  if (typeof value === 'number' || typeof value === 'string') return String(value);
+  if (Array.isArray(value)) {
+    return value.map(item => formatFeedValue(item, notPublished, lang)).join(', ');
+  }
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    if ('rate_min' in record || 'rate_max' in record) {
+      return `${record.rate_min ?? '…'}% – ${record.rate_max ?? '…'}%`;
+    }
+    return Object.entries(record)
+      .map(([key, item]) => `${key}: ${formatFeedValue(item, notPublished, lang)}`)
+      .join(', ');
+  }
+  return String(value);
 };
 
 export default AlertsPage;

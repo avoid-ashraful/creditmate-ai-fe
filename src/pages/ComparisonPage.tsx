@@ -3,14 +3,19 @@ import { useLocation, Link, useNavigate } from 'react-router-dom';
 
 import CardComparisonTable from '../components/CardComparisonTable';
 import Toast from '../components/Toast';
+import { PromptDialog, VerdictStrip } from '../components/ui';
 import { useAuth, AUTH_STATUS } from '../hooks/AuthProvider';
+import { useShortlist, type ShortlistItem } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
+import { compareVerdicts } from '../lib/verdicts';
 import { useLanguage, getSavedCopy, getCommonCopy } from '../locales';
 import { apiService } from '../services/api';
 import { savedService, savedErrorMessage } from '../services/saved';
 import { CreditCard } from '../types';
 import '../styles/ComparisonPage.css';
+
+const MAX_COMPARE = 4;
 
 const ComparisonPage: React.FC = () => {
   useSeoMeta({
@@ -26,21 +31,32 @@ const ComparisonPage: React.FC = () => {
   const { lang } = useLanguage();
   const savedCopy = getSavedCopy(lang);
   const common = getCommonCopy(lang);
+  const shortlist = useShortlist();
   const [selectedCards, setSelectedCards] = useState<CreditCard[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [comparisonId, setComparisonId] = useState<string>('');
   const [shareMessage, setShareMessage] = useState<string>('');
   const [saveMessage, setSaveMessage] = useState<string>('');
+  const [saveOpen, setSaveOpen] = useState<boolean>(false);
   const [differencesOnly, setDifferencesOnly] = useState<boolean>(false);
+  const [addQuery, setAddQuery] = useState<string>('');
+  const [addResults, setAddResults] = useState<CreditCard[]>([]);
+  const [addSearched, setAddSearched] = useState<boolean>(false);
 
-  const saveComparison = async () => {
+  const queryParams = new URLSearchParams(location.search);
+  const hasComparisonParams = queryParams.has('ids') || queryParams.has('cid');
+
+  const openSaveDialog = () => {
     if (status !== AUTH_STATUS.authenticated) {
       setSaveMessage(savedCopy.signIn);
       navigate('/login', { state: { from: `${location.pathname}${location.search}` } });
       return;
     }
-    const name = window.prompt(savedCopy.savePrompt);
-    if (!name?.trim()) return;
+    setSaveOpen(true);
+  };
+
+  const saveComparison = async (name: string) => {
+    setSaveOpen(false);
     try {
       await savedService.createComparison({
         name: name.trim(),
@@ -55,9 +71,9 @@ const ComparisonPage: React.FC = () => {
 
   useEffect(() => {
     const fetchComparisonData = async () => {
-      const queryParams = new URLSearchParams(location.search);
-      const cardIds = queryParams.get('ids');
-      const comparisonIdParam = queryParams.get('cid');
+      const params = new URLSearchParams(location.search);
+      const cardIds = params.get('ids');
+      const comparisonIdParam = params.get('cid');
 
       if (comparisonIdParam) {
         setComparisonId(comparisonIdParam);
@@ -92,22 +108,64 @@ const ComparisonPage: React.FC = () => {
     fetchComparisonData();
   }, [location.search]);
 
+  // Add-from-within search: the current selection stays in the URL, so
+  // adding a card never loses the comparison already on screen.
+  useEffect(() => {
+    const query = addQuery.trim();
+    if (query.length < 2) {
+      setAddResults([]);
+      setAddSearched(false);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          const response = await apiService.getCreditCards({
+            searchTerm: query,
+            page_size: 6,
+          });
+          if (cancelled) return;
+          const selected = new Set(selectedCards.map(card => card.id));
+          setAddResults(
+            response.results
+              .map(card => apiService.transformCreditCard(card))
+              .filter(card => !selected.has(card.id))
+          );
+          setAddSearched(true);
+        } catch {
+          if (!cancelled) {
+            setAddResults([]);
+            setAddSearched(true);
+          }
+        }
+      })();
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [addQuery, selectedCards]);
+
   const handleRemoveCard = (cardId: number) => {
     analytics.track(ANALYTICS_EVENTS.cardSelect, {
       cardId,
     });
-    setSelectedCards(prev => prev.filter(card => card.id !== cardId));
+    const remaining = selectedCards.filter(card => card.id !== cardId);
+    setSelectedCards(remaining);
 
-    const remainingIds = selectedCards
-      .filter(card => card.id !== cardId)
-      .map(card => card.id)
-      .join(',');
-
-    if (remainingIds) {
-      window.history.replaceState(null, '', `/compare?ids=${remainingIds}`);
+    if (remaining.length) {
+      navigate(`/compare?ids=${remaining.map(card => card.id).join(',')}`, { replace: true });
     } else {
-      window.history.replaceState(null, '', '/compare');
+      navigate('/compare', { replace: true });
     }
+  };
+
+  const handleAddCard = (cardId: number) => {
+    const ids = [...selectedCards.map(card => card.id), cardId].slice(0, MAX_COMPARE);
+    setAddQuery('');
+    setAddResults([]);
+    navigate(`/compare?ids=${ids.join(',')}`);
   };
 
   const generateShareableLink = () => {
@@ -131,6 +189,87 @@ const ComparisonPage: React.FC = () => {
     return shareableUrl;
   };
 
+  // Verdict strip (plan Section 4.7): computed from the loaded cards'
+  // published fields only — shared with the public shared pages.
+  const verdictItems = compareVerdicts(selectedCards, {
+    lowestFee: common.comparisonVerdictLowestFee,
+    lowestApr: common.comparisonVerdictLowestApr,
+  });
+
+  const renderShortlistGroup = (heading: string, items: ShortlistItem[], discoveryPath: string) => (
+    <section key={heading} aria-label={heading} className="workspace-group">
+      <h2>{heading}</h2>
+      {items.length === 0 ? (
+        <p>
+          <Link to={discoveryPath}>{common.comparisonAddFromDiscovery}</Link>
+        </p>
+      ) : (
+        <ul className="cm-home-list">
+          {items.map(item => (
+            <li key={`${item.vertical}-${item.key}`}>
+              <Link to={item.detailHref}>
+                {item.name} · {item.bankName}
+              </Link>{' '}
+              <button
+                type="button"
+                className="workspace-remove"
+                aria-label={`${common.comparisonRemoveAriaLabel} ${item.name}`}
+                onClick={() => shortlist.remove(item.vertical, item.key)}
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+
+  const renderWorkspace = () => {
+    const cards = shortlist.items.filter(item => item.vertical === 'cards');
+    const deposits = shortlist.items.filter(item => item.vertical === 'deposits');
+    const loans = shortlist.items.filter(item => item.vertical === 'loans');
+    const accounts = shortlist.items.filter(item => item.vertical === 'accounts');
+    return (
+      <div className="comparison-workspace">
+        <p className="cm-discovery-note">{common.comparisonWorkspaceIntro}</p>
+        {shortlist.items.length === 0 ? (
+          <div className="empty-state">
+            <h2>{common.comparisonEmptyTitle}</h2>
+            <p>{common.comparisonEmptyTeach}</p>
+            <p>
+              <Link to="/cards" className="footer-button">
+                {common.comparisonBrowseCards}
+              </Link>{' '}
+              <Link to="/deposits">{common.comparisonGroupDeposits}</Link> ·{' '}
+              <Link to="/loans">{common.comparisonGroupLoans}</Link> ·{' '}
+              <Link to="/accounts">{common.comparisonGroupAccounts}</Link>
+            </p>
+          </div>
+        ) : (
+          <>
+            {renderShortlistGroup(common.comparisonGroupCards, cards, '/cards')}
+            {cards.length >= 2 ? (
+              <p>
+                <Link
+                  to={`/compare?ids=${cards.map(item => item.key).join(',')}`}
+                  className="footer-button"
+                >
+                  {common.comparisonCompareShortlisted} ({cards.length})
+                </Link>
+              </p>
+            ) : cards.length === 1 ? (
+              <p className="cm-discovery-note">{common.comparisonNeedTwoCards}</p>
+            ) : null}
+            {renderShortlistGroup(common.comparisonGroupDeposits, deposits, '/deposits')}
+            {renderShortlistGroup(common.comparisonGroupLoans, loans, '/loans')}
+            {renderShortlistGroup(common.comparisonGroupAccounts, accounts, '/accounts')}
+          </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="comparison-page">
       <div className="comparison-hero">
@@ -140,12 +279,12 @@ const ComparisonPage: React.FC = () => {
             <Link to="/" className="back-link">
               {common.comparisonBackLink}
             </Link>
-            {selectedCards.length > 0 && (
+            {hasComparisonParams && selectedCards.length > 0 && (
               <>
                 <button className="share-button" onClick={generateShareableLink}>
                   {common.comparisonShareButton}
                 </button>
-                <button className="share-button" onClick={() => void saveComparison()}>
+                <button className="share-button" onClick={openSaveDialog}>
                   {savedCopy.save}
                 </button>
               </>
@@ -159,7 +298,9 @@ const ComparisonPage: React.FC = () => {
       </div>
 
       <div className="comparison-content">
-        {isLoading ? (
+        {!hasComparisonParams ? (
+          renderWorkspace()
+        ) : isLoading ? (
           <div className="loading-state" role="status" aria-live="polite">
             {common.loading}
           </div>
@@ -198,6 +339,8 @@ const ComparisonPage: React.FC = () => {
               </div>
             </div>
 
+            {verdictItems.length > 0 ? <VerdictStrip items={verdictItems} /> : null}
+
             <div className="comparison-toolbar">
               <label className="differences-toggle">
                 <input
@@ -218,6 +361,32 @@ const ComparisonPage: React.FC = () => {
               differencesOnly={differencesOnly}
             />
 
+            {selectedCards.length < MAX_COMPARE ? (
+              <div className="comparison-add">
+                <label htmlFor="compare-add-search">{common.comparisonAddSearchLabel}</label>
+                <input
+                  id="compare-add-search"
+                  type="search"
+                  value={addQuery}
+                  placeholder={common.comparisonAddSearchPlaceholder}
+                  onChange={event => setAddQuery(event.target.value)}
+                />
+                {addResults.length > 0 ? (
+                  <ul className="cm-home-list">
+                    {addResults.map(card => (
+                      <li key={card.id}>
+                        <button type="button" onClick={() => handleAddCard(card.id)}>
+                          {card.name} · {card.bankName || common.unknownBank}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : addSearched ? (
+                  <p className="cm-discovery-note">{common.comparisonAddNoResults}</p>
+                ) : null}
+              </div>
+            ) : null}
+
             <div className="comparison-footer">
               <div className="footer-actions">
                 <Link to="/" className="footer-button secondary">
@@ -234,6 +403,15 @@ const ComparisonPage: React.FC = () => {
           </>
         )}
       </div>
+
+      <PromptDialog
+        open={saveOpen}
+        title={savedCopy.save}
+        label={savedCopy.savePrompt}
+        submitLabel={savedCopy.save}
+        onSubmit={name => void saveComparison(name)}
+        onCancel={() => setSaveOpen(false)}
+      />
     </div>
   );
 };

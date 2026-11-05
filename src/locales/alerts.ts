@@ -34,6 +34,14 @@ export interface AlertsCopy {
   followedBanksLoadError: string;
   retry: string;
   unfollowBank: string;
+  feedHeading: string;
+  feedIntro: string;
+  feedNoFollows: string;
+  feedNoChanges: string;
+  feedLoadError: string;
+  feedLoadMore: string;
+  feedSourceLabel: string;
+  feedNotPublished: string;
 
   // Watch this card toggle
   watchThisCard: string;
@@ -100,6 +108,15 @@ export const ALERTS_COPY: Record<Language, AlertsCopy> = {
     followedBanksLoadError: 'We could not load the banks you follow. Please try again.',
     retry: 'Try again',
     unfollowBank: 'Unfollow',
+    feedHeading: 'Changes at banks you follow',
+    feedIntro:
+      'Fee and rate changes recorded for products at the banks you follow, newest first. Every entry names the value it replaced and when it was recorded.',
+    feedNoFollows: 'Follow a bank and its recorded fee and rate changes will appear here.',
+    feedNoChanges: 'No changes have been recorded at the banks you follow yet.',
+    feedLoadError: 'We could not load the change feed. Please try again.',
+    feedLoadMore: 'Load more changes',
+    feedSourceLabel: 'Source',
+    feedNotPublished: 'Not published',
 
     subscriptionCardTitle: 'Subscription',
     subscriptionKindLabel: 'Alert type',
@@ -169,6 +186,15 @@ export const ALERTS_COPY: Record<Language, AlertsCopy> = {
     noFollowedBanks:
       'আপনি এখনও কোনো ব্যাংক অনুসরণ করছেন না। হার ও ফির পরিবর্তনের খবর পেতে ব্যাংকের পৃষ্ঠা থেকে অনুসরণ করুন।',
     followedBanksLoadError: 'আপনি যেসব ব্যাংক অনুসরণ করেন, তা লোড করা যায়নি। আবার চেষ্টা করুন।',
+    feedHeading: 'আপনার অনুসরণ করা ব্যাংকের পরিবর্তন',
+    feedIntro:
+      'আপনার অনুসরণ করা ব্যাংকের পণ্যের ফি ও হারের রেকর্ডকৃত পরিবর্তন, নতুনটি আগে। প্রতিটি এন্ট্রিতে আগের মান ও কখন রেকর্ড হয়েছে তা আছে।',
+    feedNoFollows: 'একটি ব্যাংক অনুসরণ করুন, তার রেকর্ডকৃত ফি ও হারের পরিবর্তন এখানে দেখা যাবে।',
+    feedNoChanges: 'আপনার অনুসরণ করা ব্যাংকে এখনো কোনো পরিবর্তন রেকর্ড হয়নি।',
+    feedLoadError: 'পরিবর্তনের ফিড লোড করা যায়নি। আবার চেষ্টা করুন।',
+    feedLoadMore: 'আরও পরিবর্তন দেখুন',
+    feedSourceLabel: 'উৎস',
+    feedNotPublished: 'প্রকাশিত নয়',
     retry: 'আবার চেষ্টা করুন',
     unfollowBank: 'অনুসরণ বাতিল',
 

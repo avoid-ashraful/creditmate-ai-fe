@@ -842,3 +842,33 @@
   font-weight: 400;
   overflow-wrap: anywhere;
 }
+
+/* Phase 3 shortlist workspace: quiet remove control (the comparison
+   table keeps its large .remove-card affordance; the workspace list
+   wants a small, calm one). Token-clean rules. */
+.workspace-group .cm-home-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.workspace-remove {
+  background: none;
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: var(--typography-font-size-base);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.workspace-remove:hover {
+  background: var(--color-state-hover-surface);
+  color: var(--color-text-primary);
+}

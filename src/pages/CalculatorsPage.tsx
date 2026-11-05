@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
+import SaveScenarioButton from '../components/SaveScenarioButton';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
+import { useProfile } from '../lib/profile';
 import { fillCopy, getCommonCopy, toBanglaNumerals, useLanguage } from '../locales';
 import { CalculatorsCopy, getCalculatorsCopy } from '../locales/calculators';
 import type { CommonCopy } from '../locales/common';
@@ -38,6 +40,34 @@ import { fetchAllPages } from '../utils/fetchAllPages';
 import './CalculatorsPage.css';
 
 type ToolTab = 'emi' | 'payoff' | 'fd' | 'dps';
+
+/**
+ * A string state mirrored into the URL query string (plan Section 4.8:
+ * every Plan tool's inputs live in the URL, so a copied link — or a saved
+ * scenario reopened from My CreditMate — reproduces the exact scenario).
+ * The initial value comes from the URL when present, else the default;
+ * defaults are not written back, keeping clean URLs clean.
+ */
+const useParamState = (key: string, initial: string): [string, (value: string) => void] => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [value, setValue] = useState<string>(() => searchParams.get(key) ?? initial);
+  const set = (next: string) => {
+    setValue(next);
+    setSearchParams(
+      previous => {
+        const params = new URLSearchParams(previous);
+        if (next === '' || next === initial) {
+          params.delete(key);
+        } else {
+          params.set(key, next);
+        }
+        return params;
+      },
+      { replace: true }
+    );
+  };
+  return [value, set];
+};
 
 /** 'custom', or the id of the selected card as a string. */
 type RateSelection = string;
@@ -231,12 +261,18 @@ const EmiTool: React.FC<{
   copy: CalculatorsCopy;
   common: CommonCopy;
   formatters: Formatters;
-}> = ({ cards, copy, common, formatters }) => {
+  /**
+   * Profile's planned loan amount. Per plan Section 4.14 it is this
+   * field's placeholder suggestion — never a pre-filled value, so an
+   * empty field stays empty (and validatable) until the user types.
+   */
+  defaultAmount?: string;
+}> = ({ cards, copy, common, formatters, defaultAmount = '' }) => {
   const { lang } = useLanguage();
   const [selection, setSelection] = useState<RateSelection>('custom');
-  const [customApr, setCustomApr] = useState<string>('');
-  const [amount, setAmount] = useState<string>('');
-  const [tenure, setTenure] = useState<string>('12');
+  const [customApr, setCustomApr] = useParamState('rate', '');
+  const [amount, setAmount] = useParamState('amount', '');
+  const [tenure, setTenure] = useParamState('months', '12');
   const [errors, setErrors] = useState<{ amount?: string; tenure?: string; apr?: string }>({});
   const [outcome, setOutcome] = useState<EmiOutcome | null>(null);
 
@@ -296,7 +332,7 @@ const EmiTool: React.FC<{
             min="0"
             step="any"
             inputMode="decimal"
-            placeholder={copy.amountPlaceholder}
+            placeholder={defaultAmount || copy.amountPlaceholder}
             value={amount}
             onChange={event => setAmount(event.target.value)}
             aria-invalid={errors.amount ? true : undefined}
@@ -394,9 +430,9 @@ const PayoffTool: React.FC<{
   formatters: Formatters;
 }> = ({ cards, copy, common, formatters }) => {
   const [selection, setSelection] = useState<RateSelection>('custom');
-  const [customApr, setCustomApr] = useState<string>('');
-  const [balance, setBalance] = useState<string>('');
-  const [payment, setPayment] = useState<string>('');
+  const [customApr, setCustomApr] = useParamState('rate', '');
+  const [balance, setBalance] = useParamState('balance', '');
+  const [payment, setPayment] = useParamState('payment', '');
   const [errors, setErrors] = useState<{ balance?: string; payment?: string; apr?: string }>({});
   const [outcome, setOutcome] = useState<PayoffOutcome | null>(null);
 
@@ -693,10 +729,12 @@ const FdTool: React.FC<{
   formatters: Formatters;
 }> = ({ products, copy, formatters }) => {
   const preset = useDepositPreset(products);
-  const [customRate, setCustomRate] = useState<string>('');
-  const [amount, setAmount] = useState<string>('500000');
-  const [months, setMonths] = useState<string>('12');
-  const [hasTin, setHasTin] = useState<boolean>(true);
+  const [customRate, setCustomRate] = useParamState('rate', '');
+  const [amount, setAmount] = useParamState('amount', '500000');
+  const [months, setMonths] = useParamState('months', '12');
+  const [tinParam, setTinParam] = useParamState('tin', '1');
+  const hasTin = tinParam !== '0';
+  const setHasTin = (value: boolean) => setTinParam(value ? '1' : '0');
   const [errors, setErrors] = useState<{ amount?: string; months?: string; rate?: string }>({});
   const [outcome, setOutcome] = useState<DepositOutcome | null>(null);
 
@@ -856,12 +894,16 @@ const DpsTool: React.FC<{
   formatters: Formatters;
 }> = ({ products, copy, formatters }) => {
   const preset = useDepositPreset(products);
-  const [mode, setMode] = useState<'maturity' | 'goal'>('maturity');
-  const [customRate, setCustomRate] = useState<string>('');
-  const [instalment, setInstalment] = useState<string>('5000');
-  const [target, setTarget] = useState<string>('1000000');
-  const [months, setMonths] = useState<string>('60');
-  const [hasTin, setHasTin] = useState<boolean>(true);
+  const [modeParam, setModeParam] = useParamState('mode', 'maturity');
+  const mode = (modeParam === 'goal' ? 'goal' : 'maturity') as 'maturity' | 'goal';
+  const setMode = (value: 'maturity' | 'goal') => setModeParam(value);
+  const [customRate, setCustomRate] = useParamState('rate', '');
+  const [instalment, setInstalment] = useParamState('instalment', '5000');
+  const [target, setTarget] = useParamState('target', '1000000');
+  const [months, setMonths] = useParamState('months', '60');
+  const [tinParam, setTinParam] = useParamState('tin', '1');
+  const hasTin = tinParam !== '0';
+  const setHasTin = (value: boolean) => setTinParam(value ? '1' : '0');
   const [errors, setErrors] = useState<{
     instalment?: string;
     target?: string;
@@ -1076,18 +1118,31 @@ const DpsTool: React.FC<{
   );
 };
 
-const CalculatorsPage: React.FC = () => {
+export interface CalculatorsPageProps {
+  /**
+   * Plan workspace mode (Phase 3): lock the page to one tool family and
+   * let the Plan shell own navigation. 'deposit' covers FD + DPS, switched
+   * by the `kind` query param. Absent = the legacy tabbed page.
+   */
+  planTool?: 'emi' | 'payoff' | 'deposit';
+}
+
+const CalculatorsPage: React.FC<CalculatorsPageProps> = ({ planTool }) => {
   const { lang } = useLanguage();
   const copy = getCalculatorsCopy(lang);
   const common = getCommonCopy(lang);
   const isBn = lang === 'bn';
+  const { profile } = useProfile();
+  const [searchParams] = useSearchParams();
+  const depositKind: ToolTab = searchParams.get('kind') === 'dps' ? 'dps' : 'fd';
   useSeoMeta({
     title: copy.seoTitle,
     description: copy.seoDescription,
-    canonicalPath: '/calculators',
+    canonicalPath: planTool ? `/plan/${planTool}` : '/calculators',
   });
 
-  const [tab, setTab] = useState<ToolTab>('emi');
+  const [tab, setTab] = useState<ToolTab>(planTool === 'deposit' ? depositKind : planTool ?? 'emi');
+  const activeTab: ToolTab = planTool === 'deposit' ? depositKind : planTool ?? tab;
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [depositProducts, setDepositProducts] = useState<DepositProduct[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -1152,10 +1207,12 @@ const CalculatorsPage: React.FC = () => {
 
   return (
     <div className="calculators-page">
-      <section className="calculator-hero">
-        <h1>{copy.heading}</h1>
-        <p>{copy.intro}</p>
-      </section>
+      {planTool ? null : (
+        <section className="calculator-hero">
+          <h1>{copy.heading}</h1>
+          <p>{copy.intro}</p>
+        </section>
+      )}
 
       {isLoading ? (
         <div className="loading-state" role="status">
@@ -1167,60 +1224,91 @@ const CalculatorsPage: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="calculators-tabs" role="tablist" aria-label={copy.heading}>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'emi'}
-              className={`calculators-tab${tab === 'emi' ? ' calculators-tab-active' : ''}`}
-              onClick={() => setTab('emi')}
-            >
-              {copy.tabEmi}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'payoff'}
-              className={`calculators-tab${tab === 'payoff' ? ' calculators-tab-active' : ''}`}
-              onClick={() => setTab('payoff')}
-            >
-              {copy.tabPayoff}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'fd'}
-              className={`calculators-tab${tab === 'fd' ? ' calculators-tab-active' : ''}`}
-              onClick={() => setTab('fd')}
-            >
-              {copy.tabFd}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'dps'}
-              className={`calculators-tab${tab === 'dps' ? ' calculators-tab-active' : ''}`}
-              onClick={() => setTab('dps')}
-            >
-              {copy.tabDps}
-            </button>
-          </div>
+          {planTool === 'deposit' ? (
+            <div className="calculators-tabs" role="tablist" aria-label={copy.heading}>
+              <Link
+                to="/plan/deposit?kind=fd"
+                role="tab"
+                aria-selected={depositKind === 'fd'}
+                className={`calculators-tab${
+                  depositKind === 'fd' ? ' calculators-tab-active' : ''
+                }`}
+              >
+                {copy.tabFd}
+              </Link>
+              <Link
+                to="/plan/deposit?kind=dps"
+                role="tab"
+                aria-selected={depositKind === 'dps'}
+                className={`calculators-tab${
+                  depositKind === 'dps' ? ' calculators-tab-active' : ''
+                }`}
+              >
+                {copy.tabDps}
+              </Link>
+            </div>
+          ) : planTool ? null : (
+            <div className="calculators-tabs" role="tablist" aria-label={copy.heading}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === 'emi'}
+                className={`calculators-tab${tab === 'emi' ? ' calculators-tab-active' : ''}`}
+                onClick={() => setTab('emi')}
+              >
+                {copy.tabEmi}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === 'payoff'}
+                className={`calculators-tab${tab === 'payoff' ? ' calculators-tab-active' : ''}`}
+                onClick={() => setTab('payoff')}
+              >
+                {copy.tabPayoff}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === 'fd'}
+                className={`calculators-tab${tab === 'fd' ? ' calculators-tab-active' : ''}`}
+                onClick={() => setTab('fd')}
+              >
+                {copy.tabFd}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === 'dps'}
+                className={`calculators-tab${tab === 'dps' ? ' calculators-tab-active' : ''}`}
+                onClick={() => setTab('dps')}
+              >
+                {copy.tabDps}
+              </button>
+            </div>
+          )}
 
           <section className="calculator-form-section">
-            {tab === 'emi' && (
-              <EmiTool cards={cards} copy={copy} common={common} formatters={formatters} />
+            {activeTab === 'emi' && (
+              <EmiTool
+                cards={cards}
+                copy={copy}
+                common={common}
+                formatters={formatters}
+                defaultAmount={String(profile.loanAmount)}
+              />
             )}
-            {tab === 'payoff' && (
+            {activeTab === 'payoff' && (
               <PayoffTool cards={cards} copy={copy} common={common} formatters={formatters} />
             )}
-            {tab === 'fd' && (
+            {activeTab === 'fd' && (
               <FdTool
                 products={depositProducts.filter(p => p.kind !== 'dps')}
                 copy={copy}
                 formatters={formatters}
               />
             )}
-            {tab === 'dps' && (
+            {activeTab === 'dps' && (
               <DpsTool
                 products={depositProducts.filter(p => p.kind === 'dps')}
                 copy={copy}
@@ -1228,6 +1316,15 @@ const CalculatorsPage: React.FC = () => {
               />
             )}
           </section>
+
+          {planTool ? (
+            <p className="plan-save-row">
+              <SaveScenarioButton
+                tool={planTool === 'deposit' ? 'deposit' : planTool}
+                params={Object.fromEntries(searchParams.entries())}
+              />
+            </p>
+          ) : null}
         </>
       )}
 

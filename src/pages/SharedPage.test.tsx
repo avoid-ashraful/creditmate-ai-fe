@@ -4,6 +4,7 @@ import { setupServer } from 'msw/node';
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
+import { ShortlistProvider } from '../hooks/ShortlistProvider';
 import { LanguageProvider } from '../locales';
 
 import SharedPage from './SharedPage';
@@ -17,12 +18,14 @@ const renderCollection = () =>
   render(
     <MemoryRouter initialEntries={['/saved/shared/collections/travel']}>
       <LanguageProvider>
-        <Routes>
-          <Route
-            path="/saved/shared/collections/:slug"
-            element={<SharedPage kind="collection" />}
-          />
-        </Routes>
+        <ShortlistProvider>
+          <Routes>
+            <Route
+              path="/saved/shared/collections/:slug"
+              element={<SharedPage kind="collection" />}
+            />
+          </Routes>
+        </ShortlistProvider>
       </LanguageProvider>
     </MemoryRouter>
   );

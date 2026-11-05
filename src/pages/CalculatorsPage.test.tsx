@@ -57,6 +57,8 @@ let transformSpy: jest.SpyInstance;
 let consoleError: jest.SpyInstance;
 
 beforeEach(() => {
+  // Tool inputs live in the URL (Phase 3): every test starts from a clean one.
+  window.history.replaceState(null, '', '/');
   getCardsSpy = jest.spyOn(apiService, 'getCreditCards');
   getCardsSpy.mockResolvedValue(apiResponse([baseCard, islamicCard]));
   transformSpy = jest

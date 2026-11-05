@@ -1,23 +1,33 @@
 /**
- * My CreditMate overview (redesign plan Section 2.1 / Section 4.10).
+ * My CreditMate overview (redesign plan Sections 2.1, 4.14; Phase 3).
  *
  * The signed-in home for everything personal: the shortlist (grouped by
- * vertical, with the route into compare), saved searches tied to the
- * account, counts of saved comparisons and collections, and links into
- * alerts and profile. Signed-out visitors get an explanation and the
+ * vertical, with the route into compare), the account's server-stored
+ * "Your numbers" defaults, saved searches (server-backed since Phase 3),
+ * saved scenarios, counts of saved comparisons and collections, and links
+ * into alerts and profile. Signed-out visitors get an explanation and the
  * sign-in/register actions — the route itself is not guarded so the page
  * can explain itself.
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Button, ConfirmDialog, useToast } from '../components/ui';
 import { AUTH_STATUS, useAuth } from '../hooks/AuthProvider';
 import { useShortlist } from '../hooks/ShortlistProvider';
+import { useSavedSearches } from '../hooks/useSavedSearches';
+import { formatTaka } from '../lib/format';
+import { useProfile } from '../lib/profile';
 import { fillCopy, getShellCopy, useLanguage } from '../locales';
-import { savedService } from '../services/saved';
-import { deleteSavedSearch, listSavedSearches, SavedSearch } from '../services/savedSearches';
+import { savedService, type SavedScenario } from '../services/saved';
+import type { SavedSearch } from '../services/savedSearches';
+
+const scenarioHref = (scenario: SavedScenario): string => {
+  const params = new URLSearchParams(scenario.params);
+  const query = params.toString();
+  return query ? `/plan/${scenario.tool}?${query}` : `/plan/${scenario.tool}`;
+};
 
 const MyPage: React.FC = () => {
   const { lang } = useLanguage();
@@ -25,31 +35,28 @@ const MyPage: React.FC = () => {
   const { status, user } = useAuth();
   const { toast } = useToast();
   const shortlist = useShortlist();
-  const [searches, setSearches] = useState<SavedSearch[]>([]);
+  const { profile } = useProfile();
+  const { searches, remove: removeSearch } = useSavedSearches();
+  const [scenarios, setScenarios] = useState<SavedScenario[]>([]);
   const [savedCounts, setSavedCounts] = useState<{
     comparisons: number;
     collections: number;
   } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<SavedSearch | null>(null);
-
-  const refreshSearches = useCallback(() => {
-    setSearches(listSavedSearches(user?.id ?? null));
-  }, [user?.id]);
-
-  useEffect(() => {
-    refreshSearches();
-  }, [refreshSearches]);
+  const [pendingScenarioDelete, setPendingScenarioDelete] = useState<SavedScenario | null>(null);
 
   useEffect(() => {
     if (status !== AUTH_STATUS.authenticated) return;
     let cancelled = false;
     (async () => {
-      const [comparisons, collections] = await Promise.all([
+      const [comparisons, collections, scenarioRows] = await Promise.all([
         savedService.getComparisons().catch(() => []),
         savedService.getCollections().catch(() => []),
+        savedService.getScenarios().catch(() => []),
       ]);
       if (!cancelled) {
         setSavedCounts({ comparisons: comparisons.length, collections: collections.length });
+        setScenarios(scenarioRows);
       }
     })();
     return () => {
@@ -73,10 +80,24 @@ const MyPage: React.FC = () => {
 
   const confirmDelete = () => {
     if (!pendingDelete) return;
-    deleteSavedSearch(user.id ?? null, pendingDelete.id);
+    const target = pendingDelete;
     setPendingDelete(null);
-    refreshSearches();
-    toast({ message: copy.mySearchDeleted });
+    void removeSearch(target).then(() => {
+      toast({ message: copy.mySearchDeleted });
+    });
+  };
+
+  const confirmScenarioDelete = () => {
+    if (!pendingScenarioDelete) return;
+    const target = pendingScenarioDelete;
+    setPendingScenarioDelete(null);
+    void savedService
+      .deleteScenario(target.id)
+      .then(() => {
+        setScenarios(previous => previous.filter(item => item.id !== target.id));
+        toast({ message: copy.myScenarioDeleted });
+      })
+      .catch(() => undefined);
   };
 
   return (
@@ -119,6 +140,24 @@ const MyPage: React.FC = () => {
         )}
       </section>
 
+      <section aria-labelledby="my-numbers-heading">
+        <h2 id="my-numbers-heading" className="cm-discovery-section-label">
+          {copy.myNumbersHeading}
+        </h2>
+        <ul className="cm-home-list">
+          <li>
+            {copy.myNumbersBalance}: {formatTaka(profile.balance)}
+          </li>
+          <li>
+            {copy.myNumbersSpend}: {formatTaka(profile.monthlySpend)}
+          </li>
+          <li>
+            {copy.myNumbersLoan}: {formatTaka(profile.loanAmount)}
+          </li>
+        </ul>
+        <p className="cm-discovery-note">{copy.myNumbersNote}</p>
+      </section>
+
       <section aria-labelledby="my-searches-heading">
         <h2 id="my-searches-heading" className="cm-discovery-section-label">
           {copy.mySavedSearchesHeading}
@@ -134,6 +173,30 @@ const MyPage: React.FC = () => {
                 </Link>{' '}
                 <Button variant="ghost" size="sm" onClick={() => setPendingDelete(search)}>
                   {copy.myDeleteSearch}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section aria-labelledby="my-scenarios-heading">
+        <h2 id="my-scenarios-heading" className="cm-discovery-section-label">
+          {copy.myScenariosHeading}
+        </h2>
+        {scenarios.length === 0 ? (
+          <p className="cm-discovery-note">{copy.myNoScenarios}</p>
+        ) : (
+          <ul className="cm-home-list">
+            {scenarios.map(scenario => (
+              <li key={scenario.id}>
+                <Link to={scenarioHref(scenario)}>{scenario.name}</Link>{' '}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPendingScenarioDelete(scenario)}
+                >
+                  {copy.myDeleteScenario}
                 </Button>
               </li>
             ))}
@@ -183,6 +246,14 @@ const MyPage: React.FC = () => {
         confirmLabel={copy.myDeleteSearch}
         onConfirm={confirmDelete}
         onCancel={() => setPendingDelete(null)}
+      />
+      <ConfirmDialog
+        open={pendingScenarioDelete !== null}
+        title={copy.myDeleteScenario}
+        message={pendingScenarioDelete?.name ?? ''}
+        confirmLabel={copy.myDeleteScenario}
+        onConfirm={confirmScenarioDelete}
+        onCancel={() => setPendingScenarioDelete(null)}
       />
     </div>
   );

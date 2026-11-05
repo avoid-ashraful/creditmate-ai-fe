@@ -21,10 +21,7 @@
       "raw-spacing": 17
     },
     "src/pages/CalculatorsPage.css": {
-      "hex-color": 57,
-      "color-function": 2,
-      "raw-spacing": 3,
-      "transition-all": 1
+      "raw-spacing": 3
     },
     "src/pages/RewardCalculatorPage.css": {
       "hex-color": 52,
