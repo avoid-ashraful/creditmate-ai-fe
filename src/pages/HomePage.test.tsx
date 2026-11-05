@@ -197,6 +197,15 @@ describe('HomePage decision dashboard', () => {
     expect(await screen.findByText('2 banks · 108 products compared')).toBeInTheDocument();
   });
 
+  it('never prints a coverage count it failed to load', async () => {
+    mockBanks.mockRejectedValue(new Error('down'));
+    renderHome();
+    // Headlines still arrive (fault isolation), but the coverage line — which
+    // would have to claim a bank count — stays hidden.
+    expect(await screen.findByText(/Highest CreditMate Score/)).toBeInTheDocument();
+    expect(screen.queryByText(/products compared/)).not.toBeInTheDocument();
+  });
+
   it('computes the four mode headlines from the scenario engines', async () => {
     renderHome();
     expect(

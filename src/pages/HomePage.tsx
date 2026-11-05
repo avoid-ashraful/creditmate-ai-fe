@@ -116,8 +116,11 @@ const HomePage: React.FC = () => {
         (deposits?.results.length ?? 0) +
         (loans?.length ?? 0) +
         (accounts?.results.length ?? 0);
-      if (banks !== null || products > 0) {
-        setCoverage({ banks: banks?.length ?? 0, products });
+      // Provenance must never print a number we failed to load: if the bank
+      // list failed, the whole coverage line stays hidden rather than
+      // claiming "0 banks".
+      if (banks !== null && products > 0) {
+        setCoverage({ banks: banks.length, products });
       }
     })();
     return () => {
