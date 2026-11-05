@@ -118,6 +118,7 @@ export interface CommonCopy {
 
   // ComparisonPage
   comparisonTitle: string;
+  comparisonWorkspaceTitle: string;
   comparisonBackLink: string;
   comparisonShareButton: string;
   comparisonSaveButton: string;
@@ -138,6 +139,20 @@ export interface CommonCopy {
   comparisonDifferencesOnlyLabel: string;
   comparisonAllIdentical: string;
   comparisonPrintButton: string;
+  comparisonWorkspaceIntro: string;
+  comparisonEmptyTeach: string;
+  comparisonGroupCards: string;
+  comparisonGroupDeposits: string;
+  comparisonGroupLoans: string;
+  comparisonGroupAccounts: string;
+  comparisonCompareShortlisted: string;
+  comparisonNeedTwoCards: string;
+  comparisonAddFromDiscovery: string;
+  comparisonVerdictLowestFee: string;
+  comparisonVerdictLowestApr: string;
+  comparisonAddSearchLabel: string;
+  comparisonAddSearchPlaceholder: string;
+  comparisonAddNoResults: string;
 
   // CardDetailsPopup / CardListItem
   cardRewards: string;
@@ -542,6 +557,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
 
     // ComparisonPage
     comparisonTitle: 'Credit Card Comparison',
+    comparisonWorkspaceTitle: 'Your shortlist',
     comparisonBackLink: '← Back to All Cards',
     comparisonShareButton: 'Share Comparison',
     comparisonSaveButton: 'Save comparison',
@@ -563,6 +579,22 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     comparisonDifferencesOnlyLabel: 'Differences only',
     comparisonAllIdentical: 'No differences: all features match.',
     comparisonPrintButton: 'Print / Save as PDF',
+    comparisonWorkspaceIntro:
+      'Your shortlist is the working set for a decision: keep the few products worth a closer look here, then compare the cards side by side.',
+    comparisonEmptyTeach:
+      'Nothing is shortlisted yet. Shortlisting keeps the handful of products worth comparing — tap Shortlist on any card, deposit, loan or account and it will wait for you here.',
+    comparisonGroupCards: 'Cards',
+    comparisonGroupDeposits: 'Deposits',
+    comparisonGroupLoans: 'Loans',
+    comparisonGroupAccounts: 'Accounts',
+    comparisonCompareShortlisted: 'Compare these cards',
+    comparisonNeedTwoCards: 'Shortlist one more card to compare side by side.',
+    comparisonAddFromDiscovery: 'Browse and shortlist more',
+    comparisonVerdictLowestFee: 'Lowest annual fee',
+    comparisonVerdictLowestApr: 'Lowest interest rate',
+    comparisonAddSearchLabel: 'Add a card to this comparison',
+    comparisonAddSearchPlaceholder: 'Search cards by name or bank…',
+    comparisonAddNoResults: 'No cards match that search.',
 
     // CardDetailsPopup / CardListItem
     cardRewards: 'Rewards',
@@ -987,6 +1019,7 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
 
     // ComparisonPage
     comparisonTitle: 'ক্রেডিট কার্ড তুলনা',
+    comparisonWorkspaceTitle: 'আপনার তালিকা',
     comparisonBackLink: '← সব কার্ডে ফিরে যান',
     comparisonShareButton: 'তুলনা শেয়ার করুন',
     comparisonSaveButton: 'তুলনা সংরক্ষণ করুন',
@@ -1008,6 +1041,22 @@ export const COMMON_COPY: Record<Language, CommonCopy> = {
     comparisonDifferencesOnlyLabel: 'শুধু পার্থক্য',
     comparisonAllIdentical: 'সব বৈশিষ্ট্যেই মান একই, কোনো পার্থক্য নেই।',
     comparisonPrintButton: 'প্রিন্ট / PDF সংরক্ষণ',
+    comparisonWorkspaceIntro:
+      'আপনার তালিকাই সিদ্ধান্তের কাজের সেট: কাছ থেকে দেখার মতো কয়েকটি পণ্য এখানে রাখুন, তারপর কার্ডগুলো পাশাপাশি তুলনা করুন।',
+    comparisonEmptyTeach:
+      'এখনো কিছু তালিকাভুক্ত হয়নি। তালিকাভুক্ত করা মানে তুলনার যোগ্য অল্প কয়েকটি পণ্য আলাদা রাখা – যেকোনো কার্ড, আমানত, ঋণ বা অ্যাকাউন্টে তালিকা চাপ দিন, সেটি এখানে অপেক্ষা করবে।',
+    comparisonGroupCards: 'কার্ড',
+    comparisonGroupDeposits: 'আমানত',
+    comparisonGroupLoans: 'ঋণ',
+    comparisonGroupAccounts: 'অ্যাকাউন্ট',
+    comparisonCompareShortlisted: 'এসব কার্ড তুলনা করুন',
+    comparisonNeedTwoCards: 'পাশাপাশি তুলনার জন্য আরও একটি কার্ড তালিকাভুক্ত করুন।',
+    comparisonAddFromDiscovery: 'আরও দেখুন ও তালিকাভুক্ত করুন',
+    comparisonVerdictLowestFee: 'সর্বনিম্ন বার্ষিক ফি',
+    comparisonVerdictLowestApr: 'সর্বনিম্ন সুদের হার',
+    comparisonAddSearchLabel: 'এই তুলনায় একটি কার্ড যোগ করুন',
+    comparisonAddSearchPlaceholder: 'নাম বা ব্যাংক দিয়ে কার্ড খুঁজুন…',
+    comparisonAddNoResults: 'এই অনুসন্ধানে কোনো কার্ড মেলেনি।',
 
     // CardDetailsPopup / CardListItem
     cardRewards: 'রিওয়ার্ড',

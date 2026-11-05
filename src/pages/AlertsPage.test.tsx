@@ -2,11 +2,12 @@
  * Tests for AlertsPage component.
  */
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
 import { AuthProvider } from '../hooks/AuthProvider';
 import { LanguageProvider } from '../locales/LanguageContext';
 import { alertsClient } from '../services/alerts';
@@ -27,6 +28,7 @@ jest.mock('../services/alerts', () => ({
     deleteSubscription: jest.fn(),
     listBankFollows: jest.fn(),
     unfollowBank: jest.fn(),
+    getBankFollowFeed: jest.fn(),
   },
 }));
 
@@ -74,6 +76,12 @@ beforeEach(() => {
   (alertsClient.deleteSubscription as jest.Mock).mockResolvedValue(undefined);
   (alertsClient.listBankFollows as jest.Mock).mockResolvedValue({ results: [] });
   (alertsClient.unfollowBank as jest.Mock).mockResolvedValue(undefined);
+  (alertsClient.getBankFollowFeed as jest.Mock).mockResolvedValue({
+    results: [],
+    page: 1,
+    page_size: 20,
+    has_more: false,
+  });
 });
 
 describe('AlertsPage', () => {
@@ -150,13 +158,15 @@ describe('AlertsPage', () => {
   });
 
   it('deletes subscription on button click', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
     renderAlertsPage();
     await waitFor(() => {
       expect(screen.getAllByText('Remove')).toHaveLength(2);
     });
     const removeButtons = screen.getAllByText('Remove');
     await userEvent.click(removeButtons[0]);
+    // Deletion is confirmed in the designed dialog (no window.confirm).
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Remove' }));
     await waitFor(() => {
       expect(alertsClient.deleteSubscription).toHaveBeenCalledWith(1);
     });
@@ -208,5 +218,143 @@ describe('AlertsPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(await screen.findByText('BRAC Bank')).toBeInTheDocument();
     expect(alertsClient.listBankFollows).toHaveBeenCalledTimes(2);
+  });
+
+  it('renders the bank-follow change feed with old and new values, dated and sourced', async () => {
+    (alertsClient.listBankFollows as jest.Mock).mockResolvedValue({ results: mockBankFollows });
+    (alertsClient.getBankFollowFeed as jest.Mock).mockResolvedValue({
+      results: [
+        {
+          id: 'cards:11',
+          vertical: 'cards',
+          product_name: 'BRAC Bank Platinum Credit Card',
+          product_key: '42',
+          bank_id: 7,
+          bank_name: 'BRAC Bank',
+          field_name: 'annual_fee',
+          old_value: 1500,
+          new_value: 2000,
+          source: null,
+          changed_at: '2026-10-01T10:00:00Z',
+        },
+        {
+          id: 'loans:3',
+          vertical: 'loans',
+          product_name: 'BRAC Bank Personal Loan',
+          product_key: 'brac-personal-loan',
+          bank_id: 7,
+          bank_name: 'BRAC Bank',
+          field_name: 'rate_max',
+          old_value: null,
+          new_value: 13.5,
+          source: 'Bangladesh Bank lending chart',
+          changed_at: '2026-09-15T10:00:00Z',
+        },
+      ],
+      page: 1,
+      page_size: 20,
+      has_more: false,
+    });
+    const { container } = renderAlertsPage();
+
+    expect(await screen.findByText('Changes at banks you follow')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('link', { name: 'BRAC Bank Platinum Credit Card' })
+    ).toBeInTheDocument();
+    await expectNoAxeViolations(container);
+    expect(screen.getByText(/1500/)).toBeInTheDocument();
+    expect(screen.getByText(/2000/)).toBeInTheDocument();
+    // A null on one side of a change is "Not published", never blanked.
+    expect(screen.getByText(/Not published/)).toBeInTheDocument();
+    expect(screen.getByText(/Source: Bangladesh Bank lending chart/)).toBeInTheDocument();
+  });
+
+  it('renders feed source slugs as display names, never the raw slug', async () => {
+    (alertsClient.listBankFollows as jest.Mock).mockResolvedValue({ results: mockBankFollows });
+    (alertsClient.getBankFollowFeed as jest.Mock).mockResolvedValue({
+      results: [
+        {
+          id: 'loans:9',
+          vertical: 'loans',
+          product_name: 'BRAC Bank Personal Loan',
+          product_key: 'brac-personal-loan',
+          bank_id: 7,
+          bank_name: 'BRAC Bank',
+          field_name: 'rate_max',
+          old_value: 13.5,
+          new_value: 14,
+          source: 'bangladesh_bank_chart',
+          changed_at: '2026-09-15T10:00:00Z',
+        },
+        {
+          id: 'loans:10',
+          vertical: 'loans',
+          product_name: 'BRAC Bank Home Loan',
+          product_key: 'brac-home-loan',
+          bank_id: 7,
+          bank_name: 'BRAC Bank',
+          field_name: 'rate_min',
+          old_value: 11,
+          new_value: 11.5,
+          source: 'internal_audit_trail',
+          changed_at: '2026-09-10T10:00:00Z',
+        },
+      ],
+      page: 1,
+      page_size: 20,
+      has_more: false,
+    });
+    renderAlertsPage();
+
+    // The known slug maps to the source's real display name.
+    expect(await screen.findByText(/Source: Bangladesh Bank chart/)).toBeInTheDocument();
+    expect(screen.queryByText(/bangladesh_bank_chart/)).not.toBeInTheDocument();
+    // An unknown slug falls back to a humanised form, not the raw slug.
+    expect(screen.getByText(/Source: Internal audit trail/)).toBeInTheDocument();
+    expect(screen.queryByText(/internal_audit_trail/)).not.toBeInTheDocument();
+  });
+
+  it('appends the next feed page when the API says there is more', async () => {
+    (alertsClient.listBankFollows as jest.Mock).mockResolvedValue({ results: mockBankFollows });
+    const entry = (id: string, name: string) => ({
+      id,
+      vertical: 'cards',
+      product_name: name,
+      product_key: '42',
+      bank_id: 7,
+      bank_name: 'BRAC Bank',
+      field_name: 'annual_fee',
+      old_value: 1500,
+      new_value: 2000,
+      source: null,
+      changed_at: '2026-10-01T10:00:00Z',
+    });
+    (alertsClient.getBankFollowFeed as jest.Mock)
+      .mockResolvedValueOnce({
+        results: [entry('cards:1', 'First Change Card')],
+        page: 1,
+        page_size: 1,
+        has_more: true,
+      })
+      .mockResolvedValueOnce({
+        results: [entry('cards:2', 'Second Change Card')],
+        page: 2,
+        page_size: 1,
+        has_more: false,
+      });
+    renderAlertsPage();
+
+    expect(await screen.findByText('First Change Card')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Load more changes' }));
+    expect(await screen.findByText('Second Change Card')).toBeInTheDocument();
+    expect(alertsClient.getBankFollowFeed).toHaveBeenCalledWith(2);
+  });
+
+  it('says no changes yet when followed banks have no recorded changes', async () => {
+    (alertsClient.listBankFollows as jest.Mock).mockResolvedValue({ results: mockBankFollows });
+    renderAlertsPage();
+    expect(
+      await screen.findByText('No changes have been recorded at the banks you follow yet.')
+    ).toBeInTheDocument();
   });
 });

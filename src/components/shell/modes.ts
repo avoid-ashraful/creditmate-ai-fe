@@ -58,10 +58,11 @@ export const MODE_DEFINITIONS: ModeDefinition[] = [
   },
   {
     id: 'tools',
-    landing: '/calculators',
+    landing: '/plan',
     subs: [
-      { to: '/calculators', label: 'subCalculators' },
-      { to: '/reward-calculator', label: 'subRewardCalculator' },
+      { to: '/plan', label: 'subPlan' },
+      { to: '/plan/emi', label: 'subCalculators' },
+      { to: '/plan/rewards', label: 'subRewardCalculator' },
       { to: '/compare', label: 'subCompare' },
       { to: '/eligibility-checker', label: 'subEligibility' },
       { to: '/perfect-card-finder', label: 'subQuiz' },

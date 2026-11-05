@@ -33,22 +33,22 @@ import { useNavLinkPrefetch } from './utils/preload';
  * Conditionally lazy-load a component. In test environment, loads synchronously.
  * This allows tests to render pages without Suspense fallback delays.
  */
-const lazyLoad = (
-  importFn: () => Promise<{ default: React.ComponentType<React.PropsWithChildren<unknown>> }>
-): React.ComponentType<React.PropsWithChildren<unknown>> => {
+const lazyLoad = <P extends object>(
+  importFn: () => Promise<{ default: React.ComponentType<P> }>
+): React.ComponentType<P> => {
   if (process.env.NODE_ENV === 'test') {
     // In tests, resolve immediately to avoid Suspense fallback
     const module = importFn();
     if (module && typeof module.then === 'function') {
       // Return a component that will render the resolved module synchronously
       return (() => {
-        let resolvedComponent: React.ComponentType<React.PropsWithChildren<unknown>> | null = null;
+        let resolvedComponent: React.ComponentType<P> | null = null;
         module.then(resolved => {
           resolvedComponent = resolved.default;
         });
         // Since we're in test and the module is already loaded by Jest,
         // the promise should resolve synchronously
-        const TestComponent = (props: React.PropsWithChildren<unknown>) => {
+        const TestComponent = (props: P) => {
           if (resolvedComponent) {
             return React.createElement(resolvedComponent, props);
           }
@@ -62,7 +62,7 @@ const lazyLoad = (
     // This shouldn't happen in test mode, but TypeScript needs a return
     return () => null;
   }
-  return lazy(importFn);
+  return lazy(importFn) as unknown as React.ComponentType<P>;
 };
 
 const AboutPage = lazyLoad(() => import('./pages/AboutPage'));
@@ -87,6 +87,10 @@ const RegisterPage = lazyLoad(() => import('./pages/RegisterPage'));
 const ResetPasswordPage = lazyLoad(() => import('./pages/ResetPasswordPage'));
 const RewardCalculatorPage = lazyLoad(() => import('./pages/RewardCalculatorPage'));
 const CalculatorsPage = lazyLoad(() => import('./pages/CalculatorsPage'));
+const PlanPage = lazyLoad(() => import('./pages/PlanPage'));
+const PlanLoanPage = lazyLoad(() => import('./pages/PlanLoanPage'));
+const PlanAccountPage = lazyLoad(() => import('./pages/PlanAccountPage'));
+const PlanLayout = lazyLoad(() => import('./pages/PlanLayout'));
 const LoansPage = lazyLoad(() => import('./pages/LoansPage'));
 const LoanDetailPage = lazyLoad(() => import('./pages/LoanDetailPage'));
 const DepositsPage = lazyLoad(() => import('./pages/DepositsPage'));
@@ -233,14 +237,48 @@ export const AppRoutes: React.FC = () => {
           path="/eligibility-checker"
           element={lazyRoute('Loading eligibility checker...', <EligibilityCheckerPage />)}
         />
+        <Route path="/reward-calculator" element={<QueryRedirect to="/plan/rewards" />} />
+        <Route path="/calculators" element={<QueryRedirect to="/plan/emi" />} />
+        <Route path="/plan" element={lazyRoute('Loading plan...', <PlanPage />)} />
         <Route
-          path="/reward-calculator"
-          element={lazyRoute('Loading reward calculator...', <RewardCalculatorPage />)}
+          path="/plan/emi"
+          element={lazyRoute(
+            'Loading plan...',
+            <PlanLayout titleKey="toolEmi">
+              <CalculatorsPage planTool="emi" />
+            </PlanLayout>
+          )}
         />
         <Route
-          path="/calculators"
-          element={lazyRoute('Loading calculators...', <CalculatorsPage />)}
+          path="/plan/payoff"
+          element={lazyRoute(
+            'Loading plan...',
+            <PlanLayout titleKey="toolPayoff">
+              <CalculatorsPage planTool="payoff" />
+            </PlanLayout>
+          )}
         />
+        <Route
+          path="/plan/deposit"
+          element={lazyRoute(
+            'Loading plan...',
+            <PlanLayout titleKey="toolDeposit">
+              <CalculatorsPage planTool="deposit" />
+            </PlanLayout>
+          )}
+        />
+        <Route
+          path="/plan/rewards"
+          element={lazyRoute(
+            'Loading plan...',
+            <PlanLayout titleKey="toolRewards">
+              <RewardCalculatorPage planEmbedded />
+            </PlanLayout>
+          )}
+        />
+        <Route path="/plan/loan" element={lazyRoute('Loading plan...', <PlanLoanPage />)} />
+        <Route path="/plan/account" element={lazyRoute('Loading plan...', <PlanAccountPage />)} />
+        <Route path="/plan/eligibility" element={<QueryRedirect to="/eligibility-checker" />} />
         <Route path="/loans" element={lazyRoute('Loading loans...', <LoansPage />)} />
         <Route path="/loans/:slug" element={lazyRoute('Loading loan...', <LoanDetailPage />)} />
         <Route path="/deposits" element={lazyRoute('Loading deposits...', <DepositsPage />)} />

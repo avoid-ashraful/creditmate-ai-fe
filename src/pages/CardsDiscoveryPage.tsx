@@ -40,8 +40,8 @@ import {
   UnknownValue,
   useToast,
 } from '../components/ui';
-import { useAuth } from '../hooks/AuthProvider';
 import { useShortlist } from '../hooks/ShortlistProvider';
+import { useSavedSearches } from '../hooks/useSavedSearches';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import {
@@ -69,7 +69,6 @@ import {
 } from '../services/advancedSearch';
 import type { BankApiResponse } from '../services/api';
 import { fetchAllBanks } from '../services/banks';
-import { saveSearch } from '../services/savedSearches';
 import type { CardNetwork, CreditCard } from '../types';
 import { cardPathFor } from '../utils/sitemap';
 
@@ -126,8 +125,8 @@ const CardsDiscoveryPage: React.FC = () => {
   const common = getCommonCopy(lang);
   const scoreCopy = getScoreCopy(lang);
   const shellCopy = getShellCopy(lang);
-  const { user } = useAuth();
   const shortlist = useShortlist();
+  const savedSearches = useSavedSearches();
   const { toast } = useToast();
 
   const [uiState, setUiState] = useState<AdvancedSearchUIState>(() => {
@@ -581,19 +580,18 @@ const CardsDiscoveryPage: React.FC = () => {
     (name: string) => {
       setSaveOpen(false);
       const query = location.search.replace(/^\?/, '');
-      try {
-        const { persisted } = saveSearch(user?.id ?? null, { name, path: '/cards', query });
-        // Only claim success when the write actually landed in storage.
+      // Signed-in saves land on the account's server rows (Phase 3);
+      // guests keep the on-device save. Only claim success when the
+      // write actually persisted.
+      void savedSearches.save({ name, path: '/cards', query }).then(persisted => {
         if (persisted) {
           toast({ message: copy.searchSaved });
         } else {
           toast({ message: copy.searchSaveFailed, variant: 'error' });
         }
-      } catch {
-        toast({ message: copy.searchSaveFailed, variant: 'error' });
-      }
+      });
     },
-    [location.search, user?.id, toast, copy]
+    [location.search, savedSearches, toast, copy]
   );
 
   const handleCopyLink = useCallback(async () => {

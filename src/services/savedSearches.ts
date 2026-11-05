@@ -24,6 +24,16 @@ export interface SavedSearch {
   savedAt: string;
 }
 
+/** A saved search as the Phase 3 server stores it (saved/serializers.py). */
+export interface ServerSavedSearch {
+  id: number;
+  name: string;
+  path: string;
+  query: string;
+  created: string;
+  modified: string;
+}
+
 const LEGACY_KEY = 'savedSearches';
 const KEY_PREFIX = 'creditmate.savedSearches.v1';
 const IMPORT_FLAG_PREFIX = 'creditmate.savedSearches.imported.v1';
@@ -92,6 +102,16 @@ export const saveSearch = (
 export const deleteSavedSearch = (userId: number | null | undefined, id: string): void => {
   const list = readList(storageKey(userId)).filter(entry => entry.id !== id);
   writeList(storageKey(userId), list);
+};
+
+/**
+ * Empty one local scope. Used once the scope's contents have been
+ * imported into the server account: the scope is consumed by the
+ * import, so anything left in it would be re-imported — resurrecting
+ * searches the user has since deleted — on the next sign-in.
+ */
+export const clearSavedSearches = (userId: number | null | undefined): void => {
+  writeList(storageKey(userId), []);
 };
 
 interface LegacySavedSearch {
@@ -186,4 +206,88 @@ export const importLegacySavedSearches = (userId: number): number => {
 
   writeList(storageKey(userId), target);
   return imported;
+};
+
+// ---------------------------------------------------------------------------
+// Server-side saved searches (Phase 3): for signed-in users the account's
+// server rows are the source of truth and follow the user across devices.
+// The local functions above remain the guest path and the import source.
+// ---------------------------------------------------------------------------
+
+import { authClient } from './auth';
+
+const searchesBase = 'saved/searches/';
+
+interface Paged<T> {
+  results: T[];
+  next: string | null;
+}
+
+const fetchAllPages = async <T>(path: string): Promise<T[]> => {
+  const rows: T[] = [];
+  let nextPath: string | null = path;
+  while (nextPath) {
+    const page: Paged<T> = await authClient.requestApi<Paged<T>>(nextPath, {
+      authenticated: true,
+    });
+    rows.push(...page.results);
+    if (page.next) {
+      const url = new URL(page.next);
+      nextPath = `${path}${url.search}`;
+    } else {
+      nextPath = null;
+    }
+  }
+  return rows;
+};
+
+export const savedSearchesApi = {
+  /** All of the signed-in user's saved searches (every page). */
+  list(): Promise<ServerSavedSearch[]> {
+    return fetchAllPages<ServerSavedSearch>(searchesBase);
+  },
+
+  create(input: { name: string; path: string; query: string }): Promise<ServerSavedSearch> {
+    return authClient.requestApi<ServerSavedSearch>(searchesBase, {
+      method: 'POST',
+      body: input,
+      authenticated: true,
+    });
+  },
+
+  async remove(id: number): Promise<void> {
+    await authClient.requestApi<void>(`${searchesBase}${id}/`, {
+      method: 'DELETE',
+      authenticated: true,
+    });
+  },
+
+  /**
+   * Merge on-device searches into the account. The server de-duplicates on
+   * (name, path, query), so calling this on every sign-in is harmless.
+   */
+  importSearches(
+    entries: Array<{ name: string; path: string; query: string }>
+  ): Promise<{ imported: number; skipped: number; results: ServerSavedSearch[] }> {
+    return authClient.requestApi(`${searchesBase}import/`, {
+      method: 'POST',
+      body: { searches: entries },
+      authenticated: true,
+    });
+  },
+};
+
+/** Convert a server row into the local SavedSearch shape for shared UI. */
+export const toSavedSearch = (row: ServerSavedSearch): SavedSearch => ({
+  id: `server-${row.id}`,
+  name: row.name,
+  path: row.path,
+  query: row.query,
+  savedAt: row.created,
+});
+
+/** The numeric server id behind a converted row's local id, if any. */
+export const serverSearchId = (entry: SavedSearch): number | null => {
+  const match = /^server-(\d+)$/.exec(entry.id);
+  return match ? Number(match[1]) : null;
 };

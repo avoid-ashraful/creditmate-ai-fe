@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import SaveScenarioButton from '../components/SaveScenarioButton';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { useLanguage, getCommonCopy, fillCopy } from '../locales';
@@ -79,14 +80,15 @@ const dedupeAppliedRules = (rules: AppliedRule[]): AppliedRule[] => {
   return unique;
 };
 
-const RewardCalculatorPage: React.FC = () => {
+const RewardCalculatorPage: React.FC<{ planEmbedded?: boolean }> = ({ planEmbedded = false }) => {
   const { lang } = useLanguage();
   const common = getCommonCopy(lang);
+  const [searchParams, setSearchParams] = useSearchParams();
   useSeoMeta({
     title: 'Annual fee vs rewards calculator | CreditMate AI',
     description:
       'Enter your monthly spend by category to see which credit cards in our data give the best net annual value after their annual fee.',
-    canonicalPath: '/reward-calculator',
+    canonicalPath: planEmbedded ? '/plan/rewards' : '/reward-calculator',
   });
 
   const navigate = useNavigate();
@@ -95,14 +97,55 @@ const RewardCalculatorPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  const [allocation, setAllocation] = useState<CategoryAllocation>(EMPTY_ALLOCATION);
+  // Plan mode: the spend allocation lives in the URL (plan Section 4.8),
+  // so a saved scenario reopens with the same numbers.
+  const [allocation, setAllocation] = useState<CategoryAllocation>(() => {
+    if (!planEmbedded) return EMPTY_ALLOCATION;
+    const fromUrl = { ...EMPTY_ALLOCATION };
+    (Object.keys(EMPTY_ALLOCATION) as Array<keyof CategoryAllocation>).forEach(key => {
+      const raw = searchParams.get(key);
+      const parsed = raw === null ? NaN : Number(raw);
+      if (Number.isFinite(parsed) && parsed > 0) fromUrl[key] = parsed;
+    });
+    return fromUrl;
+  });
   const [errors, setErrors] = useState<Partial<Record<keyof CategoryAllocation | 'form', string>>>(
     {}
   );
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [ranked, setRanked] = useState<RankedCard[]>([]);
-  const [averageRevolvingBalance, setAverageRevolvingBalance] = useState<number>(0);
+  const [averageRevolvingBalance, setAverageRevolvingBalance] = useState<number>(() => {
+    if (!planEmbedded) return 0;
+    const parsed = Number(searchParams.get('revolving_balance'));
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  });
   const [balanceError, setBalanceError] = useState<string | null>(null);
+
+  // Mirror the allocation into the URL in Plan mode (debounced so typing
+  // does not thrash the history stack; replace, never push).
+  useEffect(() => {
+    if (!planEmbedded) return;
+    const timer = setTimeout(() => {
+      setSearchParams(
+        previous => {
+          const params = new URLSearchParams(previous);
+          (Object.keys(EMPTY_ALLOCATION) as Array<keyof CategoryAllocation>).forEach(key => {
+            if (allocation[key] > 0) params.set(key, String(allocation[key]));
+            else params.delete(key);
+          });
+          if (averageRevolvingBalance > 0) {
+            params.set('revolving_balance', String(averageRevolvingBalance));
+          } else {
+            params.delete('revolving_balance');
+          }
+          return params;
+        },
+        { replace: true }
+      );
+    }, 400);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planEmbedded, allocation, averageRevolvingBalance]);
 
   useEffect(() => {
     let cancelled = false;
@@ -402,10 +445,12 @@ const RewardCalculatorPage: React.FC = () => {
 
   return (
     <div className="reward-calculator-page">
-      <section className="calculator-hero">
-        <h1>{common.calcTitle}</h1>
-        <p>{common.calcSubtitle}</p>
-      </section>
+      {planEmbedded ? null : (
+        <section className="calculator-hero">
+          <h1>{common.calcTitle}</h1>
+          <p>{common.calcSubtitle}</p>
+        </section>
+      )}
 
       <section className="calculator-form-section" aria-labelledby="spend-form-heading">
         <h2 id="spend-form-heading">{common.calcFormTitle}</h2>
@@ -555,6 +600,18 @@ const RewardCalculatorPage: React.FC = () => {
           </>
         )}
       </section>
+      {planEmbedded ? (
+        <p className="plan-save-row">
+          <SaveScenarioButton
+            tool="rewards"
+            params={Object.fromEntries(
+              Object.entries(allocation)
+                .filter(([, value]) => value > 0)
+                .map(([key, value]) => [key, String(value)])
+            )}
+          />
+        </p>
+      ) : null}
     </div>
   );
 };

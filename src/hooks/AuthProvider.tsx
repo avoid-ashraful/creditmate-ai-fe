@@ -27,7 +27,9 @@ interface AuthState {
 
 const ANONYMOUS: AuthState = { status: AUTH_STATUS.anonymous, user: null };
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+/** Exported so sibling providers (e.g. ShortlistProvider) can read auth
+ * state optionally — they must also work standalone in tests. */
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export interface AuthProviderProps {
   children: React.ReactNode;

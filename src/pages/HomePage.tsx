@@ -17,8 +17,8 @@ import { Link } from 'react-router-dom';
 import { Button, MoneyInput, TrustChip, useToast } from '../components/ui';
 import { guidesForLanguage } from '../content/guides';
 import type { Guide } from '../content/guides';
-import { useAuth } from '../hooks/AuthProvider';
 import { useShortlist } from '../hooks/ShortlistProvider';
+import { useSavedSearches } from '../hooks/useSavedSearches';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { formatTaka } from '../lib/format';
 import { isDefaultProfile, useProfile } from '../lib/profile';
@@ -36,7 +36,6 @@ import { getAccountProducts, runAccountScenario } from '../services/bankAccounts
 import { fetchAllBanks } from '../services/banks';
 import { getDepositProducts, runDepositScenario } from '../services/deposits';
 import { fetchLoanProducts, runLoanScenario } from '../services/loans';
-import { listSavedSearches, SavedSearch } from '../services/savedSearches';
 import { fetchAllPages } from '../utils/fetchAllPages';
 import { organizationJsonLd, websiteJsonLd } from '../utils/structuredData';
 
@@ -61,7 +60,6 @@ const HomePage: React.FC = () => {
   const accountsCopy = getAccountsCopy(lang);
   const shellCopy = getShellCopy(lang);
   const cardDetailCopy = getCardDetailCopy(lang);
-  const { user } = useAuth();
   const { toast } = useToast();
   const shortlist = useShortlist();
   const { profile, setProfile } = useProfile();
@@ -81,7 +79,7 @@ const HomePage: React.FC = () => {
     loan: string | null;
   }>({ card: null, deposit: null, account: null, loan: null });
   const [recentlyVerified, setRecentlyVerified] = useState<VerifiedEntry[] | null>(null);
-  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+  const { searches: savedSearches } = useSavedSearches();
 
   const [draftBalance, setDraftBalance] = useState<number | null>(profile.balance);
   const [draftSpend, setDraftSpend] = useState<number | null>(profile.monthlySpend);
@@ -92,10 +90,6 @@ const HomePage: React.FC = () => {
     setDraftSpend(profile.monthlySpend);
     setDraftLoan(profile.loanAmount);
   }, [profile]);
-
-  useEffect(() => {
-    setSavedSearches(listSavedSearches(user?.id ?? null));
-  }, [user?.id]);
 
   // Coverage counts — fault-isolated per source.
   useEffect(() => {

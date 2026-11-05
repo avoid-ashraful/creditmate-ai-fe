@@ -23,6 +23,8 @@ const renderPage = () =>
   );
 
 beforeEach(() => {
+  // Tool inputs live in the URL (Phase 3): every test starts from a clean one.
+  window.history.replaceState(null, '', '/');
   jest.spyOn(apiService, 'getCreditCards').mockResolvedValue({
     count: 0,
     next: null,

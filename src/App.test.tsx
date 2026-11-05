@@ -55,10 +55,9 @@ describe('App routing', () => {
     expect(within(nav).getByRole('link', { name: /Cards/ })).toHaveAttribute('href', '/cards');
     expect(within(nav).getByRole('link', { name: /Save/ })).toHaveAttribute('href', '/deposits');
     expect(within(nav).getByRole('link', { name: /Borrow/ })).toHaveAttribute('href', '/loans');
-    expect(within(nav).getByRole('link', { name: /Tools/ })).toHaveAttribute(
-      'href',
-      '/calculators'
-    );
+    // Tools mode lands on the Plan workspace (Phase 3); the calculators
+    // live inside it and /calculators redirects there.
+    expect(within(nav).getByRole('link', { name: /Tools/ })).toHaveAttribute('href', '/plan');
     expect(within(nav).getByRole('link', { name: /Banks/ })).toHaveAttribute('href', '/banks');
     expect(within(nav).getByRole('link', { name: /Learn/ })).toHaveAttribute('href', '/guides');
     expect(lastLocation).toBe('/login');

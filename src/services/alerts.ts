@@ -11,6 +11,7 @@ import {
   AlertSubscriptionsResponse,
   AlertPreferences,
   BankFollow,
+  BankFollowFeedResponse,
   BankFollowsResponse,
   UpdateAlertPreferencesRequest,
   CreateAlertSubscriptionRequest,
@@ -122,9 +123,38 @@ export class AlertsClient {
 
   // ==================== Bank follows ====================
 
-  /** List the banks the current user follows (server-backed, D4). */
+  /**
+   * List ALL banks the current user follows (server-backed, D4).
+   *
+   * Follows the pagination `next` links until exhausted, so follow state
+   * stays correct for users following more than one page of banks
+   * (Phase 2 review L4). The backend now serves up to 100 per page, so
+   * in practice this is a single request.
+   */
   async listBankFollows(): Promise<BankFollowsResponse> {
-    return this.request<BankFollowsResponse>('/bank-follows/', { authenticated: true });
+    const first = await this.request<BankFollowsResponse>('/bank-follows/', {
+      authenticated: true,
+    });
+    if (!first.next) return first;
+    const results = [...first.results];
+    let next: string | null = first.next;
+    while (next) {
+      const url = new URL(next);
+      const page: BankFollowsResponse = await this.request<BankFollowsResponse>(
+        `/bank-follows/${url.search}`,
+        { authenticated: true }
+      );
+      results.push(...page.results);
+      next = page.next;
+    }
+    return { ...first, results, next: null };
+  }
+
+  /** Field-change feed for the banks the current user follows (Phase 3). */
+  async getBankFollowFeed(page = 1, pageSize = 20): Promise<BankFollowFeedResponse> {
+    return this.request<BankFollowFeedResponse>(`/feed/?page=${page}&page_size=${pageSize}`, {
+      authenticated: true,
+    });
   }
 
   /** Follow a bank. Idempotent server-side: re-following returns the row. */

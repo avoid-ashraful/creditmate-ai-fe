@@ -15,6 +15,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 
 import { useAuth } from '../../hooks/AuthProvider';
 import { useShortlist } from '../../hooks/ShortlistProvider';
+import { startProfileSync } from '../../lib/profileSync';
 import { getLegalNav, getShellCopy, LEGAL_PAGE_PATHS, useLanguage } from '../../locales';
 import type { ShellCopy } from '../../locales';
 import { importLegacySavedSearches } from '../../services/savedSearches';
@@ -165,6 +166,12 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
   // One-time import of legacy localStorage saved searches for signed-in users.
   useEffect(() => {
     if (user?.id) importLegacySavedSearches(user.id);
+  }, [user?.id]);
+
+  // Phase 3 (D4): reconcile the "Your numbers" profile with the account's
+  // server-stored defaults and keep the two in sync from here on.
+  useEffect(() => {
+    if (user?.id) void startProfileSync();
   }, [user?.id]);
 
   // Close transient overlays on navigation.

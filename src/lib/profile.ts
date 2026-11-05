@@ -62,6 +62,14 @@ export const isDefaultProfile = (values: ProfileValues): boolean =>
   values.monthlySpend === PROFILE_DEFAULTS.monthlySpend &&
   values.loanAmount === PROFILE_DEFAULTS.loanAmount;
 
+/** Subscribe to profile writes (used by the Phase 3 server sync). */
+export const subscribeProfile = (listener: () => void): (() => void) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
+
 export const useProfile = (): {
   profile: ProfileValues;
   setProfile: (values: ProfileValues) => void;

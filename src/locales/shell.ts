@@ -23,6 +23,7 @@ export interface ShellCopy {
   subDeposits: string;
   subAccounts: string;
   subLoans: string;
+  subPlan: string;
   subCalculators: string;
   subRewardCalculator: string;
   subCompare: string;
@@ -88,6 +89,16 @@ export interface ShellCopy {
   myManageAlerts: string;
   myEditProfile: string;
   mySignedOut: string;
+  myNumbersHeading: string;
+  myNumbersBalance: string;
+  myNumbersSpend: string;
+  myNumbersLoan: string;
+  myNumbersNote: string;
+  myScenariosHeading: string;
+  myNoScenarios: string;
+  myOpenScenario: string;
+  myDeleteScenario: string;
+  myScenarioDeleted: string;
   footerTagline: string;
   footerRights: string;
   footerModesHeading: string;
@@ -111,6 +122,7 @@ const en: ShellCopy = {
   subDeposits: 'Deposits',
   subAccounts: 'Bank accounts',
   subLoans: 'Loans',
+  subPlan: 'Plan',
   subCalculators: 'Calculators',
   subRewardCalculator: 'Reward calculator',
   subCompare: 'Compare',
@@ -175,6 +187,17 @@ const en: ShellCopy = {
   myManageAlerts: 'Manage alerts',
   myEditProfile: 'Edit profile & settings',
   mySignedOut: 'Sign in to see your saved searches, items and alerts.',
+  myNumbersHeading: 'Your numbers',
+  myNumbersBalance: 'Typical balance',
+  myNumbersSpend: 'Monthly card spend',
+  myNumbersLoan: 'Planned loan amount',
+  myNumbersNote:
+    'These defaults preset every scenario and are stored on your account, so they follow you across devices. Edit them on the home page or in Plan.',
+  myScenariosHeading: 'Saved scenarios',
+  myNoScenarios: 'No saved scenarios yet. Save one from any Plan tool.',
+  myOpenScenario: 'Open scenario',
+  myDeleteScenario: 'Delete saved scenario',
+  myScenarioDeleted: 'Saved scenario deleted.',
   footerTagline: 'Making financial decisions simpler for Bangladeshi consumers.',
   footerRights: 'All rights reserved.',
   footerModesHeading: 'Decide',
@@ -198,6 +221,7 @@ const bn: ShellCopy = {
   subDeposits: 'আমানত',
   subAccounts: 'ব্যাংক অ্যাকাউন্ট',
   subLoans: 'ঋণ',
+  subPlan: 'প্ল্যান',
   subCalculators: 'ক্যালকুলেটরসমূহ',
   subRewardCalculator: 'রিওয়ার্ড ক্যালকুলেটর',
   subCompare: 'তুলনা',
@@ -261,6 +285,17 @@ const bn: ShellCopy = {
   myManageAlerts: 'সতর্কতা পরিচালনা করুন',
   myEditProfile: 'প্রোফাইল ও সেটিংস সম্পাদনা করুন',
   mySignedOut: 'আপনার সংরক্ষিত অনুসন্ধান, আইটেম ও সতর্কতা দেখতে সাইন ইন করুন।',
+  myNumbersHeading: 'আপনার সংখ্যাগুলো',
+  myNumbersBalance: 'সাধারণ ব্যালান্স',
+  myNumbersSpend: 'মাসিক কার্ড খরচ',
+  myNumbersLoan: 'পরিকল্পিত ঋণের পরিমাণ',
+  myNumbersNote:
+    'এই ডিফল্টগুলো প্রতিটি পরিস্থিতি আগে থেকে সাজিয়ে দেয় এবং আপনার অ্যাকাউন্টে সংরক্ষিত থাকে, ফলে সব ডিভাইসে আপনার সঙ্গে থাকে। হোম পেজে বা প্ল্যানে এগুলো বদলান।',
+  myScenariosHeading: 'সংরক্ষিত পরিস্থিতি',
+  myNoScenarios: 'এখনো কোনো সংরক্ষিত পরিস্থিতি নেই। যেকোনো প্ল্যান টুল থেকে সংরক্ষণ করুন।',
+  myOpenScenario: 'পরিস্থিতি খুলুন',
+  myDeleteScenario: 'সংরক্ষিত পরিস্থিতি মুছুন',
+  myScenarioDeleted: 'সংরক্ষিত পরিস্থিতি মোছা হয়েছে।',
   footerTagline: 'বাংলাদেশি গ্রাহকদের জন্য আর্থিক সিদ্ধান্ত সহজ করা।',
   footerRights: 'সর্বস্বত্ব সংরক্ষিত।',
   footerModesHeading: 'সিদ্ধান্ত নিন',

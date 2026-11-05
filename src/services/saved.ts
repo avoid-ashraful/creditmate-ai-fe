@@ -1,5 +1,6 @@
 import type { Language } from '../locales';
 
+import type { CreditCardApiResponse } from './api';
 import { authClient, ApiError } from './auth';
 
 export interface SavedComparison {
@@ -28,12 +29,30 @@ export interface SavedCollection {
   cards?: SavedCollectionCard[];
 }
 
+/** A saved Plan scenario (Phase 3) — mirrors saved/serializers.py. */
+export type SavedScenarioTool = 'emi' | 'payoff' | 'rewards' | 'deposit' | 'loan' | 'account';
+
+export interface SavedScenario {
+  id: number;
+  tool: SavedScenarioTool;
+  name: string;
+  params: Record<string, string>;
+  created: string;
+  modified: string;
+}
+
 export interface SharedSavedItem {
   type?: 'comparison' | 'collection';
   name: string;
   description?: string;
+  notes?: string;
   card_ids?: number[];
-  cards?: Array<SavedCollectionCard | { id: number; name: string; bank_name?: string }>;
+  /**
+   * Mirrors the public serializers: a shared comparison's `cards` are
+   * full CreditCardListSerializer rows; a shared collection's are
+   * CollectionItemSerializer rows wrapping the same card payload.
+   */
+  cards?: Array<CreditCardApiResponse | { card: CreditCardApiResponse; notes?: string }>;
 }
 
 // AuthClient.requestApi prefixes its configured API base URL, so keep paths
@@ -85,6 +104,25 @@ export const savedService = {
   },
   removeCard(id: number, card_id: number) {
     return request<void>(`collections/${id}/cards/${card_id}/`, 'DELETE');
+  },
+  async getScenarios() {
+    const rows: SavedScenario[] = [];
+    let page = 1;
+    for (;;) {
+      const data = await request<
+        SavedScenario[] | { results: SavedScenario[]; next: string | null }
+      >(page === 1 ? 'scenarios/' : `scenarios/?page=${page}`);
+      if (Array.isArray(data)) return data;
+      rows.push(...data.results);
+      if (!data.next) return rows;
+      page += 1;
+    }
+  },
+  createScenario(input: { tool: SavedScenarioTool; name: string; params: Record<string, string> }) {
+    return request<SavedScenario>('scenarios/', 'POST', input);
+  },
+  deleteScenario(id: number) {
+    return request<void>(`scenarios/${id}/`, 'DELETE');
   },
   shared(token: string) {
     return authClient.requestApi<SharedSavedItem>(`${base}shared/${encodeURIComponent(token)}/`);

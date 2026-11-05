@@ -48,6 +48,30 @@ export interface BankFollowsResponse {
   results: BankFollow[];
 }
 
+/** One field-change event in the bank-follow feed (mirrors alerts/feed.py). */
+export interface BankFollowFeedEntry {
+  id: string;
+  vertical: 'cards' | 'deposits' | 'loans' | 'accounts';
+  product_name: string;
+  product_key: string;
+  bank_id: number | null;
+  bank_name: string;
+  field_name: string;
+  old_value: unknown;
+  new_value: unknown;
+  /** Only loans history records a source; null elsewhere — never invented. */
+  source: string | null;
+  changed_at: string;
+}
+
+/** Feed page: offset pagination with an exact has_more flag (no total). */
+export interface BankFollowFeedResponse {
+  results: BankFollowFeedEntry[];
+  page: number;
+  page_size: number;
+  has_more: boolean;
+}
+
 /** Alert preferences as returned by the API. */
 export interface AlertPreferences {
   frequency: AlertFrequency;
