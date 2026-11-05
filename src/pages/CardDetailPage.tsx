@@ -146,8 +146,8 @@ const CardDetailPage: React.FC = () => {
           description: fillCopy(copy.seoDescription, {
             name: card.name,
             bank: card.bankName ?? copy.seoBankFallback,
-            fee: card.annualFee === null ? copy.na : `${copy.bdt} ${card.annualFee}`,
-            apr: card.interestRateApr === null ? copy.na : `${card.interestRateApr}%`,
+            fee: card.annualFee === null ? copy.notPublished : `${copy.bdt} ${card.annualFee}`,
+            apr: card.interestRateApr === null ? copy.notPublished : `${card.interestRateApr}%`,
           }),
           canonicalPath: cardPath ?? undefined,
           jsonLd: cardPath
@@ -327,14 +327,14 @@ const CardDetailPage: React.FC = () => {
   };
 
   const formatAnnualFee = (fee: number | null): string => {
-    if (fee === null) return copy.dataNotAvailable;
+    if (fee === null) return copy.notPublished;
     if (fee === 0) return copy.noAnnualFee;
     return `${copy.bdt} ${fee.toLocaleString()}`;
   };
 
-  // null = field absent (unknown), '' = explicitly no access.
+  // null = the bank publishes no figure for the field, '' = explicitly no access.
   const loungeText = (value: string | null): string =>
-    value === null ? copy.unknown : value === '' ? copy.none : value;
+    value === null ? copy.notPublished : value === '' ? copy.none : value;
 
   const waiverLabels: FeeWaiverLabels = {
     keys: {
@@ -426,12 +426,12 @@ const CardDetailPage: React.FC = () => {
   const aprLabel =
     card.isIslamic && card.interestRateApr === null ? copy.specProfitFeeShariah : copy.apr;
   const networkLabel = getNetworkLabel(copy, card.cardNetwork);
-  const unknownIfEmpty = (value?: string): string => value || copy.unknown;
+  const notPublishedIfEmpty = (value?: string): string => value || copy.notPublished;
 
   // QA #12: Islamic cards publish their profit/fee wording in additionalFeatures
   // as an "Interest/charges details: ..." item while interestRateApr is null by
   // design. Show that wording in the Shariah profit/fee row (without the
-  // prefix) instead of a generic "data not available".
+  // prefix) instead of a generic "not published".
   const PROFIT_FEE_PREFIX = 'Interest/charges details: ';
   const shariahProfitFeeText = (): string => {
     if (card.interestRateApr !== null || !card.isIslamic) return '';
@@ -443,7 +443,7 @@ const CardDetailPage: React.FC = () => {
 
   const aprText =
     card.interestRateApr === null
-      ? shariahProfitFeeText() || copy.dataNotAvailable
+      ? shariahProfitFeeText() || copy.notPublished
       : `${card.interestRateApr}% ${copy.apr}`;
 
   const verdictText = (verdict: string): string =>
@@ -534,25 +534,25 @@ const CardDetailPage: React.FC = () => {
             <th scope="row" className={SPEC_KEY_CLASS}>
               {copy.specSupplementaryFee}
             </th>
-            <td className={SPEC_VALUE_CLASS}>{unknownIfEmpty(card.supplementaryCardFee)}</td>
+            <td className={SPEC_VALUE_CLASS}>{notPublishedIfEmpty(card.supplementaryCardFee)}</td>
           </tr>
           <tr>
             <th scope="row" className={SPEC_KEY_CLASS}>
               {copy.specForeignTransactionFee}
             </th>
-            <td className={SPEC_VALUE_CLASS}>{unknownIfEmpty(card.foreignTransactionFee)}</td>
+            <td className={SPEC_VALUE_CLASS}>{notPublishedIfEmpty(card.foreignTransactionFee)}</td>
           </tr>
           <tr>
             <th scope="row" className={SPEC_KEY_CLASS}>
               {copy.specCashAdvanceFee}
             </th>
-            <td className={SPEC_VALUE_CLASS}>{card.cashAdvanceFee || copy.na}</td>
+            <td className={SPEC_VALUE_CLASS}>{card.cashAdvanceFee || copy.notPublished}</td>
           </tr>
           <tr>
             <th scope="row" className={SPEC_KEY_CLASS}>
               {copy.specLatePaymentFee}
             </th>
-            <td className={SPEC_VALUE_CLASS}>{card.latePaymentFee || copy.na}</td>
+            <td className={SPEC_VALUE_CLASS}>{card.latePaymentFee || copy.notPublished}</td>
           </tr>
           <tr>
             <th scope="row" className={SPEC_KEY_CLASS}>
@@ -566,7 +566,7 @@ const CardDetailPage: React.FC = () => {
                   ))}
                 </ul>
               ) : (
-                copy.dataNotAvailable
+                copy.notPublished
               )}
             </td>
           </tr>
@@ -591,7 +591,7 @@ const CardDetailPage: React.FC = () => {
                     ? `${copy.bdt} ${(annualWaiverSpend / 12).toLocaleString('en-US', {
                         maximumFractionDigits: 0,
                       })}`
-                    : copy.na,
+                    : copy.notPublished,
                 })}
               </p>
             </div>
@@ -741,7 +741,7 @@ const CardDetailPage: React.FC = () => {
             <th scope="row" className={SPEC_KEY_CLASS}>
               {copy.specRewardsPolicy}
             </th>
-            <td className={SPEC_VALUE_CLASS}>{card.rewardPointsPolicy || copy.na}</td>
+            <td className={SPEC_VALUE_CLASS}>{card.rewardPointsPolicy || copy.notPublished}</td>
           </tr>
         </tbody>
       </table>
@@ -779,7 +779,7 @@ const CardDetailPage: React.FC = () => {
             </th>
             <td className={SPEC_VALUE_CLASS}>
               {card.minMonthlyIncome == null
-                ? copy.unknown
+                ? copy.notPublished
                 : fillCopy(copy.minIncomePerMonth, {
                     amount: `${copy.bdt} ${card.minMonthlyIncome.toLocaleString()}`,
                   })}
@@ -812,7 +812,7 @@ const CardDetailPage: React.FC = () => {
             <th scope="row" className={SPEC_KEY_CLASS}>
               {copy.specBank}
             </th>
-            <td className={SPEC_VALUE_CLASS}>{card.bankName || copy.na}</td>
+            <td className={SPEC_VALUE_CLASS}>{card.bankName || copy.notPublished}</td>
           </tr>
           <tr>
             <th scope="row" className={SPEC_KEY_CLASS}>
@@ -850,7 +850,7 @@ const CardDetailPage: React.FC = () => {
             <th scope="row" className={SPEC_KEY_CLASS}>
               {copy.specNetwork}
             </th>
-            <td className={SPEC_VALUE_CLASS}>{networkLabel ?? copy.unknown}</td>
+            <td className={SPEC_VALUE_CLASS}>{networkLabel ?? copy.notPublished}</td>
           </tr>
           <tr>
             <th scope="row" className={SPEC_KEY_CLASS}>
@@ -858,7 +858,7 @@ const CardDetailPage: React.FC = () => {
             </th>
             <td className={SPEC_VALUE_CLASS}>
               {card.isDualCurrency == null
-                ? copy.unknown
+                ? copy.notPublished
                 : card.isDualCurrency
                 ? copy.yes
                 : copy.no}
@@ -877,7 +877,9 @@ const CardDetailPage: React.FC = () => {
               {copy.specLastUpdated}
             </th>
             <td className={SPEC_VALUE_CLASS}>
-              {card.lastUpdated ? new Date(card.lastUpdated).toLocaleDateString() : copy.unknown}
+              {card.lastUpdated
+                ? new Date(card.lastUpdated).toLocaleDateString()
+                : copy.notPublished}
             </td>
           </tr>
           <tr>
@@ -890,7 +892,7 @@ const CardDetailPage: React.FC = () => {
                   {copy.bankWebsite}
                 </a>
               ) : (
-                copy.dataNotAvailable
+                copy.notPublished
               )}
             </td>
           </tr>

@@ -31,6 +31,8 @@ export interface AlertsCopy {
   followBankError: string;
   followedBanksHeading: string;
   noFollowedBanks: string;
+  followedBanksLoadError: string;
+  retry: string;
   unfollowBank: string;
 
   // Watch this card toggle
@@ -95,6 +97,8 @@ export const ALERTS_COPY: Record<Language, AlertsCopy> = {
     followedBanksHeading: 'Banks you follow',
     noFollowedBanks:
       'You are not following any bank yet. Follow a bank from its page to hear about rate and fee changes.',
+    followedBanksLoadError: 'We could not load the banks you follow. Please try again.',
+    retry: 'Try again',
     unfollowBank: 'Unfollow',
 
     subscriptionCardTitle: 'Subscription',
@@ -164,6 +168,8 @@ export const ALERTS_COPY: Record<Language, AlertsCopy> = {
     followedBanksHeading: 'আপনি যেসব ব্যাংক অনুসরণ করেন',
     noFollowedBanks:
       'আপনি এখনও কোনো ব্যাংক অনুসরণ করছেন না। হার ও ফির পরিবর্তনের খবর পেতে ব্যাংকের পৃষ্ঠা থেকে অনুসরণ করুন।',
+    followedBanksLoadError: 'আপনি যেসব ব্যাংক অনুসরণ করেন, তা লোড করা যায়নি। আবার চেষ্টা করুন।',
+    retry: 'আবার চেষ্টা করুন',
     unfollowBank: 'অনুসরণ বাতিল',
 
     subscriptionCardTitle: 'সাবস্ক্রিপশন',

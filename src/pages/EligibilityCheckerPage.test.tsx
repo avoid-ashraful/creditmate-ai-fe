@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
@@ -161,6 +161,50 @@ describe('EligibilityCheckerPage', () => {
     await waitFor(() =>
       expect(screen.getAllByRole('button', { name: /in shortlist/i }).length).toBeGreaterThan(0)
     );
+  });
+
+  it('labels a null APR "Not applicable" for Islamic cards, "Not published" for conventional ones', async () => {
+    const aprResponse: EligibilityResponse = {
+      counts: { eligible: 2, likely: 0, unknown: 0, not_yet: 0 },
+      totalCards: 2,
+      results: [
+        {
+          card: makeCard({ id: 11, name: 'Islamic Card', isIslamic: true, interestRateApr: null }),
+          verdict: 'eligible',
+          reasons: ['Your income of BDT 30,000 meets the published minimum of BDT 30,000.'],
+        },
+        {
+          card: makeCard({ id: 12, name: 'Conventional Card', interestRateApr: null }),
+          verdict: 'eligible',
+          reasons: ['Your income of BDT 30,000 meets the published minimum of BDT 30,000.'],
+        },
+      ],
+      notes: [],
+      method: 'Verdicts use only each card’s published minimum monthly income.',
+      disclaimer: 'This is an estimate. The issuing bank makes the final decision.',
+    };
+    mockCheck.mockResolvedValue(aprResponse);
+    renderPage();
+    await fillAndSubmit();
+
+    // §3.6: APR does not apply to an Islamic card; on a conventional card a
+    // missing APR is simply unpublished.
+    const islamicLink = (await screen.findAllByRole('link', { name: 'Islamic Card' }))[0];
+    // eslint-disable-next-line testing-library/no-node-access
+    const islamicArticle = islamicLink.closest('article');
+    expect(islamicArticle).not.toBeNull();
+    expect(within(islamicArticle as HTMLElement).getByText('Not applicable')).toBeInTheDocument();
+    expect(
+      within(islamicArticle as HTMLElement).queryByText('Not published')
+    ).not.toBeInTheDocument();
+
+    const conventionalLink = (await screen.findAllByRole('link', { name: 'Conventional Card' }))[0];
+    // eslint-disable-next-line testing-library/no-node-access
+    const conventionalArticle = conventionalLink.closest('article');
+    expect(conventionalArticle).not.toBeNull();
+    expect(
+      within(conventionalArticle as HTMLElement).getByText('Not published')
+    ).toBeInTheDocument();
   });
 
   it('leads with a top-matches shortlist drawn from eligible and likely cards', async () => {

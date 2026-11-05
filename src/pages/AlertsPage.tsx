@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { Alert, Button } from '../components/ui';
 import { useAuth } from '../hooks/AuthProvider';
 import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
 import { useLanguage } from '../locales';
@@ -27,6 +28,7 @@ const AlertsPage: React.FC = () => {
 
   const [subscriptions, setSubscriptions] = useState<AlertSubscription[]>([]);
   const [bankFollows, setBankFollows] = useState<BankFollow[]>([]);
+  const [bankFollowsError, setBankFollowsError] = useState(false);
   const [preferences, setPreferences] = useState<AlertPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +42,20 @@ const AlertsPage: React.FC = () => {
     }
   }, [status]);
 
+  // Followed banks (D4) load independently: a failure here must not take
+  // the whole alerts page down, and must never masquerade as the honest
+  // "you follow nothing" empty state — it gets its own error + retry.
+  const loadBankFollows = async () => {
+    try {
+      const followsRes = await alertsClient.listBankFollows();
+      setBankFollows(followsRes.results);
+      setBankFollowsError(false);
+    } catch (err) {
+      console.error('Failed to load followed banks:', err);
+      setBankFollowsError(true);
+    }
+  };
+
   const loadData = async () => {
     setIsLoading(true);
     setError(null);
@@ -50,14 +66,7 @@ const AlertsPage: React.FC = () => {
       ]);
       setSubscriptions(subsRes.results);
       setPreferences(prefsRes);
-      // Followed banks (D4) load independently: a failure here must not
-      // take the whole alerts page down.
-      try {
-        const followsRes = await alertsClient.listBankFollows();
-        setBankFollows(followsRes.results);
-      } catch {
-        setBankFollows([]);
-      }
+      await loadBankFollows();
     } catch (err) {
       console.error('Failed to load alerts data:', err);
       setError('Failed to load alert settings. Please try again.');
@@ -223,7 +232,14 @@ const AlertsPage: React.FC = () => {
           aria-labelledby="followed-banks-heading"
         >
           <h2 id="followed-banks-heading">{copy.followedBanksHeading}</h2>
-          {bankFollows.length === 0 ? (
+          {bankFollowsError ? (
+            <Alert variant="danger">
+              <p>{copy.followedBanksLoadError}</p>
+              <Button variant="ghost" onClick={() => void loadBankFollows()}>
+                {copy.retry}
+              </Button>
+            </Alert>
+          ) : bankFollows.length === 0 ? (
             <div className="empty-state">
               <p>{copy.noFollowedBanks}</p>
             </div>

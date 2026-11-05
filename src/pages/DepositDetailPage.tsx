@@ -1,7 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
-import { DetailSummary, Money, MoneyInput, TrustChip, VerdictStrip } from '../components/ui';
+import {
+  DetailSummary,
+  Money,
+  MoneyInput,
+  TrustChip,
+  UnknownValue,
+  VerdictStrip,
+} from '../components/ui';
 import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { formatLocalizedDate, getDetailCopy, toBanglaNumerals, useLanguage } from '../locales';
@@ -315,11 +322,15 @@ const DepositDetailPage: React.FC = () => {
   const inShortlist = shortlist.isInShortlist('deposits', product.slug);
   const rateLabel =
     product.rateType === 'expected_profit' ? copy.expectedProfitLabel : copy.detailRateCol;
-  const heroRate = rateRange
-    ? rateRange.min === rateRange.max
-      ? `${formatters.rate(rateRange.max)}%`
-      : `${formatters.rate(rateRange.min)}–${formatters.rate(rateRange.max)}%`
-    : '—';
+  const heroRate: React.ReactNode = rateRange ? (
+    rateRange.min === rateRange.max ? (
+      `${formatters.rate(rateRange.max)}%`
+    ) : (
+      `${formatters.rate(rateRange.min)}–${formatters.rate(rateRange.max)}%`
+    )
+  ) : (
+    <UnknownValue kind="not-published" />
+  );
 
   return (
     <div className="deposits-page deposits-detail p2-detail">

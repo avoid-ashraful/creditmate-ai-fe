@@ -55,6 +55,8 @@ export interface EligibilityCopy {
   apr: string;
   minIncome: string;
   noMinIncome: string;
+  /** §3.6 term for a value that structurally does not apply (e.g. APR on an Islamic card). */
+  notApplicable: string;
   viewDetails: string;
   compare: string;
   notesHeading: string;
@@ -124,6 +126,7 @@ const en: EligibilityCopy = {
   apr: 'APR',
   minIncome: 'Published minimum income',
   noMinIncome: 'Not published',
+  notApplicable: 'Not applicable',
   viewDetails: 'View details',
   compare: 'Compare',
   notesHeading: 'Good to know before you apply',
@@ -195,6 +198,7 @@ const bn: EligibilityCopy = {
   apr: 'এপিআর',
   minIncome: 'প্রকাশিত ন্যূনতম আয়',
   noMinIncome: 'প্রকাশিত নয়',
+  notApplicable: 'প্রযোজ্য নয়',
   viewDetails: 'বিস্তারিত দেখুন',
   compare: 'তুলনা করুন',
   notesHeading: 'আবেদনের আগে জেনে রাখুন',

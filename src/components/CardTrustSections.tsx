@@ -53,7 +53,7 @@ export function formatHistoryValue(
   fieldName: string,
   value: unknown
 ): string {
-  if (value === null || value === undefined) return copy.unknown;
+  if (value === null || value === undefined) return copy.notPublished;
   if (value === '') return copy.none;
   if (typeof value === 'boolean') {
     if (fieldName === 'is_active') return value ? copy.statusActive : copy.statusInactive;

@@ -594,7 +594,7 @@ describe('CardDetailPage', () => {
     renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getAllByText('Data not available').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Not published').length).toBeGreaterThan(0);
     });
   });
 
@@ -635,7 +635,7 @@ describe('CardDetailPage', () => {
       ).toBeInTheDocument();
     });
 
-    const specValues = screen.getAllByText('Data not available');
+    const specValues = screen.getAllByText('Not published');
     expect(specValues.length).toBeGreaterThan(0);
   });
 
@@ -816,11 +816,42 @@ describe('CardDetailPage data display', () => {
     showCard({});
 
     await screen.findByRole('heading', { level: 1, name: 'EBL Platinum Card' });
-    expect(screen.getByText('Lounge access data not available')).toBeInTheDocument();
+    expect(screen.getByText('Lounge access not published')).toBeInTheDocument();
     expect(screen.queryByText('No lounge access included')).not.toBeInTheDocument();
     // The lounge spec rows (Features tab) label the unknowns, never 0/No.
     await openTab('Features & limits');
-    expect(screen.getAllByText('Unknown').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('Not published').length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('never renders the retired unknown terms "Data not available" or "N/A"', async () => {
+    showCard({
+      annual_fee: null,
+      interest_rate_apr: null,
+      min_monthly_income: null,
+      is_dual_currency: null,
+      card_network: '',
+      source_url: '',
+      supplementary_card_fee: '',
+      foreign_transaction_fee: '',
+    });
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'EBL Platinum Card' })
+    ).toBeInTheDocument();
+
+    // The summary and verdict surfaces render before any tab is opened; then
+    // walk every Layer-2 tab so each spec table renders its unknown values.
+    // §3.6 fixes one unknown-value vocabulary — the retired terms must not
+    // reappear on any of these surfaces.
+    expect(document.body.textContent).not.toContain('Data not available');
+    expect(document.body.textContent).not.toContain('N/A');
+    for (const tabName of ['Fees & charges', 'Rewards', 'Eligibility', 'Features & limits']) {
+      await openTab(tabName);
+      expect(document.body.textContent).not.toContain('Data not available');
+      expect(document.body.textContent).not.toContain('N/A');
+    }
+    // …and the vocabulary term is what shows instead.
+    expect(screen.getAllByText('Not published').length).toBeGreaterThan(0);
   });
 
   test('says no lounge access only when the bank states there is none', async () => {

@@ -118,7 +118,7 @@ describe('CardDetailPage trust fields', () => {
     expect(screen.queryByText(/Verified on/)).not.toBeInTheDocument();
   });
 
-  test('unknown trust fields render Unknown, never 0 or No; Islamic null APR is relabelled', async () => {
+  test('unknown trust fields render "Not published", never 0 or No; Islamic null APR is relabelled', async () => {
     useCard({
       card_network: '',
       is_islamic: true,
@@ -132,15 +132,15 @@ describe('CardDetailPage trust fields', () => {
 
     await screen.findByRole('heading', { level: 1, name: 'Test Credit Card' });
     await openTab('Features & limits');
-    expect(specValue('Card Network')).toHaveTextContent('Unknown');
-    expect(specValue('Dual Currency')).toHaveTextContent('Unknown');
+    expect(specValue('Card Network')).toHaveTextContent('Not published');
+    expect(specValue('Dual Currency')).toHaveTextContent('Not published');
     expect(specValue('Islamic (Shariah-compliant)')).toHaveTextContent('Yes, Shariah-compliant');
-    expect(specValue('Profit/fee (Shariah)')).toHaveTextContent('Data not available');
+    expect(specValue('Profit/fee (Shariah)')).toHaveTextContent('Not published');
     await openTab('Eligibility');
-    expect(specValue('Minimum Monthly Income')).toHaveTextContent('Unknown');
+    expect(specValue('Minimum Monthly Income')).toHaveTextContent('Not published');
     await openTab('Fees & charges');
-    expect(specValue('Supplementary Card Fee')).toHaveTextContent('Unknown');
-    expect(specValue('Foreign Transaction Fee')).toHaveTextContent('Unknown');
+    expect(specValue('Supplementary Card Fee')).toHaveTextContent('Not published');
+    expect(specValue('Foreign Transaction Fee')).toHaveTextContent('Not published');
   });
 
   test('shows the profit/fee wording from additional features on Islamic cards without an APR', async () => {
@@ -164,12 +164,12 @@ describe('CardDetailPage trust fields', () => {
     expect(specValue('Profit/fee (Shariah)')).not.toHaveTextContent('Interest/charges details');
   });
 
-  test('keeps "Data not available" for Islamic cards whose features carry no profit/fee text', async () => {
+  test('keeps "Not published" for Islamic cards whose features carry no profit/fee text', async () => {
     useCard({ is_islamic: true, interest_rate_apr: null });
     renderCard();
     await screen.findByRole('heading', { level: 1, name: 'Test Credit Card' });
     await openTab('Features & limits');
-    expect(specValue('Profit/fee (Shariah)')).toHaveTextContent('Data not available');
+    expect(specValue('Profit/fee (Shariah)')).toHaveTextContent('Not published');
   });
 });
 

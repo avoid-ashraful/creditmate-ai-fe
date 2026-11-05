@@ -179,9 +179,13 @@ const EligibilityCheckerPage: React.FC = () => {
           { label: copy.annualFee, value: <Money value={card.annualFee} /> },
           {
             label: copy.apr,
+            // A null APR on a conventional card is unpublished data; on an
+            // Islamic card APR structurally does not apply (§3.6 vocabulary).
             value:
               card.interestRateApr === null
-                ? copy.noMinIncome
+                ? card.isIslamic
+                  ? copy.notApplicable
+                  : copy.noMinIncome
                 : `${isBn ? toBanglaNumerals(card.interestRateApr) : card.interestRateApr}%`,
           },
           { label: copy.minIncome, value: formatMoney(card.minMonthlyIncome) },
