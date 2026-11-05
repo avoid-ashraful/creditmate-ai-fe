@@ -1,8 +1,11 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
+import { expectNoAxeViolations } from '../a11y/axe';
+import { ToastProvider } from '../components/ui';
+import { ShortlistProvider } from '../hooks/ShortlistProvider';
 import { LanguageProvider } from '../locales';
 import {
   DepositProduct,
@@ -106,7 +109,11 @@ const renderPage = () =>
   render(
     <LanguageProvider>
       <BrowserRouter>
-        <DepositsPage />
+        <ShortlistProvider>
+          <ToastProvider>
+            <DepositsPage />
+          </ToastProvider>
+        </ShortlistProvider>
       </BrowserRouter>
     </LanguageProvider>
   );
@@ -114,49 +121,51 @@ const renderPage = () =>
 describe('DepositsPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    window.localStorage.clear();
+    // URL state persists across tests in the shared jsdom history — reset it.
+    window.history.pushState({}, '', '/deposits');
     mockList.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
     mockScenario.mockResolvedValue(scenarioResponse);
   });
 
-  it('renders the ranked results in backend order', async () => {
-    const user = userEvent.setup();
+  it('auto-runs the scenario and renders the ranked results in backend order', async () => {
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare deposits' }));
 
     await waitFor(() => expect(mockScenario).toHaveBeenCalled());
     expect(mockScenario).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'fdr', amount: 500000, months: 12, hasTin: true })
     );
 
-    const tables = screen.getAllByRole('table');
-    const rows = within(tables[0]).getAllByRole('row');
-    // Header + 2 result rows, in the backend's ranking order.
-    expect(rows).toHaveLength(3);
-    expect(rows[1]).toHaveTextContent('Alpha FDR');
-    expect(rows[1]).toHaveTextContent('BDT 540,500.00');
-    expect(rows[2]).toHaveTextContent('Beta FDR');
+    await screen.findByRole('link', { name: 'Alpha FDR' });
+    // Backend ranking order is preserved in the DOM link sequence.
+    const order = screen
+      .getAllByRole('link')
+      .map(link => link.textContent)
+      .filter(text => text === 'Alpha FDR' || text === 'Beta FDR');
+    expect(order).toEqual(['Alpha FDR', 'Beta FDR']);
+    // Net maturity hero uses the shared Money formatter (lakh grouping).
+    expect(screen.getByText('৳5,40,500.00')).toBeInTheDocument();
+    expect(screen.getByText('৳5,35,062.00')).toBeInTheDocument();
   });
 
   it('shows the Sanchayapatra benchmark separately from the bank ranking', async () => {
-    const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare deposits' }));
 
     expect(await screen.findByText('Government benchmark — Sanchayapatra')).toBeInTheDocument();
-    const tables = screen.getAllByRole('table');
-    expect(tables).toHaveLength(2);
-    // The benchmark lives only in the second (benchmark) table, never in
-    // the bank ranking table.
-    expect(
-      within(tables[0]).queryByText('5-Year Bangladesh Sanchayapatra')
-    ).not.toBeInTheDocument();
-    expect(within(tables[1]).getByText('5-Year Bangladesh Sanchayapatra')).toBeInTheDocument();
+    // The benchmark link comes after both ranked results — it lives in its
+    // own band below the ranking, never inside it.
+    const order = screen
+      .getAllByRole('link')
+      .map(link => link.textContent)
+      .filter(
+        text =>
+          text === 'Alpha FDR' || text === 'Beta FDR' || text === '5-Year Bangladesh Sanchayapatra'
+      );
+    expect(order).toEqual(['Alpha FDR', 'Beta FDR', '5-Year Bangladesh Sanchayapatra']);
   });
 
   it('reports how many products had no covering rate', async () => {
-    const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('button', { name: 'Compare deposits' }));
     expect(await screen.findByText(/3 product\(s\) publish no rate/)).toBeInTheDocument();
   });
 
@@ -184,32 +193,44 @@ describe('DepositsPage', () => {
     const bankSelect = screen.getByLabelText('Bank');
 
     await user.selectOptions(bankSelect, '1');
-    await user.click(screen.getByRole('button', { name: 'Compare deposits' }));
-    await waitFor(() => expect(mockScenario).toHaveBeenCalled());
-    expect(mockScenario).toHaveBeenCalledWith(expect.objectContaining({ bank: 1 }));
+    await waitFor(() =>
+      expect(mockScenario).toHaveBeenCalledWith(expect.objectContaining({ bank: 1 }))
+    );
   });
 
   it('switches to the DPS scenario', async () => {
     const user = userEvent.setup();
     renderPage();
     await user.click(screen.getByRole('tab', { name: 'Monthly savings (DPS)' }));
-    await user.click(screen.getByRole('button', { name: 'Compare deposits' }));
-    await waitFor(() => expect(mockScenario).toHaveBeenCalled());
-    expect(mockScenario).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: 'dps', monthlyInstalment: 5000, months: 12 })
+    await waitFor(() =>
+      expect(mockScenario).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: 'dps', monthlyInstalment: 5000, months: 12 })
+      )
     );
+  });
+
+  it('has no axe violations with results rendered', async () => {
+    const { container } = renderPage();
+    await screen.findByRole('link', { name: 'Alpha FDR' });
+    await expectNoAxeViolations(container);
   });
 
   it('validates the amount before calling the API', async () => {
     const user = userEvent.setup();
     renderPage();
+
     const amountInput = screen.getByLabelText('Deposit amount (BDT)');
     await user.clear(amountInput);
     await user.type(amountInput, '0');
-    await user.click(screen.getByRole('button', { name: 'Compare deposits' }));
     expect(
       await screen.findByText('Enter a deposit amount greater than zero.')
     ).toBeInTheDocument();
-    expect(mockScenario).not.toHaveBeenCalled();
+    // No scenario call may ever carry the invalid amount.
+    await new Promise(resolve => setTimeout(resolve, 600));
+    expect(
+      mockScenario.mock.calls.every(
+        ([arg]) => arg.amount === undefined || (arg.amount as number) > 0
+      )
+    ).toBe(true);
   });
 });

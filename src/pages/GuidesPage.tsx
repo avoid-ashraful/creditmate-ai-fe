@@ -5,6 +5,7 @@ import RelatedContent from '../components/RelatedContent';
 import { getCategoriesForGuide } from '../config/categories';
 import { getGuideForLanguage, guidesForLanguage, SITE_NAME } from '../content/guides';
 import { useLanguage, getCommonCopy, getCategoryText } from '../locales';
+import { categoryDiscoveryPath } from '../utils/categoryPath';
 import { breadcrumbJsonLd, faqPageJsonLd } from '../utils/structuredData';
 
 import '../styles/GuidesPage.css';
@@ -452,7 +453,7 @@ const GuidesPage: React.FC = () => {
             <RelatedContent
               heading={common.guidesRelatedCategories}
               links={getCategoriesForGuide(guide.slug).map(category => ({
-                to: `/category/${category.slug}`,
+                to: categoryDiscoveryPath(category.slug),
                 label: getCategoryText(category, lang).name,
                 description: getCategoryText(category, lang).description,
               }))}

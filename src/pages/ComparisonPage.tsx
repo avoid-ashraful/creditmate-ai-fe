@@ -167,7 +167,7 @@ const ComparisonPage: React.FC = () => {
           <div className="empty-state">
             <h2>{common.comparisonEmptyTitle}</h2>
             <p>{common.comparisonEmptyDesc}</p>
-            <Link to="/" className="footer-button">
+            <Link to="/cards" className="footer-button">
               {common.comparisonBrowseCards}
             </Link>
           </div>

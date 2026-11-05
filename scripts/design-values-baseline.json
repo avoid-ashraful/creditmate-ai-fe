@@ -53,10 +53,6 @@
     "src/styles/AboutPage.css": {
       "raw-spacing": 1
     },
-    "src/styles/AdvancedSearchPage.css": {
-      "raw-spacing": 6,
-      "transition-all": 7
-    },
     "src/styles/AlertsPage.css": {
       "breakpoint": 1,
       "raw-spacing": 1

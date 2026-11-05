@@ -10,7 +10,7 @@ import { AUTH_USER, authUrl, sessionBody } from '../mocks/auth';
 import { renderWithAuth } from '../mocks/renderAuth';
 import { authClient, REFRESH_TOKEN_STORAGE_KEY } from '../services/auth';
 
-import { AccountMenu } from './AccountMenu';
+import { AccountMenu, accountInitials } from './AccountMenu';
 
 const server = setupServer();
 
@@ -26,12 +26,10 @@ afterAll(() => server.close());
 
 const routes = (
   <>
-    <ul>
-      <AccountMenu />
-    </ul>
+    <AccountMenu />
     <Routes>
       <Route path="/" element={<p>home page</p>} />
-      <Route path="/account" element={<p>account page</p>} />
+      <Route path="/my/profile" element={<p>profile page</p>} />
       <Route path="/login" element={<p>login page</p>} />
     </Routes>
   </>
@@ -46,31 +44,36 @@ const signIn = async () => {
 };
 
 describe('AccountMenu', () => {
-  it('offers Log in and Register links to anonymous visitors', () => {
+  it('offers Sign in and Register links to anonymous visitors', () => {
     renderWithAuth(routes);
 
-    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
     expect(screen.getByRole('link', { name: 'Register' })).toHaveAttribute('href', '/register');
     expect(screen.queryByRole('button', { name: /Account menu/ })).not.toBeInTheDocument();
   });
 
-  it('shows the signed-in email as a disclosure button that opens a menu', async () => {
+  it('shows initials (never the email) as a disclosure button that opens the menu', async () => {
     await signIn();
     const user = userEvent.setup();
     renderWithAuth(routes);
 
-    const trigger = await screen.findByRole('button', {
-      name: `Account menu: ${AUTH_USER.email}`,
-    });
+    const trigger = await screen.findByRole('button', { name: 'Account menu' });
+    expect(trigger).toHaveTextContent('JD');
+    expect(trigger).not.toHaveTextContent(AUTH_USER.email);
+    expect(document.body.textContent).not.toContain(AUTH_USER.email);
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByRole('link', { name: 'Log in' })).not.toBeInTheDocument();
 
     await user.click(trigger);
 
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
     expect(trigger).toHaveAttribute('aria-controls', 'account-menu-panel');
-    expect(screen.getByRole('link', { name: 'My account' })).toHaveAttribute('href', '/account');
-    expect(screen.getByRole('link', { name: 'Alert Settings' })).toHaveAttribute('href', '/alerts');
+    expect(screen.getByRole('menuitem', { name: 'Overview' })).toHaveAttribute('href', '/my');
+    expect(screen.getByRole('menuitem', { name: 'Saved' })).toHaveAttribute('href', '/my/saved');
+    expect(screen.getByRole('menuitem', { name: 'Alerts' })).toHaveAttribute('href', '/my/alerts');
+    expect(screen.getByRole('menuitem', { name: 'Profile & settings' })).toHaveAttribute(
+      'href',
+      '/my/profile'
+    );
     expect(screen.getByRole('button', { name: 'Log out' })).toBeVisible();
   });
 
@@ -79,9 +82,7 @@ describe('AccountMenu', () => {
     const user = userEvent.setup();
     renderWithAuth(routes);
 
-    const trigger = await screen.findByRole('button', {
-      name: `Account menu: ${AUTH_USER.email}`,
-    });
+    const trigger = await screen.findByRole('button', { name: 'Account menu' });
     await user.click(trigger);
     await user.keyboard('{Escape}');
 
@@ -90,35 +91,27 @@ describe('AccountMenu', () => {
     expect(screen.queryByRole('button', { name: 'Log out' })).not.toBeInTheDocument();
   });
 
-  it('opens and navigates the menu with the keyboard', async () => {
+  it('navigates to a My CreditMate page from the menu', async () => {
     await signIn();
     const user = userEvent.setup();
     renderWithAuth(routes);
 
-    await screen.findByRole('button', { name: /Account menu/ });
-    await user.tab();
-    const trigger = screen.getByRole('button', { name: /Account menu/ });
-    expect(trigger).toHaveFocus();
-    await user.keyboard('{Enter}');
+    await user.click(await screen.findByRole('button', { name: 'Account menu' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Profile & settings' }));
 
-    const accountLink = screen.getByRole('link', { name: 'My account' });
-    expect(accountLink).toBeVisible();
-    await user.tab();
-    expect(accountLink).toHaveFocus();
-    await user.keyboard('{Enter}');
-    expect(await screen.findByText('account page')).toBeInTheDocument();
+    expect(await screen.findByText('profile page')).toBeInTheDocument();
   });
 
   it('logs out, returns home and shows the anonymous links again', async () => {
     await signIn();
     server.use(rest.post(authUrl('logout/'), (_req, res, ctx) => res(ctx.status(205))));
     const user = userEvent.setup();
-    renderWithAuth(routes, { route: '/account' });
+    renderWithAuth(routes, { route: '/my/profile' });
 
-    await user.click(await screen.findByRole('button', { name: /Account menu/ }));
+    await user.click(await screen.findByRole('button', { name: 'Account menu' }));
     await user.click(screen.getByRole('button', { name: 'Log out' }));
 
-    expect(await screen.findByRole('link', { name: 'Log in' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Sign in' })).toBeInTheDocument();
     expect(screen.getByText('home page')).toBeInTheDocument();
     await waitFor(() =>
       expect(window.sessionStorage.getItem(REFRESH_TOKEN_STORAGE_KEY)).toBeNull()
@@ -128,7 +121,7 @@ describe('AccountMenu', () => {
   it('renders Bengali labels when the language is bn', () => {
     renderWithAuth(routes, { lang: 'bn' });
 
-    expect(screen.getByRole('link', { name: 'লগ ইন' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'সাইন ইন' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'নিবন্ধন' })).toBeInTheDocument();
   });
 
@@ -141,5 +134,19 @@ describe('AccountMenu', () => {
     await signIn();
     const { container } = renderWithAuth(routes);
     await expectNoAxeViolations(container);
+  });
+});
+
+describe('accountInitials', () => {
+  it('prefers first/last name initials', () => {
+    expect(accountInitials(AUTH_USER)).toBe('JD');
+  });
+
+  it('falls back to the email local part, never the full address', () => {
+    expect(accountInitials({ email: 'reader@example.com' })).toBe('RE');
+  });
+
+  it('handles null', () => {
+    expect(accountInitials(null)).toBe('');
   });
 });

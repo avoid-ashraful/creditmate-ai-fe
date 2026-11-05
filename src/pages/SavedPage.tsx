@@ -154,7 +154,7 @@ const SavedPage: React.FC = () => {
         <ul className="saved-list">
           {collections.map(item => (
             <li key={item.id}>
-              <Link to={`/saved/collections/${item.id}`}>{item.name}</Link>
+              <Link to={`/my/collections/${item.id}`}>{item.name}</Link>
               <span>{item.description}</span>
               <button onClick={() => void renameCollection(item)}>{t.rename}</button>
               <button onClick={() => void deleteCollection(item)}>{t.delete}</button>

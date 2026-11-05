@@ -1,355 +1,458 @@
-import { AnimatePresence } from 'framer-motion';
-import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+/**
+ * Home as a decision dashboard (redesign plan Section 2.3).
+ *
+ * Home is no longer the card catalogue. In order: the promise and
+ * coverage, a search entry into the command palette, the user's numbers
+ * (profile strip), four mode entry cards whose headlines are computed by
+ * the same scenario engines the discovery pages use, shortlist & saved
+ * continuation, the most recently verified products from the latest
+ * data, a Learn strip, and the trust strip. Every figure is fault-
+ * isolated: a failed headline degrades to an invitation, never a
+ * fabricated number.
+ */
 
-import CardDetailsPopup from '../components/CardDetailsPopup';
-import CardList from '../components/CardList';
-import CategoryCard from '../components/CategoryCard';
-import ComparisonBar from '../components/ComparisonBar';
-import FilterPanel from '../components/FilterPanel';
-import SearchAutocomplete from '../components/SearchAutocomplete';
-import { SkeletonCardGrid } from '../components/Skeleton';
-import Toast from '../components/Toast';
-import { CATEGORIES } from '../config/categories';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+import { Button, MoneyInput, TrustChip, useToast } from '../components/ui';
+import { guidesForLanguage } from '../content/guides';
+import type { Guide } from '../content/guides';
+import { useAuth } from '../hooks/AuthProvider';
+import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
-import { ANALYTICS_EVENTS, analytics } from '../lib/analytics';
-import { getVariant } from '../lib/experiments';
-import { useLanguage, getCommonCopy } from '../locales';
+import { formatTaka } from '../lib/format';
+import { isDefaultProfile, useProfile } from '../lib/profile';
+import { fillCopy, getCardDetailCopy, getHomeCopy, getShellCopy, useLanguage } from '../locales';
+import { getAccountsCopy } from '../locales/accounts';
+import { getDepositsCopy } from '../locales/deposits';
+import {
+  advancedSearchService,
+  transformAdvancedSearchCard,
+  uiStateToParams,
+  DEFAULT_UI_STATE,
+} from '../services/advancedSearch';
 import { apiService } from '../services/api';
-import { CreditCard, Bank, CardFilterOptions } from '../types';
+import { getAccountProducts, runAccountScenario } from '../services/bankAccounts';
+import { fetchAllBanks } from '../services/banks';
+import { getDepositProducts, runDepositScenario } from '../services/deposits';
+import { fetchLoanProducts, runLoanScenario } from '../services/loans';
+import { listSavedSearches, SavedSearch } from '../services/savedSearches';
 import { fetchAllPages } from '../utils/fetchAllPages';
 import { organizationJsonLd, websiteJsonLd } from '../utils/structuredData';
-import '../styles/HomePage.css';
 
-const pageParam = (page: number) => (page > 1 ? { page } : {});
+import './HomePage.css';
+
+interface VerifiedEntry {
+  key: string;
+  name: string;
+  bankName: string;
+  href: string;
+  date: string;
+  source: string;
+}
+
+const formatDate = (iso: string): string =>
+  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
 const HomePage: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  // One-off message from another page, e.g. after deleting the account.
-  const notice = (useLocation().state as { notice?: string } | null)?.notice ?? '';
-  // Drop the notice from browser history so a reload does not show it again.
-  useEffect(() => {
-    if (notice) window.history.replaceState({}, '');
-  }, [notice]);
   const { lang } = useLanguage();
-  const common = getCommonCopy(lang);
-  // `?search=` comes from the WebSite SearchAction in structured data. It is read
-  // once on mount so the initial load and the search box agree.
-  const [initialSearch] = useState<string>(() => searchParams.get('search')?.trim() ?? '');
-  const [cards, setCards] = useState<CreditCard[]>([]);
-  const [banks, setBanks] = useState<Bank[]>([]);
-  const [filteredCards, setFilteredCards] = useState<CreditCard[]>([]);
-  const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>(initialSearch);
-  const [viewedCard, setViewedCard] = useState<CreditCard | null>(null);
-  const [selectionMessage, setSelectionMessage] = useState<string>('');
+  const copy = getHomeCopy(lang);
+  const depositsCopy = getDepositsCopy(lang);
+  const accountsCopy = getAccountsCopy(lang);
+  const shellCopy = getShellCopy(lang);
+  const cardDetailCopy = getCardDetailCopy(lang);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const shortlist = useShortlist();
+  const { profile, setProfile } = useProfile();
 
   useSeoMeta({
-    title: 'Compare credit cards in Bangladesh | CreditMate AI',
-    description:
-      'Compare credit cards in Bangladesh by annual fee, interest rate, lounge access and rewards. Filter the list, pick up to four cards and compare them side by side.',
+    title: copy.seoTitle,
+    description: copy.seoDescription,
     canonicalPath: '/',
     jsonLd: [organizationJsonLd(window.location.origin), websiteJsonLd(window.location.origin)],
   });
 
-  // Experiment variants
-  const heroCtaVariant = getVariant('hero_cta_text');
-  const cardLayoutVariant = getVariant('card_layout');
+  const [coverage, setCoverage] = useState<{ banks: number; products: number } | null>(null);
+  const [headlines, setHeadlines] = useState<{
+    card: string | null;
+    deposit: string | null;
+    account: string | null;
+    loan: string | null;
+  }>({ card: null, deposit: null, account: null, loan: null });
+  const [recentlyVerified, setRecentlyVerified] = useState<VerifiedEntry[] | null>(null);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+
+  const [draftBalance, setDraftBalance] = useState<number | null>(profile.balance);
+  const [draftSpend, setDraftSpend] = useState<number | null>(profile.monthlySpend);
+  const [draftLoan, setDraftLoan] = useState<number | null>(profile.loanAmount);
 
   useEffect(() => {
-    const fetchInitialData = async () => {
-      setIsLoading(true);
-      setLoadError(null);
-      try {
-        // Fetch banks and credit cards in parallel, plus the URL search if there is one
-        const [banksResponse, cardsResponse, searchResponse] = await Promise.all([
-          fetchAllPages(page => apiService.getBanks(undefined, undefined, page)),
-          fetchAllPages(page => apiService.getCreditCards({ page_size: 100, ...pageParam(page) })),
-          initialSearch
-            ? apiService.getCreditCards({ searchTerm: initialSearch, page_size: 100 })
-            : Promise.resolve(null),
-        ]);
+    setDraftBalance(profile.balance);
+    setDraftSpend(profile.monthlySpend);
+    setDraftLoan(profile.loanAmount);
+  }, [profile]);
 
-        // Transform API responses to frontend types
-        const transformedCards = cardsResponse.results.map(card =>
-          apiService.transformCreditCard(card)
-        );
-        // The banks table lists every Bangladeshi bank; only those with cards are useful here.
-        const bankIdsWithCards = new Set(transformedCards.map(card => card.bankId));
-        const bankNamesWithCards = new Set(transformedCards.map(card => card.bankName));
-        const transformedBanks = banksResponse.results
-          .map(bank => apiService.transformBank(bank))
-          .filter(bank => bankIdsWithCards.has(bank.id) || bankNamesWithCards.has(bank.name));
+  useEffect(() => {
+    setSavedSearches(listSavedSearches(user?.id ?? null));
+  }, [user?.id]);
 
-        setBanks(transformedBanks);
-        setCards(transformedCards);
-        setFilteredCards(
-          searchResponse
-            ? searchResponse.results.map(card => apiService.transformCreditCard(card))
-            : transformedCards
-        );
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-        // QA #15: an unreachable API is a network error, not an empty category,
-        // so surface the generic load-failure state instead of the list's
-        // "category not found" copy.
-        setLoadError(common.categoryErrorLoading);
-      } finally {
-        setIsLoading(false);
+  // Coverage counts — fault-isolated per source.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [banks, cards, deposits, loans, accounts] = await Promise.all([
+        fetchAllBanks().catch(() => null),
+        apiService.getCreditCards({ page_size: 1 }).catch(() => null),
+        fetchAllPages(page => getDepositProducts({ page, pageSize: 100 })).catch(() => null),
+        fetchLoanProducts({}).catch(() => null),
+        fetchAllPages(page =>
+          getAccountProducts({ page, pageSize: 100, includeVariants: true })
+        ).catch(() => null),
+      ]);
+      if (cancelled) return;
+      const products =
+        (cards?.count ?? 0) +
+        (deposits?.results.length ?? 0) +
+        (loans?.length ?? 0) +
+        (accounts?.results.length ?? 0);
+      // Provenance must never print a number we failed to load: if the bank
+      // list failed, the whole coverage line stays hidden rather than
+      // claiming "0 banks".
+      if (banks !== null && products > 0) {
+        setCoverage({ banks: banks.length, products });
       }
+    })();
+    return () => {
+      cancelled = true;
     };
+  }, []);
 
-    fetchInitialData();
-  }, [common.categoryErrorLoading, initialSearch]);
+  // Mode headlines from the same scenario engines as discovery.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [cardRes, depositRes, loanRes, accountRes] = await Promise.all([
+        advancedSearchService
+          .search(
+            uiStateToParams({
+              ...DEFAULT_UI_STATE,
+              ordering: '-creditmate_score',
+              page: 1,
+              pageSize: 1,
+            })
+          )
+          .catch(() => null),
+        runDepositScenario({ kind: 'fdr', amount: 500000, months: 12, hasTin: true }).catch(
+          () => null
+        ),
+        runLoanScenario({
+          loanType: 'personal',
+          amount: profile.loanAmount,
+          tenureMonths: 60,
+        }).catch(() => null),
+        runAccountScenario({
+          averageBalance: profile.balance,
+          accountType: 'savings',
+        }).catch(() => null),
+      ]);
+      if (cancelled) return;
+      const next = { card: null, deposit: null, account: null, loan: null } as typeof headlines;
 
-  const handleCardSelect = (card: CreditCard) => {
-    const isRemoving = selectedCardIds.includes(card.id);
-    const hasCapacity = selectedCardIds.length < 4;
-
-    setSelectedCardIds(prev => {
-      if (prev.includes(card.id)) {
-        return prev.filter(id => id !== card.id);
-      } else {
-        if (!hasCapacity) {
-          setSelectionMessage(common.categorySelectionLimit);
-          return prev;
+      const topCardRaw = cardRes?.results?.[0];
+      if (topCardRaw) {
+        const topCard = transformAdvancedSearchCard(topCardRaw);
+        if (topCard.creditmateScore !== null && topCard.creditmateScore !== undefined) {
+          next.card = fillCopy(copy.topCardHeadline, {
+            score: topCard.creditmateScore.toFixed(1),
+            name: topCard.name,
+          });
         }
-        setSelectionMessage('');
-        return [...prev, card.id];
       }
-    });
+      const bestDeposit = depositRes?.results?.[0];
+      if (bestDeposit) {
+        next.deposit = fillCopy(copy.bestDepositHeadline, {
+          amount: formatTaka(500000),
+          months: '12',
+          value: formatTaka(bestDeposit.netMaturity, { decimals: 2 }),
+          name: bestDeposit.product.name,
+        });
+      }
+      if (loanRes && loanRes.results.length > 0) {
+        const priced = loanRes.results.filter(r => r.atMaxRate !== null);
+        if (priced.length > 0) {
+          const cheapest = priced.reduce((a, b) =>
+            (a.atMaxRate?.totalCost ?? Infinity) <= (b.atMaxRate?.totalCost ?? Infinity) ? a : b
+          );
+          if (cheapest.atMaxRate) {
+            next.loan = fillCopy(copy.cheapestLoanHeadline, {
+              amount: formatTaka(profile.loanAmount),
+              // EMI range across the band, as on the loans page: the low
+              // end at the band's minimum rate, the high end at its max.
+              min: formatTaka(cheapest.atMinRate?.emi ?? cheapest.atMaxRate.emi),
+              max: formatTaka(cheapest.atMaxRate.emi),
+            });
+          }
+        }
+      }
+      const bestAccount = accountRes?.results?.[0];
+      if (bestAccount && bestAccount.netAnnualValue !== null) {
+        next.account = fillCopy(copy.bestAccountHeadline, {
+          balance: formatTaka(profile.balance),
+          value: formatTaka(bestAccount.netAnnualValue, { decimals: 2 }),
+          name: bestAccount.product.name,
+        });
+      }
+      setHeadlines(next);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile.loanAmount, profile.balance, lang]);
 
-    if (isRemoving || hasCapacity) {
-      analytics.track(ANALYTICS_EVENTS.cardSelect, { cardId: card.id });
-    }
-  };
+  // Recently verified — the products with the newest verification dates.
+  // Verification is all this data supports: nothing here claims a rate
+  // *changed* (the real change feed is a later phase).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [deposits, accounts, cards] = await Promise.all([
+        fetchAllPages(page => getDepositProducts({ page, pageSize: 100 })).catch(() => null),
+        fetchAllPages(page =>
+          getAccountProducts({ page, pageSize: 100, includeVariants: true })
+        ).catch(() => null),
+        apiService.getCreditCards({ page_size: 100, page: 1 }).catch(() => null),
+      ]);
+      if (cancelled) return;
+      const entries: VerifiedEntry[] = [];
+      deposits?.results.forEach(product => {
+        const date = product.verifiedAt ?? product.rateEffectiveDate;
+        if (!date) return;
+        entries.push({
+          key: `deposit-${product.id}`,
+          name: product.name,
+          bankName: product.institutionDisplayName,
+          href: `/deposits/${product.slug}`,
+          date,
+          source: product.sourceKind === 'bb_chart' ? 'BB chart' : depositsCopy.sourceLabel,
+        });
+      });
+      accounts?.results.forEach(product => {
+        const date = product.verifiedAt ?? product.rateEffectiveDate;
+        if (!date) return;
+        entries.push({
+          key: `account-${product.id}`,
+          name: product.name,
+          bankName: product.bank.name,
+          href: `/accounts/${product.slug}`,
+          date,
+          source: accountsCopy.sourceSocLabel,
+        });
+      });
+      cards?.results.forEach(raw => {
+        const card = apiService.transformCreditCard(raw);
+        const date = card.verifiedAt ?? card.lastUpdated;
+        if (!date) return;
+        entries.push({
+          key: `card-${card.id}`,
+          name: card.name,
+          bankName: card.bankName ?? '',
+          href: '/cards',
+          date: date.toISOString(),
+          source: cardDetailCopy.sourceScheduleOfCharges,
+        });
+      });
+      entries.sort((a, b) => b.date.localeCompare(a.date));
+      setRecentlyVerified(entries.slice(0, 5));
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
-  const handleViewCardDetails = (card: CreditCard) => {
-    analytics.track(ANALYTICS_EVENTS.cardDetailView, { cardId: card.id, bank: card.bankName });
-    setViewedCard(card);
-  };
-
-  const handleCloseCardDetails = () => {
-    setViewedCard(null);
-  };
-
-  const handleAddToCompare = (card: CreditCard) => {
-    handleCardSelect(card);
-    // Don't close the popup so user can see the "Added to Compare" state
-  };
-
-  const handleRemoveFromCompare = (cardId: number) => {
-    analytics.track(ANALYTICS_EVENTS.cardSelect, {
-      cardId,
-    });
-    setSelectedCardIds(prev => prev.filter(id => id !== cardId));
-  };
-
-  const handleFilterChange = async (filters: CardFilterOptions) => {
-    const filterKeys = Object.keys(filters).filter(
-      key => key !== 'searchTerm' && filters[key as keyof CardFilterOptions] !== undefined
+  const learnGuides = useMemo(() => {
+    const own = guidesForLanguage(lang);
+    const pool = own.length >= 3 ? own : [...own, ...guidesForLanguage('en')];
+    const pick = (pattern: RegExp) => pool.find(guide => pattern.test(guide.category));
+    const chosen = [pick(/card/i), pick(/deposit|saving|account/i), pick(/loan|borrow/i)].filter(
+      (guide): guide is Guide => Boolean(guide)
     );
+    for (const guide of pool) {
+      if (chosen.length >= 3) break;
+      if (!chosen.includes(guide)) chosen.push(guide);
+    }
+    return chosen.slice(0, 3);
+  }, [lang]);
 
-    analytics.track(ANALYTICS_EVENTS.filterApply, {
-      filterCount: filterKeys.length,
-      filterKeys,
+  const saveProfile = () => {
+    setProfile({
+      balance: draftBalance ?? profile.balance,
+      monthlySpend: draftSpend ?? profile.monthlySpend,
+      loanAmount: draftLoan ?? profile.loanAmount,
     });
-
-    try {
-      setIsLoading(true);
-      setLoadError(null);
-
-      // Use API filtering instead of client-side filtering
-      const response = await fetchAllPages(page =>
-        apiService.getCreditCards({ ...filters, page_size: 100, ...pageParam(page) })
-      );
-
-      const transformedCards = response.results.map(card => apiService.transformCreditCard(card));
-      setFilteredCards(transformedCards);
-    } catch (error) {
-      console.error('Failed to filter cards:', error);
-      // A failed filter request cannot safely reuse unfiltered results, and an
-      // unreachable API is a network error rather than an empty category (QA #15).
-      setFilteredCards([]);
-      setLoadError(common.categoryErrorLoading);
-    } finally {
-      setIsLoading(false);
-    }
+    toast({ message: copy.profileSaved });
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    analytics.track(ANALYTICS_EVENTS.search);
-    handleFilterChange({ searchTerm });
+  const openPalette = () => {
+    window.dispatchEvent(new Event('creditmate:open-palette'));
   };
-
-  // Map a category facet slug to the appropriate filter options; falls back to
-  // setting the search term so the existing filter logic picks it up.
-  const applyCategoryFilter = (slug: string) => {
-    const category = CATEGORIES.find(c => c.slug === slug);
-    if (category) {
-      setSearchTerm(category.filters.searchTerm ?? '');
-      handleFilterChange({ ...category.filters });
-    } else {
-      // Unknown slug – treat as a plain text search
-      setSearchTerm('');
-      handleFilterChange({ searchTerm: '' });
-    }
-  };
-
-  const panelInitialFilters = useMemo(() => ({ searchTerm }), [searchTerm]);
-
-  // Hero CTA text variants
-  const heroCtaText =
-    heroCtaVariant === 'treatment' ? common.homeHeroCtaTreatment : common.homeHeroCtaControl;
-
-  const heroSubtext =
-    heroCtaVariant === 'treatment'
-      ? common.homeHeroSubtextTreatment
-      : common.homeHeroSubtextControl;
-
-  // Card layout variant: 'grid' (control) or 'list' (treatment)
-  const cardLayout = cardLayoutVariant === 'treatment' ? 'list' : 'grid';
 
   return (
     <div className="home-page">
-      <Toast className="home-notice" message={notice} />
-      <section className="hero-section">
-        <div className="hero-content">
-          <h1>{heroCtaText}</h1>
-          <p>{heroSubtext}</p>
-
-          <form className="search-form" onSubmit={handleSearchSubmit} role="search">
-            <SearchAutocomplete
-              value={searchTerm}
-              onChange={setSearchTerm}
-              onSearch={query => handleFilterChange({ searchTerm: query })}
-              onSelectCard={card => {
-                setSearchTerm(card.name);
-                handleFilterChange({ searchTerm: card.name });
-              }}
-              onSelectBank={bank => {
-                setSearchTerm(bank.name);
-                handleFilterChange({ searchTerm: bank.name });
-              }}
-              onSelectCategory={category => applyCategoryFilter(category.slug)}
-              onSelectFacet={facet => applyCategoryFilter(facet.slug)}
-              // The full hint truncates in the hero input at every width; the
-              // accessible label keeps the full text.
-              placeholder={common.homeSearchPlaceholderShort}
-              ariaLabel={common.homeSearchAriaLabel}
-            />
-            <button type="submit">{common.filterSectionSearch}</button>
-          </form>
-
-          <div className="category-grid">
-            {CATEGORIES.map(category => (
-              <CategoryCard key={category.slug} category={category} />
-            ))}
-          </div>
-        </div>
+      <section className="cm-home-hero">
+        <h1>{copy.heading}</h1>
+        <p className="cm-home-promise">{copy.promise}</p>
+        {coverage ? (
+          <p className="cm-discovery-note">
+            {fillCopy(copy.coverage, {
+              banks: String(coverage.banks),
+              products: String(coverage.products),
+            })}
+          </p>
+        ) : null}
+        <button type="button" className="cm-home-search" onClick={openPalette}>
+          <span>{shellCopy.searchPill}</span>
+          <kbd className="cm-kbd" aria-hidden="true">
+            ⌘K
+          </kbd>
+        </button>
       </section>
 
-      <section className="stats-section">
-        <div className="stats-container">
-          <div className="stat-item">
-            <span className="stat-number">{banks.length}</span>
-            <span className="stat-label">{common.homeStatsPartnerBanks}</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-number">{cards.length}+</span>
-            <span className="stat-label">{common.homeStatsCreditCards}</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-number">24/7</span>
-            <span className="stat-label">{common.homeStatsExpertSupport}</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-number">100%</span>
-            <span className="stat-label">{common.homeStatsFreeService}</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="main-content">
-        <div className="filter-sidebar">
-          <FilterPanel
-            banks={banks}
-            onFilterChange={handleFilterChange}
-            initialFilters={panelInitialFilters}
+      <section className="cm-home-profile" aria-labelledby="home-profile-heading">
+        <h2 id="home-profile-heading">{copy.profileHeading}</h2>
+        <p className="cm-discovery-note">
+          {isDefaultProfile(profile) ? copy.profileDefaultsNote : copy.profileMakeYours}
+        </p>
+        <div className="cm-home-profile-fields">
+          <MoneyInput
+            label={copy.profileBalanceLabel}
+            value={draftBalance}
+            onValueChange={setDraftBalance}
+          />
+          <MoneyInput
+            label={copy.profileSpendLabel}
+            value={draftSpend}
+            onValueChange={setDraftSpend}
+          />
+          <MoneyInput
+            label={copy.profileLoanLabel}
+            value={draftLoan}
+            onValueChange={setDraftLoan}
           />
         </div>
+        <Button variant="primary" onClick={saveProfile}>
+          {copy.profileSave}
+        </Button>
+      </section>
 
-        <div className="cards-content">
-          {isLoading ? (
-            <SkeletonCardGrid label={common.homeSkeletonLabel} />
-          ) : loadError ? (
-            <div className="error-state" role="alert">
-              {loadError}
-            </div>
-          ) : (
-            <>
-              <CardList
-                cards={filteredCards}
-                onCardSelect={handleCardSelect}
-                selectedCardIds={selectedCardIds}
-                maxSelections={4}
-                onViewCardDetails={handleViewCardDetails}
-                layout={cardLayout}
-              />
-
-              {/* Card Details Popup */}
-              <AnimatePresence>
-                {viewedCard && (
-                  <CardDetailsPopup
-                    key={viewedCard.id}
-                    card={viewedCard}
-                    onClose={handleCloseCardDetails}
-                    onAddToCompare={handleAddToCompare}
-                    isInCompareList={selectedCardIds.includes(viewedCard.id)}
-                  />
-                )}
-              </AnimatePresence>
-
-              {/* Comparison Bar */}
-              <ComparisonBar
-                selectedCards={cards.filter(card => selectedCardIds.includes(card.id))}
-                onRemoveCard={handleRemoveFromCompare}
-                maxSelections={4}
-              />
-
-              <Toast className="selection-message" message={selectionMessage} />
-            </>
-          )}
+      <section aria-labelledby="home-modes-heading">
+        <h2 id="home-modes-heading">{copy.modesHeading}</h2>
+        <div className="cm-home-modes">
+          <article className="cm-home-mode">
+            <h3>{copy.modeCardsTitle}</h3>
+            <p>{headlines.card ?? copy.headlineUnavailable}</p>
+            <p className="cm-discovery-note">{copy.modeCardsBlurb}</p>
+            <Link to="/cards">{copy.explore} →</Link>
+          </article>
+          <article className="cm-home-mode">
+            <h3>{copy.modeSaveTitle}</h3>
+            <p>{headlines.deposit ?? copy.headlineUnavailable}</p>
+            {headlines.account ? <p>{headlines.account}</p> : null}
+            <p className="cm-discovery-note">{copy.modeSaveBlurb}</p>
+            <Link to="/deposits">{copy.explore} →</Link>
+          </article>
+          <article className="cm-home-mode">
+            <h3>{copy.modeBorrowTitle}</h3>
+            <p>{headlines.loan ?? copy.headlineUnavailable}</p>
+            <Link to="/loans">{copy.explore} →</Link>
+          </article>
+          <article className="cm-home-mode">
+            <h3>{copy.modeToolsTitle}</h3>
+            <p className="cm-discovery-note">{copy.modeToolsBlurb}</p>
+            <Link to="/eligibility-checker">{copy.explore} →</Link>
+          </article>
         </div>
       </section>
 
-      <section className="benefits-section">
-        <h2>{common.homeBenefitsTitle}</h2>
-        <div className="benefits-grid">
-          <div className="benefit-card">
-            <div className="benefit-icon">📊</div>
-            <h3>{common.homeBenefitComparison}</h3>
-            <p>{common.homeBenefitComparisonDesc}</p>
-          </div>
-          <div className="benefit-card">
-            <div className="benefit-icon">💰</div>
-            <h3>{common.homeBenefitValue}</h3>
-            <p>{common.homeBenefitValueDesc}</p>
-          </div>
-          <div className="benefit-card">
-            <div className="benefit-icon">🔍</div>
-            <h3>{common.homeBenefitData}</h3>
-            <p>{common.homeBenefitDataDesc}</p>
-          </div>
-          <div className="benefit-card">
-            <div className="benefit-icon">📱</div>
-            <h3>{common.homeBenefitMobile}</h3>
-            <p>{common.homeBenefitMobileDesc}</p>
-          </div>
+      <section aria-labelledby="home-shortlist-heading">
+        <h2 id="home-shortlist-heading">{copy.shortlistHeading}</h2>
+        {shortlist.items.length === 0 && savedSearches.length === 0 ? (
+          <p className="cm-discovery-note">{copy.shortlistEmpty}</p>
+        ) : (
+          <>
+            {shortlist.items.length > 0 ? (
+              <ul className="cm-home-list">
+                {shortlist.items.slice(0, 4).map(item => (
+                  <li key={`${item.vertical}-${item.key}`}>
+                    <Link to={item.detailHref}>
+                      {item.name} · {item.bankName}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {shortlist.cardIds.length >= 2 ? (
+              <p>
+                <Link to={`/compare?ids=${shortlist.cardIds.join(',')}`}>{copy.shortlistView}</Link>
+              </p>
+            ) : null}
+            {savedSearches.length > 0 ? (
+              <>
+                <h3>{copy.savedHeading}</h3>
+                <ul className="cm-home-list">
+                  {savedSearches.slice(0, 3).map(search => (
+                    <li key={search.id}>
+                      <Link to={search.query ? `${search.path}?${search.query}` : search.path}>
+                        {search.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+          </>
+        )}
+      </section>
+
+      <section aria-labelledby="home-verified-heading">
+        <h2 id="home-verified-heading">{copy.verifiedHeading}</h2>
+        <p className="cm-discovery-note">{copy.verifiedIntro}</p>
+        {recentlyVerified === null ? null : recentlyVerified.length === 0 ? (
+          <p className="cm-discovery-note">{copy.verifiedEmpty}</p>
+        ) : (
+          <ul className="cm-home-changed">
+            {recentlyVerified.map(entry => (
+              <li key={entry.key} className="cm-home-changed-item">
+                <Link to={entry.href}>
+                  {entry.name} · {entry.bankName}
+                </Link>
+                <TrustChip source={entry.source} dateLabel={formatDate(entry.date)} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section aria-labelledby="home-learn-heading">
+        <h2 id="home-learn-heading">{copy.learnHeading}</h2>
+        <div className="cm-home-modes">
+          {learnGuides.map(guide => (
+            <article key={guide.slug} className="cm-home-mode">
+              <h3>
+                <Link to={`/guides/${guide.slug}`}>{guide.title}</Link>
+              </h3>
+              <p className="cm-discovery-note">{guide.description}</p>
+            </article>
+          ))}
         </div>
+      </section>
+
+      <section className="cm-home-trust" aria-labelledby="home-trust-heading">
+        <h2 id="home-trust-heading">{copy.trustHeading}</h2>
+        <p>{copy.trustBody}</p>
+        <Link to="/methodology">{copy.trustMethodologyLink}</Link>
       </section>
     </div>
   );

@@ -334,7 +334,7 @@ describe('GuidesPage detail', () => {
     renderGuides('/guides/maximizing-lounge-access-benefits');
 
     const categoryLink = screen.getByRole('link', { name: 'Travel' });
-    expect(categoryLink).toHaveAttribute('href', '/category/travel');
+    expect(categoryLink).toHaveAttribute('href', '/cards?categories=travel');
   });
 
   test('shows a friendly not-found state for an unknown slug', () => {
@@ -389,15 +389,17 @@ describe('App route integration', () => {
 
     // HomePage now writes its own metadata, so leaving the guide must remove
     // everything the guides page wrote and replace it with Home's values.
-    fireEvent.click(screen.getAllByRole('link', { name: 'Home' })[0]);
+    fireEvent.click(screen.getAllByRole('link', { name: 'CreditMate AI' })[0]);
     expect(
-      await screen.findByRole('heading', { level: 1, name: /find your perfect credit card/i })
+      await screen.findByRole('heading', { level: 1, name: /where do you stand/i })
     ).toBeInTheDocument();
-    // Let HomePage's mocked API fetch settle inside act.
-    expect(await screen.findByText(/Test Credit Card/i)).toBeInTheDocument();
+    // The dashboard's own sections render (profile strip heading).
+    expect(await screen.findByRole('heading', { name: 'Your numbers' })).toBeInTheDocument();
 
-    expect(document.title).toBe('Compare credit cards in Bangladesh | CreditMate AI');
-    expect(readMeta('meta[name="description"]')).toMatch(/^Compare credit cards in Bangladesh/);
+    expect(document.title).toBe(
+      'Compare cards, deposits, loans & accounts in Bangladesh | CreditMate AI'
+    );
+    expect(readMeta('meta[name="description"]')).toMatch(/^CreditMate compares credit cards/);
     expect(headQuery('link[rel="canonical"]')?.getAttribute('href')).toBe('http://localhost/');
     // Tags the guides page created are removed.
     expect(headQuery('script#guides-structured-data')).toBeNull();

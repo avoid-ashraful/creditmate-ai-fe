@@ -1,16 +1,26 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 
 import { expectNoAxeViolations } from './a11y/axe';
-import { AppContent, NAV_ITEMS, PageViewTrackerWrapper } from './App';
+import { AppContent, PageViewTrackerWrapper } from './App';
 import { AuthProvider } from './hooks/AuthProvider';
 import { ThemeProvider } from './hooks/ThemeProvider';
 import { ANALYTICS_EVENTS, analytics } from './lib/analytics';
 import { LanguageProvider } from './locales';
 
 jest.mock('./services/api');
+
+/** Records the current location so redirect behaviour can be asserted. */
+let lastLocation = '';
+let lastFrom = '';
+const LocationProbe: React.FC = () => {
+  const location = useLocation();
+  lastLocation = `${location.pathname}${location.search}`;
+  lastFrom = (location.state as { from?: string } | null)?.from ?? '';
+  return null;
+};
 
 /**
  * Renders the app shell with language support, theme support and an in-memory router.
@@ -24,6 +34,7 @@ const renderApp = (entry = '/glossary', initialLang: 'en' | 'bn' = 'en') =>
       <ThemeProvider>
         <LanguageProvider initialLang={initialLang}>
           <AuthProvider>
+            <LocationProbe />
             <AppContent />
           </AuthProvider>
         </LanguageProvider>
@@ -31,16 +42,44 @@ const renderApp = (entry = '/glossary', initialLang: 'en' | 'bn' = 'en') =>
     </MemoryRouter>
   );
 
-const headerNav = () => screen.getByRole('navigation', { name: 'Main navigation' });
+const railNav = () => screen.getByRole('navigation', { name: 'Main navigation' });
 
 describe('App routing', () => {
-  it('exposes a nav entry and route for every primary page', () => {
-    expect(NAV_ITEMS.length).toBeGreaterThanOrEqual(6);
-    const hrefs = NAV_ITEMS.map(item => item.to);
-    expect(hrefs).toContain('/glossary');
-    expect(hrefs).toContain('/about');
-    expect(hrefs).toContain('/compare');
-    expect(hrefs).toContain('/reward-calculator');
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('exposes the four modes plus Banks and Learn in the rail', () => {
+    renderApp('/login');
+    const nav = railNav();
+    expect(within(nav).getByRole('link', { name: /Cards/ })).toHaveAttribute('href', '/cards');
+    expect(within(nav).getByRole('link', { name: /Save/ })).toHaveAttribute('href', '/deposits');
+    expect(within(nav).getByRole('link', { name: /Borrow/ })).toHaveAttribute('href', '/loans');
+    expect(within(nav).getByRole('link', { name: /Tools/ })).toHaveAttribute(
+      'href',
+      '/calculators'
+    );
+    expect(within(nav).getByRole('link', { name: /Banks/ })).toHaveAttribute('href', '/banks');
+    expect(within(nav).getByRole('link', { name: /Learn/ })).toHaveAttribute('href', '/guides');
+    expect(lastLocation).toBe('/login');
+  });
+
+  it('marks only the active sub-item with aria-current, never the mode link', () => {
+    renderApp('/glossary');
+    const nav = railNav();
+    // /glossary belongs to Learn; its sub-navigation is expanded. The mode
+    // link points at the remembered Learn URL, so it must not claim to be
+    // the current page — the Glossary sub NavLink is the single source.
+    expect(within(nav).getByRole('link', { name: /Learn/ })).not.toHaveAttribute('aria-current');
+    expect(within(nav).getByRole('link', { name: 'Glossary' })).toHaveAttribute(
+      'href',
+      '/glossary'
+    );
+    expect(within(nav).getByRole('link', { name: 'Glossary' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    expect(within(nav).getByRole('link', { name: /Cards/ })).not.toHaveAttribute('aria-current');
   });
 
   it('renders the glossary page at /glossary', () => {
@@ -59,11 +98,54 @@ describe('App routing', () => {
     expect(screen.queryByRole('heading', { name: 'Your account' })).not.toBeInTheDocument();
   });
 
-  it('offers Log in and Register in the header when signed out', () => {
+  it('redirects the retired personal paths under /my (guard then sends anonymous users to login)', () => {
+    renderApp('/saved');
+    // /saved -> /my/saved -> ProtectedRoute -> /login for anonymous visitors.
+    expect(lastLocation).toBe('/login');
+  });
+
+  it('redirects /search to /cards preserving the query string', () => {
+    renderApp('/search?categories=travel&page=2');
+    expect(lastLocation).toBe('/cards?categories=travel&page=2');
+  });
+
+  it('redirects /category/:slug to /cards with the category filter applied', () => {
+    renderApp('/category/travel');
+    expect(lastLocation).toBe('/cards?categories=travel');
+  });
+
+  it('redirects /category/islamic to the Islamic filter, not categories=islamic', () => {
+    renderApp('/category/islamic');
+    // The backend canonical taxonomy has no `islamic` slug: categories=islamic
+    // would return zero results. The local slug maps to is_islamic instead.
+    expect(lastLocation).toBe('/cards?is_islamic=true');
+  });
+
+  it('preserves the query string on /category redirects, category taking precedence', () => {
+    renderApp('/category/travel?utm_source=guide&page=2');
+    expect(lastLocation).toBe('/cards?categories=travel&utm_source=guide&page=2');
+  });
+
+  it('preserves the query string on the retired personal-path redirects', () => {
+    renderApp('/saved?tab=searches');
+    // Anonymous visitors end at /login, but ProtectedRoute remembers the
+    // intended destination — which must include the original query string.
+    expect(lastLocation).toBe('/login');
+    expect(lastFrom).toBe('/my/saved?tab=searches');
+  });
+
+  it('localizes the footer copyright line', () => {
+    const { unmount } = renderApp('/about', 'en');
+    expect(screen.getByText(/© \d{4} CreditMate AI\. All rights reserved\./)).toBeInTheDocument();
+    unmount();
+    renderApp('/about', 'bn');
+    expect(screen.getByText(/© \d{4} CreditMate AI\. সর্বস্বত্ব সংরক্ষিত।/)).toBeInTheDocument();
+  });
+
+  it('offers Sign in and Register in the rail when signed out', () => {
     renderApp('/glossary');
-    const nav = headerNav();
-    expect(within(nav).getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
-    expect(within(nav).getByRole('link', { name: 'Register' })).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: 'Sign in' })[0]).toHaveAttribute('href', '/login');
+    expect(screen.getAllByRole('link', { name: 'Register' })[0]).toHaveAttribute(
       'href',
       '/register'
     );
@@ -74,52 +156,42 @@ describe('App routing', () => {
     expect(screen.getByRole('heading', { name: 'About CreditMate AI' })).toBeInTheDocument();
   });
 
-  it('navigates between pages via the header nav', async () => {
+  it('navigates between pages via the rail sub-navigation', async () => {
     const user = userEvent.setup();
     renderApp('/glossary');
 
-    await user.click(within(headerNav()).getByRole('link', { name: 'About' }));
-    expect(screen.getByRole('heading', { name: 'About CreditMate AI' })).toBeInTheDocument();
+    await user.click(within(railNav()).getByRole('link', { name: 'Methodology' }));
+    expect(lastLocation).toBe('/methodology');
 
-    await user.click(within(headerNav()).getByRole('link', { name: 'Glossary' }));
+    await user.click(within(railNav()).getByRole('link', { name: 'Glossary' }));
     expect(screen.getByRole('heading', { name: 'Financial Terms Glossary' })).toBeInTheDocument();
   });
 
-  it('renders correct hrefs for the primary nav links', () => {
+  it('opens the command palette with Ctrl+K and closes it with Escape', async () => {
     renderApp('/glossary');
-    const nav = headerNav();
-    NAV_ITEMS.forEach(item => {
-      expect(within(nav).getByRole('link', { name: item.en })).toHaveAttribute('href', item.to);
-    });
+    fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
+    expect(await screen.findByRole('dialog', { name: /Search/ })).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Escape' });
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 });
 
 describe('App language switcher', () => {
-  it('renders English nav labels by default and Bengali after toggling', async () => {
+  it('renders English mode labels by default and Bengali after toggling', async () => {
     const user = userEvent.setup();
     renderApp('/about', 'en');
 
-    const nav = headerNav();
-    expect(within(nav).getByRole('link', { name: 'Home' })).toBeInTheDocument();
+    const nav = railNav();
+    expect(within(nav).getByRole('link', { name: /Cards/ })).toBeInTheDocument();
     expect(within(nav).getByRole('link', { name: 'Glossary' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Switch to Bengali' }));
-    expect(within(nav).getByRole('link', { name: 'হোম' })).toBeInTheDocument();
+    await user.click(screen.getAllByRole('button', { name: 'Language' })[0]);
+    expect(within(nav).getByRole('link', { name: /কার্ড/ })).toBeInTheDocument();
     expect(within(nav).getByRole('link', { name: 'শব্দকোষ' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Glossary' })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Switch to English' }));
-    expect(within(nav).getByRole('link', { name: 'Glossary' })).toBeInTheDocument();
-  });
-
-  it('localizes the footer copyright line', async () => {
-    const user = userEvent.setup();
-    renderApp('/about', 'en');
-
-    expect(screen.getByText(/All rights reserved/)).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Switch to Bengali' }));
-    expect(screen.getByText(/সর্বস্বত্ব সংরক্ষিত/)).toBeInTheDocument();
+    await user.click(screen.getAllByRole('button', { name: 'ভাষা' })[0]);
+    expect(within(nav).getByRole('link', { name: /Cards/ })).toBeInTheDocument();
   });
 });
 
@@ -159,7 +231,7 @@ describe('App analytics', () => {
 describe('App accessibility', () => {
   it('has a skip link that targets main content', () => {
     renderApp('/about');
-    const skipLink = screen.getByRole('link', { name: 'Skip to main content' });
+    const skipLink = screen.getByRole('link', { name: 'Skip to content' });
     expect(skipLink).toHaveAttribute('href', '#main-content');
   });
 

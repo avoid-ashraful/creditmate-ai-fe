@@ -78,6 +78,7 @@ export interface AccountsCopy {
   detailMaintenanceHeading: string;
   detailMaintenanceCol: string;
   feesHeading: string;
+  rankedByNetValue: string;
   feeCardLabel: string;
   noDebitCardLabel: string;
   feeCardFirstYearLabel: string;
@@ -207,6 +208,7 @@ const en: AccountsCopy = {
   detailMaintenanceHeading: 'Maintenance fee by balance (half-yearly)',
   detailMaintenanceCol: 'Charge per half-year',
   feesHeading: 'Fees & charges (excluding VAT)',
+  rankedByNetValue: 'Net annual value at your balance, highest first',
   feeCardLabel: 'Debit card (annual)',
   noDebitCardLabel: 'No debit card included',
   feeCardFirstYearLabel: 'Debit card (first year)',
@@ -335,6 +337,7 @@ const bn: AccountsCopy = {
   detailMaintenanceHeading: 'ব্যালেন্স অনুযায়ী রক্ষণাবেক্ষণ ফি (অর্ধবার্ষিক)',
   detailMaintenanceCol: 'প্রতি অর্ধবছরে চার্জ',
   feesHeading: 'ফি ও চার্জ (ভ্যাট ছাড়া)',
+  rankedByNetValue: 'আপনার ব্যালেন্সে নিট বার্ষিক মূল্য অনুযায়ী, সর্বোচ্চ প্রথমে',
   feeCardLabel: 'ডেবিট কার্ড (বার্ষিক)',
   noDebitCardLabel: 'ডেবিট কার্ড অন্তর্ভুক্ত নয়',
   feeCardFirstYearLabel: 'ডেবিট কার্ড (প্রথম বছর)',

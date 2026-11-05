@@ -30,7 +30,20 @@ test('CategoryCard renders name, description and link', () => {
   );
   expect(screen.getByText('Travel')).toBeInTheDocument();
   const link = screen.getByRole('link');
-  expect(link).toHaveAttribute('href', '/category/travel');
+  expect(link).toHaveAttribute('href', '/cards?categories=travel');
+});
+
+test('CategoryCard links islamic to the Islamic filter, not categories=islamic', () => {
+  const islamic = getCategoryBySlug('islamic');
+  expect(islamic).toBeDefined();
+  render(
+    <BrowserRouter>
+      <CategoryCard category={islamic as Category} />
+    </BrowserRouter>
+  );
+  // The backend canonical taxonomy has no `islamic` category slug; the
+  // card must land on the discovery Islamic filter instead.
+  expect(screen.getByRole('link')).toHaveAttribute('href', '/cards?is_islamic=true');
 });
 
 test('each category has SEO metadata', () => {
@@ -50,6 +63,9 @@ test('CategoryCard uses the visible Bengali text as its accessible name', () => 
     </LanguageProvider>
   );
   expect(screen.getByText('ভ্রমণ')).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /ভ্রমণ/ })).toHaveAttribute('href', '/category/travel');
+  expect(screen.getByRole('link', { name: /ভ্রমণ/ })).toHaveAttribute(
+    'href',
+    '/cards?categories=travel'
+  );
   expect(screen.queryByText('Travel')).not.toBeInTheDocument();
 });

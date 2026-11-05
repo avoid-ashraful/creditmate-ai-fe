@@ -101,7 +101,7 @@ const UnsubscribePage: React.FC = () => {
               </div>
               <h1>{copy.unsubscribeSuccess}</h1>
               <p>{copy.unsubscribeDescription}</p>
-              <Link to="/alerts" className="btn btn-primary">
+              <Link to="/my/alerts" className="btn btn-primary">
                 {copy.backToSettings}
               </Link>
             </div>

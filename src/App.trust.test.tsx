@@ -94,7 +94,7 @@ describe('legal and trust pages', () => {
     );
     expect(within(main).getByRole('link', { name: 'Search credit cards' })).toHaveAttribute(
       'href',
-      '/search'
+      '/cards'
     );
   });
 

@@ -88,7 +88,7 @@ describe('SavedPage', () => {
     expect(screen.getByText('Alpha Card, Beta Card')).toBeVisible();
     expect(screen.getByRole('link', { name: 'Travel cards' })).toHaveAttribute(
       'href',
-      '/saved/collections/9'
+      '/my/collections/9'
     );
     expect(screen.getAllByRole('button', { name: 'Rename' })).toHaveLength(2);
     expect(screen.getAllByRole('button', { name: 'Copy share link' })).toHaveLength(2);
