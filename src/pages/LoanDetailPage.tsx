@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
+import { ReviewsSection } from '../components/ReviewsSection';
 import { DetailSummary, Money, MoneyInput, TrustChip, VerdictStrip } from '../components/ui';
 import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
@@ -752,6 +753,13 @@ const LoanDetailPage: React.FC = () => {
               <p>{copy.historyEmpty}</p>
             )}
           </section>
+
+          <ReviewsSection
+            productType="loan"
+            productId={product.id}
+            productName={product.name}
+            productUrl={`/loans/${product.slug}`}
+          />
         </div>
       </div>
     </main>

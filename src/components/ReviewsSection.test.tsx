@@ -27,6 +27,27 @@ jest.mock('../services/reviews', () => {
       deleteReview: jest.fn(),
       voteHelpful: jest.fn(),
       transformReview: jest.fn(r => r),
+      getProductReviews: jest.fn(),
+      getProductSummary: jest.fn(),
+      createProductReview: jest.fn(),
+      updateProductReview: jest.fn(),
+      deleteProductReview: jest.fn(),
+      voteProductHelpful: jest.fn(),
+      getOwnProductReview: jest.fn().mockResolvedValue(null),
+      getComments: jest.fn().mockResolvedValue([]),
+      createComment: jest.fn(),
+      updateComment: jest.fn(),
+      deleteComment: jest.fn(),
+      transformProductReview: jest.fn(r => ({
+        ...r,
+        productId: r.product,
+        productType: r.product_type,
+        helpfulCount: r.helpful_count,
+        reviewerName: r.reviewer_name,
+        created: new Date(r.created),
+        modified: new Date(r.modified),
+      })),
+      transformComment: jest.fn(c => c),
     },
   };
 });
@@ -113,9 +134,9 @@ const renderWithProviders = (
               path="/card/:bankSlug/:cardSlug"
               element={
                 <ReviewsSection
-                  cardId={1}
-                  cardName="Test Card"
-                  cardUrl="/card/test-bank/test-card"
+                  productId={1}
+                  productName="Test Card"
+                  productUrl="/card/test-bank/test-card"
                 />
               }
             />

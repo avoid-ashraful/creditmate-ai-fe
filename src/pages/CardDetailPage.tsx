@@ -1159,9 +1159,10 @@ const CardDetailPage: React.FC = () => {
                 label: detail.tabReviews,
                 content: (
                   <ReviewsSection
-                    cardId={card.id}
-                    cardName={card.name}
-                    cardUrl={cardPath || window.location.pathname}
+                    productType="card"
+                    productId={card.id}
+                    productName={card.name}
+                    productUrl={cardPath || window.location.pathname}
                   />
                 ),
               },
