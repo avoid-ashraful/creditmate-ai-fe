@@ -234,7 +234,7 @@ const RecommendationQuiz: React.FC = () => {
   };
 
   const handleSeeAllCards = () => {
-    navigate('/');
+    navigate('/cards');
   };
 
   const handleShareResult = () => {

@@ -118,9 +118,80 @@ describe('CommandPalette', () => {
     await user.keyboard('{Enter}');
     expect(onClose).toHaveBeenCalled();
     expect(currentPath).toBe('/card/example-bank/platinum-visa-card');
-    // The pick is remembered as a recent.
-    const recents = JSON.parse(window.localStorage.getItem('creditmate.paletteRecents.v1') ?? '[]');
+    // The pick is remembered as a recent in the guest scope.
+    const recents = JSON.parse(
+      window.localStorage.getItem('creditmate.paletteRecents.v1:guest') ?? '[]'
+    );
     expect(recents).toHaveLength(1);
+  });
+
+  it('keeps option ids unique when a recent duplicates an action, and points aria-activedescendant at the highlighted copy', async () => {
+    // Seed a recent that is also an action (the EMI calculator).
+    window.localStorage.setItem(
+      'creditmate.paletteRecents.v1:guest',
+      JSON.stringify([
+        {
+          id: 'action-emi',
+          group: 'recent',
+          label: 'EMI calculator',
+          href: '/calculators',
+          keywords: 'emi calculator loan instalment',
+        },
+      ])
+    );
+    const user = userEvent.setup();
+    renderPalette();
+    const input = await screen.findByRole('combobox');
+    const options = screen.getAllByRole('option', { name: /EMI calculator/ });
+    expect(options).toHaveLength(2);
+    const [recentCopy, actionsCopy] = options;
+    // Ids are namespaced per group — no duplicates in the document.
+    expect(recentCopy.id).toBe('cm-palette-option-recent-action-emi');
+    expect(actionsCopy.id).toBe('cm-palette-option-actions-action-emi');
+    const allIds = screen.getAllByRole('option').map(option => option.id);
+    expect(new Set(allIds).size).toBe(allIds.length);
+    // Arrow down past the recent and the first two actions to the Actions
+    // copy of the EMI calculator (flat order: recent, eligibility,
+    // compare, emi).
+    await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}');
+    expect(input.getAttribute('aria-activedescendant')).toBe(actionsCopy.id);
+    expect(actionsCopy).toHaveAttribute('aria-selected', 'true');
+    expect(recentCopy).toHaveAttribute('aria-selected', 'false');
+  });
+
+  it('scopes recents per user: another account does not see them', async () => {
+    window.localStorage.setItem(
+      'creditmate.paletteRecents.v1:user-7',
+      JSON.stringify([
+        {
+          id: 'action-emi',
+          group: 'recent',
+          label: 'EMI calculator',
+          href: '/calculators',
+          keywords: 'emi calculator loan instalment',
+        },
+      ])
+    );
+    const view = render(
+      <LanguageProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <CommandPalette userId={8} onClose={jest.fn()} />
+        </MemoryRouter>
+      </LanguageProvider>
+    );
+    await screen.findByRole('combobox');
+    expect(screen.getAllByRole('option', { name: /EMI calculator/ })).toHaveLength(1);
+    view.unmount();
+    // Signed in as user 7: the recent appears alongside the action.
+    render(
+      <LanguageProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <CommandPalette userId={7} onClose={jest.fn()} />
+        </MemoryRouter>
+      </LanguageProvider>
+    );
+    await screen.findByRole('combobox');
+    expect(screen.getAllByRole('option', { name: /EMI calculator/ })).toHaveLength(2);
   });
 
   it('Escape closes the palette', async () => {

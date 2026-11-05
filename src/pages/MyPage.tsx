@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom';
 import { Button, ConfirmDialog, useToast } from '../components/ui';
 import { AUTH_STATUS, useAuth } from '../hooks/AuthProvider';
 import { useShortlist } from '../hooks/ShortlistProvider';
-import { getShellCopy, useLanguage } from '../locales';
+import { fillCopy, getShellCopy, useLanguage } from '../locales';
 import { savedService } from '../services/saved';
 import { deleteSavedSearch, listSavedSearches, SavedSearch } from '../services/savedSearches';
 
@@ -147,7 +147,10 @@ const MyPage: React.FC = () => {
         </h2>
         {savedCounts ? (
           <p className="cm-discovery-note">
-            {savedCounts.comparisons} · {savedCounts.collections}
+            {fillCopy(copy.mySavedCounts, {
+              comparisons: String(savedCounts.comparisons),
+              collections: String(savedCounts.collections),
+            })}
           </p>
         ) : null}
         <p>

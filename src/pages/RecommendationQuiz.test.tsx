@@ -351,6 +351,27 @@ describe('RecommendationQuiz', () => {
       expect(screen.getByText(/See All Cards/i)).toBeInTheDocument();
       expect(screen.getByText(/Retake Quiz/i)).toBeInTheDocument();
     });
+
+    it('"See All Cards" navigates to the card discovery at /cards', async () => {
+      renderQuiz();
+      const user = userEvent;
+
+      await waitFor(() => {
+        expect(screen.getByText(/What's your typical monthly spending/i)).toBeInTheDocument();
+      });
+
+      for (let i = 0; i < 5; i++) {
+        const btn = screen.getByRole('button', {
+          name: /Next|See Results/i,
+        });
+        await user.click(btn);
+      }
+
+      const seeAll = await screen.findByRole('button', { name: /See All Cards/i });
+      await user.click(seeAll);
+      // The catalogue lives at /cards now; Home (/) is the dashboard.
+      expect(window.location.pathname).toBe('/cards');
+    });
   });
 
   describe('Shared Results', () => {

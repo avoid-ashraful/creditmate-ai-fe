@@ -120,16 +120,41 @@ const SearchRedirect: React.FC = () => {
   return <Navigate to={`/cards${location.search}`} replace />;
 };
 
-/** /category/:slug folds into /cards with the category applied as a filter. */
+/**
+ * /category/:slug folds into /cards with the category applied as a filter.
+ * The original query string is preserved, with the category parameter
+ * taking precedence. The local-only `islamic` slug maps to the discovery
+ * Islamic filter (`is_islamic`) — the backend canonical taxonomy has no
+ * `islamic` category slug (see utils/categoryPath).
+ */
 const CategoryRedirect: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  return <Navigate to={`/cards?categories=${encodeURIComponent(slug ?? '')}`} replace />;
+  const location = useLocation();
+  const rest = new URLSearchParams(location.search);
+  const params = new URLSearchParams();
+  if (slug === 'islamic') {
+    params.set('is_islamic', 'true');
+    rest.delete('categories');
+    rest.delete('is_islamic');
+  } else {
+    params.set('categories', slug ?? '');
+    rest.delete('categories');
+  }
+  rest.forEach((value, key) => params.append(key, value));
+  return <Navigate to={`/cards?${params.toString()}`} replace />;
+};
+
+/** In-app redirect that carries the original query string along. */
+const QueryRedirect: React.FC<{ to: string }> = ({ to }) => {
+  const location = useLocation();
+  return <Navigate to={`${to}${location.search}`} replace />;
 };
 
 /** /saved/collections/:id moved under /my (Section 2.2 route map). */
 const CollectionRedirect: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  return <Navigate to={`/my/collections/${id ?? ''}`} replace />;
+  const location = useLocation();
+  return <Navigate to={`/my/collections/${id ?? ''}${location.search}`} replace />;
 };
 
 const lazyRoute = (label: string, element: React.ReactNode) => (
@@ -195,10 +220,10 @@ export const AppRoutes: React.FC = () => {
         />
 
         {/* Permanent in-app redirects from the pre-redesign paths. */}
-        <Route path="/saved" element={<Navigate to="/my/saved" replace />} />
+        <Route path="/saved" element={<QueryRedirect to="/my/saved" />} />
         <Route path="/saved/collections/:id" element={<CollectionRedirect />} />
-        <Route path="/account" element={<Navigate to="/my/profile" replace />} />
-        <Route path="/alerts" element={<Navigate to="/my/alerts" replace />} />
+        <Route path="/account" element={<QueryRedirect to="/my/profile" />} />
+        <Route path="/alerts" element={<QueryRedirect to="/my/alerts" />} />
 
         <Route
           path="/perfect-card-finder"

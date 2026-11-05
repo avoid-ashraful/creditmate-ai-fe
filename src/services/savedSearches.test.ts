@@ -20,11 +20,28 @@ describe('savedSearches service', () => {
   });
 
   it('deletes by id within the same scope only', () => {
-    const saved = saveSearch(7, { name: 'Mine', path: '/cards', query: 'a=1' });
+    const { entry: saved } = saveSearch(7, { name: 'Mine', path: '/cards', query: 'a=1' });
     deleteSavedSearch(null, saved.id);
     expect(listSavedSearches(7)).toHaveLength(1);
     deleteSavedSearch(7, saved.id);
     expect(listSavedSearches(7)).toHaveLength(0);
+  });
+
+  it('reports persistence honestly when storage rejects the write', () => {
+    const ok = saveSearch(7, { name: 'Mine', path: '/cards', query: 'a=1' });
+    expect(ok.persisted).toBe(true);
+
+    const setItem = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota exceeded');
+    });
+    try {
+      const failed = saveSearch(7, { name: 'Lost', path: '/cards', query: 'b=2' });
+      expect(failed.persisted).toBe(false);
+    } finally {
+      setItem.mockRestore();
+    }
+    // The failed save never landed in the stored list.
+    expect(listSavedSearches(7).map(s => s.name)).toEqual(['Mine']);
   });
 
   it('imports the legacy unscoped saves once, as /cards searches', () => {
@@ -57,6 +74,29 @@ describe('savedSearches service', () => {
     expect(imported).toBe(1);
     expect(listSavedSearches(9).map(s => s.name)).toEqual(['Guest hunt']);
     expect(listSavedSearches(null)).toEqual([]);
+  });
+
+  it('folds in guest saves made after the first sign-in, without duplicating', () => {
+    // First sign-in: the one-time legacy import runs (nothing to import).
+    expect(importLegacySavedSearches(9)).toBe(0);
+    // Signed out again, the user saves as a guest…
+    const { entry: guestSave } = saveSearch(null, {
+      name: 'Later guest hunt',
+      path: '/cards',
+      query: 'search=visa',
+    });
+    // …and the next sign-in still folds it into the account.
+    expect(importLegacySavedSearches(9)).toBe(1);
+    expect(listSavedSearches(9).map(s => s.name)).toEqual(['Later guest hunt']);
+    expect(listSavedSearches(null)).toEqual([]);
+    // A repeat sign-in imports nothing and duplicates nothing.
+    expect(importLegacySavedSearches(9)).toBe(0);
+    expect(listSavedSearches(9)).toHaveLength(1);
+    // Even if the same guest entry reappears (its clear-write failed on a
+    // previous run), de-duplication by id keeps the account list clean.
+    window.localStorage.setItem('creditmate.savedSearches.v1:guest', JSON.stringify([guestSave]));
+    expect(importLegacySavedSearches(9)).toBe(0);
+    expect(listSavedSearches(9)).toHaveLength(1);
   });
 
   it('survives a corrupt legacy payload without throwing', () => {

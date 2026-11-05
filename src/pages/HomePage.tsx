@@ -5,7 +5,7 @@
  * coverage, a search entry into the command palette, the user's numbers
  * (profile strip), four mode entry cards whose headlines are computed by
  * the same scenario engines the discovery pages use, shortlist & saved
- * continuation, edition-level "What changed" from the latest verified
+ * continuation, the most recently verified products from the latest
  * data, a Learn strip, and the trust strip. Every figure is fault-
  * isolated: a failed headline degrades to an invitation, never a
  * fabricated number.
@@ -42,7 +42,7 @@ import { organizationJsonLd, websiteJsonLd } from '../utils/structuredData';
 
 import './HomePage.css';
 
-interface ChangedEntry {
+interface VerifiedEntry {
   key: string;
   name: string;
   bankName: string;
@@ -80,7 +80,7 @@ const HomePage: React.FC = () => {
     account: string | null;
     loan: string | null;
   }>({ card: null, deposit: null, account: null, loan: null });
-  const [changed, setChanged] = useState<ChangedEntry[] | null>(null);
+  const [recentlyVerified, setRecentlyVerified] = useState<VerifiedEntry[] | null>(null);
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
 
   const [draftBalance, setDraftBalance] = useState<number | null>(profile.balance);
@@ -187,7 +187,10 @@ const HomePage: React.FC = () => {
           if (cheapest.atMaxRate) {
             next.loan = fillCopy(copy.cheapestLoanHeadline, {
               amount: formatTaka(profile.loanAmount),
-              value: formatTaka(cheapest.atMaxRate.emi),
+              // EMI range across the band, as on the loans page: the low
+              // end at the band's minimum rate, the high end at its max.
+              min: formatTaka(cheapest.atMinRate?.emi ?? cheapest.atMaxRate.emi),
+              max: formatTaka(cheapest.atMaxRate.emi),
             });
           }
         }
@@ -208,7 +211,9 @@ const HomePage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.loanAmount, profile.balance, lang]);
 
-  // What changed — edition level: most recently verified products.
+  // Recently verified — the products with the newest verification dates.
+  // Verification is all this data supports: nothing here claims a rate
+  // *changed* (the real change feed is a later phase).
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -220,7 +225,7 @@ const HomePage: React.FC = () => {
         apiService.getCreditCards({ page_size: 100, page: 1 }).catch(() => null),
       ]);
       if (cancelled) return;
-      const entries: ChangedEntry[] = [];
+      const entries: VerifiedEntry[] = [];
       deposits?.results.forEach(product => {
         const date = product.verifiedAt ?? product.rateEffectiveDate;
         if (!date) return;
@@ -259,7 +264,7 @@ const HomePage: React.FC = () => {
         });
       });
       entries.sort((a, b) => b.date.localeCompare(a.date));
-      setChanged(entries.slice(0, 5));
+      setRecentlyVerified(entries.slice(0, 5));
     })();
     return () => {
       cancelled = true;
@@ -411,23 +416,19 @@ const HomePage: React.FC = () => {
         )}
       </section>
 
-      <section aria-labelledby="home-changed-heading">
-        <h2 id="home-changed-heading">{copy.changedHeading}</h2>
-        <p className="cm-discovery-note">{copy.changedIntro}</p>
-        {changed === null ? null : changed.length === 0 ? (
-          <p className="cm-discovery-note">{copy.changedEmpty}</p>
+      <section aria-labelledby="home-verified-heading">
+        <h2 id="home-verified-heading">{copy.verifiedHeading}</h2>
+        <p className="cm-discovery-note">{copy.verifiedIntro}</p>
+        {recentlyVerified === null ? null : recentlyVerified.length === 0 ? (
+          <p className="cm-discovery-note">{copy.verifiedEmpty}</p>
         ) : (
           <ul className="cm-home-changed">
-            {changed.map(entry => (
+            {recentlyVerified.map(entry => (
               <li key={entry.key} className="cm-home-changed-item">
                 <Link to={entry.href}>
                   {entry.name} · {entry.bankName}
                 </Link>
-                <TrustChip
-                  source={entry.source}
-                  dateLabel={formatDate(entry.date)}
-                  marker="changed"
-                />
+                <TrustChip source={entry.source} dateLabel={formatDate(entry.date)} />
               </li>
             ))}
           </ul>

@@ -223,12 +223,15 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
   const renderModeBlock = (mode: ModeDefinition, showSubs: boolean) => {
     const isActive = activeMode === mode.id;
+    // The mode link gets active styling only — never aria-current. Its href
+    // is the mode's remembered URL, which is not necessarily the current
+    // page; the single aria-current="page" source is the active sub
+    // NavLink rendered below (react-router sets it from the real route).
     return (
       <div key={mode.id} className="cm-rail-mode">
         <Link
           to={modeTarget(mode, memory)}
           className={isActive ? 'cm-rail-mode-link is-active' : 'cm-rail-mode-link'}
-          aria-current={isActive ? 'page' : undefined}
           title={collapsed ? modeLabel(copy, mode.id) : undefined}
         >
           <ModeIcon id={mode.id} />
@@ -255,7 +258,12 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
     );
   };
 
-  const trayBarVisible = count > 0 && location.pathname !== '/compare';
+  // Plan Section 6: the standalone shortlist bar appears only on
+  // discovery/listing screens and Home. Detail pages, calculators, the
+  // Plan/compare workspace and every other route suppress it (their own
+  // sticky summaries carry the count there in later phases).
+  const TRAY_BAR_PATHS = ['/', '/cards', '/deposits', '/loans', '/accounts'];
+  const trayBarVisible = count > 0 && TRAY_BAR_PATHS.includes(location.pathname);
 
   return (
     <div className={collapsed ? 'cm-layout is-collapsed' : 'cm-layout'} lang={lang}>
@@ -380,7 +388,9 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
               </ul>
             </nav>
           </div>
-          <p className="cm-footer-copy">© {new Date().getFullYear()} CreditMate AI</p>
+          <p className="cm-footer-copy">
+            © {new Date().getFullYear()} CreditMate AI. {copy.footerRights}
+          </p>
         </footer>
       </div>
 
@@ -405,7 +415,6 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
               key={mode.id}
               to={modeTarget(mode, memory)}
               className={isActive ? 'cm-bottombar-item is-active' : 'cm-bottombar-item'}
-              aria-current={isActive ? 'page' : undefined}
             >
               <ModeIcon id={mode.id} />
               <span>{modeLabel(copy, mode.id)}</span>
@@ -459,7 +468,9 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         </div>
       ) : null}
 
-      {paletteOpen ? <CommandPalette onClose={() => setPaletteOpen(false)} /> : null}
+      {paletteOpen ? (
+        <CommandPalette userId={user?.id ?? null} onClose={() => setPaletteOpen(false)} />
+      ) : null}
       {trayOpen ? <ShortlistTray onClose={() => setTrayOpen(false)} /> : null}
     </div>
   );

@@ -205,6 +205,18 @@ describe('buildSitemapEntries', () => {
     });
   });
 
+  test('emits the Islamic-filter URL for the islamic slug, never categories=islamic', () => {
+    const entries = buildSitemapEntries({
+      categorySlugs: ['travel', 'islamic'],
+      guides: [],
+      cards: [],
+    });
+
+    const paths = entries.map(entry => entry.path);
+    expect(paths).toContain('/cards?is_islamic=true');
+    expect(paths).not.toContain('/cards?categories=islamic');
+  });
+
   test('does not duplicate a static path that a category also produces', () => {
     const entries = buildSitemapEntries({
       staticPaths: ['/cards?categories=travel'],

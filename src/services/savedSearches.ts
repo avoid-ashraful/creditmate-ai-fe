@@ -5,9 +5,13 @@
  *
  * History: the old Advanced Search page stored normalized queries in the
  * unscoped localStorage key `savedSearches` and confirmed with `alert()`.
- * The first time a user signs in, those entries (and any guest-scope saves)
- * are imported into their account scope exactly once. Server-side storage
- * of saved searches is a Phase 3 backend item (plan Section 9, D4).
+ * The first time a user signs in, those legacy entries are imported into
+ * their account scope exactly once (per-user flag). Guest-scope saves are
+ * different: they fold into the account on EVERY sign-in where any exist,
+ * so searches saved as a guest after an earlier sign-in are not stranded.
+ * The fold-in de-duplicates by entry id, so a repeated run is harmless.
+ * Server-side storage of saved searches is a Phase 3 backend item
+ * (plan Section 9, D4).
  */
 
 export interface SavedSearch {
@@ -48,21 +52,31 @@ const readList = (key: string): SavedSearch[] => {
   }
 };
 
-const writeList = (key: string, list: SavedSearch[]): void => {
+/** Returns whether the write actually landed in storage. */
+const writeList = (key: string, list: SavedSearch[]): boolean => {
   try {
     window.localStorage.setItem(key, JSON.stringify(list));
+    return true;
   } catch {
-    // Storage unavailable — saves become session-only.
+    // Storage unavailable — saves become session-only, and callers must
+    // not claim the search was saved.
+    return false;
   }
 };
 
 export const listSavedSearches = (userId: number | null | undefined): SavedSearch[] =>
   readList(storageKey(userId));
 
+export interface SaveSearchResult {
+  entry: SavedSearch;
+  /** False when storage rejected the write — the save did not persist. */
+  persisted: boolean;
+}
+
 export const saveSearch = (
   userId: number | null | undefined,
   input: { name: string; path: string; query: string }
-): SavedSearch => {
+): SaveSearchResult => {
   const entry: SavedSearch = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: input.name,
@@ -71,8 +85,8 @@ export const saveSearch = (
     savedAt: new Date().toISOString(),
   };
   const list = readList(storageKey(userId));
-  writeList(storageKey(userId), [entry, ...list]);
-  return entry;
+  const persisted = writeList(storageKey(userId), [entry, ...list]);
+  return { entry, persisted };
 };
 
 export const deleteSavedSearch = (userId: number | null | undefined, id: string): void => {
@@ -96,60 +110,80 @@ const legacyQueryString = (entry: LegacySavedSearch): string | null => {
 };
 
 /**
- * One-time import of pre-redesign saves into a signed-in user's scope.
- * Returns how many searches were imported. Safe to call on every sign-in:
- * a per-user flag makes later calls no-ops.
+ * Imports saved searches into a signed-in user's scope. Returns how many
+ * searches were imported. Safe to call on every sign-in:
+ *
+ * - The pre-redesign unscoped (legacy) key imports exactly once, gated by
+ *   a per-user flag.
+ * - Guest-scope saves fold in whenever any exist — including saves made
+ *   after an earlier sign-in — and the guest list is then cleared.
+ *
+ * Both paths de-duplicate by entry id against what the account already
+ * holds, so a run whose flag/clear writes failed part-way cannot create
+ * duplicates when it repeats.
  */
 export const importLegacySavedSearches = (userId: number): number => {
   const flagKey = `${IMPORT_FLAG_PREFIX}:${userId}`;
+  let legacyDone = false;
   try {
-    if (window.localStorage.getItem(flagKey)) return 0;
+    legacyDone = Boolean(window.localStorage.getItem(flagKey));
   } catch {
+    // Storage unreadable: nothing can persist, so there is nothing to do.
     return 0;
   }
 
   let imported = 0;
   const target = readList(storageKey(userId));
+  const seen = new Set(target.map(entry => entry.id));
+  const pushUnique = (entry: SavedSearch): void => {
+    if (seen.has(entry.id)) return;
+    seen.add(entry.id);
+    target.push(entry);
+    imported += 1;
+  };
 
-  // 1. The pre-redesign unscoped key (advanced-search saves were card searches).
-  try {
-    const raw = window.localStorage.getItem(LEGACY_KEY);
-    if (raw) {
-      const legacy = JSON.parse(raw) as LegacySavedSearch[];
-      if (Array.isArray(legacy)) {
-        legacy.forEach((entry, index) => {
-          const query = legacyQueryString(entry);
-          if (!query) return;
-          target.push({
-            id: `legacy-${index}-${entry.savedAt ?? 'unknown'}`,
-            name: 'Card search',
-            path: '/cards',
-            query,
-            savedAt: entry.savedAt ?? new Date().toISOString(),
+  // 1. The pre-redesign unscoped key (advanced-search saves were card
+  // searches) — one-time only, behind the per-user flag.
+  if (!legacyDone) {
+    try {
+      const raw = window.localStorage.getItem(LEGACY_KEY);
+      if (raw) {
+        const legacy = JSON.parse(raw) as LegacySavedSearch[];
+        if (Array.isArray(legacy)) {
+          legacy.forEach((entry, index) => {
+            const query = legacyQueryString(entry);
+            if (!query) return;
+            pushUnique({
+              id: `legacy-${index}-${entry.savedAt ?? 'unknown'}`,
+              name: 'Card search',
+              path: '/cards',
+              query,
+              savedAt: entry.savedAt ?? new Date().toISOString(),
+            });
           });
-          imported += 1;
-        });
+        }
+        window.localStorage.removeItem(LEGACY_KEY);
       }
-      window.localStorage.removeItem(LEGACY_KEY);
+    } catch {
+      // A corrupt legacy payload must never block sign-in.
     }
-  } catch {
-    // A corrupt legacy payload must never block sign-in.
+    try {
+      window.localStorage.setItem(flagKey, new Date().toISOString());
+    } catch {
+      // If the flag can't persist the legacy import may repeat; the
+      // entries carry stable legacy ids and pushUnique de-duplicates by
+      // id, so a repeat stays harmless.
+    }
   }
 
-  // 2. Anything saved while signed out on this device joins the account too.
+  // 2. Anything saved while signed out on this device joins the account
+  // too — on every sign-in, not just the first.
   const guestList = readList(storageKey(null));
   if (guestList.length > 0) {
-    target.push(...guestList);
-    imported += guestList.length;
+    guestList.forEach(pushUnique);
     writeList(storageKey(null), []);
   }
 
   writeList(storageKey(userId), target);
-  try {
-    window.localStorage.setItem(flagKey, new Date().toISOString());
-  } catch {
-    // If the flag can't persist the import may repeat; entries carry stable
-    // legacy ids, and de-duplication below keeps that harmless.
-  }
   return imported;
 };

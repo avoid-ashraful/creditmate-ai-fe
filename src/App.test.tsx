@@ -14,9 +14,11 @@ jest.mock('./services/api');
 
 /** Records the current location so redirect behaviour can be asserted. */
 let lastLocation = '';
+let lastFrom = '';
 const LocationProbe: React.FC = () => {
   const location = useLocation();
   lastLocation = `${location.pathname}${location.search}`;
+  lastFrom = (location.state as { from?: string } | null)?.from ?? '';
   return null;
 };
 
@@ -62,17 +64,20 @@ describe('App routing', () => {
     expect(lastLocation).toBe('/login');
   });
 
-  it('marks the active mode with aria-current', () => {
+  it('marks only the active sub-item with aria-current, never the mode link', () => {
     renderApp('/glossary');
     const nav = railNav();
-    // /glossary belongs to Learn; its sub-navigation is expanded.
-    expect(within(nav).getByRole('link', { name: /Learn/ })).toHaveAttribute(
-      'aria-current',
-      'page'
-    );
+    // /glossary belongs to Learn; its sub-navigation is expanded. The mode
+    // link points at the remembered Learn URL, so it must not claim to be
+    // the current page — the Glossary sub NavLink is the single source.
+    expect(within(nav).getByRole('link', { name: /Learn/ })).not.toHaveAttribute('aria-current');
     expect(within(nav).getByRole('link', { name: 'Glossary' })).toHaveAttribute(
       'href',
       '/glossary'
+    );
+    expect(within(nav).getByRole('link', { name: 'Glossary' })).toHaveAttribute(
+      'aria-current',
+      'page'
     );
     expect(within(nav).getByRole('link', { name: /Cards/ })).not.toHaveAttribute('aria-current');
   });
@@ -107,6 +112,34 @@ describe('App routing', () => {
   it('redirects /category/:slug to /cards with the category filter applied', () => {
     renderApp('/category/travel');
     expect(lastLocation).toBe('/cards?categories=travel');
+  });
+
+  it('redirects /category/islamic to the Islamic filter, not categories=islamic', () => {
+    renderApp('/category/islamic');
+    // The backend canonical taxonomy has no `islamic` slug: categories=islamic
+    // would return zero results. The local slug maps to is_islamic instead.
+    expect(lastLocation).toBe('/cards?is_islamic=true');
+  });
+
+  it('preserves the query string on /category redirects, category taking precedence', () => {
+    renderApp('/category/travel?utm_source=guide&page=2');
+    expect(lastLocation).toBe('/cards?categories=travel&utm_source=guide&page=2');
+  });
+
+  it('preserves the query string on the retired personal-path redirects', () => {
+    renderApp('/saved?tab=searches');
+    // Anonymous visitors end at /login, but ProtectedRoute remembers the
+    // intended destination — which must include the original query string.
+    expect(lastLocation).toBe('/login');
+    expect(lastFrom).toBe('/my/saved?tab=searches');
+  });
+
+  it('localizes the footer copyright line', () => {
+    const { unmount } = renderApp('/about', 'en');
+    expect(screen.getByText(/© \d{4} CreditMate AI\. All rights reserved\./)).toBeInTheDocument();
+    unmount();
+    renderApp('/about', 'bn');
+    expect(screen.getByText(/© \d{4} CreditMate AI\. সর্বস্বত্ব সংরক্ষিত।/)).toBeInTheDocument();
   });
 
   it('offers Sign in and Register in the rail when signed out', () => {

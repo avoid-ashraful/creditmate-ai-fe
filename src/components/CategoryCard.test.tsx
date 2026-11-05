@@ -33,6 +33,19 @@ test('CategoryCard renders name, description and link', () => {
   expect(link).toHaveAttribute('href', '/cards?categories=travel');
 });
 
+test('CategoryCard links islamic to the Islamic filter, not categories=islamic', () => {
+  const islamic = getCategoryBySlug('islamic');
+  expect(islamic).toBeDefined();
+  render(
+    <BrowserRouter>
+      <CategoryCard category={islamic as Category} />
+    </BrowserRouter>
+  );
+  // The backend canonical taxonomy has no `islamic` category slug; the
+  // card must land on the discovery Islamic filter instead.
+  expect(screen.getByRole('link')).toHaveAttribute('href', '/cards?is_islamic=true');
+});
+
 test('each category has SEO metadata', () => {
   CATEGORIES.forEach(category => {
     expect(category.metaTitle).toBeTruthy();

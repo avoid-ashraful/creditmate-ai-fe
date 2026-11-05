@@ -37,9 +37,9 @@ export interface HomeCopy {
   shortlistEmpty: string;
   shortlistView: string;
   savedHeading: string;
-  changedHeading: string;
-  changedEmpty: string;
-  changedIntro: string;
+  verifiedHeading: string;
+  verifiedEmpty: string;
+  verifiedIntro: string;
   learnHeading: string;
   trustHeading: string;
   trustBody: string;
@@ -73,7 +73,7 @@ const en: HomeCopy = {
   modeToolsBlurb: 'Eligibility, calculators and side-by-side comparison.',
   bestDepositHeadline: 'Best net return on {amount} for {months} months: {value} ({name})',
   bestAccountHeadline: 'Best net value at a {balance} balance: {value} a year ({name})',
-  cheapestLoanHeadline: 'Cheapest personal loan at {amount}: EMI {value} / month',
+  cheapestLoanHeadline: 'Cheapest personal loan at {amount}: EMI {min}–{max} / month',
   topCardHeadline: 'Highest CreditMate Score: {score} — {name}',
   headlineUnavailable: 'Live figures are unavailable right now — open the page to compare.',
   explore: 'Explore',
@@ -82,9 +82,9 @@ const en: HomeCopy = {
     'Nothing shortlisted yet. Add products while you compare and they will wait for you here.',
   shortlistView: 'Open shortlist',
   savedHeading: 'Saved searches',
-  changedHeading: 'What changed',
-  changedEmpty: 'No rate changes recorded in the latest data edition.',
-  changedIntro: 'The most recently verified product updates from our nightly checks:',
+  verifiedHeading: 'Recently verified',
+  verifiedEmpty: 'No recently verified products to show yet.',
+  verifiedIntro: 'The products most recently verified in our nightly checks:',
   learnHeading: 'Learn before you decide',
   trustHeading: 'How CreditMate stays honest',
   trustBody:
@@ -119,7 +119,7 @@ const bn: HomeCopy = {
   modeToolsBlurb: 'যোগ্যতা, ক্যালকুলেটর ও পাশাপাশি তুলনা।',
   bestDepositHeadline: '{months} মাসে {amount}-এর সেরা নিট রিটার্ন: {value} ({name})',
   bestAccountHeadline: '{balance} ব্যালান্সে সেরা নিট মূল্য: বছরে {value} ({name})',
-  cheapestLoanHeadline: '{amount}-এ সবচেয়ে সস্তা ব্যক্তিগত ঋণ: ইএমআই {value} / মাস',
+  cheapestLoanHeadline: '{amount}-এ সবচেয়ে সস্তা ব্যক্তিগত ঋণ: ইএমআই {min}–{max} / মাস',
   topCardHeadline: 'সর্বোচ্চ ক্রেডিটমেট স্কোর: {score} — {name}',
   headlineUnavailable: 'লাইভ হিসাব এখন পাওয়া যাচ্ছে না — তুলনা করতে পৃষ্ঠাটি খুলুন।',
   explore: 'দেখুন',
@@ -128,9 +128,9 @@ const bn: HomeCopy = {
     'এখনো কিছু তালিকাভুক্ত নয়। তুলনা করার সময় পণ্য যোগ করুন, সেগুলো এখানে অপেক্ষা করবে।',
   shortlistView: 'তালিকা খুলুন',
   savedHeading: 'সংরক্ষিত অনুসন্ধান',
-  changedHeading: 'কী বদলেছে',
-  changedEmpty: 'সর্বশেষ ডেটা সংস্করণে কোনো হার পরিবর্তন রেকর্ড হয়নি।',
-  changedIntro: 'আমাদের রাতের যাচাই থেকে সবচেয়ে সম্প্রতি যাচাইকৃত পণ্যের হালনাগাদ:',
+  verifiedHeading: 'সম্প্রতি যাচাইকৃত',
+  verifiedEmpty: 'এখনো দেখানোর মতো সম্প্রতি যাচাইকৃত কোনো পণ্য নেই।',
+  verifiedIntro: 'আমাদের রাতের যাচাইয়ে সবচেয়ে সম্প্রতি যাচাইকৃত পণ্যসমূহ:',
   learnHeading: 'সিদ্ধান্তের আগে জানুন',
   trustHeading: 'ক্রেডিটমেট কীভাবে সৎ থাকে',
   trustBody:

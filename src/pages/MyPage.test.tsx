@@ -98,6 +98,14 @@ describe('MyPage', () => {
     );
   });
 
+  it('labels the saved-item counts with what they count', async () => {
+    await authenticated();
+    renderWithAuth(routes, { route: '/my' });
+    // 2 comparisons and 1 collection from the mocked saved service — the
+    // numbers must carry their labels, not sit as bare "2 · 1".
+    expect(await screen.findByText('2 comparisons · 1 collections')).toBeInTheDocument();
+  });
+
   it('deletes a saved search through the confirm dialog, with a toast', async () => {
     const user = userEvent.setup();
     await authenticated();

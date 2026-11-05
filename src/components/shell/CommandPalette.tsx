@@ -37,8 +37,12 @@ interface CatalogueState {
   banks: PaletteItem[];
 }
 
-const RECENTS_KEY = 'creditmate.paletteRecents.v1';
+const RECENTS_KEY_PREFIX = 'creditmate.paletteRecents.v1';
 const MAX_PER_GROUP = 6;
+
+/** Recents are scoped per account (guest otherwise), like saved searches. */
+export const paletteRecentsKey = (userId: number | null | undefined): string =>
+  `${RECENTS_KEY_PREFIX}:${userId ? `user-${userId}` : 'guest'}`;
 
 let catalogueCache: Promise<CatalogueState> | null = null;
 
@@ -122,9 +126,9 @@ export const resetPaletteCatalogueCache = (): void => {
   catalogueCache = null;
 };
 
-const readRecents = (): PaletteItem[] => {
+const readRecents = (key: string): PaletteItem[] => {
   try {
-    const raw = window.localStorage.getItem(RECENTS_KEY);
+    const raw = window.localStorage.getItem(key);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as PaletteItem[];
     return Array.isArray(parsed) ? parsed.slice(0, MAX_PER_GROUP) : [];
@@ -133,10 +137,10 @@ const readRecents = (): PaletteItem[] => {
   }
 };
 
-const rememberRecent = (item: PaletteItem): void => {
+const rememberRecent = (key: string, item: PaletteItem): void => {
   try {
-    const next = [item, ...readRecents().filter(r => r.id !== item.id)].slice(0, MAX_PER_GROUP);
-    window.localStorage.setItem(RECENTS_KEY, JSON.stringify(next));
+    const next = [item, ...readRecents(key).filter(r => r.id !== item.id)].slice(0, MAX_PER_GROUP);
+    window.localStorage.setItem(key, JSON.stringify(next));
   } catch {
     // Non-fatal.
   }
@@ -150,6 +154,8 @@ const matches = (item: PaletteItem, query: string): boolean => {
 
 export interface CommandPaletteProps {
   onClose: () => void;
+  /** Signed-in user id, used to scope the recents list; null = guest. */
+  userId?: number | null;
 }
 
 /**
@@ -157,10 +163,11 @@ export interface CommandPaletteProps {
  * itself is the open event: focus lands in the input and the catalogue
  * starts loading immediately.
  */
-const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
+const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, userId = null }) => {
   const { lang } = useLanguage();
   const copy = getShellCopy(lang);
   const navigate = useNavigate();
+  const recentsKey = paletteRecentsKey(userId);
   const [query, setQuery] = useState('');
   const [catalogue, setCatalogue] = useState<CatalogueState | null>(null);
   const [loading, setLoading] = useState(false);
@@ -250,7 +257,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
 
   const groups = useMemo(() => {
     const q = query.trim();
-    const recent = q ? [] : readRecents();
+    const recent = q ? [] : readRecents(recentsKey);
     const actionItems = actions.filter(item => matches(item, q)).slice(0, MAX_PER_GROUP);
     const productItems = q
       ? (catalogue?.products ?? []).filter(item => matches(item, q)).slice(0, MAX_PER_GROUP)
@@ -264,16 +271,35 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
       { key: 'products' as const, label: copy.paletteGroupProducts, items: productItems },
       { key: 'banks' as const, label: copy.paletteGroupBanks, items: bankItems },
     ].filter(group => group.items.length > 0);
-  }, [actions, catalogue, copy, query]);
+  }, [actions, catalogue, copy, query, recentsKey]);
 
   const flatItems = useMemo(() => groups.flatMap(group => group.items), [groups]);
+
+  /**
+   * Rendered option ids are namespaced by group: the same item can appear
+   * in Recent and in its own group, and aria-activedescendant must resolve
+   * to the highlighted copy — never to a duplicate id earlier in the DOM.
+   */
+  const optionId = (groupKey: string, item: PaletteItem): string =>
+    `cm-palette-option-${groupKey}-${item.id}`;
+
+  const activeEntry = useMemo(() => {
+    let cursor = -1;
+    for (const group of groups) {
+      for (const item of group.items) {
+        cursor += 1;
+        if (cursor === activeIndex) return { groupKey: group.key, item };
+      }
+    }
+    return null;
+  }, [groups, activeIndex]);
 
   useEffect(() => {
     setActiveIndex(0);
   }, [query]);
 
   const choose = (item: PaletteItem) => {
-    rememberRecent({ ...item, group: 'recent' });
+    rememberRecent(recentsKey, { ...item, group: 'recent' });
     onClose();
     navigate(item.href);
   };
@@ -297,7 +323,6 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
     }
   };
 
-  const activeItem = flatItems[activeIndex];
   let flatCursor = -1;
 
   return (
@@ -317,7 +342,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
           role="combobox"
           aria-expanded={true}
           aria-controls="cm-palette-listbox"
-          aria-activedescendant={activeItem ? `cm-palette-option-${activeItem.id}` : undefined}
+          aria-activedescendant={
+            activeEntry ? optionId(activeEntry.groupKey, activeEntry.item) : undefined
+          }
           aria-label={copy.paletteAriaLabel}
           placeholder={copy.palettePlaceholder}
           value={query}
@@ -343,8 +370,8 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose }) => {
                   const isActive = index === activeIndex;
                   return (
                     <li
-                      key={item.id}
-                      id={`cm-palette-option-${item.id}`}
+                      key={`${group.key}-${item.id}`}
+                      id={optionId(group.key, item)}
                       role="option"
                       aria-selected={isActive}
                       className={isActive ? 'cm-palette-item is-active' : 'cm-palette-item'}

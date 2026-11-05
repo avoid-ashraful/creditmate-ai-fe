@@ -84,10 +84,12 @@ export interface ShellCopy {
   myDeleteSearch: string;
   mySearchDeleted: string;
   myViewAllSaved: string;
+  mySavedCounts: string;
   myManageAlerts: string;
   myEditProfile: string;
   mySignedOut: string;
   footerTagline: string;
+  footerRights: string;
   footerModesHeading: string;
   footerLearnHeading: string;
   footerLegalHeading: string;
@@ -169,10 +171,12 @@ const en: ShellCopy = {
   myDeleteSearch: 'Delete saved search',
   mySearchDeleted: 'Saved search deleted.',
   myViewAllSaved: 'View saved items',
+  mySavedCounts: '{comparisons} comparisons · {collections} collections',
   myManageAlerts: 'Manage alerts',
   myEditProfile: 'Edit profile & settings',
   mySignedOut: 'Sign in to see your saved searches, items and alerts.',
   footerTagline: 'Making financial decisions simpler for Bangladeshi consumers.',
+  footerRights: 'All rights reserved.',
   footerModesHeading: 'Decide',
   footerLearnHeading: 'Learn',
   footerLegalHeading: 'Legal & trust',
@@ -253,10 +257,12 @@ const bn: ShellCopy = {
   myDeleteSearch: 'সংরক্ষিত অনুসন্ধান মুছুন',
   mySearchDeleted: 'সংরক্ষিত অনুসন্ধান মোছা হয়েছে।',
   myViewAllSaved: 'সংরক্ষিত আইটেম দেখুন',
+  mySavedCounts: '{comparisons}টি তুলনা, {collections}টি সংগ্রহ',
   myManageAlerts: 'সতর্কতা পরিচালনা করুন',
   myEditProfile: 'প্রোফাইল ও সেটিংস সম্পাদনা করুন',
   mySignedOut: 'আপনার সংরক্ষিত অনুসন্ধান, আইটেম ও সতর্কতা দেখতে সাইন ইন করুন।',
   footerTagline: 'বাংলাদেশি গ্রাহকদের জন্য আর্থিক সিদ্ধান্ত সহজ করা।',
+  footerRights: 'সর্বস্বত্ব সংরক্ষিত।',
   footerModesHeading: 'সিদ্ধান্ত নিন',
   footerLearnHeading: 'শিখুন',
   footerLegalHeading: 'আইনি ও আস্থা',

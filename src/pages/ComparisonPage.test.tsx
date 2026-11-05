@@ -12,6 +12,17 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe('ComparisonPage save control', () => {
+  it('points the empty-state "Browse Credit Cards" link at /cards', async () => {
+    renderWithAuth(
+      <Routes>
+        <Route path="/compare" element={<ComparisonPage />} />
+      </Routes>,
+      { route: '/compare' }
+    );
+    const browse = await screen.findByRole('link', { name: 'Browse Credit Cards' });
+    expect(browse).toHaveAttribute('href', '/cards');
+  });
+
   it('prompts anonymous visitors to log in', async () => {
     renderWithAuth(
       <Routes>

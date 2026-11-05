@@ -1,6 +1,7 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { expectNoAxeViolations } from '../a11y/axe';
 import { ToastProvider } from '../components/ui';
@@ -201,6 +202,106 @@ describe('CardsDiscoveryPage', () => {
     ).toBeInTheDocument();
     const stored = window.localStorage.getItem('creditmate.savedSearches.v1:guest');
     expect(stored).toContain('My shortlist hunt');
+  });
+
+  it('applies the Islamic filter from the URL (the /category/islamic landing state)', async () => {
+    renderPage('/cards?is_islamic=true');
+    await screen.findByRole('link', { name: 'Example Card' });
+    expect(screen.getByRole('checkbox', { name: 'Islamic (Shariah) cards only' })).toBeChecked();
+    await waitFor(() =>
+      expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({ is_islamic: true }))
+    );
+  });
+
+  it('restores filters on back/forward and cancels edits pending during navigation', async () => {
+    const NavHarness: React.FC = () => {
+      const navigate = useNavigate();
+      return (
+        <>
+          <Link to="/cards?is_islamic=true">Islamic view</Link>
+          <button type="button" onClick={() => navigate(-1)}>
+            Go back
+          </button>
+          <button type="button" onClick={() => navigate(1)}>
+            Go forward
+          </button>
+          <CardsDiscoveryPage />
+        </>
+      );
+    };
+    renderWithAuth(
+      <ShortlistProvider>
+        <ToastProvider>
+          <NavHarness />
+        </ToastProvider>
+      </ShortlistProvider>,
+      { route: '/cards?categories=travel' }
+    );
+
+    const travel = await screen.findByRole('checkbox', { name: 'Travel' });
+    expect(travel).toBeChecked();
+    const islamic = screen.getByRole('checkbox', { name: 'Islamic (Shariah) cards only' });
+    expect(islamic).not.toBeChecked();
+
+    // Push a different filter state in place.
+    fireEvent.click(screen.getByRole('link', { name: 'Islamic view' }));
+    await waitFor(() => expect(islamic).toBeChecked());
+    expect(travel).not.toBeChecked();
+    await waitFor(() =>
+      expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({ is_islamic: true }))
+    );
+
+    // Leave a search edit pending (inside its debounce window), then go
+    // back: the restored URL state wins and the pending edit never lands.
+    const searchInput = screen.getByLabelText('Search cards');
+    fireEvent.change(searchInput, { target: { value: 'platinum' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }));
+    await waitFor(() => expect(travel).toBeChecked());
+    expect(islamic).not.toBeChecked();
+    expect(searchInput).toHaveValue('');
+    await waitFor(() => {
+      const last = mockSearch.mock.calls[mockSearch.mock.calls.length - 1][0];
+      expect(last).toEqual(expect.objectContaining({ categories: 'travel' }));
+      expect(last.search).toBeUndefined();
+    });
+
+    // Forward restores the Islamic state again.
+    fireEvent.click(screen.getByRole('button', { name: 'Go forward' }));
+    await waitFor(() => expect(islamic).toBeChecked());
+    await waitFor(() => {
+      const last = mockSearch.mock.calls[mockSearch.mock.calls.length - 1][0];
+      expect(last).toEqual(expect.objectContaining({ is_islamic: true }));
+      expect(last.categories).toBeUndefined();
+    });
+  });
+
+  it('shows the failure toast, not success, when the save cannot persist', async () => {
+    const originalSetItem = Storage.prototype.setItem;
+    const spy = jest
+      .spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(function (this: Storage, key: string, value: string) {
+        if (key.startsWith('creditmate.savedSearches')) {
+          throw new Error('storage unavailable');
+        }
+        return originalSetItem.call(this, key, value);
+      });
+    const user = userEvent.setup();
+    try {
+      renderPage();
+      await screen.findByRole('link', { name: 'Example Card' });
+      await user.click(screen.getByRole('button', { name: 'Save search' }));
+      await user.type(await screen.findByLabelText('Name this search'), 'Doomed hunt');
+      await user.click(
+        within(screen.getByRole('dialog')).getByRole('button', { name: 'Save search' })
+      );
+      expect(await screen.findByText('That search could not be saved.')).toBeInTheDocument();
+      expect(
+        screen.queryByText('Search saved — find it under My CreditMate.')
+      ).not.toBeInTheDocument();
+      expect(window.localStorage.getItem('creditmate.savedSearches.v1:guest')).toBeNull();
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('adds a card to the shortlist from the result card', async () => {

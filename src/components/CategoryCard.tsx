@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { Category } from '../config/categories';
 import { getCategoryText, useLanguage } from '../locales';
+import { categoryDiscoveryPath } from '../utils/categoryPath';
 
 interface CategoryCardProps {
   category: Category;
@@ -13,7 +14,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
   const text = getCategoryText(category, lang);
 
   return (
-    <Link to={`/cards?categories=${category.slug}`} className="category-card" lang={lang}>
+    <Link to={categoryDiscoveryPath(category.slug)} className="category-card" lang={lang}>
       <span className="category-icon" aria-hidden="true">
         {category.icon}
       </span>

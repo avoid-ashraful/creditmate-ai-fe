@@ -218,7 +218,7 @@ describe('HomePage decision dashboard', () => {
       screen.getByText(/Best net value at a ৳50,000 balance: ৳1,250\.00 a year \(Alpha Savings\)/)
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Cheapest personal loan at ৳5,00,000: EMI ৳11,500 \/ month/)
+      screen.getByText(/Cheapest personal loan at ৳5,00,000: EMI ৳10,900–৳11,500 \/ month/)
     ).toBeInTheDocument();
   });
 
@@ -234,8 +234,9 @@ describe('HomePage decision dashboard', () => {
     expect(stored.balance).toBe(75000);
   });
 
-  it('shows the most recently verified products under What changed, newest first', async () => {
+  it('shows the most recently verified products under Recently verified, newest first', async () => {
     renderHome();
+    expect(await screen.findByRole('heading', { name: 'Recently verified' })).toBeInTheDocument();
     const deposit = await screen.findByRole('link', { name: /Alpha FDR/ });
     const account = screen.getByRole('link', { name: /Alpha Savings/ });
     const card = screen.getByRole('link', { name: /Example Card/ });
@@ -243,6 +244,10 @@ describe('HomePage decision dashboard', () => {
       deposit.compareDocumentPosition(account) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
     expect(account.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Verification dates alone never earn a "Changed" badge: the section
+    // claims only that these products were verified, with source + date.
+    expect(screen.queryByText('Changed')).not.toBeInTheDocument();
+    expect(screen.queryByText(/What changed/)).not.toBeInTheDocument();
   });
 
   it('previews the on-device shortlist', async () => {

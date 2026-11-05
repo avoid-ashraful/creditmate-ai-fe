@@ -1,3 +1,4 @@
+import { categoryDiscoveryPath } from './categoryPath';
 import { slugify } from './slugify';
 
 /**
@@ -236,7 +237,9 @@ export const buildSitemapEntries = ({
   staticPaths.forEach(path => add({ path }));
   // Category pages folded into canonical discovery (redesign Phase 1):
   // /category/:slug redirects to /cards with the category as a filter.
-  categorySlugs.forEach(slug => add({ path: `/cards?categories=${slug}` }));
+  // `islamic` is a local-only slug: it maps to the Islamic filter parameter
+  // (see utils/categoryPath), never to categories=islamic.
+  categorySlugs.forEach(slug => add({ path: categoryDiscoveryPath(slug) }));
   add({ path: '/guides' });
   guides.forEach(guide =>
     add({ path: `/guides/${guide.slug}`, lastmod: toLastmod(guide.updated) })

@@ -582,8 +582,13 @@ const CardsDiscoveryPage: React.FC = () => {
       setSaveOpen(false);
       const query = location.search.replace(/^\?/, '');
       try {
-        saveSearch(user?.id ?? null, { name, path: '/cards', query });
-        toast({ message: copy.searchSaved });
+        const { persisted } = saveSearch(user?.id ?? null, { name, path: '/cards', query });
+        // Only claim success when the write actually landed in storage.
+        if (persisted) {
+          toast({ message: copy.searchSaved });
+        } else {
+          toast({ message: copy.searchSaveFailed, variant: 'error' });
+        }
       } catch {
         toast({ message: copy.searchSaveFailed, variant: 'error' });
       }
