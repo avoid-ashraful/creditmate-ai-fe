@@ -26,6 +26,9 @@ jest.mock('../services/loans', () => {
 jest.mock('../services/auth', () => ({
   authClient: { hasSession: () => false, getAccessToken: async () => null },
 }));
+jest.mock('../hooks/AuthProvider', () => ({
+  useAuth: () => ({ status: 'anonymous', user: null }),
+}));
 jest.mock('../utils/seo');
 
 const mockFetchProduct = fetchLoanProduct as jest.Mock;

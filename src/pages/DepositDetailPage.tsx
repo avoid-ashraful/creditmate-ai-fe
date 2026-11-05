@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
+import { ReviewsSection } from '../components/ReviewsSection';
 import {
   DetailSummary,
   Money,
@@ -516,6 +517,13 @@ const DepositDetailPage: React.FC = () => {
           </section>
 
           <HistorySection slug={product.slug} copy={copy} />
+
+          <ReviewsSection
+            productType="deposit"
+            productId={product.id}
+            productName={product.name}
+            productUrl={`/deposits/${product.slug}`}
+          />
         </div>
       </div>
     </div>

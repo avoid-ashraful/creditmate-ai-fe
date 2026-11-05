@@ -189,8 +189,134 @@ const testOwnedReview = {
   ...testReviews[0],
   id: 2,
   title: 'My review',
+  status: 'approved',
 };
 const testReviewVotes = new Set<string>();
+
+/** Phase 3B: approved reviews for the generalised product types. */
+export const testProductReviews = [
+  {
+    id: 11,
+    product: 1,
+    product_type: 'deposit',
+    rating: 4,
+    title: 'Reliable FDR',
+    body: 'Maturity was credited on time.',
+    pros: 'On-time payout',
+    cons: '',
+    reviewer_name: 'Community member',
+    helpful_count: 1,
+    created: '2025-03-01T10:00:00Z',
+    modified: '2025-03-01T10:00:00Z',
+  },
+  {
+    id: 12,
+    product: 1,
+    product_type: 'loan',
+    rating: 5,
+    title: 'Fast disbursement',
+    body: 'Funds arrived within a week.',
+    pros: 'Quick processing',
+    cons: '',
+    reviewer_name: 'Community member',
+    helpful_count: 0,
+    created: '2025-03-05T10:00:00Z',
+    modified: '2025-03-05T10:00:00Z',
+  },
+  {
+    id: 13,
+    product: 1,
+    product_type: 'account',
+    rating: 3,
+    title: 'Decent savings account',
+    body: 'App works well; branch service varies.',
+    pros: 'Good app',
+    cons: 'Branch queues',
+    reviewer_name: 'Community member',
+    helpful_count: 0,
+    created: '2025-03-07T10:00:00Z',
+    modified: '2025-03-07T10:00:00Z',
+  },
+];
+
+const productReviewSegmentTypes: Record<string, string> = {
+  deposits: 'deposit',
+  loans: 'loan',
+  accounts: 'account',
+};
+
+/** Phase 3B handlers for one generalised segment (deposits/loans/accounts). */
+const productReviewHandlers = (segment: string) => {
+  const type = productReviewSegmentTypes[segment];
+  const forSegment = () => testProductReviews.filter(review => review.product_type === type);
+  return [
+    rest.get(apiUrl(`reviews/${segment}/`), (req, res, ctx) => {
+      const product = req.url.searchParams.get('product');
+      const reviews = forSegment().filter(review => !product || String(review.product) === product);
+      return res(ctx.status(200), ctx.json(paginated(reviews)));
+    }),
+    rest.post(apiUrl(`reviews/${segment}/`), async (req, res, ctx) => {
+      const body = (await req.json()) as Record<string, unknown>;
+      const now = new Date().toISOString();
+      return res(
+        ctx.status(201),
+        ctx.json({
+          id: 99,
+          product: body.product,
+          product_type: type,
+          rating: body.rating,
+          title: body.title,
+          body: body.body,
+          pros: body.pros || '',
+          cons: body.cons || '',
+          reviewer_name: 'Community member',
+          helpful_count: 0,
+          created: now,
+          modified: now,
+        })
+      );
+    }),
+    rest.get(`*/api/v1/reviews/${segment}/mine/`, (req, res, ctx) => {
+      return res(ctx.status(200), ctx.json(paginated([])));
+    }),
+    rest.get(`*/api/v1/reviews/${segment}/mine/:reviewId/`, (req, res, ctx) => {
+      return res(ctx.status(404), ctx.json({ detail: 'Not found.' }));
+    }),
+    rest.patch(`*/api/v1/reviews/${segment}/mine/:reviewId/`, (req, res, ctx) => {
+      return res(ctx.status(404), ctx.json({ detail: 'Not found.' }));
+    }),
+    rest.delete(`*/api/v1/reviews/${segment}/mine/:reviewId/`, (req, res, ctx) => {
+      return res(ctx.status(404), ctx.json({ detail: 'Not found.' }));
+    }),
+    rest.post(`*/api/v1/reviews/${segment}/:reviewId/helpful/`, (req, res, ctx) => {
+      const review = forSegment().find(item => item.id === Number(req.params.reviewId));
+      if (!review) return res(ctx.status(404), ctx.json({ detail: 'Not found.' }));
+      return res(ctx.status(201), ctx.json({ helpful_count: review.helpful_count + 1 }));
+    }),
+    rest.get(`*/api/v1/reviews/${segment}/:productId/summary/`, (req, res, ctx) => {
+      const productId = Number(req.params.productId);
+      const reviews = forSegment().filter(review => review.product === productId);
+      const total = reviews.length;
+      const counts = [1, 2, 3, 4, 5].map(
+        rating => reviews.filter(review => review.rating === rating).length
+      );
+      return res(
+        ctx.status(200),
+        ctx.json({
+          product_type: type,
+          product: productId,
+          average_rating: total
+            ? reviews.reduce((sum, review) => sum + review.rating, 0) / total
+            : null,
+          review_count: total,
+          approved_count: total,
+          distribution: Object.fromEntries(counts.map((count, index) => [index + 1, count])),
+          community_reviewed: total >= 50,
+        })
+      );
+    }),
+  ];
+};
 
 const paginated = <T>(results: T[]) => ({
   count: results.length,
@@ -323,6 +449,61 @@ export const handlers = [
       ctx.status(created ? 201 : 200),
       ctx.json({ helpful_count: review.helpful_count + 1 })
     );
+  }),
+  // GET /reviews/mine/ — the signed-in user's own card reviews (any status).
+  rest.get('*/api/v1/reviews/mine/', (req, res, ctx) => {
+    return res(ctx.status(200), ctx.json(paginated([])));
+  }),
+  // Phase 3B: generalised product reviews (deposits / loans / accounts).
+  ...productReviewHandlers('deposits'),
+  ...productReviewHandlers('loans'),
+  ...productReviewHandlers('accounts'),
+  // Phase 3B: comments on reviews (all product types; moderated).
+  rest.get('*/api/v1/reviews/comments/:reviewType/:reviewId/', (req, res, ctx) => {
+    return res(ctx.status(200), ctx.json({ count: 0, results: [] }));
+  }),
+  rest.post('*/api/v1/reviews/comments/:reviewType/:reviewId/', async (req, res, ctx) => {
+    const body = (await req.json()) as Record<string, unknown>;
+    const now = new Date().toISOString();
+    return res(
+      ctx.status(201),
+      ctx.json({
+        id: 501,
+        review: Number(req.params.reviewId),
+        review_type: req.params.reviewType,
+        parent: (body.parent as number | null) ?? null,
+        author_name: 'Community member',
+        is_own: true,
+        body: body.body,
+        status: 'pending',
+        created: now,
+        modified: now,
+        replies: [],
+      })
+    );
+  }),
+  rest.patch('*/api/v1/reviews/comments/mine/:commentId/', async (req, res, ctx) => {
+    const body = (await req.json()) as Record<string, unknown>;
+    const now = new Date().toISOString();
+    return res(
+      ctx.status(200),
+      ctx.json({
+        id: Number(req.params.commentId),
+        review: 1,
+        review_type: 'card',
+        parent: null,
+        author_name: 'Community member',
+        is_own: true,
+        body: body.body,
+        status: 'pending',
+        created: now,
+        modified: now,
+        replies: [],
+      })
+    );
+  }),
+  rest.delete('*/api/v1/reviews/comments/mine/:commentId/', (req, res, ctx) => {
+    return res(ctx.status(204));
   }),
   // POST /credit-cards/{id}/report-issue/ (201; 404 for unknown cards; message required)
   rest.post('*/api/v1/credit-cards/:cardId/report-issue/', async (req, res, ctx) => {

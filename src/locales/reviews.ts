@@ -94,6 +94,31 @@ export interface ReviewsCopy {
   previousPage: string;
   nextPage: string;
   pageOf: string;
+
+  // Phase 3B: all product types, community state, own-review state card
+  beFirstToReviewNamed: string;
+  reviewBodyPlaceholderNamed: string;
+  communityReviewed: string;
+  communityReviewedNote: string;
+  yourReview: string;
+  statePending: string;
+  stateApproved: string;
+  stateRejected: string;
+  rejectedNotice: string;
+  confirmDelete: string;
+
+  // Phase 3B: comments (moderated like reviews)
+  comments: string;
+  commentsLoading: string;
+  noCommentsYet: string;
+  commentPlaceholder: string;
+  replyPlaceholder: string;
+  postComment: string;
+  reply: string;
+  commentSubmitted: string;
+  commentsModerationNote: string;
+  loginToComment: string;
+  commentDeleted: string;
 }
 
 export const REVIEWS_COPY: Record<Language, ReviewsCopy> = {
@@ -168,6 +193,29 @@ export const REVIEWS_COPY: Record<Language, ReviewsCopy> = {
     previousPage: 'Previous page',
     nextPage: 'Next page',
     pageOf: 'Page {current} of {total}',
+    beFirstToReviewNamed: 'Be the first to review {name}',
+    reviewBodyPlaceholderNamed: 'Share your detailed experience with {name}...',
+    communityReviewed: 'Community reviewed',
+    communityReviewedNote:
+      'This product has {count}+ approved reviews from CreditMate members. The badge reflects community experience only — it is not a CreditMate recommendation or a legal endorsement.',
+    yourReview: 'Your review',
+    statePending: 'Pending review',
+    stateApproved: 'Approved',
+    stateRejected: 'Not approved',
+    rejectedNotice:
+      'This review was not approved by moderators. You can edit it and resubmit, or delete it.',
+    confirmDelete: 'Confirm delete',
+    comments: 'Comments',
+    commentsLoading: 'Loading comments...',
+    noCommentsYet: 'No comments yet',
+    commentPlaceholder: 'Add a comment...',
+    replyPlaceholder: 'Write a reply...',
+    postComment: 'Post comment',
+    reply: 'Reply',
+    commentSubmitted: 'Your comment has been submitted and is pending moderation.',
+    commentsModerationNote: 'Comments are reviewed before they appear publicly, just like reviews.',
+    loginToComment: 'Log in to join the discussion',
+    commentDeleted: 'Your comment has been deleted.',
   },
   bn: {
     sectionTitle: 'গ্রাহক রিভিউ',
@@ -240,6 +288,29 @@ export const REVIEWS_COPY: Record<Language, ReviewsCopy> = {
     previousPage: 'পূর্বের পৃষ্ঠা',
     nextPage: 'পরবর্তী পৃষ্ঠা',
     pageOf: '{current} নম্বর পৃষ্ঠা / মোট {total}',
+    beFirstToReviewNamed: '{name}-এর প্রথম রিভিউ লিখুন',
+    reviewBodyPlaceholderNamed: '{name}-এর সাথে আপনার বিস্তারিত অভিজ্ঞতা শেয়ার করুন...',
+    communityReviewed: 'কমিউনিটি রিভিউড',
+    communityReviewedNote:
+      'এই পণ্যটিতে CreditMate সদস্যদের {count}+ অনুমোদিত রিভিউ রয়েছে। এই ব্যাজটি শুধুমাত্র কমিউনিটির অভিজ্ঞতা প্রতিফলিত করে — এটি CreditMate-এর সুপারিশ বা আইনি অনুমোদন নয়।',
+    yourReview: 'আপনার রিভিউ',
+    statePending: 'রিভিউ অপেক্ষমাণ',
+    stateApproved: 'অনুমোদিত',
+    stateRejected: 'অনুমোদিত হয়নি',
+    rejectedNotice:
+      'এই রিভিউটি মডারেটরদের দ্বারা অনুমোদিত হয়নি। আপনি এটি সম্পাদনা করে আবার জমা দিতে পারেন, অথবা মুছে ফেলতে পারেন।',
+    confirmDelete: 'মুছে ফেলা নিশ্চিত করুন',
+    comments: 'মন্তব্য',
+    commentsLoading: 'মন্তব্য লোড হচ্ছে...',
+    noCommentsYet: 'এখনো কোনো মন্তব্য নেই',
+    commentPlaceholder: 'মন্তব্য লিখুন...',
+    replyPlaceholder: 'উত্তর লিখুন...',
+    postComment: 'মন্তব্য পোস্ট করুন',
+    reply: 'উত্তর',
+    commentSubmitted: 'আপনার মন্তব্য জমা দেওয়া হয়েছে এবং মডারেশনের অপেক্ষায় আছে।',
+    commentsModerationNote: 'রিভিউর মতোই, মন্তব্যগুলো প্রকাশের আগে যাচাই করা হয়।',
+    loginToComment: 'আলোচনায় যোগ দিতে লগ ইন করুন',
+    commentDeleted: 'আপনার মন্তব্য মুছে ফেলা হয়েছে।',
   },
 };
 

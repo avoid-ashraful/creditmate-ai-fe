@@ -7,18 +7,68 @@ import { formatGregorianDate, pluralize } from '../locales/format';
 import { getReviewsCopy } from '../locales/reviews';
 import type { Language } from '../locales/types';
 import { ApiError, authClient } from '../services/auth';
-import { reviewsService } from '../services/reviews';
-import { Review, ReviewSummary } from '../types';
+import {
+  ProductReview,
+  ProductReviewSummaryResponse,
+  ReviewComment,
+  ReviewProductType,
+  reviewsService,
+} from '../services/reviews';
+import { Review } from '../types';
 import { aggregateRatingJsonLd } from '../utils/structuredData';
 
 import { ResendVerification } from './ResendVerification';
 import './ReviewsSection.css';
+import './ProductReviews.css';
 
 interface ReviewsSectionProps {
-  cardId: number;
-  cardName: string;
-  cardUrl: string;
+  /** Product type under review; cards keep the original endpoints. */
+  productType?: ReviewProductType;
+  productId: number;
+  productName: string;
+  productUrl: string;
 }
+
+/** Adapt a generalised product review to the legacy list-item shape. */
+const toListReview = (review: ProductReview): Review => ({
+  id: review.id,
+  cardId: review.productId,
+  rating: review.rating,
+  title: review.title,
+  body: review.body,
+  pros: review.pros,
+  cons: review.cons,
+  helpfulCount: review.helpfulCount,
+  reviewerName: review.reviewerName,
+  created: review.created,
+  modified: review.modified,
+});
+
+/** Moderation state chip (in-place state card grammar: icon + word). */
+const ReviewStateChip: React.FC<{
+  status: 'pending' | 'approved' | 'rejected';
+  copy: ReturnType<typeof getReviewsCopy>;
+}> = ({ status, copy }) => {
+  if (status === 'approved') {
+    return (
+      <span className="review-state-chip review-state-approved">
+        <span aria-hidden="true">✅</span> {copy.stateApproved}
+      </span>
+    );
+  }
+  if (status === 'rejected') {
+    return (
+      <span className="review-state-chip review-state-rejected">
+        <span aria-hidden="true">⚠</span> {copy.stateRejected}
+      </span>
+    );
+  }
+  return (
+    <span className="review-state-chip review-state-pending">
+      <span aria-hidden="true">⏳</span> {copy.statePending}
+    </span>
+  );
+};
 
 /**
  * Star rating display component.
@@ -103,7 +153,7 @@ const DistributionBar: React.FC<{
  * Summary card showing average rating and distribution.
  */
 const ReviewSummaryCard: React.FC<{
-  summary: ReviewSummary;
+  summary: ProductReviewSummaryResponse;
   copy: ReturnType<typeof getReviewsCopy>;
   lang: Language;
 }> = ({ summary, copy, lang }) => {
@@ -160,6 +210,14 @@ const ReviewSummaryCard: React.FC<{
           />
         ))}
       </div>
+      {summary.community_reviewed && (
+        <div className="community-reviewed">
+          <span className="community-chip">
+            <span aria-hidden="true">✅</span> {copy.communityReviewed}
+          </span>
+          <p className="community-note">{copy.communityReviewedNote.replace('{count}', '50')}</p>
+        </div>
+      )}
     </div>
   );
 };
@@ -171,9 +229,10 @@ interface ReviewItemProps {
   review: Review;
   copy: ReturnType<typeof getReviewsCopy>;
   onHelpfulClick: (id: number) => void;
+  commentsSlot?: React.ReactNode;
 }
 
-const ReviewItem: React.FC<ReviewItemProps> = ({ review, copy, onHelpfulClick }) => {
+const ReviewItem: React.FC<ReviewItemProps> = ({ review, copy, onHelpfulClick, commentsSlot }) => {
   const date = review.created ? formatGregorianDate(review.created) : '';
 
   return (
@@ -230,6 +289,411 @@ const ReviewItem: React.FC<ReviewItemProps> = ({ review, copy, onHelpfulClick })
           <span className="helpful-count">({review.helpfulCount})</span>
         </button>
       </footer>
+
+      {commentsSlot}
+    </div>
+  );
+};
+
+/**
+ * One comment (top-level or reply). The author's own comments carry
+ * their moderation state in place (icon + word) and edit/delete actions.
+ */
+const CommentItem: React.FC<{
+  comment: ReviewComment;
+  copy: ReturnType<typeof getReviewsCopy>;
+  isOwn: boolean;
+  onReply: (comment: ReviewComment) => void;
+  onEdit: (comment: ReviewComment, body: string) => Promise<void>;
+  onDelete: (comment: ReviewComment) => Promise<void>;
+  canInteract: boolean;
+}> = ({ comment, copy, isOwn, onReply, onEdit, onDelete, canInteract }) => {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(comment.body);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const date = comment.created ? formatGregorianDate(comment.created) : '';
+
+  return (
+    <div className="comment-item">
+      <div className="comment-meta">
+        <span className="comment-author">{comment.authorName}</span>
+        {comment.status && comment.status !== 'approved' && (
+          <ReviewStateChip status={comment.status} copy={copy} />
+        )}
+        {date && (
+          <time className="comment-date" dateTime={comment.created.toISOString()}>
+            {date}
+          </time>
+        )}
+      </div>
+      {editing ? (
+        <form
+          className="comment-edit-form"
+          onSubmit={async e => {
+            e.preventDefault();
+            await onEdit(comment, draft.trim());
+            setEditing(false);
+          }}
+        >
+          <label className="p3b-sr-only" htmlFor={`comment-edit-${comment.id}`}>
+            {copy.comments}
+          </label>
+          <textarea
+            id={`comment-edit-${comment.id}`}
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            rows={3}
+            maxLength={2000}
+          />
+          <div className="comment-actions">
+            <button type="submit" className="btn btn-primary btn-sm" disabled={!draft.trim()}>
+              {copy.updateReview}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => setEditing(false)}
+            >
+              {copy.cancel}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <p className="comment-body">{comment.body}</p>
+      )}
+      {!editing && (
+        <div className="comment-actions">
+          {canInteract && comment.parent === null && (
+            <button type="button" className="comment-action" onClick={() => onReply(comment)}>
+              {copy.reply}
+            </button>
+          )}
+          {isOwn && (
+            <>
+              <button
+                type="button"
+                className="comment-action"
+                onClick={() => {
+                  setDraft(comment.body);
+                  setEditing(true);
+                }}
+              >
+                {copy.edit}
+              </button>
+              {confirmingDelete ? (
+                <button
+                  type="button"
+                  className="comment-action comment-action-danger"
+                  onClick={async () => {
+                    await onDelete(comment);
+                    setConfirmingDelete(false);
+                  }}
+                >
+                  {copy.confirmDelete}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="comment-action"
+                  onClick={() => setConfirmingDelete(true)}
+                >
+                  {copy.delete}
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Comment thread for one review. Comments are moderated like reviews:
+ * a new comment appears for its author immediately, marked pending,
+ * and becomes public only after approval.
+ */
+const ReviewComments: React.FC<{
+  productType: ReviewProductType;
+  reviewId: number;
+  copy: ReturnType<typeof getReviewsCopy>;
+  isSignedIn: boolean;
+  getAccessToken: () => Promise<string | null>;
+  onLogin: () => void;
+}> = ({ productType, reviewId, copy, isSignedIn, getAccessToken, onLogin }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [comments, setComments] = useState<ReviewComment[]>([]);
+  const [draft, setDraft] = useState('');
+  const [replyTo, setReplyTo] = useState<ReviewComment | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setFailed(false);
+    try {
+      const token = await getAccessToken();
+      const data = await reviewsService.getComments(productType, reviewId, token);
+      setComments(data);
+      setLoaded(true);
+    } catch {
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [productType, reviewId, getAccessToken]);
+
+  useEffect(() => {
+    if (expanded && !loaded) {
+      load();
+    }
+  }, [expanded, loaded, load]);
+
+  const isOwn = (comment: ReviewComment) => comment.isOwn;
+
+  const handlePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const body = draft.trim();
+    if (!body) return;
+    const token = await getAccessToken();
+    if (!token) {
+      setNotice(copy.unauthorizedError);
+      return;
+    }
+    try {
+      const created = await reviewsService.createComment(
+        productType,
+        reviewId,
+        { body, parent: replyTo ? replyTo.id : null },
+        token
+      );
+      setComments(prev => {
+        if (created.parent === null) return [...prev, created];
+        return prev.map(comment =>
+          comment.id === created.parent
+            ? { ...comment, replies: [...comment.replies, created] }
+            : comment
+        );
+      });
+      setDraft('');
+      setReplyTo(null);
+      setNotice(copy.commentSubmitted);
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : copy.genericError);
+    }
+  };
+
+  const handleEdit = async (comment: ReviewComment, body: string) => {
+    const token = await getAccessToken();
+    if (!token) return;
+    const updated = await reviewsService.updateComment(comment.id, { body }, token);
+    const replace = (items: ReviewComment[]): ReviewComment[] =>
+      items.map(item =>
+        item.id === updated.id
+          ? { ...updated, replies: item.replies }
+          : { ...item, replies: replace(item.replies) }
+      );
+    setComments(prev => replace(prev));
+    setNotice(copy.commentSubmitted);
+  };
+
+  const handleDelete = async (comment: ReviewComment) => {
+    const token = await getAccessToken();
+    if (!token) return;
+    await reviewsService.deleteComment(comment.id, token);
+    setComments(prev =>
+      prev
+        .filter(item => item.id !== comment.id)
+        .map(item => ({
+          ...item,
+          replies: item.replies.filter(reply => reply.id !== comment.id),
+        }))
+    );
+    setNotice(copy.commentDeleted);
+  };
+
+  const totalCount = comments.reduce((sum, comment) => sum + 1 + comment.replies.length, 0);
+
+  return (
+    <div className="review-comments">
+      <button
+        type="button"
+        className="comments-toggle"
+        aria-expanded={expanded}
+        onClick={() => setExpanded(prev => !prev)}
+      >
+        <span aria-hidden="true">💬</span> {copy.comments}
+        {loaded && <span className="comments-count"> ({totalCount})</span>}
+      </button>
+      {expanded && (
+        <div className="comments-thread">
+          {loading ? (
+            <p role="status">{copy.commentsLoading}</p>
+          ) : failed ? (
+            <p role="alert">{copy.networkError}</p>
+          ) : (
+            <>
+              {comments.length === 0 ? (
+                <p className="comments-empty">{copy.noCommentsYet}</p>
+              ) : (
+                comments.map(comment => (
+                  <div key={comment.id} className="comment-thread-item">
+                    <CommentItem
+                      comment={comment}
+                      copy={copy}
+                      isOwn={isOwn(comment)}
+                      canInteract={isSignedIn}
+                      onReply={target => {
+                        setReplyTo(target);
+                        setDraft('');
+                      }}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                    {comment.replies.length > 0 && (
+                      <div className="comment-replies">
+                        {comment.replies.map(reply => (
+                          <CommentItem
+                            key={reply.id}
+                            comment={reply}
+                            copy={copy}
+                            isOwn={isOwn(reply)}
+                            canInteract={isSignedIn}
+                            onReply={() => undefined}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+              <p className="comments-moderation-note">{copy.commentsModerationNote}</p>
+              {notice && (
+                <div className="pending-notice" role="status" aria-live="polite">
+                  {notice}
+                </div>
+              )}
+              {isSignedIn ? (
+                <form className="comment-form" onSubmit={handlePost}>
+                  {replyTo && (
+                    <p className="comment-replying">
+                      {copy.reply}: {replyTo.authorName}{' '}
+                      <button
+                        type="button"
+                        className="comment-action"
+                        onClick={() => setReplyTo(null)}
+                      >
+                        {copy.cancel}
+                      </button>
+                    </p>
+                  )}
+                  <label className="p3b-sr-only" htmlFor={`comment-input-${reviewId}`}>
+                    {copy.comments}
+                  </label>
+                  <textarea
+                    id={`comment-input-${reviewId}`}
+                    value={draft}
+                    onChange={e => setDraft(e.target.value)}
+                    placeholder={replyTo ? copy.replyPlaceholder : copy.commentPlaceholder}
+                    rows={3}
+                    maxLength={2000}
+                  />
+                  <div className="comment-actions">
+                    <button
+                      type="submit"
+                      className="btn btn-primary btn-sm"
+                      disabled={!draft.trim()}
+                    >
+                      {copy.postComment}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <p className="comment-login">
+                  {copy.loginToComment}{' '}
+                  <button type="button" className="action-button" onClick={onLogin}>
+                    {copy.loginLink}
+                  </button>
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/**
+ * The signed-in author's own review, held in place with its moderation
+ * state (addendum pattern B3: state changes, footprint does not).
+ */
+const OwnReviewCard: React.FC<{
+  review: ProductReview;
+  copy: ReturnType<typeof getReviewsCopy>;
+  onEdit: () => void;
+  onDelete: () => Promise<void>;
+}> = ({ review, copy, onEdit, onDelete }) => {
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const date = review.created ? formatGregorianDate(review.created) : '';
+
+  return (
+    <div className="own-review-card" aria-label={copy.yourReview}>
+      <div className="own-review-header">
+        <h3>{copy.yourReview}</h3>
+        <ReviewStateChip status={review.status ?? 'pending'} copy={copy} />
+      </div>
+      <div className="review-meta">
+        <StarRating
+          rating={review.rating}
+          size="sm"
+          ariaLabel={`${review.rating} out of 5 stars`}
+        />
+        {date && (
+          <time className="review-date" dateTime={review.created.toISOString()}>
+            {copy.postedOn.replace('{date}', date)}
+          </time>
+        )}
+      </div>
+      <h4 className="review-title">{review.title}</h4>
+      <p className="review-body">{review.body}</p>
+      {review.status === 'pending' && (
+        <p className="own-review-note">{copy.pendingModerationNotice}</p>
+      )}
+      {review.status === 'rejected' && (
+        <p className="own-review-note" role="alert">
+          {copy.rejectedNotice}
+        </p>
+      )}
+      <div className="comment-actions">
+        <button type="button" className="btn btn-secondary btn-sm" onClick={onEdit}>
+          {copy.edit}
+        </button>
+        {confirmingDelete ? (
+          <button
+            type="button"
+            className="btn btn-danger btn-sm"
+            onClick={async () => {
+              await onDelete();
+              setConfirmingDelete(false);
+            }}
+          >
+            {copy.confirmDelete}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() => setConfirmingDelete(true)}
+          >
+            {copy.delete}
+          </button>
+        )}
+      </div>
     </div>
   );
 };
@@ -541,16 +1005,34 @@ const Pagination: React.FC<{
 };
 
 /**
- * Main Reviews Section component.
+ * Main Reviews Section component — one grammar for all four product
+ * types. Cards keep their original endpoints; deposits, loans and
+ * accounts use the generalised Phase 3B endpoints.
  */
-export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl }) => {
+export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
+  productType = 'card',
+  productId,
+  productName,
+  productUrl,
+}) => {
   const { user } = useAuth();
   const { lang } = useLanguage();
   const navigate = useNavigate();
-  const copy = getReviewsCopy(lang);
+  const baseCopy = getReviewsCopy(lang);
+  // Product-neutral copy for the generalised types (the card strings
+  // mention "this card"); cards keep their original wording.
+  const copy =
+    productType === 'card'
+      ? baseCopy
+      : {
+          ...baseCopy,
+          beFirstToReview: baseCopy.beFirstToReviewNamed.replace('{name}', productName),
+          reviewBodyPlaceholder: baseCopy.reviewBodyPlaceholderNamed.replace('{name}', productName),
+        };
 
-  const [summary, setSummary] = useState<ReviewSummary | null>(null);
+  const [summary, setSummary] = useState<ProductReviewSummaryResponse | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [ownReview, setOwnReview] = useState<ProductReview | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 20;
@@ -558,45 +1040,61 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingOwn, setEditingOwn] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [needsVerification, setNeedsVerification] = useState(false);
   const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
-  const getAccessToken = async () => {
+  const getAccessToken = useCallback(async () => {
     try {
       return await authClient.getAccessToken();
     } catch {
       return null;
     }
-  };
+  }, []);
 
   const fetchSummary = useCallback(async () => {
     try {
       setIsLoadingSummary(true);
-      const data = await reviewsService.getSummary(cardId);
-      setSummary({
-        card: data.card,
-        average_rating: data.average_rating,
-        review_count: data.review_count,
-        distribution: data.distribution,
-      });
+      if (productType === 'card') {
+        const data = await reviewsService.getSummary(productId);
+        setSummary({
+          product_type: 'card',
+          product: data.card,
+          average_rating: data.average_rating,
+          review_count: data.review_count,
+          approved_count: data.review_count,
+          distribution: data.distribution,
+          community_reviewed: data.review_count >= 50,
+        });
+      } else {
+        setSummary(await reviewsService.getProductSummary(productType, productId));
+      }
     } catch (err) {
       console.error('Failed to fetch review summary:', err);
     } finally {
       setIsLoadingSummary(false);
     }
-  }, [cardId]);
+  }, [productType, productId]);
 
   const fetchReviews = useCallback(
     async (page = 1) => {
       try {
         setIsLoadingReviews(true);
         setError(null);
-        const data = await reviewsService.getReviews(cardId, page);
-        setReviews(data.results.map(reviewsService.transformReview));
-        setTotalPages(Math.ceil(data.count / pageSize) || 1);
+        if (productType === 'card') {
+          const data = await reviewsService.getReviews(productId, page);
+          setReviews(data.results.map(reviewsService.transformReview));
+          setTotalPages(Math.ceil(data.count / pageSize) || 1);
+        } else {
+          const data = await reviewsService.getProductReviews(productType, productId, page);
+          setReviews(
+            data.results.map(item => toListReview(reviewsService.transformProductReview(item)))
+          );
+          setTotalPages(Math.ceil(data.count / pageSize) || 1);
+        }
       } catch (err) {
         setError(copy.networkError);
         console.error('Failed to fetch reviews:', err);
@@ -604,13 +1102,31 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
         setIsLoadingReviews(false);
       }
     },
-    [cardId, copy.networkError]
+    [productType, productId, copy.networkError]
   );
+
+  const fetchOwnReview = useCallback(async () => {
+    if (!user) {
+      setOwnReview(null);
+      return;
+    }
+    const token = await getAccessToken();
+    if (!token) return;
+    try {
+      setOwnReview(await reviewsService.getOwnProductReview(productType, productId, token));
+    } catch (err) {
+      console.error('Failed to fetch own review:', err);
+    }
+  }, [user, getAccessToken, productType, productId]);
 
   useEffect(() => {
     fetchSummary();
     fetchReviews(1);
   }, [fetchSummary, fetchReviews]);
+
+  useEffect(() => {
+    fetchOwnReview();
+  }, [fetchOwnReview]);
 
   useEffect(() => {
     if (summary && summary.review_count > 0) {
@@ -627,7 +1143,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
         return () => script.remove();
       }
     }
-  }, [summary, cardUrl]);
+  }, [summary, productUrl]);
 
   const handleHelpfulClick = async (reviewId: number) => {
     if (!user) {
@@ -641,7 +1157,10 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
     }
 
     try {
-      const result = await reviewsService.voteHelpful(reviewId, accessToken);
+      const result =
+        productType === 'card'
+          ? await reviewsService.voteHelpful(reviewId, accessToken)
+          : await reviewsService.voteProductHelpful(productType, reviewId, accessToken);
       setReviews(prev =>
         prev.map(r =>
           r.id === reviewId
@@ -687,12 +1206,26 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
       setFormError(null);
       setNeedsVerification(false);
 
-      await reviewsService.createReview({ ...data, card: cardId }, accessToken);
-      setSubmissionMessage(copy.reviewSubmitted);
+      if (editingOwn && ownReview) {
+        await reviewsService.updateProductReview(productType, ownReview.id, data, accessToken);
+        setSubmissionMessage(copy.reviewUpdated);
+      } else if (productType === 'card') {
+        await reviewsService.createReview({ ...data, card: productId }, accessToken);
+        setSubmissionMessage(copy.reviewSubmitted);
+      } else {
+        await reviewsService.createProductReview(
+          productType,
+          { ...data, product: productId },
+          accessToken
+        );
+        setSubmissionMessage(copy.reviewSubmitted);
+      }
 
       setShowForm(false);
+      setEditingOwn(false);
       fetchSummary();
       fetchReviews(currentPage);
+      fetchOwnReview();
     } catch (err) {
       console.error('Failed to submit review:', err);
       if (err instanceof ApiError && err.code === 'email_not_verified') {
@@ -709,9 +1242,37 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
 
   const handleCancelForm = () => {
     setShowForm(false);
+    setEditingOwn(false);
     setFormError(null);
     setNeedsVerification(false);
     setSubmissionMessage(null);
+  };
+
+  const handleEditOwnReview = () => {
+    setEditingOwn(true);
+    setShowForm(true);
+    setFormError(null);
+    setNeedsVerification(false);
+    setSubmissionMessage(null);
+  };
+
+  const handleDeleteOwnReview = async () => {
+    if (!ownReview) return;
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      setFormError(copy.unauthorizedError);
+      return;
+    }
+    try {
+      await reviewsService.deleteProductReview(productType, ownReview.id, accessToken);
+      setOwnReview(null);
+      setActionMessage(copy.reviewDeleted);
+      fetchSummary();
+      fetchReviews(currentPage);
+    } catch (err) {
+      console.error('Failed to delete review:', err);
+      setFormError(err instanceof Error ? err.message : copy.genericError);
+    }
   };
 
   // JSON-LD for AggregateRating (handled in useEffect above)
@@ -731,10 +1292,13 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
           <ReviewSummaryCard
             summary={
               summary || {
-                card: cardId,
+                product_type: productType,
+                product: productId,
                 average_rating: null,
                 review_count: 0,
+                approved_count: 0,
                 distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+                community_reviewed: false,
               }
             }
             copy={copy}
@@ -743,25 +1307,37 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
         )}
       </div>
 
+      {/* The author's own review, held in place with its state */}
+      {user && ownReview && !showForm && (
+        <OwnReviewCard
+          review={ownReview}
+          copy={copy}
+          onEdit={handleEditOwnReview}
+          onDelete={handleDeleteOwnReview}
+        />
+      )}
+
       {/* Write Review Button / Login Prompt */}
       <div className="reviews-actions">
         {showForm ? (
           <ReviewForm
-            initialData={undefined}
+            initialData={editingOwn && ownReview ? ownReview : undefined}
             onSubmit={handleFormSubmit}
             onCancel={handleCancelForm}
             submitting={isSubmitting}
             copy={copy}
-            isEditing={false}
+            isEditing={editingOwn}
           />
         ) : user ? (
-          <button type="button" className="btn btn-primary" onClick={handleWriteReview}>
-            {copy.writeReview}
-          </button>
+          ownReview ? null : (
+            <button type="button" className="btn btn-primary" onClick={handleWriteReview}>
+              {copy.writeReview}
+            </button>
+          )
         ) : (
           <LoginPrompt
             copy={copy}
-            onLogin={() => navigate('/login', { state: { from: cardUrl } })}
+            onLogin={() => navigate('/login', { state: { from: productUrl } })}
           />
         )}
       </div>
@@ -773,7 +1349,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
             <button
               type="button"
               className="action-button"
-              onClick={() => navigate('/login', { state: { from: cardUrl } })}
+              onClick={() => navigate('/login', { state: { from: productUrl } })}
             >
               {copy.loginLink}
             </button>
@@ -827,6 +1403,16 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ cardId, cardUrl 
                 review={review}
                 copy={copy}
                 onHelpfulClick={handleHelpfulClick}
+                commentsSlot={
+                  <ReviewComments
+                    productType={productType}
+                    reviewId={review.id}
+                    copy={copy}
+                    isSignedIn={!!user}
+                    getAccessToken={getAccessToken}
+                    onLogin={() => navigate('/login', { state: { from: productUrl } })}
+                  />
+                }
               />
             ))}
             <Pagination
