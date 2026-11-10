@@ -150,10 +150,10 @@ describe('CommandPalette', () => {
     expect(actionsCopy.id).toBe('cm-palette-option-actions-action-emi');
     const allIds = screen.getAllByRole('option').map(option => option.id);
     expect(new Set(allIds).size).toBe(allIds.length);
-    // Arrow down past the recent and the first two actions to the Actions
-    // copy of the EMI calculator (flat order: recent, eligibility,
+    // Arrow down past the recent and the first three actions to the Actions
+    // copy of the EMI calculator (flat order: recent, advisor, eligibility,
     // compare, emi).
-    await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}');
+    await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}');
     expect(input.getAttribute('aria-activedescendant')).toBe(actionsCopy.id);
     expect(actionsCopy).toHaveAttribute('aria-selected', 'true');
     expect(recentCopy).toHaveAttribute('aria-selected', 'false');
