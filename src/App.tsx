@@ -95,6 +95,7 @@ const LoansPage = lazyLoad(() => import('./pages/LoansPage'));
 const LoanDetailPage = lazyLoad(() => import('./pages/LoanDetailPage'));
 const DepositsPage = lazyLoad(() => import('./pages/DepositsPage'));
 const DepositDetailPage = lazyLoad(() => import('./pages/DepositDetailPage'));
+const AdvisorPage = lazyLoad(() => import('./pages/AdvisorPage'));
 const AccountsPage = lazyLoad(() => import('./pages/AccountsPage'));
 const AccountDetailPage = lazyLoad(() => import('./pages/AccountDetailPage'));
 const SavedPage = lazyLoad(() => import('./pages/SavedPage'));
@@ -291,6 +292,7 @@ export const AppRoutes: React.FC = () => {
           path="/accounts/:slug"
           element={lazyRoute('Loading account...', <AccountDetailPage />)}
         />
+        <Route path="/ask" element={lazyRoute('Loading advisor...', <AdvisorPage />)} />
         <Route path="/guides" element={lazyRoute('Loading guides...', <GuidesPage />)} />
         <Route path="/guides/:slug" element={lazyRoute('Loading guide...', <GuidesPage />)} />
         <Route path="/glossary" element={lazyRoute('Loading glossary...', <GlossaryPage />)} />
