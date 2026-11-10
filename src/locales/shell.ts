@@ -62,6 +62,7 @@ export interface ShellCopy {
   paletteGroupRecent: string;
   paletteNoResults: string;
   paletteLoading: string;
+  actionAdvisor: string;
   actionEligibility: string;
   actionCompare: string;
   actionEmi: string;
@@ -161,6 +162,7 @@ const en: ShellCopy = {
   paletteNoResults:
     'No matches. Try a bank name, a product, or an action like “Check eligibility”.',
   paletteLoading: 'Searching…',
+  actionAdvisor: 'Ask CreditMate — AI advisor',
   actionEligibility: 'Check eligibility',
   actionCompare: 'Compare cards',
   actionEmi: 'EMI calculator',
@@ -259,6 +261,7 @@ const bn: ShellCopy = {
   paletteGroupRecent: 'সাম্প্রতিক',
   paletteNoResults: 'কোনো মিল নেই। ব্যাংকের নাম, পণ্য, বা যোগ্যতা যাচাই-এর মতো কাজ চেষ্টা করুন।',
   paletteLoading: 'অনুসন্ধান চলছে…',
+  actionAdvisor: 'ক্রেডিটমেটকে জিজ্ঞাসা করুন — AI পরামর্শক',
   actionEligibility: 'যোগ্যতা যাচাই করুন',
   actionCompare: 'কার্ড তুলনা করুন',
   actionEmi: 'ইএমআই ক্যালকুলেটর',

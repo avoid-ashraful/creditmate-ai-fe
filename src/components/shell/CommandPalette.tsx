@@ -189,6 +189,13 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, userId = null 
   const actions = useMemo<PaletteItem[]>(
     () => [
       {
+        id: 'action-advisor',
+        group: 'actions',
+        label: copy.actionAdvisor,
+        href: '/ask',
+        keywords: 'ask advisor ai chat assistant জিজ্ঞাসা পরামর্শক',
+      },
+      {
         id: 'action-eligibility',
         group: 'actions',
         label: copy.actionEligibility,

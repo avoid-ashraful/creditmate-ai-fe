@@ -1,0 +1,183 @@
+/* Ask CreditMate advisor (Capability 2). Token-clean: every colour
+   resolves through tokens.css variables, like the other page styles. */
+
+.advisor-page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.advisor-hero {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.advisor-hero h1 {
+  font-size: 2rem;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.advisor-hero p {
+  color: var(--color-text-secondary);
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.advisor-fallback-banner {
+  background: var(--color-background-surface);
+  border: 1px solid var(--color-slate-200);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 1rem;
+}
+
+.advisor-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.advisor-entry {
+  border: 1px solid var(--color-slate-200);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-background-surface);
+}
+
+.advisor-entry--user {
+  align-self: flex-end;
+  max-width: 85%;
+  background: var(--color-slate-100, var(--color-background-surface));
+}
+
+.advisor-entry--advisor {
+  align-self: flex-start;
+  width: 100%;
+}
+
+.advisor-entry-body p {
+  margin: 0 0 0.5rem;
+  color: var(--color-text-primary);
+}
+
+.advisor-entry-body ul {
+  margin: 0 0 0.5rem;
+  padding-left: 1.25rem;
+  color: var(--color-text-primary);
+}
+
+.advisor-fallback-note,
+.advisor-trace {
+  color: var(--color-slate-500);
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+.advisor-citations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.advisor-citation-chip {
+  border: 1px solid var(--color-slate-200);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  background: var(--color-background-page, transparent);
+}
+
+.advisor-citation-chip:hover {
+  text-decoration: underline;
+}
+
+.advisor-action-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border: 1px dashed var(--color-slate-200);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  color: var(--color-text-primary);
+}
+
+.advisor-action-card button,
+.advisor-composer-row button {
+  border: 1px solid var(--color-slate-200);
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-background-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.advisor-action-card button:disabled {
+  color: var(--color-slate-500);
+  cursor: default;
+}
+
+.advisor-starters {
+  color: var(--color-text-secondary);
+}
+
+.advisor-starter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.advisor-starter {
+  border: 1px solid var(--color-slate-200);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  background: var(--color-background-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.advisor-working {
+  color: var(--color-slate-500);
+}
+
+.advisor-composer {
+  border: 1px solid var(--color-slate-200);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-background-surface);
+}
+
+.advisor-composer-label {
+  display: block;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.advisor-composer-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.advisor-composer-row input {
+  flex: 1;
+  border: 1px solid var(--color-slate-200);
+  border-radius: 0.375rem;
+  padding: 0.6rem 0.75rem;
+  color: var(--color-text-primary);
+  background: var(--color-background-page, transparent);
+}
+
+.advisor-note {
+  color: var(--color-slate-500);
+  font-size: 0.85rem;
+  margin: 0.75rem 0 0;
+}
