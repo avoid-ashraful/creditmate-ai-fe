@@ -1,0 +1,23 @@
+# gitleaks configuration for creditmate-ai-fe — see
+# .github/workflows/secret-scan.yml.
+#
+# Policy: this config extends the built-in default ruleset. Add
+# allowlist entries ONLY for verified false positives (test fixtures,
+# .env.example-style placeholder values), scoped as narrowly as
+# possible (path + regex), each with a comment explaining why the
+# matched value is not a real credential.
+#
+# As of 2026-11-12 a full-history scan (221 commits) and a working-tree
+# scan both reported NO leaks, so no allowlist entries are needed yet.
+[extend]
+useDefault = true
+
+# No [allowlist] section yet: gitleaks requires an allowlist to contain
+# at least one real check (commits/paths/regexes/stopwords), and none
+# are needed while scans are clean. When a verified false positive
+# appears, add a narrowly-scoped entry of this shape:
+#
+# [allowlist]
+# description = "Dummy token used by <fixture/test>, not a credential"
+# paths = ['''src/path/to/fixture\.ts''']
+# regexes = ['''the-dummy-value''']

@@ -1,0 +1,17 @@
+# zizmor configuration — see .github/workflows/workflow-audit.yml.
+#
+# Policy: the gate must pass today and fail on NEW findings. Each ignore
+# below is scoped to one rule in one file, with the reason recorded.
+# Remove an entry as soon as its underlying finding is fixed.
+rules:
+  artipacked:
+    ignore:
+      # ci.yml only: the "Design values baseline guard" step fetches the
+      # PR base SHA from origin mid-job (`git fetch origin "$BASE_SHA"`)
+      # and relies on the credentials actions/checkout persists.
+      # Setting `persist-credentials: false` there would break the guard.
+      # Follow-up: rework the guard to not need persisted credentials
+      # (e.g. a dedicated short-lived fetch), then delete this ignore.
+      # NOTE: storybook.yml had the same finding and IS fixed
+      # (persist-credentials: false) — it needs no ignore.
+      - ci.yml
