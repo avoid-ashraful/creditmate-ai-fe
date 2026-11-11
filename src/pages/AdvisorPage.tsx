@@ -3,11 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
-import {
-  AdvisorResponse,
-  AdvisorSuggestedAction,
-  askAdvisorStream,
-} from '../services/advisor';
+import { AdvisorResponse, AdvisorSuggestedAction, askAdvisorStream } from '../services/advisor';
 
 import './AdvisorPage.css';
 
@@ -30,13 +26,15 @@ const renderMarkdown = (text: string): React.ReactNode[] =>
   text.split(/\n{2,}/).map((block, i) => {
     const lines = block.split('\n').filter(Boolean);
     const renderInline = (line: string): React.ReactNode[] =>
-      line.split(/(\*\*[^*]+\*\*)/g).map((part, j) =>
-        part.startsWith('**') && part.endsWith('**') ? (
-          <strong key={j}>{part.slice(2, -2)}</strong>
-        ) : (
-          <React.Fragment key={j}>{part}</React.Fragment>
-        )
-      );
+      line
+        .split(/(\*\*[^*]+\*\*)/g)
+        .map((part, j) =>
+          part.startsWith('**') && part.endsWith('**') ? (
+            <strong key={j}>{part.slice(2, -2)}</strong>
+          ) : (
+            <React.Fragment key={j}>{part}</React.Fragment>
+          )
+        );
     if (lines.every(line => line.startsWith('- '))) {
       return (
         <ul key={i}>
@@ -46,7 +44,16 @@ const renderMarkdown = (text: string): React.ReactNode[] =>
         </ul>
       );
     }
-    return <p key={i}>{lines.map((line, j) => <React.Fragment key={j}>{renderInline(line)}{j < lines.length - 1 ? <br /> : null}</React.Fragment>)}</p>;
+    return (
+      <p key={i}>
+        {lines.map((line, j) => (
+          <React.Fragment key={j}>
+            {renderInline(line)}
+            {j < lines.length - 1 ? <br /> : null}
+          </React.Fragment>
+        ))}
+      </p>
+    );
   });
 
 const AdvisorPage: React.FC = () => {
@@ -134,8 +141,8 @@ const AdvisorPage: React.FC = () => {
 
       {unavailable && (
         <div className="advisor-fallback-banner" role="status">
-          The advisor is currently unavailable, so please use{' '}
-          <Link to="/cards">normal search</Link> — it covers the same published data.
+          The advisor is currently unavailable, so please use <Link to="/cards">normal search</Link>{' '}
+          — it covers the same published data.
         </div>
       )}
 
@@ -162,18 +169,13 @@ const AdvisorPage: React.FC = () => {
             <div className="advisor-entry-body">{renderMarkdown(entry.text)}</div>
             {entry.response?.is_fallback && (
               <p className="advisor-fallback-note">
-                Showing normal search results instead — the advisor could not complete this
-                answer.
+                Showing normal search results instead — the advisor could not complete this answer.
               </p>
             )}
             {entry.response && entry.response.citations.length > 0 && (
               <div className="advisor-citations" aria-label="Sources">
                 {entry.response.citations.map((citation, j) => (
-                  <Link
-                    key={j}
-                    className="advisor-citation-chip"
-                    to={citation.url_path}
-                  >
+                  <Link key={j} className="advisor-citation-chip" to={citation.url_path}>
                     {citation.label}
                     {citation.field ? ` · ${citation.field.replace(/_/g, ' ')}` : ''}
                   </Link>
@@ -201,8 +203,7 @@ const AdvisorPage: React.FC = () => {
               })}
             {entry.response && entry.response.tool_trace.length > 0 && (
               <p className="advisor-trace">
-                Tools used:{' '}
-                {entry.response.tool_trace.map(t => t.tool).join(' → ')}
+                Tools used: {entry.response.tool_trace.map(t => t.tool).join(' → ')}
               </p>
             )}
           </article>
@@ -235,9 +236,9 @@ const AdvisorPage: React.FC = () => {
           </button>
         </div>
         <p className="advisor-note">
-          Eligibility answers use only each product&apos;s published requirements and are
-          estimates — never a promise of approval. Anything you type here about income is used
-          for this answer only and is not stored.
+          Eligibility answers use only each product&apos;s published requirements and are estimates
+          — never a promise of approval. Anything you type here about income is used for this answer
+          only and is not stored.
         </p>
       </form>
     </main>
