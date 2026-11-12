@@ -94,6 +94,40 @@
     U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/*
+ * Fraunces — self-hosted (Midnight Ledger display face; latin subset only).
+ * Copyright 2018 The Fraunces Project Authors (https://github.com/undercasetype/Fraunces).
+ * Licensed under the SIL Open Font License, Version 1.1 (OFL-1.1).
+ * Full license text: public/fonts/FRAUNCES-LICENSE.txt.
+ * Source: Google Fonts (https://fonts.google.com/specimen/Fraunces).
+ * The upright file is the variable font (wght axis); only the 500–700 range
+ * the design system uses is declared. Italic is the static Medium (500),
+ * kept for display "dealt moments" only. Bengali display text falls through
+ * to Hind Siliguri via the display token stack — Fraunces has no Bengali.
+ */
+
+/* latin */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url('/fonts/fraunces-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* latin */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/fraunces-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* Bengali content leads with Hind Siliguri, falling back to the sans token stack. */
 :lang(bn) {
   font-family: 'Hind Siliguri', var(--typography-font-family-sans);

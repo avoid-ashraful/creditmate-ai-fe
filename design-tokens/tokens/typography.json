@@ -6,6 +6,11 @@
         "type": "fontFamily",
         "comment": "System UI stack with Bengali fallbacks ('Hind Siliguri', 'Noto Sans Bengali') so Bengali glyphs fall through to Hind Siliguri. Matches the existing body font in src/styles/index.css."
       },
+      "display": {
+        "value": "'Fraunces', 'Hind Siliguri', Georgia, 'Times New Roman', serif",
+        "type": "fontFamily",
+        "comment": "Midnight Ledger display face (self-hosted, see src/styles/fonts.css). Wordmark, hero and display headings only — UI text stays on the sans stack. Hind Siliguri follows so Bengali display text keeps its face."
+      },
       "mono": {
         "value": "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
         "type": "fontFamily",

@@ -77,21 +77,7 @@
   gap: var(--spacing-sm);
   color: var(--color-text-primary);
   text-decoration: none;
-  font-weight: var(--typography-font-weight-bold);
   font-size: var(--typography-font-size-lg);
-}
-
-.cm-logo-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-md);
-  background: var(--color-primary-base);
-  color: var(--color-text-on-primary);
-  font-size: var(--typography-font-size-sm);
-  flex: none;
 }
 
 .cm-rail-search {
@@ -267,7 +253,7 @@
   font: inherit;
 }
 
-.is-collapsed .cm-logo-word,
+.is-collapsed .cm-logo-wordmark,
 .is-collapsed .cm-rail-search-label,
 .is-collapsed .cm-kbd,
 .is-collapsed .cm-rail-mode-label,
@@ -402,9 +388,10 @@
 }
 
 .cm-topbar-logo {
+  display: inline-flex;
+  align-items: center;
   color: var(--color-text-primary);
   text-decoration: none;
-  font-weight: var(--typography-font-weight-bold);
   font-size: var(--typography-font-size-lg);
 }
 

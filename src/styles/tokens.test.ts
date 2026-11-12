@@ -48,7 +48,8 @@ describe('design tokens — semantic colours', () => {
       expect(`color.background.${name}`).toBeTruthy();
     });
 
-    expect(color.background.surface).toBe('#ffffff');
+    // Midnight Ledger: surfaces are warm white (paper.50), not pure #ffffff.
+    expect(color.background.surface).toBe('#FDFCFA');
     expect(color.background.overlay).toMatch(/^rgba\(/);
   });
 
@@ -84,8 +85,9 @@ describe('design tokens — semantic colours', () => {
   });
 
   it('resolves semantic colours through to palette references', () => {
-    expect(color.primary.base).toBe(color.blue['500']);
-    expect(color.secondary.base).toBe(color.slate['900']);
+    // Midnight Ledger: primary/secondary resolve through the navy ramp.
+    expect(color.primary.base).toBe(color.navy['600']);
+    expect(color.secondary.base).toBe(color.navy['900']);
     expect(color.success.base).toBe(color.emerald['700']);
     expect(color.warning.base).toBe(color.amber['700']);
     expect(color.error.base).toBe(color.red['700']);
@@ -134,6 +136,8 @@ describe('design tokens — typography', () => {
   it('defines font families', () => {
     expect(typography.fontFamily.sans).toContain('sans-serif');
     expect(typography.fontFamily.mono).toContain('monospace');
+    // Midnight Ledger display face (Fraunces, self-hosted).
+    expect(typography.fontFamily.display).toContain('Fraunces');
   });
 
   it('defines a font size ramp', () => {
