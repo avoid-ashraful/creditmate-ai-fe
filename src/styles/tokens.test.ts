@@ -636,6 +636,41 @@ describe('design tokens — WCAG contrast ratios', () => {
       'Error border on base background (light)',
       3.0,
     ],
+    // Midnight Ledger spine (plan V2 P1): the shell tokens are
+    // theme-invariant, but pin them in both lists so a future ramp
+    // change cannot silently drop the rail below AA.
+    ['--color-shell-text', '--color-shell-background', 'Shell text on spine (light)', 4.5],
+    [
+      '--color-shell-text-secondary',
+      '--color-shell-background',
+      'Shell secondary text on spine (light)',
+      4.5,
+    ],
+    [
+      '--color-shell-text-secondary',
+      '--color-shell-surface-hover',
+      'Shell secondary text on spine hover well (light)',
+      4.5,
+    ],
+    [
+      '--color-shell-text',
+      '--color-shell-surface-selected',
+      'Shell text on spine selected well (light)',
+      4.5,
+    ],
+    [
+      '--color-shell-text-secondary',
+      '--color-shell-surface-selected',
+      'Shell secondary text on spine selected well (light)',
+      4.5,
+    ],
+    // The shortlist count is ink text on the gold pill.
+    [
+      '--color-accent-contrast',
+      '--color-accent-base',
+      'Shortlist count label on gold pill (light)',
+      4.5,
+    ],
   ];
 
   const darkContrastPairs: Array<[string, string, string, number]> = [
@@ -708,6 +743,39 @@ describe('design tokens — WCAG contrast ratios', () => {
       '--color-background-base',
       'Error border on base background (dark)',
       3.0,
+    ],
+    // Midnight Ledger spine (plan V2 P1) — same pairs as light: the
+    // spine stays ink navy in dark mode.
+    ['--color-shell-text', '--color-shell-background', 'Shell text on spine (dark)', 4.5],
+    [
+      '--color-shell-text-secondary',
+      '--color-shell-background',
+      'Shell secondary text on spine (dark)',
+      4.5,
+    ],
+    [
+      '--color-shell-text-secondary',
+      '--color-shell-surface-hover',
+      'Shell secondary text on spine hover well (dark)',
+      4.5,
+    ],
+    [
+      '--color-shell-text',
+      '--color-shell-surface-selected',
+      'Shell text on spine selected well (dark)',
+      4.5,
+    ],
+    [
+      '--color-shell-text-secondary',
+      '--color-shell-surface-selected',
+      'Shell secondary text on spine selected well (dark)',
+      4.5,
+    ],
+    [
+      '--color-accent-contrast',
+      '--color-accent-base',
+      'Shortlist count label on gold pill (dark)',
+      4.5,
     ],
   ];
 

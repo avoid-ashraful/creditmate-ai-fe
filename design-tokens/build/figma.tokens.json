@@ -96,6 +96,34 @@
             "value": "#0B1428"
           }
         },
+        "shell": {
+          "background": {
+            "type": "color",
+            "value": "#0F1B33",
+            "description": "The ledger spine stays ink navy in dark mode too (one step above the navy/950 page ground). Same values as the light theme by design."
+          },
+          "surfaceHover": {
+            "type": "color",
+            "value": "#122344"
+          },
+          "surfaceSelected": {
+            "type": "color",
+            "value": "#182C55"
+          },
+          "text": {
+            "type": "color",
+            "value": "#F5F2EC"
+          },
+          "textSecondary": {
+            "type": "color",
+            "value": "#8CA2C4"
+          },
+          "border": {
+            "type": "color",
+            "value": "#122344",
+            "description": "Hairline on the spine; also the spine's edge against the navy/950 page ground."
+          }
+        },
         "success": {
           "base": {
             "type": "color",
@@ -851,6 +879,38 @@
         "contrast": {
           "type": "color",
           "value": "#ffffff"
+        }
+      },
+      "shell": {
+        "background": {
+          "type": "color",
+          "value": "#0F1B33",
+          "description": "Midnight Ledger spine: the app rail, top bar, bottom bar, command palette and footer sit on ink navy in BOTH themes (redesign plan V2, P1). Paper text on it is 15.34:1."
+        },
+        "surfaceHover": {
+          "type": "color",
+          "value": "#122344",
+          "description": "Hover well on the spine. Secondary text (navy/300) on it is 5.99:1."
+        },
+        "surfaceSelected": {
+          "type": "color",
+          "value": "#182C55",
+          "description": "Selected/active well on the spine. Paper text on it is 12.28:1, secondary text 5.28:1."
+        },
+        "text": {
+          "type": "color",
+          "value": "#F5F2EC",
+          "description": "Primary text on the spine (15.34:1 on shell/background)."
+        },
+        "textSecondary": {
+          "type": "color",
+          "value": "#8CA2C4",
+          "description": "Secondary text on the spine (6.60:1 on shell/background)."
+        },
+        "border": {
+          "type": "color",
+          "value": "#182C55",
+          "description": "Hairline dividers on the spine."
         }
       },
       "success": {
