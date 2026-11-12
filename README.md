@@ -1,268 +1,195 @@
-# CreditMate AI 🏦
+# CreditMate AI — Frontend
 
-A comprehensive credit card comparison platform designed specifically for Bangladeshi consumers, helping users make informed financial decisions through transparent information and intuitive comparison tools.
+The React single-page app for CreditMate AI: a comparison platform for banking
+products in Bangladesh — credit cards, deposits, loans, and bank accounts —
+built on published bank data with provenance, so people can see not just the
+numbers but where they came from and when they changed.
 
-## 🌟 Features
+> **Status:** pre-launch, in active development.
 
-- **Smart Credit Card Comparison**: Compare up to 4 credit cards side-by-side with detailed metrics
-- **Advanced Filtering**: Filter cards by annual fees, interest rates, lounge access, and more
-- **Real-time Search**: Search across all major Bangladeshi banks and card offerings
-- **Educational Resources**: Learn about credit card terminology through our comprehensive glossary
-- **Responsive Design**: Seamless experience across desktop, tablet, and mobile devices
-- **Modern UI**: Clean, gradient-based design with smooth animations
+[![CI](https://github.com/avoid-ashraful/creditmate-ai-fe/actions/workflows/ci.yml/badge.svg)](https://github.com/avoid-ashraful/creditmate-ai-fe/actions/workflows/ci.yml)
+[![Storybook Build](https://github.com/avoid-ashraful/creditmate-ai-fe/actions/workflows/storybook.yml/badge.svg)](https://github.com/avoid-ashraful/creditmate-ai-fe/actions/workflows/storybook.yml)
+[![Workflow Audit (zizmor)](https://github.com/avoid-ashraful/creditmate-ai-fe/actions/workflows/workflow-audit.yml/badge.svg)](https://github.com/avoid-ashraful/creditmate-ai-fe/actions/workflows/workflow-audit.yml)
+[![Secret Scan (gitleaks)](https://github.com/avoid-ashraful/creditmate-ai-fe/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/avoid-ashraful/creditmate-ai-fe/actions/workflows/secret-scan.yml)
 
-## 🚀 Quick Start
+**Related repositories**
+
+- [creditmate-ai](https://github.com/avoid-ashraful/creditmate-ai) — umbrella repo: deployment (Helm), docs, project overview
+- [creditmate-ai-be](https://github.com/avoid-ashraful/creditmate-ai-be) — Django REST API this app consumes
+
+## What the app does
+
+Four product verticals, one per mode in the app shell:
+
+- **Cards** — credit card discovery and detail pages.
+- **Save** — deposits: fixed deposits (FDR) and monthly schemes (DPS).
+- **Borrow** — personal, home, car, and secured loans, priced as published rate bands.
+- **Accounts** — savings and current accounts, ranked by net annual value at your balance.
+
+Across all four:
+
+- **Comparison** — side-by-side comparison with a differences-only toggle, plus print / Save-as-PDF export of just the comparison table.
+- **Bank pages** — a page per bank with its full product range across verticals.
+- **Provenance and "what changed"** — detail pages show source and verification status per product, a fee/rate change history, and delta cards that highlight what changed since you last looked.
+- **Eligibility checker** — a Bangladesh-specific, income-based estimate using each card's _published_ minimum income. Results are estimates only — the words "pre-approved" and "guaranteed" never appear; the bank makes the final decision. Inputs are not stored.
+- **CreditMate Score** — a 0–10 score computed only from published data, with a per-component breakdown on detail pages, badges on listings, and sort-by-score. The methodology is published in the app.
+- **Calculators** — EMI and payoff calculators that run on real cards' published rates (or a custom rate, with an honest warning when a payment doesn't cover the first month's interest), plus a reward calculator that shows each card's effective value-back %.
+- **Community reviews** — public ratings, reviews, and comments for all product types; a product earns a "Community reviewed" chip at 50+ approved reviews.
+- **Personalisation** — a server-stored profile, a cross-device shortlist, saved searches, and bank-follow alerts, gathered in the `/my` workspace.
+- **Ask CreditMate** (`/ask`) — a chat advisor that answers from the published catalogue and cites its sources, with actions such as adding a cited card to your shortlist. It requires the backend's `ADVISOR_ENABLED` flag; when the advisor is off, the page says so and points back to normal search.
+- **Command palette** — press ⌘K to jump to pages, tools, and actions.
+- **Themes and languages** — light and dark themes (system-preference default) and English / বাংলা (bn-BD), set in Hind Siliguri.
+
+## Tech stack
+
+| Area       | Technology                                                           |
+| ---------- | -------------------------------------------------------------------- |
+| Framework  | React 18, TypeScript 5.9                                             |
+| Build      | Vite 8                                                               |
+| Routing    | React Router 7                                                       |
+| Motion     | Framer Motion                                                        |
+| Unit tests | Jest 30, React Testing Library                                       |
+| E2E tests  | Playwright, including visual regression and axe accessibility checks |
+| Components | Storybook 8                                                          |
+| Design     | Style Dictionary design tokens (see below)                           |
+
+## Design system
+
+The visual language is token-driven. Sources live in
+[`design-tokens/tokens/`](design-tokens/tokens) as plain JSON and are compiled
+by Style Dictionary into committed outputs — CSS custom properties
+(`src/styles/tokens.css`), TypeScript constants (`src/styles/tokens.ts`), and a
+Figma tokens file.
+
+**Never edit the generated outputs by hand.** Change the token sources, then
+regenerate:
+
+```bash
+npm run tokens:build   # regenerate all outputs
+npm run tokens:check   # fails if committed outputs are stale or hand-edited
+```
+
+The light theme sits on a tinted lavender-grey ground (`#ECEEF3`) with white
+surfaces floating above it; the dark theme uses the same token structure.
+Components live in `src/components/` (including the `ui/` primitives and the
+`shell/` app frame) and are catalogued in Storybook — run `npm run storybook`.
+Accessibility is treated as a release gate: Playwright + axe checks cover the
+main routes in both themes (see [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)).
+
+## Getting started
 
 ### Prerequisites
 
-- Node.js 24 LTS (`nvm use`, using the committed `.nvmrc`)
-- npm 11 or newer; use the committed `package-lock.json`
+- Node.js 24 (see `.nvmrc`; `engines` requires `>=24 <25`)
+- npm 11 or newer
+- The [backend](https://github.com/avoid-ashraful/creditmate-ai-be) running locally, or any reachable CreditMate API
 
-### Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/your-username/credit-mate-ai.git
-cd credit-mate-ai
-```
-
-2. Install dependencies:
+### Install and run
 
 ```bash
+git clone https://github.com/avoid-ashraful/creditmate-ai-fe.git
+cd creditmate-ai-fe
 npm ci
+npm run dev
 ```
 
-3. Start the development server:
+The dev server runs at [http://localhost:3000](http://localhost:3000)
+(`PORT` overrides the port).
+
+### Configuration
+
+Configuration is read centrally in [`src/config/env.ts`](src/config/env.ts).
+Values are public browser configuration — never put credentials in them.
+
+| Variable                       | Purpose                                               | Default                        |
+| ------------------------------ | ----------------------------------------------------- | ------------------------------ |
+| `REACT_APP_API_BASE_URL`       | Base URL of the CreditMate API                        | `http://localhost:8000/api/v1` |
+| `REACT_APP_ENABLE_API_LOGGING` | Verbose API logging (development builds only)         | off                            |
+| `REACT_APP_ANALYTICS_KEY`      | Enables the privacy-first analytics integration hook  | unset (analytics inactive)     |
+| `REACT_APP_SENTRY_DSN`         | Error reporting endpoint, if your deployment uses one | unset                          |
+| `PORT`                         | Dev-server port                                       | `3000`                         |
+
+Set them in `.env` / `.env.local`, e.g.:
 
 ```bash
-npm start
+REACT_APP_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) to view the application in your browser.
+## Scripts
 
-## 🛠️ Available Scripts
+| Script                           | Purpose                                                        |
+| -------------------------------- | -------------------------------------------------------------- |
+| `npm run dev` (or `npm start`)   | Start the Vite dev server                                      |
+| `npm run build`                  | Production build into `build/` (generates the sitemap first)   |
+| `npm run preview`                | Preview the production build                                   |
+| `npm test`                       | Run the Jest suite once                                        |
+| `npm run test:watch`             | Jest in watch mode                                             |
+| `npm run test:ci`                | Jest serially, as CI runs it                                   |
+| `npm run test:e2e`               | Playwright end-to-end tests                                    |
+| `npm run test:e2e:visual`        | Playwright visual-regression tests                             |
+| `npm run test:e2e:visual:update` | Refresh visual-regression snapshots                            |
+| `npm run check-types`            | TypeScript check (`tsc --noEmit`)                              |
+| `npm run check-lint`             | ESLint check                                                   |
+| `npm run lint`                   | ESLint with auto-fix                                           |
+| `npm run check-format`           | Prettier check                                                 |
+| `npm run check-styles`           | Design-values guard (no hard-coded values that bypass tokens)  |
+| `npm run tokens:build`           | Regenerate design-token outputs                                |
+| `npm run tokens:check`           | Verify token outputs are current and unedited                  |
+| `npm run bundle:budget`          | Check the bundle against the size budget                       |
+| `npm run storybook`              | Storybook dev server on port 6006                              |
+| `npm run storybook:build`        | Static Storybook build                                         |
+| `npm run check:all`              | Types, lint, format, tests, build, bundle budget, style checks |
 
-- `npm start` - Runs the app in development mode
-- `npm test` - Runs Jest once; `npm run test:watch` enables watch mode
-- `npm run test:ci` - Runs all unit tests with one worker for CI
-- `npm run build` - Builds the app for production
-- `npm run lint` - Runs ESLint to check code quality
-- `npm run format` - Formats code using Prettier
-- `npm run check-types` - Runs TypeScript compiler to check types
+Deeper guides: [TESTING.md](TESTING.md), [LINTING.md](LINTING.md),
+[PERFORMANCE_BUDGETS.md](PERFORMANCE_BUDGETS.md),
+[VISUAL_REGRESSION_GUIDE.md](VISUAL_REGRESSION_GUIDE.md),
+[LOCALIZATION_GUIDE.md](LOCALIZATION_GUIDE.md).
 
-## 🏗️ Tech Stack
-
-- **Frontend**: React 18 with TypeScript
-- **Routing**: React Router DOM v7
-- **Styling**: Styled Components + CSS
-- **Animations**: Framer Motion & React Spring
-- **Testing**: Jest & React Testing Library
-- **Code Quality**: ESLint, Prettier, Husky
-- **Build Tool**: Vite 8; Jest 30 with Babel; TypeScript 5.9
-
-## 📱 Pages
-
-- **Home**: Landing page with featured cards and quick search
-- **Compare**: Advanced comparison tool with filtering options
-- **Glossary**: Educational content about credit card terminology
-- **About**: Information about the platform and mission
-
-## 🎯 Project Goals
-
-CreditMate AI addresses the information fragmentation and transparency issues in Bangladesh's credit card market by:
-
-- Aggregating credit card data from major Bangladeshi banks
-- Standardizing information presentation for easy comparison
-- Providing educational resources for first-time credit card users
-- Enabling informed financial decision-making through transparent data
-
-## 📁 Project Structure
+## Project structure
 
 ```
 src/
-├── components/           # Reusable UI components
-│   ├── CardComparisonTable.tsx
-│   ├── CardDetailsPopup.tsx
-│   ├── CardList.tsx
-│   ├── CardListItem.tsx
-│   ├── ComparisonBar.tsx
-│   └── FilterPanel.tsx
-├── dummy-data/          # Mock data for development
-├── pages/               # Page components
-│   ├── AboutPage.tsx
-│   ├── ComparisonPage.tsx
-│   ├── GlossaryPage.tsx
-│   └── HomePage.tsx
-├── styles/              # CSS styles and styled components
-├── types/               # TypeScript type definitions
-├── App.tsx              # Main application component
-└── index.tsx            # Application entry point
+├── pages/        Route pages: discovery, detail, compare, calculators,
+│                 eligibility, /ask advisor, /my workspace, plan tools
+├── components/   UI components, incl. ui/ primitives and shell/ (app frame,
+│                 mode rail, command palette, shortlist tray)
+├── services/     API clients, one module per backend area
+├── locales/      EN/BN string tables and the language context (bn/ for Bengali)
+├── hooks/        Shared React hooks
+├── styles/       Global CSS, fonts, and the generated design tokens
+├── content/      In-app content (guides, glossary)
+├── types/        Shared TypeScript types
+└── utils/, lib/  Helpers
+
+design-tokens/    Token sources (tokens/), formats, and build outputs
+e2e/              Playwright specs (flows, axe accessibility, visual regression)
+docs/             Accessibility, analytics, API-contract and Storybook docs
 ```
 
-## 🔧 Development
+## Continuous integration
 
-### Analytics
+On every pull request (and push to `master`):
 
-Product analytics is privacy-first and disabled by default. Set
-`REACT_APP_ANALYTICS_KEY` only when your deployment also registers an analytics
-provider callback. No provider is registered in this repository, so builds remain
-safe/no-network and analytics are inactive until deployment integration code calls
-`analytics.setProvider`. The injected callback must not include cookies or persistent
-identifiers, and it should fail silently through the normal callback contract.
+- **CI** — locked install (`npm ci`), production dependency audit, type check,
+  lint, format check, design-values guard, Jest suite, production build, and
+  the bundle-budget check.
+- **Storybook Build** — the static Storybook build must succeed.
+- **Workflow Audit (zizmor)** — the workflow files themselves are audited.
+- **Secret Scan (gitleaks)** — the PR's commits are scanned for secrets; a
+  full-history scan runs weekly.
 
-### Analytics Events
+End-to-end and visual-regression Playwright suites run in the
+[umbrella repo's](https://github.com/avoid-ashraful/creditmate-ai) CI against
+the integrated application.
 
-The registry defines the acceptance event names: `page_view`, `search`,
-`filter_apply`, `card_select`, `compare_start`, `compare_share`,
-`card_detail_view`, `quiz_start`, `quiz_complete`, `calculator_use`, `signup`,
-and `login`. Existing browsing and page-action call sites use the first ten.
-`signup` and `login` remain available for Task 7.1 authentication routes; no
-authentication behavior is invented or sent here.
+## Contributing
 
-### Provider Adapter Contract
+1. Branch from `master` (`feat/…`, `fix/…`, `docs/…`).
+2. Keep changes scoped; add or update tests for behaviour changes.
+3. Before pushing, run `npm run check:all` — and `npm run tokens:check` if you
+   touched design tokens. Husky + lint-staged also run checks on commit.
+4. Open a pull request; all CI checks above must pass.
 
-Deployment integration code should register one callback per concern, using only
-the sanitized payload supplied by `analytics`:
-
-- `setProvider((event) => { ... })` receives `{ name, properties }` for an event.
-- `setUserProvider((properties) => { ... })` receives only `tier`,
-  `savedComparisons`, and `emailOptIn`.
-- `setUserDeletionProvider(() => { ... })` deletes or resets the provider-side user
-  data. `deleteUserData()` invokes this callback before persisting opt-out.
-
-Event properties are limited to allowlisted identifiers, public bank names, filter
-keys/counts, normalized enum values, aggregate spend, counts, strict UTM values,
-and the referrer origin. They never include email, person names, raw search text,
-full referrer URLs, or arbitrary object fields.
-
-`optOut()` and `clearUserData()` immediately stop local event emission and persist
-the opt-out. `clearUserData()` is the local-only stop; `deleteUserData()` additionally
-requests provider-side deletion or reset when a callback is registered. These are
-intentionally distinct operations, even though both end in a persisted opt-out.
-
-The key is a local integration toggle and must not be treated as a secret or used
-to send data to an external network by default.
-
-### Code Quality
-
-This project maintains high code quality standards through:
-
-- **TypeScript** for type safety
-- **ESLint** for code linting
-- **Prettier** for code formatting
-- **Husky** for pre-commit hooks
-- **Lint-staged** for staged file processing
-
-### Testing
-
-Run tests with:
-
-```bash
-npm test
-```
-
-The project includes comprehensive test coverage for components and user interactions.
-
-### Building for Production
-
-```bash
-npm run build
-```
-
-Builds the app for production to the `build` folder, optimizing for best performance.
-
-## 📊 Data Model
-
-The application works with standardized credit card data including:
-
-- Bank information and branding
-- Annual fees and interest rates
-- Lounge access benefits (domestic & international)
-- Fee structures and waiver policies
-- Reward points programs
-- Additional features and benefits
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-Please ensure your code follows the existing style guidelines and includes appropriate tests.
-
-## 📋 Roadmap
-
-### Phase 1 (Current - MVP)
-
-- ✅ Core comparison functionality
-- ✅ Search and filtering
-- ✅ Responsive design
-- ✅ Educational content
-
-### Phase 2 (Planned)
-
-- User accounts and preferences
-- Save and share comparisons
-- User reviews and ratings
-- Enhanced mobile experience
-
-### Phase 3 (Future)
-
-- Personalized recommendations
-- Advanced analytics
-- API integrations
-- Community features
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙋 Support
-
-For questions, suggestions, or issues:
-
-- Create an issue on GitHub
-- Contact the development team
-- Visit our [documentation](./docs)
-
-## 🙏 Acknowledgments
-
-- All the financial institutions in Bangladesh that provide credit card services
-- The open-source community for the amazing tools and libraries
-- Contributors who help improve the platform
-
----
-
-**Made with ❤️ for the Bangladeshi financial community**
-
-## Frontend tooling and environment
-
-Use Node 24 and `npm ci` for a clean, reproducible installation. Vite serves development
-on port 3000 (`PORT` can override it), and `npm run build` writes `build/`. The bundle
-budget checks JavaScript files in `build/static/`; preview the build with `npm run preview`.
-Run `npm run check-types`, `npm run check-lint`, `npm run check-format`, and
-`npm run test:ci` before merging. Storybook has its own production check:
-`npm run storybook:build`.
-
-Existing `.env` / `.env.local` settings using `REACT_APP_*` remain supported, including
-`REACT_APP_API_BASE_URL` and the dynamic validation in `src/config/env.ts`. These are
-public browser configuration: never place credentials in `REACT_APP_*` or `VITE_*`
-variables. Vite injects only public prefixes, `NODE_ENV`, and `PUBLIC_URL`, rather than
-the server's full environment. `PUBLIC_URL=/credit/` sets the static asset base; manifest,
-icons, and the early theme script follow it. Application routes currently assume deployment
-at the domain root; a subdirectory deployment also needs a matching router basename.
-
-CI runs on pull requests and pushes to `master` using Node 24, pinned actions, locked
-installs, read-only permissions, and a synthetic API URL. It does not require production
-credentials or publish externally. See [Storybook publishing](docs/storybook-publishing.md)
-for an optional, explicitly initiated upload.
-
-The migration removes Create React App and its retired build pipeline. React 18 remains
-supported by Router 7; the application still uses its declarative router APIs. On 2026-10-20, `npm audit --omit=dev` reports zero production vulnerabilities. The full
-audit reports 38 development-inclusive findings (15 high, 22 moderate, 1 low), chiefly
-in Storybook and lint dependencies. Review `npm audit` and
-`npm audit --omit=dev` separately; upgrades to Storybook and lint tooling need their own
-compatibility checks rather than an unreviewed `npm audit fix --force`.
+Eligibility and financial wording is a product rule, not a style choice:
+never describe an estimate as "pre-approved" or "guaranteed", and never
+present a number the catalogue doesn't publish.
