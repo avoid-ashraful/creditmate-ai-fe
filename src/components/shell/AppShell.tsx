@@ -83,7 +83,7 @@ const ModeIcon: React.FC<{ id: string }> = ({ id }) => {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="1.25"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -101,7 +101,7 @@ const SearchIcon: React.FC = () => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.8"
+    strokeWidth="1.25"
     strokeLinecap="round"
     aria-hidden="true"
     focusable="false"
@@ -291,7 +291,9 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
       <aside className="cm-rail">
         <Link to="/" className="cm-rail-logo">
-          <Logo />
+          {/* The rail is the ink-navy ledger spine in both themes (plan V2
+              P1), so the lockup is always the on-dark variant. */}
+          <Logo variant="onDark" />
         </Link>
         <button type="button" className="cm-rail-search" onClick={openPalette}>
           <SearchIcon />
@@ -338,7 +340,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       <div className="cm-column">
         <header className="cm-topbar">
           <Link to="/" className="cm-topbar-logo">
-            <Logo size={28} />
+            <Logo variant="onDark" size={28} />
           </Link>
           <button
             type="button"
