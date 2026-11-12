@@ -32,45 +32,68 @@
         "primary": {
           "base": {
             "type": "color",
-            "value": "#60a5fa",
-            "description": "Default brand / interactive color for dark mode."
+            "value": "#8CA2C4",
+            "description": "Default brand / interactive color for dark mode. Brightened navy (7.06:1 on the #0B1428 ground)."
           },
           "hover": {
             "type": "color",
-            "value": "#93c5fd"
+            "value": "#B9C6DD"
           },
           "active": {
             "type": "color",
-            "value": "#bfdbfe"
+            "value": "#DCE3EF"
           },
           "subtle": {
             "type": "color",
-            "value": "#172554",
+            "value": "#122344",
             "description": "Tinted surface for selected / highlighted rows."
           },
           "border": {
             "type": "color",
-            "value": "#1e40af"
+            "value": "#182C55"
           },
           "contrast": {
             "type": "color",
-            "value": "#0f172a",
-            "description": "Text/icon color placed on top of primary."
+            "value": "#0B1428",
+            "description": "Ink-navy text placed on top of the brightened dark-mode primary."
+          }
+        },
+        "accent": {
+          "base": {
+            "type": "color",
+            "value": "#D4AF37",
+            "description": "Brand accent for dark mode (8.72:1 on the dark ground)."
+          },
+          "hover": {
+            "type": "color",
+            "value": "#DEC05E"
+          },
+          "subtle": {
+            "type": "color",
+            "value": "#3D2F0D"
+          },
+          "border": {
+            "type": "color",
+            "value": "#86691F"
+          },
+          "contrast": {
+            "type": "color",
+            "value": "#0B1428"
           }
         },
         "secondary": {
           "base": {
             "type": "color",
-            "value": "#f1f5f9",
+            "value": "#DCE3EF",
             "description": "Light neutral used for header, footer and comparison bar in dark mode."
           },
           "hover": {
             "type": "color",
-            "value": "#e2e8f0"
+            "value": "#EEF1F7"
           },
           "contrast": {
             "type": "color",
-            "value": "#0f172a"
+            "value": "#0B1428"
           }
         },
         "success": {
@@ -162,96 +185,97 @@
         "background": {
           "base": {
             "type": "color",
-            "value": "#0a0f1a",
-            "description": "App canvas behind all content in dark mode."
+            "value": "#0B1428",
+            "description": "App canvas behind all content in dark mode. Deepest Midnight Ledger navy (navy.950)."
           },
           "surface": {
             "type": "color",
-            "value": "#1a1f2e",
+            "value": "#101E38",
             "description": "Cards, modals, panels in dark mode."
           },
           "elevated": {
             "type": "color",
-            "value": "#2d3348"
+            "value": "#16233F",
+            "description": "Raised surfaces in dark mode."
           },
           "muted": {
             "type": "color",
-            "value": "#334155",
+            "value": "#1B2A47",
             "description": "Striped rows, code blocks, disabled areas in dark mode."
           },
           "inverse": {
             "type": "color",
-            "value": "#f1f5f9",
+            "value": "#F5F2EC",
             "description": "Light strips in dark mode."
           },
           "overlay": {
             "type": "color",
-            "value": "rgba(10, 15, 26, 0.8)",
+            "value": "rgba(11, 20, 40, 0.8)",
             "description": "Scrim behind modals and popups in dark mode."
           }
         },
         "text": {
           "primary": {
             "type": "color",
-            "value": "#f1f5f9",
+            "value": "#EEF1F7",
             "description": "Body copy and headings in dark mode."
           },
           "secondary": {
             "type": "color",
-            "value": "#cbd5e1",
+            "value": "#B9C6DD",
             "description": "Supporting copy, captions, meta in dark mode."
           },
           "tertiary": {
             "type": "color",
-            "value": "#cbd5e1",
+            "value": "#B9C6DD",
             "description": "Placeholders, disabled labels in dark mode."
           },
           "disabled": {
             "type": "color",
-            "value": "#475569"
+            "value": "#5F7CA8"
           },
           "inverse": {
             "type": "color",
-            "value": "#0f172a",
+            "value": "#1A2436",
             "description": "Text on light surfaces in dark mode."
           },
           "inverseSecondary": {
             "type": "color",
-            "value": "#475569"
+            "value": "#5B6B84"
           },
           "link": {
             "type": "color",
-            "value": "#93c5fd",
-            "description": "Brightened blue so link text on muted wells keeps WCAG AA in dark mode (Phase 4)."
+            "value": "#B9C6DD",
+            "description": "Brightened navy so link text keeps WCAG AA on dark surfaces (9.63:1 on surface)."
           },
           "linkHover": {
             "type": "color",
-            "value": "#bfdbfe"
+            "value": "#DCE3EF"
           },
           "onPrimary": {
             "type": "color",
-            "value": "#0f172a"
+            "value": "#0B1428"
           }
         },
         "border": {
           "base": {
             "type": "color",
-            "value": "#94a3b8",
+            "value": "#5F7CA8",
             "description": "Default 1px borders in dark mode."
           },
           "strong": {
             "type": "color",
-            "value": "#94a3b8",
+            "value": "#5F7CA8",
             "description": "Emphasised borders and dividers in dark mode."
           },
           "subtle": {
             "type": "color",
-            "value": "#1e293b"
+            "value": "#122344"
           },
           "focus": {
             "type": "color",
-            "value": "#60a5fa",
-            "description": "Focus ring color in dark mode."
+            "value": "#D4AF37",
+            "description": "Focus ring color in dark mode. Brand gold: 8.72:1 on the dark ground."
           },
           "error": {
             "type": "color",
@@ -261,36 +285,36 @@
         "state": {
           "hoverSurface": {
             "type": "color",
-            "value": "#334155",
+            "value": "#1B2A47",
             "description": "Row / list-item hover background in dark mode."
           },
           "selectedSurface": {
             "type": "color",
-            "value": "#172554"
+            "value": "#122344"
           },
           "disabledSurface": {
             "type": "color",
-            "value": "#1e293b"
+            "value": "#122344"
           },
           "disabledBorder": {
             "type": "color",
-            "value": "#334155"
+            "value": "#182C55"
           }
         },
         "gradient": {
           "brand": {
             "type": "other",
-            "value": "linear-gradient(135deg, #5a67d8 0%, #553c9a 100%)",
-            "description": "Legacy CreditMate brand gradient for dark mode."
+            "value": "linear-gradient(135deg, #35548A 0%, #0F1B33 100%)",
+            "description": "Midnight Ledger brand gradient for dark mode: navy tonal steps (replaces the legacy indigo/violet literals)."
           },
           "header": {
             "type": "other",
-            "value": "linear-gradient(-45deg, #1e40af, #1d4ed8, #4338ca, #4f46e5)",
+            "value": "linear-gradient(-45deg, #0F1B33, #1D3260, #182C55, #122344)",
             "description": "Animated site header background for dark mode."
           },
           "primaryButton": {
             "type": "other",
-            "value": "linear-gradient(90deg, #60a5fa, #93c5fd)"
+            "value": "linear-gradient(90deg, #8CA2C4, #B9C6DD)"
           },
           "accentButton": {
             "type": "other",
@@ -298,16 +322,16 @@
           },
           "footer": {
             "type": "other",
-            "value": "linear-gradient(to right, #f1f5f9, #e2e8f0)"
+            "value": "linear-gradient(to right, #DCE3EF, #EEF1F7)"
           },
           "background": {
             "type": "other",
-            "value": "linear-gradient(135deg, #0a0f1a 0%, #1e3a5f 100%)",
-            "description": "Page background gradient for dark mode."
+            "value": "linear-gradient(135deg, #0B1428 0%, #122344 100%)",
+            "description": "Page background gradient for dark mode (navy.950 to navy.800)."
           },
           "cardAccent": {
             "type": "other",
-            "value": "linear-gradient(90deg, #60a5fa, #34d399)"
+            "value": "linear-gradient(90deg, #8CA2C4, #D4AF37)"
           }
         }
       },
@@ -615,40 +639,173 @@
           "value": "#0f172a"
         }
       },
+      "navy": {
+        "50": {
+          "type": "color",
+          "value": "#EEF1F7"
+        },
+        "100": {
+          "type": "color",
+          "value": "#DCE3EF"
+        },
+        "200": {
+          "type": "color",
+          "value": "#B9C6DD"
+        },
+        "300": {
+          "type": "color",
+          "value": "#8CA2C4"
+        },
+        "400": {
+          "type": "color",
+          "value": "#5F7CA8"
+        },
+        "500": {
+          "type": "color",
+          "value": "#35548A"
+        },
+        "600": {
+          "type": "color",
+          "value": "#1D3260",
+          "description": "Midnight Ledger primary navy."
+        },
+        "700": {
+          "type": "color",
+          "value": "#182C55"
+        },
+        "800": {
+          "type": "color",
+          "value": "#122344"
+        },
+        "900": {
+          "type": "color",
+          "value": "#0F1B33",
+          "description": "Midnight Ledger ink navy (logo ground)."
+        },
+        "950": {
+          "type": "color",
+          "value": "#0B1428",
+          "description": "Deepest navy; dark-theme page ground."
+        }
+      },
+      "gold": {
+        "50": {
+          "type": "color",
+          "value": "#FAF4E0"
+        },
+        "100": {
+          "type": "color",
+          "value": "#F3E7BC"
+        },
+        "200": {
+          "type": "color",
+          "value": "#E9D48E"
+        },
+        "300": {
+          "type": "color",
+          "value": "#DEC05E"
+        },
+        "400": {
+          "type": "color",
+          "value": "#D4AF37",
+          "description": "Brightened gold for dark surfaces."
+        },
+        "500": {
+          "type": "color",
+          "value": "#C9A227",
+          "description": "Midnight Ledger brand gold (logo dot, accents). Decorative / large text only on light grounds: 2.17:1 on paper, never small text."
+        },
+        "600": {
+          "type": "color",
+          "value": "#A8861F"
+        },
+        "700": {
+          "type": "color",
+          "value": "#86691F"
+        },
+        "800": {
+          "type": "color",
+          "value": "#5F4A15"
+        },
+        "900": {
+          "type": "color",
+          "value": "#3D2F0D"
+        }
+      },
+      "paper": {
+        "50": {
+          "type": "color",
+          "value": "#FDFCFA",
+          "description": "Warm white for raised surfaces."
+        },
+        "100": {
+          "type": "color",
+          "value": "#F5F2EC",
+          "description": "Midnight Ledger warm paper page ground."
+        },
+        "200": {
+          "type": "color",
+          "value": "#EAE4D6",
+          "description": "Recessed step below the paper ground."
+        },
+        "300": {
+          "type": "color",
+          "value": "#DED4C0"
+        }
+      },
+      "ink": {
+        "400": {
+          "type": "color",
+          "value": "#8494AC"
+        },
+        "500": {
+          "type": "color",
+          "value": "#5B6B84"
+        },
+        "600": {
+          "type": "color",
+          "value": "#46536B"
+        },
+        "900": {
+          "type": "color",
+          "value": "#1A2436",
+          "description": "Midnight Ledger ink for body text."
+        }
+      },
       "brand": {
         "gradientFrom": {
           "type": "color",
-          "value": "#4f46b8",
-          "description": "Start of the legacy CreditMate brand gradient carried over from the original design."
+          "value": "#0F1B33",
+          "description": "Midnight Ledger brand gradient start: ink navy. (Replaces the legacy indigo #4f46b8.)"
         },
         "gradientTo": {
           "type": "color",
-          "value": "#663c91",
-          "description": "End of the legacy CreditMate brand gradient carried over from the original design."
+          "value": "#1D3260",
+          "description": "Midnight Ledger brand gradient end: primary navy, a tonal step. Gold is reserved for accents and is never a gradient stop. (Replaces the legacy violet #663c91.)"
         }
       },
       "primary": {
         "base": {
           "type": "color",
-          "value": "#2563eb",
+          "value": "#1D3260",
           "description": "Default brand / interactive color."
         },
         "hover": {
           "type": "color",
-          "value": "#1d4ed8"
+          "value": "#182C55"
         },
         "active": {
           "type": "color",
-          "value": "#1e40af"
+          "value": "#0F1B33"
         },
         "subtle": {
           "type": "color",
-          "value": "#eff6ff",
+          "value": "#EEF1F7",
           "description": "Tinted surface for selected / highlighted rows."
         },
         "border": {
           "type": "color",
-          "value": "#bfdbfe"
+          "value": "#B9C6DD"
         },
         "contrast": {
           "type": "color",
@@ -656,15 +813,40 @@
           "description": "Text/icon color placed on top of primary."
         }
       },
+      "accent": {
+        "base": {
+          "type": "color",
+          "value": "#C9A227",
+          "description": "Brand accent (logo dot, premium/active highlights). Decorative on light grounds — see gold.500 contrast note."
+        },
+        "hover": {
+          "type": "color",
+          "value": "#A8861F"
+        },
+        "subtle": {
+          "type": "color",
+          "value": "#FAF4E0",
+          "description": "Tinted surface for accent-highlighted rows."
+        },
+        "border": {
+          "type": "color",
+          "value": "#E9D48E"
+        },
+        "contrast": {
+          "type": "color",
+          "value": "#1A2436",
+          "description": "Ink text on gold (6.43:1 on gold.500); white on gold is only 2.3:1 and must not be used."
+        }
+      },
       "secondary": {
         "base": {
           "type": "color",
-          "value": "#0f172a",
+          "value": "#0F1B33",
           "description": "Dark neutral used for header, footer and comparison bar."
         },
         "hover": {
           "type": "color",
-          "value": "#1e293b"
+          "value": "#122344"
         },
         "contrast": {
           "type": "color",
@@ -760,53 +942,53 @@
       "background": {
         "base": {
           "type": "color",
-          "value": "#ECEEF3",
-          "description": "App canvas behind all content. Cool lavender-grey tint (Clay-style tinted ground): white surfaces step up from it as a deliberate layer instead of blending into a near-white canvas."
+          "value": "#F5F2EC",
+          "description": "App canvas behind all content. Warm paper (Midnight Ledger), replacing the cool lavender-grey #ECEEF3."
         },
         "surface": {
           "type": "color",
-          "value": "#ffffff",
-          "description": "Cards, modals, panels."
+          "value": "#FDFCFA",
+          "description": "Cards, modals, panels. Warm white."
         },
         "elevated": {
           "type": "color",
-          "value": "#ffffff"
+          "value": "#FDFCFA"
         },
         "muted": {
           "type": "color",
-          "value": "#DFE2EB",
-          "description": "Striped rows, code blocks, disabled areas. Recessed step between the tinted canvas and white surfaces, in the same lavender-grey family."
+          "value": "#EAE4D6",
+          "description": "Striped rows, code blocks, disabled areas. Recessed step below the paper ground."
         },
         "inverse": {
           "type": "color",
-          "value": "#0f172a",
+          "value": "#0F1B33",
           "description": "Dark strips such as the comparison bar."
         },
         "overlay": {
           "type": "color",
-          "value": "rgba(15, 23, 42, 0.6)",
-          "description": "Scrim behind modals and popups."
+          "value": "rgba(15, 27, 51, 0.6)",
+          "description": "Scrim behind modals and popups (ink navy at 60%)."
         }
       },
       "text": {
         "primary": {
           "type": "color",
-          "value": "#1e293b",
+          "value": "#1A2436",
           "description": "Body copy and headings."
         },
         "secondary": {
           "type": "color",
-          "value": "#475569",
+          "value": "#46536B",
           "description": "Supporting copy, captions, meta."
         },
         "tertiary": {
           "type": "color",
-          "value": "#475569",
+          "value": "#46536B",
           "description": "Placeholders, disabled labels."
         },
         "disabled": {
           "type": "color",
-          "value": "#94a3b8"
+          "value": "#8494AC"
         },
         "inverse": {
           "type": "color",
@@ -815,16 +997,16 @@
         },
         "inverseSecondary": {
           "type": "color",
-          "value": "#94a3b8"
+          "value": "#8CA2C4"
         },
         "link": {
           "type": "color",
-          "value": "#1d4ed8",
-          "description": "Link text. One step deeper than the primary action blue so links keep WCAG AA (4.5:1+) when they sit directly on the tinted page ground, not only on white surfaces."
+          "value": "#1D3260",
+          "description": "Link text. Primary navy (11.2:1 on the paper ground). Brand gold is never used for links — #C9A227 on paper is only 2.17:1."
         },
         "linkHover": {
           "type": "color",
-          "value": "#1e40af"
+          "value": "#182C55"
         },
         "onPrimary": {
           "type": "color",
@@ -834,22 +1016,22 @@
       "border": {
         "base": {
           "type": "color",
-          "value": "#64748b",
+          "value": "#5B6B84",
           "description": "Default 1px borders."
         },
         "strong": {
           "type": "color",
-          "value": "#64748b",
+          "value": "#5B6B84",
           "description": "Emphasised borders and dividers."
         },
         "subtle": {
           "type": "color",
-          "value": "#D8DCE6",
-          "description": "Hairline dividers and card edges. Strengthened with the tinted ground so white cards keep a crisp edge on the deeper canvas."
+          "value": "#E2DACA",
+          "description": "Warm hairline dividers and card edges on the paper ground."
         },
         "focus": {
           "type": "color",
-          "value": "#2563eb",
+          "value": "#1D3260",
           "description": "Focus ring color, pairs with shadow.focus."
         },
         "error": {
@@ -860,36 +1042,36 @@
       "state": {
         "hoverSurface": {
           "type": "color",
-          "value": "#E4E7EF",
-          "description": "Row / list-item hover background. Between canvas and muted so hover reads as a step on both white surfaces and the tinted canvas."
+          "value": "#EDE8DC",
+          "description": "Row / list-item hover background. Warm step between paper ground and muted."
         },
         "selectedSurface": {
           "type": "color",
-          "value": "#eff6ff"
+          "value": "#EEF1F7"
         },
         "disabledSurface": {
           "type": "color",
-          "value": "#E4E7EF"
+          "value": "#EDE8DC"
         },
         "disabledBorder": {
           "type": "color",
-          "value": "#D8DCE6"
+          "value": "#E2DACA"
         }
       },
       "gradient": {
         "brand": {
           "type": "other",
-          "value": "linear-gradient(135deg, #4f46b8 0%, #663c91 100%)",
-          "description": "Legacy CreditMate brand gradient."
+          "value": "linear-gradient(135deg, #0F1B33 0%, #1D3260 100%)",
+          "description": "Midnight Ledger brand gradient: ink navy to primary navy (tonal)."
         },
         "header": {
           "type": "other",
-          "value": "linear-gradient(-45deg, #1e40af, #1d4ed8, #4338ca, #4f46e5)",
-          "description": "Animated site header background (see GradientHeader)."
+          "value": "linear-gradient(-45deg, #0F1B33, #1D3260, #182C55, #122344)",
+          "description": "Animated site header background (see GradientHeader). Midnight Ledger navy tonal steps."
         },
         "primaryButton": {
           "type": "other",
-          "value": "linear-gradient(90deg, #2563eb, #1d4ed8)"
+          "value": "linear-gradient(90deg, #1D3260, #182C55)"
         },
         "accentButton": {
           "type": "other",
@@ -897,15 +1079,17 @@
         },
         "footer": {
           "type": "other",
-          "value": "linear-gradient(to right, #0f172a, #1e293b)"
+          "value": "linear-gradient(to right, #0F1B33, #122344)"
         },
         "background": {
           "type": "other",
-          "value": "linear-gradient(135deg, #ECEEF3 0%, #eef2ff 100%)"
+          "value": "linear-gradient(135deg, #F5F2EC 0%, #EAE4D6 100%)",
+          "description": "Warm paper page background gradient."
         },
         "cardAccent": {
           "type": "other",
-          "value": "linear-gradient(90deg, #2563eb, #047857)"
+          "value": "linear-gradient(90deg, #1D3260, #C9A227)",
+          "description": "Card accent stripe: primary navy to brand gold."
         }
       }
     },
@@ -1346,6 +1530,11 @@
           "type": "fontFamilies",
           "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif",
           "description": "System UI stack with Bengali fallbacks ('Hind Siliguri', 'Noto Sans Bengali') so Bengali glyphs fall through to Hind Siliguri. Matches the existing body font in src/styles/index.css."
+        },
+        "display": {
+          "type": "fontFamilies",
+          "value": "'Fraunces', 'Hind Siliguri', Georgia, 'Times New Roman', serif",
+          "description": "Midnight Ledger display face (self-hosted, see src/styles/fonts.css). Wordmark, hero and display headings only — UI text stays on the sans stack. Hind Siliguri follows so Bengali display text keeps its face."
         },
         "mono": {
           "type": "fontFamilies",

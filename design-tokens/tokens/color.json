@@ -304,39 +304,172 @@
         "value": "#0f172a"
       }
     },
+    "navy": {
+      "50": {
+        "value": "#EEF1F7",
+        "type": "color"
+      },
+      "100": {
+        "value": "#DCE3EF",
+        "type": "color"
+      },
+      "200": {
+        "value": "#B9C6DD",
+        "type": "color"
+      },
+      "300": {
+        "value": "#8CA2C4",
+        "type": "color"
+      },
+      "400": {
+        "value": "#5F7CA8",
+        "type": "color"
+      },
+      "500": {
+        "value": "#35548A",
+        "type": "color"
+      },
+      "600": {
+        "value": "#1D3260",
+        "comment": "Midnight Ledger primary navy.",
+        "type": "color"
+      },
+      "700": {
+        "value": "#182C55",
+        "type": "color"
+      },
+      "800": {
+        "value": "#122344",
+        "type": "color"
+      },
+      "900": {
+        "value": "#0F1B33",
+        "comment": "Midnight Ledger ink navy (logo ground).",
+        "type": "color"
+      },
+      "950": {
+        "value": "#0B1428",
+        "comment": "Deepest navy; dark-theme page ground.",
+        "type": "color"
+      }
+    },
+    "gold": {
+      "50": {
+        "value": "#FAF4E0",
+        "type": "color"
+      },
+      "100": {
+        "value": "#F3E7BC",
+        "type": "color"
+      },
+      "200": {
+        "value": "#E9D48E",
+        "type": "color"
+      },
+      "300": {
+        "value": "#DEC05E",
+        "type": "color"
+      },
+      "400": {
+        "value": "#D4AF37",
+        "comment": "Brightened gold for dark surfaces.",
+        "type": "color"
+      },
+      "500": {
+        "value": "#C9A227",
+        "comment": "Midnight Ledger brand gold (logo dot, accents). Decorative / large text only on light grounds: 2.17:1 on paper, never small text.",
+        "type": "color"
+      },
+      "600": {
+        "value": "#A8861F",
+        "type": "color"
+      },
+      "700": {
+        "value": "#86691F",
+        "type": "color"
+      },
+      "800": {
+        "value": "#5F4A15",
+        "type": "color"
+      },
+      "900": {
+        "value": "#3D2F0D",
+        "type": "color"
+      }
+    },
+    "paper": {
+      "50": {
+        "value": "#FDFCFA",
+        "comment": "Warm white for raised surfaces.",
+        "type": "color"
+      },
+      "100": {
+        "value": "#F5F2EC",
+        "comment": "Midnight Ledger warm paper page ground.",
+        "type": "color"
+      },
+      "200": {
+        "value": "#EAE4D6",
+        "comment": "Recessed step below the paper ground.",
+        "type": "color"
+      },
+      "300": {
+        "value": "#DED4C0",
+        "type": "color"
+      }
+    },
+    "ink": {
+      "400": {
+        "value": "#8494AC",
+        "type": "color"
+      },
+      "500": {
+        "value": "#5B6B84",
+        "type": "color"
+      },
+      "600": {
+        "value": "#46536B",
+        "type": "color"
+      },
+      "900": {
+        "value": "#1A2436",
+        "comment": "Midnight Ledger ink for body text.",
+        "type": "color"
+      }
+    },
     "brand": {
       "gradientFrom": {
-        "value": "#4f46b8",
+        "value": "{color.navy.900}",
         "type": "color",
-        "comment": "Start of the legacy CreditMate brand gradient carried over from the original design."
+        "comment": "Midnight Ledger brand gradient start: ink navy. (Replaces the legacy indigo #4f46b8.)"
       },
       "gradientTo": {
-        "value": "#663c91",
+        "value": "{color.navy.600}",
         "type": "color",
-        "comment": "End of the legacy CreditMate brand gradient carried over from the original design."
+        "comment": "Midnight Ledger brand gradient end: primary navy, a tonal step. Gold is reserved for accents and is never a gradient stop. (Replaces the legacy violet #663c91.)"
       }
     },
     "primary": {
       "base": {
-        "value": "{color.blue.500}",
+        "value": "{color.navy.600}",
         "comment": "Default brand / interactive color.",
         "type": "color"
       },
       "hover": {
-        "value": "{color.blue.600}",
+        "value": "{color.navy.700}",
         "type": "color"
       },
       "active": {
-        "value": "{color.blue.700}",
+        "value": "{color.navy.900}",
         "type": "color"
       },
       "subtle": {
-        "value": "{color.blue.50}",
+        "value": "{color.navy.50}",
         "comment": "Tinted surface for selected / highlighted rows.",
         "type": "color"
       },
       "border": {
-        "value": "{color.blue.200}",
+        "value": "{color.navy.200}",
         "type": "color"
       },
       "contrast": {
@@ -345,14 +478,39 @@
         "type": "color"
       }
     },
+    "accent": {
+      "base": {
+        "value": "{color.gold.500}",
+        "comment": "Brand accent (logo dot, premium/active highlights). Decorative on light grounds — see gold.500 contrast note.",
+        "type": "color"
+      },
+      "hover": {
+        "value": "{color.gold.600}",
+        "type": "color"
+      },
+      "subtle": {
+        "value": "{color.gold.50}",
+        "comment": "Tinted surface for accent-highlighted rows.",
+        "type": "color"
+      },
+      "border": {
+        "value": "{color.gold.200}",
+        "type": "color"
+      },
+      "contrast": {
+        "value": "{color.ink.900}",
+        "comment": "Ink text on gold (6.43:1 on gold.500); white on gold is only 2.3:1 and must not be used.",
+        "type": "color"
+      }
+    },
     "secondary": {
       "base": {
-        "value": "{color.slate.900}",
+        "value": "{color.navy.900}",
         "comment": "Dark neutral used for header, footer and comparison bar.",
         "type": "color"
       },
       "hover": {
-        "value": "{color.slate.800}",
+        "value": "{color.navy.800}",
         "type": "color"
       },
       "contrast": {
@@ -448,53 +606,53 @@
     },
     "background": {
       "base": {
-        "value": "#ECEEF3",
-        "comment": "App canvas behind all content. Cool lavender-grey tint (Clay-style tinted ground): white surfaces step up from it as a deliberate layer instead of blending into a near-white canvas.",
+        "value": "{color.paper.100}",
+        "comment": "App canvas behind all content. Warm paper (Midnight Ledger), replacing the cool lavender-grey #ECEEF3.",
         "type": "color"
       },
       "surface": {
-        "value": "{color.white}",
-        "comment": "Cards, modals, panels.",
+        "value": "{color.paper.50}",
+        "comment": "Cards, modals, panels. Warm white.",
         "type": "color"
       },
       "elevated": {
-        "value": "{color.white}",
+        "value": "{color.paper.50}",
         "type": "color"
       },
       "muted": {
-        "value": "#DFE2EB",
-        "comment": "Striped rows, code blocks, disabled areas. Recessed step between the tinted canvas and white surfaces, in the same lavender-grey family.",
+        "value": "{color.paper.200}",
+        "comment": "Striped rows, code blocks, disabled areas. Recessed step below the paper ground.",
         "type": "color"
       },
       "inverse": {
-        "value": "{color.slate.900}",
+        "value": "{color.navy.900}",
         "comment": "Dark strips such as the comparison bar.",
         "type": "color"
       },
       "overlay": {
-        "value": "rgba(15, 23, 42, 0.6)",
+        "value": "rgba(15, 27, 51, 0.6)",
         "type": "color",
-        "comment": "Scrim behind modals and popups."
+        "comment": "Scrim behind modals and popups (ink navy at 60%)."
       }
     },
     "text": {
       "primary": {
-        "value": "{color.slate.800}",
+        "value": "{color.ink.900}",
         "comment": "Body copy and headings.",
         "type": "color"
       },
       "secondary": {
-        "value": "{color.slate.600}",
+        "value": "{color.ink.600}",
         "comment": "Supporting copy, captions, meta.",
         "type": "color"
       },
       "tertiary": {
-        "value": "{color.slate.600}",
+        "value": "{color.ink.600}",
         "comment": "Placeholders, disabled labels.",
         "type": "color"
       },
       "disabled": {
-        "value": "{color.slate.400}",
+        "value": "{color.ink.400}",
         "type": "color"
       },
       "inverse": {
@@ -503,16 +661,16 @@
         "type": "color"
       },
       "inverseSecondary": {
-        "value": "{color.slate.400}",
+        "value": "{color.navy.300}",
         "type": "color"
       },
       "link": {
-        "value": "{color.blue.600}",
-        "comment": "Link text. One step deeper than the primary action blue so links keep WCAG AA (4.5:1+) when they sit directly on the tinted page ground, not only on white surfaces.",
+        "value": "{color.navy.600}",
+        "comment": "Link text. Primary navy (11.2:1 on the paper ground). Brand gold is never used for links — #C9A227 on paper is only 2.17:1.",
         "type": "color"
       },
       "linkHover": {
-        "value": "{color.blue.700}",
+        "value": "{color.navy.700}",
         "type": "color"
       },
       "onPrimary": {
@@ -522,22 +680,22 @@
     },
     "border": {
       "base": {
-        "value": "{color.slate.500}",
+        "value": "{color.ink.500}",
         "comment": "Default 1px borders.",
         "type": "color"
       },
       "strong": {
-        "value": "{color.slate.500}",
+        "value": "{color.ink.500}",
         "comment": "Emphasised borders and dividers.",
         "type": "color"
       },
       "subtle": {
-        "value": "#D8DCE6",
-        "comment": "Hairline dividers and card edges. Strengthened with the tinted ground so white cards keep a crisp edge on the deeper canvas.",
+        "value": "#E2DACA",
+        "comment": "Warm hairline dividers and card edges on the paper ground.",
         "type": "color"
       },
       "focus": {
-        "value": "{color.blue.500}",
+        "value": "{color.navy.600}",
         "comment": "Focus ring color, pairs with shadow.focus.",
         "type": "color"
       },
@@ -548,20 +706,20 @@
     },
     "state": {
       "hoverSurface": {
-        "value": "#E4E7EF",
-        "comment": "Row / list-item hover background. Between canvas and muted so hover reads as a step on both white surfaces and the tinted canvas.",
+        "value": "#EDE8DC",
+        "comment": "Row / list-item hover background. Warm step between paper ground and muted.",
         "type": "color"
       },
       "selectedSurface": {
-        "value": "{color.blue.50}",
+        "value": "{color.navy.50}",
         "type": "color"
       },
       "disabledSurface": {
-        "value": "#E4E7EF",
+        "value": "#EDE8DC",
         "type": "color"
       },
       "disabledBorder": {
-        "value": "#D8DCE6",
+        "value": "#E2DACA",
         "type": "color"
       }
     },
@@ -569,12 +727,12 @@
       "brand": {
         "type": "gradient",
         "value": "linear-gradient(135deg, {color.brand.gradientFrom} 0%, {color.brand.gradientTo} 100%)",
-        "comment": "Legacy CreditMate brand gradient."
+        "comment": "Midnight Ledger brand gradient: ink navy to primary navy (tonal)."
       },
       "header": {
         "type": "gradient",
-        "value": "linear-gradient(-45deg, {color.blue.700}, {color.blue.600}, {color.indigo.700}, {color.indigo.600})",
-        "comment": "Animated site header background (see GradientHeader)."
+        "value": "linear-gradient(-45deg, {color.navy.900}, {color.navy.600}, {color.navy.700}, {color.navy.800})",
+        "comment": "Animated site header background (see GradientHeader). Midnight Ledger navy tonal steps."
       },
       "primaryButton": {
         "type": "gradient",
@@ -590,11 +748,13 @@
       },
       "background": {
         "type": "gradient",
-        "value": "linear-gradient(135deg, {color.background.base} 0%, {color.indigo.50} 100%)"
+        "value": "linear-gradient(135deg, {color.background.base} 0%, {color.paper.200} 100%)",
+        "comment": "Warm paper page background gradient."
       },
       "cardAccent": {
         "type": "gradient",
-        "value": "linear-gradient(90deg, {color.primary.base}, {color.success.base})"
+        "value": "linear-gradient(90deg, {color.primary.base}, {color.accent.base})",
+        "comment": "Card accent stripe: primary navy to brand gold."
       }
     }
   }
