@@ -1,0 +1,56 @@
+/*
+ * Midnight Ledger logo. Colours come from design tokens only — the dark
+ * theme remaps the same variables (see src/styles/tokens.css), so the
+ * `auto` variant needs no theme-specific overrides here.
+ */
+
+.cm-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.cm-logo-svg {
+  flex: none;
+  display: block;
+}
+
+.cm-logo-arc {
+  stroke: var(--color-text-primary);
+}
+
+.cm-logo-dot {
+  fill: var(--color-accent-base);
+}
+
+.cm-logo-svg--onLight .cm-logo-arc {
+  stroke: var(--color-navy-900);
+}
+
+.cm-logo-svg--onDark .cm-logo-arc {
+  stroke: var(--color-paper-50);
+}
+
+.cm-logo-svg--mono .cm-logo-arc {
+  stroke: currentColor;
+}
+
+.cm-logo-svg--mono .cm-logo-dot {
+  fill: currentColor;
+}
+
+.cm-logo-wordmark {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
+  letter-spacing: var(--typography-letter-spacing-tight);
+  white-space: nowrap;
+}
+
+/*
+ * Gold "AI": gold.600 keeps large-display-text AA on the paper ground
+ * (3.08:1) and on the dark ground (5.1:1). Brand gold.500 on paper is
+ * 2.17:1 and is never used for text.
+ */
+.cm-logo-ai {
+  color: var(--color-gold-600);
+}

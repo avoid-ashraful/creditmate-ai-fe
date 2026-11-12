@@ -20,6 +20,7 @@ import { getLegalNav, getShellCopy, LEGAL_PAGE_PATHS, useLanguage } from '../../
 import type { ShellCopy } from '../../locales';
 import { importLegacySavedSearches } from '../../services/savedSearches';
 import { AccountMenu } from '../AccountMenu';
+import { Logo } from '../brand/Logo';
 import { ThemeToggle } from '../ThemeToggle';
 
 import CommandPalette from './CommandPalette';
@@ -290,10 +291,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
       <aside className="cm-rail">
         <Link to="/" className="cm-rail-logo">
-          <span className="cm-logo-mark" aria-hidden="true">
-            CM
-          </span>
-          <span className="cm-logo-word">CreditMate AI</span>
+          <Logo />
         </Link>
         <button type="button" className="cm-rail-search" onClick={openPalette}>
           <SearchIcon />
@@ -340,7 +338,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       <div className="cm-column">
         <header className="cm-topbar">
           <Link to="/" className="cm-topbar-logo">
-            CreditMate AI
+            <Logo size={28} />
           </Link>
           <button
             type="button"
