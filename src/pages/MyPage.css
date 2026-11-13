@@ -1,0 +1,56 @@
+/* My CreditMate workspace — Midnight Ledger (plan V2, P5).
+   The V1 workspace IA is unchanged: the same sections in the same
+   order, now dressed as ledger cards — warm-white surface, hairline
+   border, whisper shadow — with list rows ruled by hairlines instead
+   of boxes. Colours come from tokens only. */
+
+.my-page {
+  width: min(100% - 2rem, 960px);
+  margin: var(--spacing-xl) auto;
+  padding-inline: var(--spacing-md);
+  color: var(--color-text-primary);
+}
+
+.my-page h1 {
+  font-family: var(--typography-font-family-display);
+  font-size: 2rem;
+  font-weight: var(--typography-font-weight-semibold);
+  letter-spacing: var(--typography-letter-spacing-tight);
+  margin: var(--spacing-none) var(--spacing-none) var(--spacing-sm);
+}
+
+.my-page > section {
+  background: var(--color-background-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.my-page .cm-discovery-section-label {
+  margin-top: var(--spacing-none);
+  margin-bottom: var(--spacing-md);
+}
+
+.my-page .cm-home-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-none);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.my-page .cm-home-list li:last-child {
+  border-bottom: none;
+  padding-bottom: var(--spacing-none);
+}
+
+.my-page .cm-home-list li:first-child {
+  padding-top: var(--spacing-none);
+}
+
+.my-page .cm-home-list a {
+  flex: 1;
+  min-width: 0;
+}

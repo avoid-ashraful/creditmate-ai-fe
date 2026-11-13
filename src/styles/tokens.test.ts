@@ -696,6 +696,23 @@ describe('design tokens — WCAG contrast ratios', () => {
       4.5,
     ],
     ['--color-accent-text', '--color-background-surface', 'Accent text on surface (light)', 4.5],
+    // Midnight Ledger advisor citation chip (plan V2 P5): gold index
+    // numeral and paper label on the ink-navy chip. The chip is navy in
+    // both themes — gold's second structural job, signalling "sourced".
+    [
+      '--color-citation-numeral',
+      '--color-citation-background',
+      'Citation numeral on citation chip (light)',
+      4.5,
+    ],
+    ['--color-citation-text', '--color-citation-background', 'Citation label on chip (light)', 4.5],
+    // Midnight Ledger auth page (plan V2 P5): the one full-navy page.
+    // The ground is the navy/900 ramp and the reversed lockup sits in
+    // paper/50 with the wordmark "AI" in gold/600 — all theme-invariant
+    // ramp values (:root declarations, never overridden in dark), so
+    // these light-list pins cover both themes.
+    ['--color-paper-50', '--color-navy-900', 'Auth wordmark on navy ground (light)', 4.5],
+    ['--color-gold-600', '--color-navy-900', 'Auth wordmark AI on navy ground (light)', 4.5],
   ];
 
   const darkContrastPairs: Array<[string, string, string, number]> = [
@@ -821,6 +838,16 @@ describe('design tokens — WCAG contrast ratios', () => {
       4.5,
     ],
     ['--color-accent-text', '--color-background-surface', 'Accent text on surface (dark)', 4.5],
+    // Midnight Ledger advisor citation chip (plan V2 P5) — same pairs
+    // as light: the chip stays ink navy in dark mode, the numeral
+    // brightens to the dark gold.
+    [
+      '--color-citation-numeral',
+      '--color-citation-background',
+      'Citation numeral on citation chip (dark)',
+      4.5,
+    ],
+    ['--color-citation-text', '--color-citation-background', 'Citation label on chip (dark)', 4.5],
   ];
 
   // Build a map of all CSS variables for both light and dark

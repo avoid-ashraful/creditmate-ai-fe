@@ -8,6 +8,41 @@
   padding-inline: var(--spacing-md);
 }
 
+/* Midnight Ledger (plan V2, P5): the auth flow is the one full-navy
+   page. The ground is the theme-invariant navy/900 ramp (the same ink
+   as the shell spine and footer, so the page reads as one navy
+   field); the reversed lockup sits above the paper ledger card.
+   Wordmark paper/50 on navy/900 is 16.72:1 and the gold "AI" 4.98:1 —
+   both pinned in tokens.test.ts. The negative margins bleed the
+   ground over the shell main's padding (Shell.css .cm-shell-main:
+   lg top, md sides, bar-height + 4xl bottom, 4xl at >=1024px). */
+.auth-page--navy {
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: var(--color-navy-900);
+  min-height: 100vh;
+  margin: calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-md))
+    calc(-1 * (var(--cm-bar-height) + var(--spacing-4xl)));
+}
+
+@media (min-width: 1024px) {
+  .auth-page--navy {
+    margin-bottom: calc(-1 * var(--spacing-4xl));
+  }
+}
+
+.auth-brand {
+  color: var(--color-paper-50);
+  font-size: var(--typography-font-size-2xl);
+  margin-bottom: var(--spacing-lg);
+}
+
+.auth-page--navy .auth-card {
+  border-color: var(--color-border-subtle);
+  box-shadow: var(--shadow-lg);
+}
+
 .auth-card {
   inline-size: 100%;
   max-inline-size: 440px;
@@ -20,8 +55,10 @@
 }
 
 .auth-card h1 {
+  font-family: var(--typography-font-family-display);
   font-size: var(--typography-font-size-2xl);
-  font-weight: var(--typography-font-weight-bold);
+  font-weight: var(--typography-font-weight-semibold);
+  letter-spacing: var(--typography-letter-spacing-tight);
   margin-block-end: var(--spacing-md);
 }
 

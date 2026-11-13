@@ -145,6 +145,22 @@
             "value": "#F5F2EC"
           }
         },
+        "citation": {
+          "background": {
+            "type": "color",
+            "value": "#0F1B33",
+            "description": "Citation chip fill stays ink navy in dark mode (same value as light by design)."
+          },
+          "numeral": {
+            "type": "color",
+            "value": "#D4AF37",
+            "description": "Brightened gold citation numeral on the navy chip in dark mode (8.15:1)."
+          },
+          "text": {
+            "type": "color",
+            "value": "#F5F2EC"
+          }
+        },
         "success": {
           "base": {
             "type": "color",
@@ -954,6 +970,23 @@
           "type": "color",
           "value": "#F5F2EC",
           "description": "Score band word on the navy chip."
+        }
+      },
+      "citation": {
+        "background": {
+          "type": "color",
+          "value": "#0F1B33",
+          "description": "Advisor citation chip fill, ink navy in BOTH themes (redesign plan V2, P5). Gold's second structural job: the numeral signals 'sourced'. Paper label on it is 15.34:1."
+        },
+        "numeral": {
+          "type": "color",
+          "value": "#C9A227",
+          "description": "Citation index numeral on the navy chip (7.09:1). Gold is text-grade on navy only — never on paper."
+        },
+        "text": {
+          "type": "color",
+          "value": "#F5F2EC",
+          "description": "Citation label on the navy chip."
         }
       },
       "success": {
