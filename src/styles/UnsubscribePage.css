@@ -20,8 +20,9 @@
 
 .unsubscribe-card {
   background: var(--color-background-surface);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
   padding: var(--spacing-2xl);
   text-align: center;
 }

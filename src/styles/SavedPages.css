@@ -1,10 +1,20 @@
+/* Saved comparisons, collections and shared pages — Midnight Ledger
+   (plan V2, P5). Ledger rows: warm-white surface, hairline border,
+   whisper shadow; every colour is a semantic token, so the dark theme
+   follows without local overrides. */
+
 .saved-page {
   width: min(100% - 2rem, 960px);
   margin: 2rem auto;
-  color: var(--color-slate-900);
+  color: var(--color-text-primary);
   animation: saved-enter 180ms ease-out;
 }
-.saved-page h1,
+.saved-page h1 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
+  letter-spacing: var(--typography-letter-spacing-tight);
+  color: inherit;
+}
 .saved-page h2 {
   color: inherit;
 }
@@ -20,9 +30,10 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   padding: 1rem;
-  border: 1px solid var(--color-slate-200);
-  border-radius: 0.75rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
   background: var(--color-background-surface);
+  box-shadow: var(--shadow-card);
 }
 .saved-list li span {
   flex: 1;
@@ -37,10 +48,14 @@
   background: transparent;
   cursor: pointer;
 }
+.saved-page button:hover,
+.saved-create button:hover {
+  background: var(--color-state-hover-surface);
+}
 .saved-page button:focus-visible,
 .saved-page a:focus-visible,
 .saved-page input:focus-visible {
-  outline: 3px solid var(--color-blue-400);
+  outline: 3px solid var(--color-border-focus);
   outline-offset: 2px;
 }
 .saved-create {
@@ -56,15 +71,10 @@
 .saved-create input {
   min-height: 2.5rem;
   padding: 0.4rem;
-  border: 1px solid var(--color-slate-400);
+  border: 1px solid var(--color-border-base);
   border-radius: 0.35rem;
-}
-html.dark .saved-page {
-  color: var(--color-slate-100);
-}
-html.dark .saved-list li {
-  background: var(--color-slate-800);
-  border-color: var(--color-slate-600);
+  background: var(--color-background-base);
+  color: var(--color-text-primary);
 }
 @keyframes saved-enter {
   from {

@@ -23,6 +23,8 @@ import { fillCopy, getShellCopy, useLanguage } from '../locales';
 import { savedService, type SavedScenario } from '../services/saved';
 import type { SavedSearch } from '../services/savedSearches';
 
+import './MyPage.css';
+
 const scenarioHref = (scenario: SavedScenario): string => {
   const params = new URLSearchParams(scenario.params);
   const query = params.toString();

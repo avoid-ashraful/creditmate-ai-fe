@@ -20,8 +20,10 @@
 }
 
 .alerts-header h1 {
+  font-family: var(--typography-font-family-display);
   font-size: var(--typography-font-size-3xl);
-  font-weight: var(--typography-font-weight-bold);
+  font-weight: var(--typography-font-weight-semibold);
+  letter-spacing: var(--typography-letter-spacing-tight);
   margin: 0 0 var(--spacing-xs);
   color: var(--color-text-primary);
 }
@@ -43,8 +45,9 @@
 
 .alerts-section {
   background: var(--color-background-surface);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-xl);
 }
@@ -73,7 +76,7 @@
   gap: var(--spacing-md);
   padding: var(--spacing-md);
   background: var(--color-background-base);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   transition: border-color var(--transition-duration-fast) var(--transition-easing-ease-out);
 }
