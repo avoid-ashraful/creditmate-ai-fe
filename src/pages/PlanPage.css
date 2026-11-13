@@ -6,6 +6,13 @@
   gap: var(--spacing-lg);
 }
 
+/* Plan tool titles are page H1s — Fraunces per the plan V2 §2.5
+   whitelist (P4). */
+.plan-page h1 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
+}
+
 .plan-nav {
   display: flex;
   flex-wrap: wrap;
@@ -23,6 +30,7 @@
 
 .plan-nav-link-active {
   background: var(--color-primary-subtle);
+  border-color: var(--color-primary-base);
   font-weight: 600;
 }
 

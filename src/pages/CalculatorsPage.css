@@ -17,23 +17,27 @@
 }
 
 .calculators-page .calculator-hero h1 {
+  font-family: var(--typography-font-family-display);
   font-size: 2rem;
+  font-weight: var(--typography-font-weight-semibold);
   color: var(--color-text-primary);
   margin-bottom: 0.5rem;
 }
 
 .calculators-page .calculator-hero p {
-  color: var(--color-slate-500);
+  color: var(--color-text-secondary);
   max-width: 760px;
   margin: 0 auto;
 }
 
+/* Ledger worksheet (plan V2 P4): hairline border + the retuned card
+   shadow carry the surface; inputs/outputs read as ruled lines. */
 .calculators-page .calculator-form-section {
   background: var(--color-background-surface);
-  border: 1px solid var(--color-slate-200);
-  border-radius: 0.5rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
-  box-shadow: 0 4px 6px -1px color-mix(in srgb, var(--color-black) 10%, transparent);
+  box-shadow: var(--shadow-card);
   margin-bottom: 2rem;
 }
 
@@ -53,9 +57,9 @@
   padding: 3rem 1.5rem;
   text-align: center;
   background: var(--color-background-surface);
-  border: 1px solid var(--color-slate-200);
-  border-radius: 0.5rem;
-  color: var(--color-slate-500);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
   margin-bottom: 2rem;
 }
 
@@ -76,8 +80,8 @@
 
 .calculators-tab {
   background: var(--color-background-muted);
-  color: var(--color-slate-700);
-  border: 1px solid var(--color-slate-200);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-subtle);
   padding: 0.6rem 1.25rem;
   border-radius: 999px;
   font-weight: 600;
@@ -110,8 +114,8 @@
 .calculators-field input,
 .calculators-field select {
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-slate-200);
-  border-radius: 0.375rem;
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-md);
   font-size: 1rem;
   background: var(--color-background-surface);
   color: var(--color-text-primary);
@@ -152,7 +156,7 @@
 
 .tenure-chip {
   background: var(--color-background-base);
-  border: 1px solid var(--color-slate-300);
+  border: 1px solid var(--color-border-base);
   color: var(--color-text-primary);
   border-radius: 999px;
   padding: 0.3rem 0.85rem;
@@ -185,7 +189,7 @@
 
 .calculators-result {
   margin-top: 2rem;
-  border-top: 1px solid var(--color-slate-200);
+  border-top: 1px solid var(--color-border-subtle);
   padding-top: 1.5rem;
 }
 
@@ -208,9 +212,16 @@
   margin: 0 0 1rem;
 }
 
+/* Result figures are ledger lines: each metric sits on a hairline rule,
+   numerals tabular (plan V2 P4). */
+.calculators-metrics > div {
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: var(--spacing-sm);
+}
+
 .calculators-metrics dt {
   font-size: 0.8rem;
-  color: var(--color-slate-500);
+  color: var(--color-text-secondary);
 }
 
 .calculators-metrics dd {
@@ -218,6 +229,17 @@
   font-weight: 700;
   font-size: 1.15rem;
   color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The one hero figure per result (monthly EMI, months to clear, net
+   maturity) takes the Fraunces display face — the whitelist's hero-
+   numeral moment for tools. Values and order are unchanged. */
+.calculators-metrics > .calculators-metric-hero dd {
+  font-family: var(--typography-font-family-display);
+  font-size: 1.6rem;
+  font-weight: var(--typography-font-weight-semibold);
+  line-height: var(--typography-line-height-tight);
 }
 
 .calculators-final-payment {
@@ -258,12 +280,14 @@
   font-size: 0.9rem;
 }
 
+/* Ledger table: hairline row rules only, no vertical borders. */
 .calculators-breakdown th,
 .calculators-breakdown td {
-  border: 1px solid var(--color-slate-200);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: 0.5rem 0.75rem;
   text-align: right;
-  color: var(--color-slate-700);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .calculators-breakdown thead th,
@@ -271,6 +295,10 @@
   text-align: left;
   color: var(--color-text-primary);
   background: var(--color-background-base);
+}
+
+.calculators-breakdown thead th {
+  border-bottom: 1px solid var(--color-border-base);
 }
 
 .calculators-page .assumptions-note {

@@ -6,8 +6,12 @@
   padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-2xl);
 }
 
+/* Editorial treatment (plan V2 P4): Fraunces for the page title and
+   section headlines — the whitelist's Learn/methodology moment. */
 .legal-page h1 {
+  font-family: var(--typography-font-family-display);
   font-size: 2.25rem;
+  font-weight: var(--typography-font-weight-semibold);
   line-height: 1.2;
   margin-bottom: var(--spacing-md);
 }
@@ -31,6 +35,11 @@
 
 .legal-section {
   margin-top: var(--spacing-xl);
+}
+
+.legal-section h2 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
 }
 
 .legal-section h2,
@@ -74,13 +83,20 @@
   gap: var(--spacing-xs);
 }
 
+/* Ledger contents (plan V2 P4): entries sit on a hairline rail; the
+   section in view is marked by the gold tick + ink label — the same
+   active treatment as the shell's mode rail. Behaviour unchanged. */
 .legal-toc a {
+  display: block;
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  box-shadow: inset 2px 0 0 var(--color-border-subtle);
   color: var(--color-text-secondary);
   text-decoration: none;
 }
 
 .legal-toc a.is-active {
-  color: var(--color-primary-base);
+  box-shadow: inset 2px 0 0 var(--color-accent-base);
+  color: var(--color-text-primary);
   font-weight: var(--typography-font-weight-semibold);
 }
 
@@ -93,4 +109,122 @@
 
 .legal-section {
   scroll-margin-top: var(--spacing-2xl);
+}
+
+/* CreditMate Score ruler (plan V2 P4) — the methodology page's one
+   diagrammatic moment: navy band steps, tabular scale, and the gold
+   marker at the Excellent threshold, labelled in words below. */
+.score-ruler {
+  margin-top: var(--spacing-lg);
+  max-width: 560px;
+}
+
+.score-ruler-track-wrap {
+  position: relative;
+  padding-top: var(--spacing-md);
+}
+
+.score-ruler-track {
+  display: flex;
+  height: 10px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.score-ruler-segment-basic {
+  background: var(--color-navy-100);
+}
+
+.score-ruler-segment-fair {
+  background: var(--color-navy-200);
+}
+
+.score-ruler-segment-good {
+  background: var(--color-navy-300);
+}
+
+.score-ruler-segment-excellent {
+  background: var(--color-navy-700);
+}
+
+.score-ruler-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-base);
+}
+
+.score-ruler-marker::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 8px;
+  background: var(--color-accent-base);
+}
+
+.score-ruler-scale {
+  position: relative;
+  height: 1rem;
+  margin-top: var(--spacing-xs);
+}
+
+.score-ruler-tick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: var(--typography-font-size-xs);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.score-ruler-tick[data-edge='start'] {
+  transform: none;
+}
+
+.score-ruler-tick[data-edge='end'] {
+  transform: translateX(-100%);
+}
+
+.score-ruler-bands {
+  display: flex;
+  list-style: none;
+  margin: var(--spacing-sm) 0 0;
+  padding: 0;
+}
+
+.score-ruler-bands li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+  min-width: 0;
+}
+
+.score-ruler-band-name {
+  font-size: var(--typography-font-size-sm);
+  font-weight: var(--typography-font-weight-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.score-ruler-band-name-excellent {
+  color: var(--color-accent-text);
+}
+
+.score-ruler-band-range {
+  font-size: var(--typography-font-size-xs);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The Fair/Good bands are one point wide: at phone widths their names
+   only fit at the xs size, so the legend steps down there. */
+@media (max-width: 480px) {
+  .score-ruler-band-name {
+    font-size: var(--typography-font-size-xs);
+  }
 }

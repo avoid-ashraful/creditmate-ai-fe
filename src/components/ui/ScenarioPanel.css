@@ -1,7 +1,7 @@
 .cm-scenario {
   padding: var(--spacing-lg);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-12);
+  border-radius: var(--radius-lg);
   background: var(--color-background-surface);
   box-shadow: var(--shadow-card);
 }

@@ -19,8 +19,14 @@
 .progress-fill {
   height: 100%;
   background-color: var(--color-primary-base);
-  transition: width 0.3s ease;
+  transition: width var(--motion-large) var(--motion-ease-out);
   border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill {
+    transition: none;
+  }
 }
 
 .progress-label {
@@ -30,12 +36,16 @@
   text-align: center;
 }
 
+/* Ledger worksheet finish (plan V2 P4): the quiz card trades the old
+   2xl drop shadow for the ledger pairing — hairline border + the
+   retuned card shadow at the panel radius. */
 .quiz-container {
   max-width: 600px;
   margin: 0 auto;
   background: var(--color-background-surface);
-  border-radius: 12px;
-  box-shadow: var(--shadow-2xl);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-12);
+  box-shadow: var(--shadow-card);
   padding: 2rem;
 }
 
@@ -45,10 +55,11 @@
 }
 
 .quiz-header h1 {
+  font-family: var(--typography-font-family-display);
   font-size: 1.875rem;
   color: var(--color-text-primary);
   margin-bottom: 0.5rem;
-  font-weight: 700;
+  font-weight: var(--typography-font-weight-semibold);
 }
 
 .quiz-header p {
@@ -73,95 +84,15 @@
   gap: 1rem;
 }
 
-.spend-slider {
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--color-primary-base);
-  -webkit-appearance: none;
-  appearance: none;
-  cursor: pointer;
-}
-
-.spend-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--color-background-surface);
-  cursor: pointer;
-  box-shadow: var(--shadow-md);
-  border: 3px solid var(--color-primary-base);
-  transition: transform 0.2s;
-}
-
-.spend-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-}
-
-.spend-slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--color-background-surface);
-  cursor: pointer;
-  box-shadow: var(--shadow-md);
-  border: 3px solid var(--color-primary-base);
-  transition: transform 0.2s;
-}
-
-.spend-slider::-moz-range-thumb:hover {
-  transform: scale(1.1);
-}
-
-.spend-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem;
-  background: var(--color-background-base);
-  border-radius: 8px;
-  gap: 0.25rem;
-}
-
-.spend-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-primary-base);
-}
-
-.spend-label {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
+/* The spend slider is the shared SliderWithBubble (ui/): its track,
+   thumb and bubble styling lives in SliderWithBubble.css. The legacy
+   .spend-slider track/thumb rules and the .spend-display/.preset-btn
+   rules styled markup the quiz no longer renders — removed in P4. */
 
 .spend-presets {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
-}
-
-.preset-btn {
-  padding: 0.75rem 1rem;
-  border: 2px solid var(--color-slate-200);
-  border-radius: 8px;
-  background: var(--color-background-surface);
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--color-primary-base);
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
-}
-
-.preset-btn:hover {
-  border-color: var(--color-primary-base);
-  background: var(--color-background-base);
-}
-
-.preset-btn.active {
-  background: var(--color-primary-base);
-  border-color: var(--color-primary-base);
-  color: var(--color-primary-contrast);
 }
 
 .options-grid {
@@ -170,16 +101,21 @@
   gap: 1rem;
 }
 
+/* Hairline controls (plan V2 §2.6): 1px borders, colour/shadow-only
+   hovers — no lifts, no glow shadows. */
 .option-btn {
   padding: 1rem;
-  border: 2px solid var(--color-slate-200);
-  border-radius: 8px;
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-lg);
   background: var(--color-background-surface);
   cursor: pointer;
   font-weight: 600;
   color: var(--color-text-primary);
   font-size: 0.95rem;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  transition: background-color var(--motion-standard) var(--motion-ease-out),
+    border-color var(--motion-standard) var(--motion-ease-out),
+    color var(--motion-standard) var(--motion-ease-out),
+    box-shadow var(--motion-standard) var(--motion-ease-out);
   min-height: 80px;
   display: flex;
   align-items: center;
@@ -190,14 +126,13 @@
 .option-btn:hover {
   border-color: var(--color-primary-base);
   background: var(--color-background-base);
-  transform: translateY(-2px);
 }
 
 .option-btn.selected {
   background: var(--color-primary-base);
   border-color: var(--color-primary-base);
   color: var(--color-primary-contrast);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-card);
 }
 
 .results-step {
@@ -214,49 +149,14 @@
   gap: 1.5rem;
 }
 
-.result-card {
-  border: 2px solid var(--color-slate-200);
-  border-radius: 8px;
-  padding: 1rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.result-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 4px;
-  width: 100%;
-  background: var(--color-primary-base);
-}
-
-.result-rank {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: var(--color-primary-base);
-  color: var(--color-primary-contrast);
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-weight: 700;
-  font-size: 0.875rem;
-}
-
-.result-score {
-  position: absolute;
-  top: 3rem;
-  right: 0.5rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-primary-base);
-}
-
+/* The wrapper no longer draws its own card: the shared ResultCard
+   inside carries the ledger chrome (hairline border, card shadow).
+   The old 2px frame, navy top bar and absolute rank/score badges
+   styled markup the quiz no longer renders — removed in P4. */
 .result-reason {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--color-background-muted);
+  border-top: 1px solid var(--color-border-subtle);
   font-size: 0.95rem;
   color: var(--color-text-secondary);
   line-height: 1.5;
@@ -278,11 +178,14 @@
 .action-btn {
   padding: 0.875rem 1.25rem;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9rem;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  transition: background-color var(--motion-standard) var(--motion-ease-out),
+    border-color var(--motion-standard) var(--motion-ease-out),
+    color var(--motion-standard) var(--motion-ease-out),
+    box-shadow var(--motion-standard) var(--motion-ease-out);
   text-align: center;
 }
 
@@ -292,14 +195,13 @@
 }
 
 .share-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-card);
 }
 
 .see-all-btn {
   background: var(--color-background-base);
   color: var(--color-primary-base);
-  border: 2px solid var(--color-primary-base);
+  border: 1px solid var(--color-primary-base);
 }
 
 .see-all-btn:hover {
@@ -310,7 +212,7 @@
 .retake-btn {
   background: var(--color-background-base);
   color: var(--color-text-primary);
-  border: 2px solid var(--color-slate-200);
+  border: 1px solid var(--color-border-base);
 }
 
 .retake-btn:hover {
@@ -324,20 +226,23 @@
   justify-content: space-between;
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 1px solid var(--color-background-muted);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .nav-btn {
   flex: 1;
   padding: 0.875rem 1rem;
-  border: 2px solid var(--color-slate-200);
-  border-radius: 8px;
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-lg);
   background: var(--color-background-surface);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.95rem;
   color: var(--color-primary-base);
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  transition: background-color var(--motion-standard) var(--motion-ease-out),
+    border-color var(--motion-standard) var(--motion-ease-out),
+    color var(--motion-standard) var(--motion-ease-out),
+    box-shadow var(--motion-standard) var(--motion-ease-out);
 }
 
 .nav-btn:hover:not(:disabled) {
@@ -362,8 +267,7 @@
 }
 
 .next-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-card);
 }
 
 @media (max-width: 768px) {

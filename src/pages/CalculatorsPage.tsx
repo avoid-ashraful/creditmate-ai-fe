@@ -404,7 +404,7 @@ const EmiTool: React.FC<{
           <h3>{copy.resultsHeading}</h3>
           <p className="calculators-apr-source">{outcome.sourceText}</p>
           <dl className="calculators-metrics">
-            <div>
+            <div className="calculators-metric-hero">
               <dt>{copy.emiMonthly}</dt>
               <dd>{formatters.money(outcome.result.monthlyEmi)}</dd>
             </div>
@@ -573,7 +573,7 @@ const PayoffTool: React.FC<{
           <h3>{copy.resultsHeading}</h3>
           <p className="calculators-apr-source">{outcome.sourceText}</p>
           <dl className="calculators-metrics">
-            <div>
+            <div className="calculators-metric-hero">
               <dt>{copy.payoffMonthsLabel}</dt>
               <dd>
                 {fillCopy(copy.payoffMonthsValue, {
@@ -920,7 +920,7 @@ const FdTool: React.FC<{
               <dt>{copy.fdTax}</dt>
               <dd>{formatters.money(outcome.net.sourceTax)}</dd>
             </div>
-            <div>
+            <div className="calculators-metric-hero">
               <dt>{copy.fdNet}</dt>
               <dd>{formatters.money(outcome.net.netMaturity)}</dd>
             </div>
@@ -1163,7 +1163,7 @@ const DpsTool: React.FC<{
               <dt>{copy.fdTax}</dt>
               <dd>{formatters.money(outcome.net.sourceTax)}</dd>
             </div>
-            <div>
+            <div className="calculators-metric-hero">
               <dt>{copy.fdNet}</dt>
               <dd>{formatters.money(outcome.net.netMaturity)}</dd>
             </div>
