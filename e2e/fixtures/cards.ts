@@ -48,6 +48,17 @@ export interface CreditCardApiFixture {
   verified_at: string;
   modified: string;
   images: Array<{ small: string; full: string }>;
+  // Current list-serializer fields (mirrors src/mocks/handlers.ts testCards
+  // and the CreditCardList schema pinned in services/api-contract.test.ts).
+  card_network: string;
+  is_islamic: boolean;
+  is_dual_currency: boolean;
+  min_monthly_income: string | null;
+  supplementary_card_fee: string;
+  foreign_transaction_fee: string;
+  has_lounge_access: boolean;
+  has_annual_fee: boolean;
+  creditmate_score: string | null;
 }
 
 const image = (id: number, index: number) => `/mock-assets/cards/${id}-${index}.svg`;
@@ -113,8 +124,51 @@ const rewardsFor = (id: number): RewardFixture => {
   }
 };
 
+/** Per-card serializer extras: network, income floor and CreditMate Score. */
+const extrasFor = (
+  id: number
+): Pick<
+  CreditCardApiFixture,
+  | 'card_network'
+  | 'is_dual_currency'
+  | 'min_monthly_income'
+  | 'creditmate_score'
+> => {
+  switch (id) {
+    case 2:
+      return {
+        card_network: 'visa',
+        is_dual_currency: true,
+        min_monthly_income: '50000.00',
+        creditmate_score: '8.20',
+      };
+    case 3:
+      return {
+        card_network: 'visa',
+        is_dual_currency: true,
+        min_monthly_income: '80000.00',
+        creditmate_score: '6.80',
+      };
+    case 4:
+      return {
+        card_network: 'mastercard',
+        is_dual_currency: false,
+        min_monthly_income: null,
+        creditmate_score: '5.40',
+      };
+    default:
+      return {
+        card_network: 'visa',
+        is_dual_currency: false,
+        min_monthly_income: '30000.00',
+        creditmate_score: '7.50',
+      };
+  }
+};
+
 const card = (id: number, name: string, annualFee: number): CreditCardApiFixture => {
   const reward = rewardsFor(id);
+  const extras = extrasFor(id);
   return {
     id,
     bank_id: id,
@@ -148,6 +202,15 @@ const card = (id: number, name: string, annualFee: number): CreditCardApiFixture
       { small: image(id, 2), full: image(id, 2) },
       { small: image(id, 3), full: image(id, 3) },
     ],
+    card_network: extras.card_network,
+    is_islamic: false,
+    is_dual_currency: extras.is_dual_currency,
+    min_monthly_income: extras.min_monthly_income,
+    supplementary_card_fee: 'BDT 500',
+    foreign_transaction_fee: '3%',
+    has_lounge_access: id > 0,
+    has_annual_fee: annualFee > 0,
+    creditmate_score: extras.creditmate_score,
   };
 };
 
