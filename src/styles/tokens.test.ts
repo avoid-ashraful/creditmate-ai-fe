@@ -671,6 +671,21 @@ describe('design tokens — WCAG contrast ratios', () => {
       'Shortlist count label on gold pill (light)',
       4.5,
     ],
+    // Midnight Ledger score chip (plan V2 P2): gold Fraunces numeral and
+    // paper band word on the ink-navy chip. Gold is text-grade on navy
+    // only — the chip is the one place gold numerals are allowed.
+    [
+      '--color-score-numeral',
+      '--color-score-background',
+      'Score numeral on score chip (light)',
+      4.5,
+    ],
+    [
+      '--color-score-text',
+      '--color-score-background',
+      'Score band word on score chip (light)',
+      4.5,
+    ],
   ];
 
   const darkContrastPairs: Array<[string, string, string, number]> = [
@@ -777,6 +792,16 @@ describe('design tokens — WCAG contrast ratios', () => {
       'Shortlist count label on gold pill (dark)',
       4.5,
     ],
+    // Midnight Ledger score chip (plan V2 P2) — same pairs as light:
+    // the chip stays ink navy in dark mode, the numeral brightens to
+    // the dark gold.
+    [
+      '--color-score-numeral',
+      '--color-score-background',
+      'Score numeral on score chip (dark)',
+      4.5,
+    ],
+    ['--color-score-text', '--color-score-background', 'Score band word on score chip (dark)', 4.5],
   ];
 
   // Build a map of all CSS variables for both light and dark
