@@ -1,12 +1,16 @@
 /*
- * App shell — Phase 1 redesign (mode rail, mobile bars, palette, tray).
+ * App shell — Midnight Ledger (redesign plan V2, P1).
  *
- * The shell is a flat, calm surface: white/slate in light mode, the semantic
- * surface token in dark mode, with hairline dividers. No gradients, no
- * animation loops; the palette opens with no animation at all (Section 5.2).
- * All values come from design tokens; breakpoints use only the token scale
- * (480 / 768 / 1024 / 1280). This file is in the strict checker zone: zero
- * raw values are allowed.
+ * The shell's chrome — rail, top bar, bottom bar, command palette and
+ * footer — is the ink-navy "ledger spine" in BOTH themes, driven by the
+ * theme-invariant --color-shell-* tokens. Paper text sits on the spine;
+ * gold appears only as the mate-point (active mode, shortlist count) and
+ * as the focus colour on navy, where it is text-grade (7.09:1 light /
+ * 8.15:1 dark). Content surfaces keep the themed background/text tokens.
+ * No gradients, no animation loops; the palette opens with no animation
+ * at all (plan Section 5.2). All values come from design tokens;
+ * breakpoints use only the token scale (480 / 768 / 1024 / 1280). This
+ * file is in the strict checker zone: zero raw values are allowed.
  */
 
 .cm-layout {
@@ -59,8 +63,9 @@
     height: 100vh;
     padding: var(--spacing-md);
     gap: var(--spacing-md);
-    background: var(--color-background-surface);
-    border-right: 1px solid var(--color-border-subtle);
+    background: var(--color-shell-background);
+    color: var(--color-shell-text);
+    border-right: 1px solid var(--color-shell-border);
     overflow-y: auto;
   }
 
@@ -75,9 +80,17 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  color: var(--color-text-primary);
+  color: var(--color-shell-text);
   text-decoration: none;
   font-size: var(--typography-font-size-lg);
+}
+
+/* On the navy spine the wordmark's "AI" uses brand gold: on navy it is
+   text-grade (7.09:1), unlike on paper where gold.600 is required. The
+   top bar is the same spine, so it shares the treatment. */
+.cm-rail .cm-logo-ai,
+.cm-topbar .cm-logo-ai {
+  color: var(--color-accent-base);
 }
 
 .cm-rail-search {
@@ -87,17 +100,24 @@
   width: 100%;
   min-height: 40px;
   padding: var(--spacing-xs) var(--spacing-sm);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-shell-border);
   border-radius: var(--radius-md);
-  background: var(--color-background-muted);
-  color: var(--color-text-secondary);
+  background: var(--color-shell-surface-hover);
+  color: var(--color-shell-text-secondary);
   cursor: pointer;
   font: inherit;
   text-align: left;
 }
 
 .cm-rail-search:hover {
-  border-color: var(--color-border-strong);
+  background: var(--color-shell-surface-selected);
+  color: var(--color-shell-text);
+}
+
+.cm-rail .cm-kbd {
+  border-color: var(--color-shell-border);
+  background: var(--color-shell-background);
+  color: var(--color-shell-text-secondary);
 }
 
 .cm-rail-search-label {
@@ -131,7 +151,7 @@
 }
 
 .cm-rail-divider {
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: 1px solid var(--color-shell-border);
   margin: var(--spacing-sm) var(--spacing-none);
 }
 
@@ -142,7 +162,7 @@
   min-height: 40px;
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-md);
-  color: var(--color-text-secondary);
+  color: var(--color-shell-text-secondary);
   text-decoration: none;
   font-weight: var(--typography-font-weight-medium);
   transition: var(--transition-preset-colors);
@@ -150,20 +170,35 @@
 }
 
 .cm-rail-mode-link:hover {
-  background: var(--color-state-hover-surface);
-  color: var(--color-text-primary);
+  background: var(--color-shell-surface-hover);
+  color: var(--color-shell-text);
 }
 
 .cm-rail-mode-link.is-active {
-  background: var(--color-state-selected-surface);
-  color: var(--color-primary-base);
+  background: var(--color-shell-surface-selected);
+  color: var(--color-shell-text);
+}
+
+/* The gold mate-point: the active mode's one structural gold moment.
+   A dot in flow (never colour alone — the label also takes the paper
+   text colour and the selected well), so it survives the collapsed
+   rail, where it sits beside the icon as the active cue. */
+.cm-rail-mode-link.is-active::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-base);
 }
 
 .cm-rail-subs {
   list-style: none;
   margin: var(--spacing-none);
   padding: var(--spacing-none);
-  padding-left: var(--spacing-xl);
+  /* Subs render only under the active mode, whose label now sits past
+     the mate-point + icon; 2xl keeps sub labels under the mode label. */
+  padding-left: var(--spacing-2xl);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2xs);
@@ -173,18 +208,20 @@
   display: block;
   padding: var(--spacing-2xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
+  color: var(--color-shell-text-secondary);
   text-decoration: none;
   font-size: var(--typography-font-size-sm);
 }
 
 .cm-rail-sub:hover {
-  color: var(--color-text-primary);
-  background: var(--color-state-hover-surface);
+  color: var(--color-shell-text);
+  background: var(--color-shell-surface-hover);
 }
 
+/* Gold text is permitted here because the ground is navy (7.09:1);
+   the semibold weight means it never carries meaning by colour alone. */
 .cm-rail-sub.is-active {
-  color: var(--color-primary-base);
+  color: var(--color-accent-base);
   font-weight: var(--typography-font-weight-semibold);
 }
 
@@ -192,7 +229,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: 1px solid var(--color-shell-border);
   padding-top: var(--spacing-md);
 }
 
@@ -203,21 +240,28 @@
   gap: var(--spacing-sm);
   min-height: 40px;
   padding: var(--spacing-xs) var(--spacing-sm);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-shell-border);
   border-radius: var(--radius-md);
-  background: var(--color-background-surface);
-  color: var(--color-text-primary);
+  background: var(--color-shell-surface-hover);
+  color: var(--color-shell-text);
   cursor: pointer;
   font: inherit;
   font-weight: var(--typography-font-weight-medium);
 }
 
+.cm-rail-tray:hover {
+  background: var(--color-shell-surface-selected);
+}
+
+/* The shortlist count is gold's second structural job (plan V2 P1):
+   a gold pill whose ink label keeps it legible (6.43:1 light, 8.72:1
+   dark via the theme-remapped accent pair). */
 .cm-rail-tray-count {
   min-width: 24px;
   text-align: center;
   border-radius: var(--radius-full);
-  background: var(--color-primary-base);
-  color: var(--color-text-on-primary);
+  background: var(--color-accent-base);
+  color: var(--color-accent-contrast);
   font-size: var(--typography-font-size-sm);
   padding: var(--spacing-none) var(--spacing-xs);
 }
@@ -227,6 +271,51 @@
   align-items: center;
   gap: var(--spacing-sm);
   flex-wrap: wrap;
+}
+
+/* Rail-footer controls re-dressed for the spine. These overrides are
+   scoped to .cm-rail: the same controls keep their themed-surface
+   styling in the mobile more-sheet. */
+.cm-rail .cm-lang-toggle,
+.cm-rail .cm-rail-collapse {
+  background: transparent;
+  border-color: var(--color-shell-border);
+  color: var(--color-shell-text);
+}
+
+.cm-rail .cm-lang-toggle:hover,
+.cm-rail .cm-rail-collapse:hover {
+  background: var(--color-shell-surface-hover);
+}
+
+.cm-rail .theme-toggle {
+  background: var(--color-shell-surface-hover);
+  border-color: var(--color-shell-border);
+  color: var(--color-shell-text);
+}
+
+.cm-rail .theme-toggle:hover {
+  background: var(--color-shell-surface-selected);
+  border-color: var(--color-shell-border);
+}
+
+.cm-rail .theme-toggle:active {
+  background: var(--color-shell-surface-selected);
+}
+
+.cm-rail .cm-account-signin {
+  color: var(--color-shell-text);
+}
+
+.cm-rail .cm-account-register {
+  background: var(--color-shell-surface-selected);
+  color: var(--color-shell-text);
+  border: 1px solid var(--color-shell-border);
+}
+
+.cm-rail .cm-account-avatar {
+  background: var(--color-shell-surface-selected);
+  color: var(--color-shell-text);
 }
 
 .cm-lang-toggle {
@@ -380,8 +469,9 @@
   gap: var(--spacing-md);
   height: var(--cm-bar-height);
   padding: var(--spacing-none) var(--spacing-md);
-  background: var(--color-background-surface);
-  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-shell-background);
+  color: var(--color-shell-text);
+  border-bottom: 1px solid var(--color-shell-border);
   position: sticky;
   top: var(--spacing-none);
   z-index: 30;
@@ -390,7 +480,7 @@
 .cm-topbar-logo {
   display: inline-flex;
   align-items: center;
-  color: var(--color-text-primary);
+  color: var(--color-shell-text);
   text-decoration: none;
   font-size: var(--typography-font-size-lg);
 }
@@ -403,7 +493,7 @@
   height: 44px;
   border: none;
   background: none;
-  color: var(--color-text-primary);
+  color: var(--color-shell-text);
   cursor: pointer;
   border-radius: var(--radius-md);
 }
@@ -430,9 +520,13 @@
   }
 }
 
+/* The footer is the spine's other ink surface (plan V2 §2.2:
+   secondary/base is designated for "rail spine, footer" — the shell
+   tokens carry that role in both themes). */
 .cm-shell-footer {
-  border-top: 1px solid var(--color-border-subtle);
-  background: var(--color-background-surface);
+  border-top: 1px solid var(--color-shell-border);
+  background: var(--color-shell-background);
+  color: var(--color-shell-text);
   padding: var(--spacing-xl) var(--spacing-md);
 }
 
@@ -456,7 +550,7 @@
 }
 
 .cm-footer-tagline {
-  color: var(--color-text-secondary);
+  color: var(--color-shell-text-secondary);
   font-size: var(--typography-font-size-sm);
   margin: var(--spacing-xs) var(--spacing-none) var(--spacing-none);
 }
@@ -477,19 +571,19 @@
 }
 
 .cm-footer-group a {
-  color: var(--color-text-secondary);
+  color: var(--color-shell-text-secondary);
   text-decoration: none;
   font-size: var(--typography-font-size-sm);
 }
 
 .cm-footer-group a:hover {
-  color: var(--color-text-link);
+  color: var(--color-shell-text);
 }
 
 .cm-footer-copy {
   max-width: 1200px;
   margin: var(--spacing-lg) auto var(--spacing-none);
-  color: var(--color-text-tertiary);
+  color: var(--color-shell-text-secondary);
   font-size: var(--typography-font-size-sm);
 }
 
@@ -503,8 +597,8 @@
   z-index: 40;
   display: flex;
   height: var(--cm-bar-height);
-  background: var(--color-background-surface);
-  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-shell-background);
+  border-top: 1px solid var(--color-shell-border);
 }
 
 .cm-bottombar-item {
@@ -514,7 +608,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-2xs);
-  color: var(--color-text-secondary);
+  color: var(--color-shell-text-secondary);
   text-decoration: none;
   font-size: var(--typography-font-size-xs);
   border: none;
@@ -524,8 +618,17 @@
 }
 
 .cm-bottombar-item.is-active {
-  color: var(--color-primary-base);
+  color: var(--color-shell-text);
   font-weight: var(--typography-font-weight-semibold);
+}
+
+/* The mate-point tops the active mobile mode, mirroring the rail. */
+.cm-bottombar-item.is-active::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-base);
 }
 
 .cm-bottombar-more-icon {
@@ -643,15 +746,20 @@
   padding: var(--spacing-xl) var(--spacing-md);
 }
 
+/* The palette is a ledger sheet: ink navy in both themes, hairline
+   rows, and the active row marked by the selected well plus a gold
+   left tick (inset shadow, so the row never shifts). Dialog radius
+   follows the plan V2 §2.6 usage map (panels/dialogs = 12). */
 .cm-palette {
   width: 100%;
   max-width: 640px;
   max-height: 70vh;
   display: flex;
   flex-direction: column;
-  background: var(--color-background-elevated);
-  border: 1px solid var(--color-border-base);
-  border-radius: var(--radius-lg);
+  background: var(--color-shell-background);
+  color: var(--color-shell-text);
+  border: 1px solid var(--color-shell-border);
+  border-radius: var(--radius-12);
   box-shadow: var(--shadow-2xl);
   overflow: hidden;
 }
@@ -661,11 +769,15 @@
   min-height: 52px;
   padding: var(--spacing-md);
   border: none;
-  border-bottom: 1px solid var(--color-border-subtle);
-  background: var(--color-background-elevated);
-  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-shell-border);
+  background: var(--color-shell-background);
+  color: var(--color-shell-text);
   font: inherit;
   font-size: var(--typography-font-size-lg);
+}
+
+.cm-palette-input::placeholder {
+  color: var(--color-shell-text-secondary);
 }
 
 .cm-palette-input:focus {
@@ -683,7 +795,7 @@
   font-weight: var(--typography-font-weight-semibold);
   letter-spacing: var(--typography-letter-spacing-wide);
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--color-shell-text-secondary);
 }
 
 .cm-palette-list {
@@ -697,29 +809,30 @@
   align-items: baseline;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm);
-  border-radius: var(--radius-md);
+  border-bottom: 1px solid var(--color-shell-border);
   cursor: pointer;
   min-height: 44px;
 }
 
 .cm-palette-item.is-active {
-  background: var(--color-state-selected-surface);
+  background: var(--color-shell-surface-selected);
+  box-shadow: inset 2px 0 0 var(--color-accent-base);
 }
 
 .cm-palette-item-label {
-  color: var(--color-text-primary);
+  color: var(--color-shell-text);
   font-weight: var(--typography-font-weight-medium);
 }
 
 .cm-palette-item-sub {
-  color: var(--color-text-secondary);
+  color: var(--color-shell-text-secondary);
   font-size: var(--typography-font-size-sm);
 }
 
 .cm-palette-status {
   margin: var(--spacing-none);
   padding: var(--spacing-md);
-  color: var(--color-text-secondary);
+  color: var(--color-shell-text-secondary);
 }
 
 /* ---------- Shortlist tray panel ---------- */
@@ -838,6 +951,23 @@
 .cm-layout input:focus-visible {
   outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
+}
+
+/* On the navy spine the themed focus colour disappears (navy on navy
+   in the light theme), so spine surfaces focus in gold — text-grade
+   on navy in both themes, and the dark theme's own focus colour. */
+.cm-rail a:focus-visible,
+.cm-rail button:focus-visible,
+.cm-rail input:focus-visible,
+.cm-topbar a:focus-visible,
+.cm-topbar button:focus-visible,
+.cm-bottombar a:focus-visible,
+.cm-bottombar button:focus-visible,
+.cm-shell-footer a:focus-visible,
+.cm-palette a:focus-visible,
+.cm-palette button:focus-visible,
+.cm-palette input:focus-visible {
+  outline-color: var(--color-accent-base);
 }
 
 /* ---------- Focus mode (Phase 4): shared pages ---------- */

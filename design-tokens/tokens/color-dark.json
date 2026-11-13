@@ -68,6 +68,34 @@
           "type": "color"
         }
       },
+      "shell": {
+        "background": {
+          "value": "{color.navy.900}",
+          "comment": "The ledger spine stays ink navy in dark mode too (one step above the navy/950 page ground). Same values as the light theme by design.",
+          "type": "color"
+        },
+        "surfaceHover": {
+          "value": "{color.navy.800}",
+          "type": "color"
+        },
+        "surfaceSelected": {
+          "value": "{color.navy.700}",
+          "type": "color"
+        },
+        "text": {
+          "value": "{color.paper.100}",
+          "type": "color"
+        },
+        "textSecondary": {
+          "value": "{color.navy.300}",
+          "type": "color"
+        },
+        "border": {
+          "value": "{color.navy.800}",
+          "comment": "Hairline on the spine; also the spine's edge against the navy/950 page ground.",
+          "type": "color"
+        }
+      },
       "success": {
         "base": {
           "value": "{color.emerald.400}",

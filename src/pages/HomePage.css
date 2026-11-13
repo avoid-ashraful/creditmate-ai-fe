@@ -15,6 +15,19 @@
   margin: var(--spacing-none);
 }
 
+/* Midnight Ledger (plan V2 §2.5): Fraunces is whitelist-only — the Home
+   H1 and the hero numerals below. The display stack falls through to
+   Hind Siliguri for Bengali, which Fraunces has no glyphs for. */
+.cm-home-hero h1 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
+}
+
+.cm-home-metric-value {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
+}
+
 .home-page h2 {
   font-size: var(--typography-font-size-2xl);
   margin: var(--spacing-none) var(--spacing-none) var(--spacing-md);
@@ -156,6 +169,61 @@
   background: var(--color-background-muted);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
+}
+
+/*
+ * The hero entrance — the redesign's one dealt moment on Home
+ * (plan V2 §2.6 entrance preset): opacity 0→1 with an 8px rise,
+ * motion/standard (220ms) easeOut, stagger capped at 40ms per step,
+ * first-viewport surfaces only (hero, profile strip, decision cards).
+ * Opacity/transform only, so nothing shifts layout. The global
+ * reduced-motion guard in src/animations/motion.css neutralises it
+ * too; the explicit block keeps the intent local to the page.
+ */
+@keyframes cm-home-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cm-home-hero,
+.cm-home-profile,
+.cm-home-modes .cm-home-mode {
+  animation: cm-home-enter var(--motion-standard) var(--motion-ease-out) both;
+}
+
+.cm-home-profile {
+  animation-delay: 40ms;
+}
+
+.cm-home-modes .cm-home-mode:nth-child(1) {
+  animation-delay: 80ms;
+}
+
+.cm-home-modes .cm-home-mode:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.cm-home-modes .cm-home-mode:nth-child(3) {
+  animation-delay: 160ms;
+}
+
+.cm-home-modes .cm-home-mode:nth-child(4) {
+  animation-delay: 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-home-hero,
+  .cm-home-profile,
+  .cm-home-modes .cm-home-mode {
+    animation: none;
+  }
 }
 
 .cm-home-trust a {

@@ -518,6 +518,38 @@
         "type": "color"
       }
     },
+    "shell": {
+      "background": {
+        "value": "{color.navy.900}",
+        "comment": "Midnight Ledger spine: the app rail, top bar, bottom bar, command palette and footer sit on ink navy in BOTH themes (redesign plan V2, P1). Paper text on it is 15.34:1.",
+        "type": "color"
+      },
+      "surfaceHover": {
+        "value": "{color.navy.800}",
+        "comment": "Hover well on the spine. Secondary text (navy/300) on it is 5.99:1.",
+        "type": "color"
+      },
+      "surfaceSelected": {
+        "value": "{color.navy.700}",
+        "comment": "Selected/active well on the spine. Paper text on it is 12.28:1, secondary text 5.28:1.",
+        "type": "color"
+      },
+      "text": {
+        "value": "{color.paper.100}",
+        "comment": "Primary text on the spine (15.34:1 on shell/background).",
+        "type": "color"
+      },
+      "textSecondary": {
+        "value": "{color.navy.300}",
+        "comment": "Secondary text on the spine (6.60:1 on shell/background).",
+        "type": "color"
+      },
+      "border": {
+        "value": "{color.navy.700}",
+        "comment": "Hairline dividers on the spine.",
+        "type": "color"
+      }
+    },
     "success": {
       "base": {
         "value": "{color.emerald.700}",
