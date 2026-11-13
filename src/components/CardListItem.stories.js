@@ -9,6 +9,7 @@ export const Selected = () => {
     name: 'EBL Platinum Card',
     annualFee: 5000,
     interestRateApr: 24.5,
+    creditmateScore: 7.2,
     loungeAccessInternational: '6 visits',
     loungeAccessDomestic: '12 visits',
     cashAdvanceFee: '2.5% or BDT 500',

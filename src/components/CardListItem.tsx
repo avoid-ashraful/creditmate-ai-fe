@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import React from 'react';
 
-import { cardHover, cardTap, fadeInUp, usePrefersReducedMotion } from '../animations';
+import { fadeInUp, usePrefersReducedMotion } from '../animations';
 import { useLanguage, getCommonCopy, getCardDetailCopy, getNetworkLabel } from '../locales';
 import { CreditCard } from '../types';
 import { slugify } from '../utils/slugify';
@@ -86,8 +86,6 @@ const CardListItem: React.FC<CardListItemProps> = ({
       variants={fadeInUp}
       initial={reduceMotion ? false : 'hidden'}
       animate="visible"
-      whileHover={reduceMotion ? undefined : cardHover}
-      whileTap={reduceMotion ? undefined : cardTap}
     >
       {card.images && card.images.length > 0 && (
         <div className="card-image">
@@ -189,8 +187,6 @@ const CardListItem: React.FC<CardListItemProps> = ({
             type="button"
             className={`primary-button add-to-compare-btn ${isSelected ? 'in-list' : ''}`}
             onClick={handleAddToCompare}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             {isSelected ? common.comparisonFooterShare : common.comparisonAddCard}
           </motion.button>

@@ -16,11 +16,11 @@
 .accounts-explainer {
   margin: 1.5rem 0;
   padding: 1rem 1.25rem;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-subtle);
   border-left-width: 4px;
   border-left-style: solid;
   border-left-color: var(--color-primary-base);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   max-width: 820px;
 }
 
@@ -42,7 +42,7 @@
 
 .accounts-tab {
   padding: 0.5rem 1rem;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-base);
   border-radius: 999px;
   background: transparent;
   cursor: pointer;
@@ -50,7 +50,7 @@
 
 .accounts-tab-active {
   background: var(--color-primary-base);
-  color: var(--color-white);
+  color: var(--color-primary-contrast);
 }
 
 .accounts-form {
@@ -86,7 +86,7 @@
 
 .accounts-preset {
   padding: 0.2rem 0.55rem;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-base);
   border-radius: 999px;
   background: transparent;
   cursor: pointer;
@@ -105,7 +105,7 @@
   border: none;
   border-radius: 8px;
   background: var(--color-primary-base);
-  color: var(--color-white);
+  color: var(--color-primary-contrast);
   font-size: 1rem;
   cursor: pointer;
 }
@@ -122,7 +122,7 @@
 .accounts-table th,
 .accounts-table td {
   padding: 0.55rem 0.7rem;
-  border-bottom: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border-subtle);
   text-align: left;
   vertical-align: top;
 }
@@ -142,7 +142,7 @@
   margin-left: 0.5rem;
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
-  background: var(--badge-bg, var(--color-indigo-50));
+  background: var(--badge-bg, var(--color-primary-subtle));
   font-size: 0.75rem;
   white-space: nowrap;
 }
@@ -175,8 +175,8 @@
 .accounts-unranked {
   margin-top: 2rem;
   padding: 1rem;
-  border: 1px dashed var(--color-border-strong);
-  border-radius: 12px;
+  border: 1px dashed var(--color-border-subtle);
+  border-radius: var(--radius-lg);
 }
 
 .accounts-detail-bank {
@@ -207,7 +207,7 @@
 .accounts-fee-table th,
 .accounts-fee-table td {
   padding: 0.45rem 0.7rem;
-  border-bottom: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border-subtle);
   text-align: left;
 }
 
@@ -220,7 +220,7 @@
   display: flex;
   gap: 1rem;
   padding: 0.4rem 0;
-  border-bottom: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border-subtle);
   flex-wrap: wrap;
 }
 
@@ -244,7 +244,7 @@
 
 .accounts-variants li {
   padding: 0.3rem 0.7rem;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 999px;
 }
 

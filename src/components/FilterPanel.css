@@ -5,7 +5,7 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-subtle);
 }
 
 .filter-header {
@@ -15,7 +15,7 @@
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  border-bottom: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .filter-header h2 {
@@ -40,7 +40,7 @@
 .filter-section {
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .filter-section:last-child {
@@ -187,7 +187,7 @@
 
 .reset-button {
   background-color: transparent;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-base);
   color: var(--color-text-primary);
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-md);
@@ -207,7 +207,7 @@
 
 .network-chip {
   padding: var(--spacing-xs) var(--spacing-md);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-base);
   border-radius: 999px;
   background-color: var(--color-background-surface);
   color: var(--color-text-primary);

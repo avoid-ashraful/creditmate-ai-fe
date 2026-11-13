@@ -44,6 +44,8 @@ import {
 } from '../services/deposits';
 import { fetchAllPages } from '../utils/fetchAllPages';
 
+import './DepositsPage.css';
+
 const CATALOGUE_PAGE_SIZE = 10;
 
 /** The tenure band a product's headline rate history describes. */

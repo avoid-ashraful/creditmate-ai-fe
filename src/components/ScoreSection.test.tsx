@@ -39,20 +39,28 @@ const baseCard: CreditCard = {
 };
 
 describe('ScoreBadge', () => {
+  // The numeral sits in its own span (Fraunces, plan V2 P2), so the
+  // visible text spans two elements — match on the badge's full text.
+  const badgeText =
+    (score: string, band: string) =>
+    (_content: string, element: Element | null): boolean =>
+      element?.classList.contains('card-badge-score') === true &&
+      element.textContent === `${score} ${band}`;
+
   it('renders score and Excellent band at 7.0', () => {
     renderWithLang(<ScoreBadge score={7.0} />);
-    expect(screen.getByText(/7\.0 Excellent/)).toBeInTheDocument();
+    expect(screen.getByText(badgeText('7.0', 'Excellent'))).toBeInTheDocument();
   });
 
   it('labels mid-range and low scores truthfully', () => {
     const { rerender } = renderWithLang(<ScoreBadge score={5.5} />);
-    expect(screen.getByText(/5\.5 Fair/)).toBeInTheDocument();
+    expect(screen.getByText(badgeText('5.5', 'Fair'))).toBeInTheDocument();
     rerender(
       <LanguageProvider>
         <ScoreBadge score={3.2} />
       </LanguageProvider>
     );
-    expect(screen.getByText(/3\.2 Basic/)).toBeInTheDocument();
+    expect(screen.getByText(badgeText('3.2', 'Basic'))).toBeInTheDocument();
   });
 
   it('renders nothing without a score', () => {

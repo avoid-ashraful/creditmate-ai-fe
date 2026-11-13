@@ -8,6 +8,17 @@
   display: block;
 }
 
+/* Listing page titles take the display face (Fraunces whitelist: page
+   H1s). Bengali falls through the stack to Hind Siliguri by design. */
+.cards-discovery-page h1,
+.deposits-hero h1,
+.loans-hero h1,
+.accounts-hero h1 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
+  letter-spacing: var(--typography-letter-spacing-tight);
+}
+
 @media (min-width: 1024px) {
   .cm-discovery {
     display: grid;
