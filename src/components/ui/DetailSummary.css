@@ -29,8 +29,16 @@
   line-height: var(--typography-line-height-snug);
 }
 
+/* The hero figure is one of the two Fraunces moments on a detail page
+   (plan V2 §2.5 whitelist: hero numerals on detail pages). */
+.cm-detail-summary-hero {
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
 .cm-detail-summary-hero-value {
   color: var(--color-text-primary);
+  font-family: var(--typography-font-family-display);
   font-size: var(--typography-font-size-2xl);
   font-weight: var(--typography-font-weight-semibold);
   font-variant-numeric: tabular-nums;
@@ -43,10 +51,11 @@
   font-size: var(--typography-font-size-sm);
 }
 
+/* Facts are ledger lines: hairline rules carry the separation,
+   not spacing alone (plan V2 P3). */
 .cm-detail-summary-facts {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
   margin: 0;
 }
 
@@ -55,6 +64,11 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--spacing-md);
+  padding: var(--spacing-xs) 0;
+}
+
+.cm-detail-summary-fact + .cm-detail-summary-fact {
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .cm-detail-summary-fact dt {
