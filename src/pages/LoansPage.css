@@ -259,3 +259,37 @@
   color: var(--color-text-link-hover);
   text-decoration: underline;
 }
+
+/* Field-change history as ledger lines (plan V2 P3): hairline rules,
+   a neutral point per change, gold only on the latest (entries arrive
+   newest-first, the shared field-history contract). */
+.loan-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.loan-history-list li {
+  position: relative;
+  padding: 0.4rem 0 0.4rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.loan-history-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  transform: translateY(-50%);
+  border-radius: var(--radius-full);
+  background: var(--color-background-surface);
+  border: 2px solid var(--color-border-strong);
+  box-sizing: border-box;
+}
+
+.loan-history-list li:first-child::before {
+  background: var(--color-accent-base);
+  border-color: var(--color-accent-base);
+}
