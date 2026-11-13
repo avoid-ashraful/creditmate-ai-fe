@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { LogoMark } from '../components/brand/Logo';
 import { useShortlist } from '../hooks/ShortlistProvider';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { AdvisorResponse, AdvisorSuggestedAction, askAdvisorStream } from '../services/advisor';
@@ -166,46 +167,55 @@ const AdvisorPage: React.FC = () => {
         )}
         {entries.map((entry, i) => (
           <article key={i} className={`advisor-entry advisor-entry--${entry.role}`}>
-            <div className="advisor-entry-body">{renderMarkdown(entry.text)}</div>
-            {entry.response?.is_fallback && (
-              <p className="advisor-fallback-note">
-                Showing normal search results instead — the advisor could not complete this answer.
-              </p>
-            )}
-            {entry.response && entry.response.citations.length > 0 && (
-              <div className="advisor-citations" aria-label="Sources">
-                {entry.response.citations.map((citation, j) => (
-                  <Link key={j} className="advisor-citation-chip" to={citation.url_path}>
-                    {citation.label}
-                    {citation.field ? ` · ${citation.field.replace(/_/g, ' ')}` : ''}
-                  </Link>
-                ))}
-              </div>
-            )}
-            {entry.response &&
-              entry.response.suggested_actions.map((action, j) => {
-                const key = `${action.kind}:${action.product_id}`;
-                const already =
-                  entry.savedActionKinds?.has(key) ||
-                  (action.product_id != null && isInShortlist('cards', String(action.product_id)));
-                return (
-                  <div key={j} className="advisor-action-card">
-                    <span>{action.label}</span>
-                    <button
-                      type="button"
-                      disabled={already}
-                      onClick={() => runSuggestedAction(i, action)}
-                    >
-                      {already ? 'Saved to shortlist' : 'Save to shortlist'}
-                    </button>
-                  </div>
-                );
-              })}
-            {entry.response && entry.response.tool_trace.length > 0 && (
-              <p className="advisor-trace">
-                Tools used: {entry.response.tool_trace.map(t => t.tool).join(' → ')}
-              </p>
-            )}
+            {entry.role === 'advisor' ? (
+              <span className="advisor-avatar" aria-hidden="true">
+                <LogoMark size={26} />
+              </span>
+            ) : null}
+            <div className="advisor-entry-main">
+              <div className="advisor-entry-body">{renderMarkdown(entry.text)}</div>
+              {entry.response?.is_fallback && (
+                <p className="advisor-fallback-note">
+                  Showing normal search results instead — the advisor could not complete this
+                  answer.
+                </p>
+              )}
+              {entry.response && entry.response.citations.length > 0 && (
+                <div className="advisor-citations" aria-label="Sources">
+                  {entry.response.citations.map((citation, j) => (
+                    <Link key={j} className="advisor-citation-chip" to={citation.url_path}>
+                      {citation.label}
+                      {citation.field ? ` · ${citation.field.replace(/_/g, ' ')}` : ''}
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {entry.response &&
+                entry.response.suggested_actions.map((action, j) => {
+                  const key = `${action.kind}:${action.product_id}`;
+                  const already =
+                    entry.savedActionKinds?.has(key) ||
+                    (action.product_id != null &&
+                      isInShortlist('cards', String(action.product_id)));
+                  return (
+                    <div key={j} className="advisor-action-card">
+                      <span>{action.label}</span>
+                      <button
+                        type="button"
+                        disabled={already}
+                        onClick={() => runSuggestedAction(i, action)}
+                      >
+                        {already ? 'Saved to shortlist' : 'Save to shortlist'}
+                      </button>
+                    </div>
+                  );
+                })}
+              {entry.response && entry.response.tool_trace.length > 0 && (
+                <p className="advisor-trace">
+                  Tools used: {entry.response.tool_trace.map(t => t.tool).join(' → ')}
+                </p>
+              )}
+            </div>
           </article>
         ))}
         {busy && <p className="advisor-working">CreditMate is checking the catalogue…</p>}

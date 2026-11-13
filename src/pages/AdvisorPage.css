@@ -1,21 +1,29 @@
-/* Ask CreditMate advisor (Capability 2). Token-clean: every colour
-   resolves through tokens.css variables, like the other page styles. */
+/* Ask CreditMate advisor (Capability 2) — Midnight Ledger (plan V2, P5).
+   The thread reads as a ledger document: advisor turns are ledger cards
+   on the warm-white surface with hairline rules and the mark as avatar;
+   user turns sit in the muted paper well. Citation chips are ink navy
+   with gold numerals — gold's second structural job, signalling
+   "sourced" (citation tokens, AA-pinned in tokens.test.ts). Every colour
+   resolves through tokens.css variables. */
 
 .advisor-page {
   max-width: 880px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 3rem;
+  padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-2xl);
 }
 
 .advisor-hero {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .advisor-hero h1 {
+  font-family: var(--typography-font-family-display);
   font-size: 2rem;
+  font-weight: var(--typography-font-weight-semibold);
+  letter-spacing: var(--typography-letter-spacing-tight);
   color: var(--color-text-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
 }
 
 .advisor-hero p {
@@ -26,71 +34,107 @@
 
 .advisor-fallback-banner {
   background: var(--color-background-surface);
-  border: 1px solid var(--color-slate-200);
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
   color: var(--color-text-secondary);
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
 }
 
 .advisor-thread {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
 .advisor-entry {
-  border: 1px solid var(--color-slate-200);
-  border-radius: 0.5rem;
-  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
   background: var(--color-background-surface);
+  box-shadow: var(--shadow-card);
 }
 
 .advisor-entry--user {
   align-self: flex-end;
   max-width: 85%;
-  background: var(--color-slate-100, var(--color-background-surface));
+  background: var(--color-background-muted);
+  box-shadow: none;
 }
 
 .advisor-entry--advisor {
   align-self: flex-start;
   width: 100%;
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-start;
+}
+
+.advisor-avatar {
+  flex: none;
+  display: inline-flex;
+  padding-top: var(--spacing-2xs);
+}
+
+.advisor-entry-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .advisor-entry-body p {
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--spacing-sm);
   color: var(--color-text-primary);
 }
 
+.advisor-entry-body p:last-child,
+.advisor-entry-body ul:last-child {
+  margin-bottom: 0;
+}
+
 .advisor-entry-body ul {
-  margin: 0 0 0.5rem;
-  padding-left: 1.25rem;
+  margin: 0 0 var(--spacing-sm);
+  padding-left: var(--spacing-lg);
   color: var(--color-text-primary);
 }
 
 .advisor-fallback-note,
 .advisor-trace {
-  color: var(--color-slate-500);
-  font-size: 0.85rem;
-  margin: 0.5rem 0 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-font-size-sm);
+  margin: var(--spacing-sm) 0 0;
 }
 
+/* Citation chips: ink navy in both themes, paper label, gold index
+   numeral (a pure CSS counter — the numeral is layout, not content, so
+   the chip's accessible name stays the citation label). */
 .advisor-citations {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-12);
+  counter-reset: advisor-citation;
 }
 
 .advisor-citation-chip {
-  border: 1px solid var(--color-slate-200);
-  border-radius: 999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.85rem;
-  color: var(--color-text-primary);
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  border: 1px solid var(--color-citation-background);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-xs) var(--spacing-12);
+  font-size: var(--typography-font-size-sm);
+  color: var(--color-citation-text);
   text-decoration: none;
-  background: var(--color-background-page, transparent);
+  background: var(--color-citation-background);
+}
+
+.advisor-citation-chip::before {
+  counter-increment: advisor-citation;
+  content: counter(advisor-citation);
+  color: var(--color-citation-numeral);
+  font-weight: var(--typography-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
 }
 
 .advisor-citation-chip:hover {
@@ -101,26 +145,37 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  border: 1px dashed var(--color-slate-200);
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  margin-top: 0.75rem;
+  gap: var(--spacing-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-top: var(--spacing-12);
   color: var(--color-text-primary);
+  background: var(--color-background-base);
 }
 
 .advisor-action-card button,
 .advisor-composer-row button {
-  border: 1px solid var(--color-slate-200);
-  border-radius: 0.375rem;
-  padding: 0.5rem 1rem;
-  background: var(--color-background-surface);
-  color: var(--color-text-primary);
+  border: 1px solid var(--color-primary-base);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-primary-base);
+  color: var(--color-text-on-primary);
   cursor: pointer;
+  font: inherit;
 }
 
-.advisor-action-card button:disabled {
-  color: var(--color-slate-500);
+.advisor-action-card button:hover:not(:disabled),
+.advisor-composer-row button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.advisor-action-card button:disabled,
+.advisor-composer-row button:disabled {
+  background: var(--color-state-disabled-surface);
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-disabled);
   cursor: default;
 }
 
@@ -131,53 +186,97 @@
 .advisor-starter-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .advisor-starter {
-  border: 1px solid var(--color-slate-200);
-  border-radius: 999px;
-  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-xs) var(--spacing-md);
   background: var(--color-background-surface);
   color: var(--color-text-primary);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: var(--typography-font-size-sm);
 }
 
+.advisor-starter:hover {
+  background: var(--color-state-hover-surface);
+  border-color: var(--color-border-base);
+}
+
+/* Streaming state: the working line carries a primary-navy cursor block.
+   It lives inside the thread's own box, so it never shifts the layout
+   around it; the pulse stops under reduced motion. */
 .advisor-working {
-  color: var(--color-slate-500);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+.advisor-working::after {
+  content: '';
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: var(--spacing-xs);
+  vertical-align: text-bottom;
+  background: var(--color-primary-base);
+  animation: advisor-cursor-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes advisor-cursor-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advisor-working::after {
+    animation: none;
+  }
 }
 
 .advisor-composer {
-  border: 1px solid var(--color-slate-200);
-  border-radius: 0.5rem;
-  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
   background: var(--color-background-surface);
+  box-shadow: var(--shadow-card);
 }
 
 .advisor-composer-label {
   display: block;
-  font-weight: 600;
+  font-weight: var(--typography-font-weight-semibold);
   color: var(--color-text-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
 }
 
 .advisor-composer-row {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--spacing-12);
 }
 
 .advisor-composer-row input {
   flex: 1;
-  border: 1px solid var(--color-slate-200);
-  border-radius: 0.375rem;
-  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-12);
   color: var(--color-text-primary);
-  background: var(--color-background-page, transparent);
+  background: var(--color-background-base);
+  font: inherit;
+}
+
+.advisor-composer-row input:focus-visible {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: var(--shadow-focus);
 }
 
 .advisor-note {
-  color: var(--color-slate-500);
-  font-size: 0.85rem;
-  margin: 0.75rem 0 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--typography-font-size-sm);
+  margin: var(--spacing-12) 0 0;
 }
