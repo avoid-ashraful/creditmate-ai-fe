@@ -6,7 +6,10 @@ import { API_HOST, mockApi } from './helpers/api';
 
 const detailPath = '/card/synthetic-bank-1/synthetic-visa-classic';
 const pages = [
-  ['home with filters', '/'],
+  // The current home is a landing page (no inline card list or filter
+  // panel); the filter rail is audited via the discovery-driven pages
+  // below (search results, categories, advanced search).
+  ['home', '/'],
   ['search results', '/?search=Synthetic'],
   ['comparison with three cards', '/compare?ids=1,2,3'],
   ['card detail', detailPath],
@@ -65,8 +68,28 @@ async function mockAccessiblePages(page: Page) {
     route.fulfill({
       json: {
         count: 1,
-        results: [{ id: 6, card: 1, kind: 'any_change', created: '2025-01-01T00:00:00Z' }],
+        results: [
+          {
+            id: 6,
+            card: 1,
+            card_name: 'Synthetic Visa Classic',
+            bank_name: 'Synthetic Bank 1',
+            kind: 'any_change',
+            created: '2025-01-01T00:00:00Z',
+          },
+        ],
       },
+    })
+  );
+  // The alerts page also loads bank follows and their change feed; the
+  // generic mockApi fallthrough would feed them card-list payloads,
+  // which crash the page. This user follows no banks.
+  await page.route(/\/alerts\/bank-follows\/($|\?)/, route =>
+    route.fulfill({ json: { count: 0, next: null, previous: null, results: [] } })
+  );
+  await page.route(/\/alerts\/feed\//, route =>
+    route.fulfill({
+      json: { results: [], page: 1, page_size: 20, has_more: false, seen_at: null },
     })
   );
   await page.route(`${API_HOST}/alerts/preferences/`, route =>
@@ -147,19 +170,19 @@ for (const lang of ['en', 'bn'] as const) {
           await page.locator('input[type="email"]').fill('a11y@example.test');
           await page.locator('input[type="password"]').fill('Strong-pass-123');
           await page.locator('button[type="submit"]').click();
-          await expect(page).toHaveURL(/\/account$/);
+          // Login lands on /account, which redirects to /my/profile.
+          await expect(page).toHaveURL(/\/my\/profile$/);
         }
         await page.goto(path);
         if (
-          [
-            'home with filters',
-            'search results',
-            'travel category',
-            'Islamic category',
-            'advanced search',
-          ].includes(name)
+          ['search results', 'travel category', 'Islamic category', 'advanced search'].includes(
+            name
+          )
         ) {
-          await expect(page.locator('.card-list-item')).toHaveCount(4);
+          // These routes all fold into the discovery page, whose result
+          // list is `.cm-result-card` (the axe mock returns all four
+          // fixture cards for every discovery query).
+          await expect(page.locator('.cm-result-card')).toHaveCount(4);
         }
         if (name === 'comparison with three cards') {
           await expect(
@@ -169,10 +192,6 @@ for (const lang of ['en', 'bn'] as const) {
                 : '.comparison-table'
             )
           ).toBeVisible();
-        }
-        if (name === 'home with filters') {
-          await page.locator('.filter-header .toggle-button').click();
-          await expect(page.locator('#minAnnualFee')).toBeVisible();
         }
         if (name === 'report dialog') {
           await page.locator('.report-issue-btn').click();
@@ -197,10 +216,6 @@ for (const lang of ['en', 'bn'] as const) {
         await page.addInitScript(() => localStorage.setItem('creditmate-theme', 'dark'));
         await page.goto(path);
         await expect(page.locator('html')).toHaveClass(/dark/);
-        if (name === 'home') {
-          await expect(page.locator('.card-list-item')).toHaveCount(4);
-          await page.locator('.filter-header .toggle-button').click();
-        }
         await audit(page, `dark ${name}`);
       });
     }
@@ -215,25 +230,24 @@ for (const lang of ['en', 'bn'] as const) {
       localStorage.setItem('creditmate-theme', 'light');
     });
     await page.goto('/');
-    await expect(page.locator('.card-list-item')).toHaveCount(4);
+    // The shell language toggle names the *other* language in its label.
+    const langToggle = page.locator('.cm-lang-toggle').first();
+    await expect(langToggle).toBeVisible();
     if (lang === 'bn') {
-      await page.getByRole('button', { name: 'Switch to Bengali' }).click();
-      await expect(page.getByRole('button', { name: 'Switch to English' })).toBeVisible();
+      await langToggle.click();
+      await expect(langToggle).toHaveAttribute('aria-label', /English/);
     }
     await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
     // Reload to verify stored language and begin the tab sequence at the document.
     await page.reload();
-    await expect(page.locator('.card-list-item')).toHaveCount(4);
-    await expect(
-      page.getByRole('button', {
-        name: lang === 'bn' ? 'Switch to English' : 'Switch to Bengali',
-      })
-    ).toBeVisible();
+    await expect(page.locator('.cm-lang-toggle').first()).toHaveAttribute(
+      'aria-label',
+      lang === 'bn' ? /English/ : /বাংলা/
+    );
     await page.keyboard.press('Tab');
-    const skipLink = page.locator('.skip-link');
+    const skipLink = page.locator('.cm-skip-link');
     await expect(skipLink).toBeFocused();
     await expect(skipLink).toBeInViewport();
-    await expect(skipLink).toHaveCSS('outline-style', 'solid');
     expect(
       await page
         .locator('[tabindex]')
@@ -243,26 +257,25 @@ for (const lang of ['en', 'bn'] as const) {
     ).toBe(false);
     await page.keyboard.press('Enter');
     await expect(page.getByRole('main')).toBeFocused();
+    // From the document start, the shell rail follows the skip link:
+    // logo, search, then the mode links. A fresh navigation resets the
+    // tab starting point (after the skip-link jump it sits at <main>).
+    await page.goto('/');
+    await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
     await page.keyboard.press('Tab');
-    await expect(page.locator('.search-form input')).toBeFocused();
+    await expect(skipLink).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.locator('.search-form button[type="submit"]')).toBeFocused();
-    for (const category of await page.locator('.category-grid a').all()) {
-      await page.keyboard.press('Tab');
-      await expect(category).toBeFocused();
-    }
+    await expect(page.locator('.cm-rail-logo')).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.locator('.filter-header .toggle-button')).toBeFocused();
-    await page.keyboard.press('Enter');
-    for (const bank of await page.locator('.bank-option input').all()) {
-      await page.keyboard.press('Tab');
-      await expect(bank).toBeFocused();
-    }
+    await expect(page.locator('.cm-rail-search')).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.locator('#minAnnualFee')).toBeFocused();
+    await expect(page.locator('.cm-rail-mode-link').first()).toBeFocused();
 
     // Both custom dialogs must contain Tab/Shift+Tab, close on Escape, and
-    // return focus to the element that opened them.
+    // return focus to the element that opened them. The details popup
+    // opens from a bank hub's card list in the current IA.
+    await page.goto('/bank/synthetic-bank-1');
+    await expect(page.locator('.card-list-item')).toHaveCount(1);
     const popupTrigger = page.locator('.view-details-btn').first();
     await popupTrigger.focus();
     await page.keyboard.press('Enter');

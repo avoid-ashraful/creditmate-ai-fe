@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { mockApi } from './helpers/api';
-import { openHome, waitForCards } from './helpers/navigation';
+import { openDiscovery, openHome, waitForResults } from './helpers/navigation';
 
 // Visual regression tests for key pages across desktop/tablet/mobile
 // Uses deterministic fixtures: mocked API, frozen animations/time
@@ -68,11 +68,17 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+// The home page is a landing page now; its async sections (verified
+// strip, catalogue counts) settle once the changed/verified list renders.
+const waitForHomeSettled = async (page: import('@playwright/test').Page) => {
+  await expect(page.locator('.cm-home-changed-item').first()).toBeVisible();
+};
+
 test.describe('Visual Regression - Homepage', () => {
   test('desktop homepage', async ({ page }, testInfo) => {
     if (!isDesktop(testInfo)) test.skip();
     await openHome(page);
-    await waitForCards(page);
+    await waitForHomeSettled(page);
     await expect(page).toHaveScreenshot('homepage-desktop.png', {
       maxDiffPixels: 100,
       threshold: 0.2,
@@ -82,7 +88,7 @@ test.describe('Visual Regression - Homepage', () => {
   test('tablet homepage', async ({ page }, testInfo) => {
     if (!isTablet(testInfo)) test.skip();
     await openHome(page);
-    await waitForCards(page);
+    await waitForHomeSettled(page);
     await expect(page).toHaveScreenshot('homepage-tablet.png', {
       maxDiffPixels: 100,
       threshold: 0.2,
@@ -92,40 +98,38 @@ test.describe('Visual Regression - Homepage', () => {
   test('mobile homepage', async ({ page }, testInfo) => {
     if (!isMobile(testInfo)) test.skip();
     await openHome(page);
-    await waitForCards(page);
+    await waitForHomeSettled(page);
     await expect(page).toHaveScreenshot('homepage-mobile.png', {
       maxDiffPixels: 100,
       threshold: 0.2,
     });
   });
 
-  test('homepage with search results', async ({ page }, testInfo) => {
+  test('discovery with search results', async ({ page }, testInfo) => {
     if (!isDesktop(testInfo)) test.skip();
     test.setTimeout(60000);
-    await openHome(page);
-    await waitForCards(page);
+    await openDiscovery(page);
+    await waitForResults(page);
 
-    const search = page.locator('.search-form input');
-    await search.fill('visa');
-    await page.getByRole('button', { name: 'Search' }).click();
-    await expect(page.locator('.card-list-item')).toHaveCount(3, { timeout: 10000 });
+    await page.getByLabel('Search cards').fill('visa');
+    await expect(page.locator('.cm-result-card')).toHaveCount(3, { timeout: 10000 });
     await page.waitForTimeout(500); // Wait for any animations to settle
 
-    await expect(page).toHaveScreenshot('homepage-search-desktop.png', {
+    await expect(page).toHaveScreenshot('discovery-search-desktop.png', {
       maxDiffPixels: 100,
       threshold: 0.2,
     });
   });
 
-  test('homepage with filters expanded', async ({ page }, testInfo) => {
+  test('discovery with filters expanded', async ({ page }, testInfo) => {
     if (!isDesktop(testInfo)) test.skip();
-    await openHome(page);
-    await waitForCards(page);
+    await openDiscovery(page);
+    await waitForResults(page);
 
-    await page.locator('.filter-header').click();
+    // The discovery filter rail is expanded by default on desktop.
     await expect(page.getByLabel('Min (BDT):')).toBeVisible();
 
-    await expect(page).toHaveScreenshot('homepage-filters-desktop.png', {
+    await expect(page).toHaveScreenshot('discovery-filters-desktop.png', {
       maxDiffPixels: 100,
       threshold: 0.2,
     });
@@ -206,10 +210,20 @@ test.describe('Visual Regression - Comparison Page', () => {
 });
 
 test.describe('Visual Regression - Category Page', () => {
+  // /category/:slug folds into the discovery page with the category
+  // applied as a filter; the synthetic fixtures match categories by
+  // card name (the src/mocks/handlers.ts convention), so Travel yields
+  // exactly the one travel card.
+  const openCategory = async (page: import('@playwright/test').Page) => {
+    await page.goto('/category/travel');
+    await expect(page.getByRole('heading', { level: 1, name: 'Credit cards' })).toBeVisible();
+    await expect(page.locator('.cm-result-card')).toHaveCount(1);
+    await expect(page.getByText('Synthetic Visa Travel')).toBeVisible();
+  };
+
   test('desktop category page', async ({ page }, testInfo) => {
     if (!isDesktop(testInfo)) test.skip();
-    await page.goto('/category/travel');
-    await expect(page.getByRole('heading', { name: /Travel Credit Cards/ })).toBeVisible();
+    await openCategory(page);
     await expect(page).toHaveScreenshot('category-desktop.png', {
       maxDiffPixels: 100,
       threshold: 0.2,
@@ -218,8 +232,7 @@ test.describe('Visual Regression - Category Page', () => {
 
   test('tablet category page', async ({ page }, testInfo) => {
     if (!isTablet(testInfo)) test.skip();
-    await page.goto('/category/travel');
-    await expect(page.getByRole('heading', { name: /Travel Credit Cards/ })).toBeVisible();
+    await openCategory(page);
     // Higher tolerance for category page due to dynamic card loading
     await expect(page).toHaveScreenshot('category-tablet.png', {
       maxDiffPixels: 50000,
@@ -229,8 +242,7 @@ test.describe('Visual Regression - Category Page', () => {
 
   test('mobile category page', async ({ page }, testInfo) => {
     if (!isMobile(testInfo)) test.skip();
-    await page.goto('/category/travel');
-    await expect(page.getByRole('heading', { name: /Travel Credit Cards/ })).toBeVisible();
+    await openCategory(page);
     await expect(page).toHaveScreenshot('category-mobile.png', {
       maxDiffPixels: 100,
       threshold: 0.2,
@@ -277,12 +289,16 @@ test.describe('Visual Regression - Recommendation Quiz', () => {
 });
 
 test.describe('Visual Regression - Reward Calculator', () => {
+  // /reward-calculator redirects to /plan/rewards, whose H1 is the
+  // plan-tool title 'Rewards value'.
+  const openCalculator = async (page: import('@playwright/test').Page) => {
+    await page.goto('/reward-calculator');
+    await expect(page.getByRole('heading', { level: 1, name: 'Rewards value' })).toBeVisible();
+  };
+
   test('desktop calculator', async ({ page }, testInfo) => {
     if (!isDesktop(testInfo)) test.skip();
-    await page.goto('/reward-calculator');
-    await expect(
-      page.getByRole('heading', { name: 'Annual Fee vs Rewards Calculator' })
-    ).toBeVisible();
+    await openCalculator(page);
     await expect(page).toHaveScreenshot('calculator-desktop.png', {
       maxDiffPixels: 100,
       threshold: 0.2,
@@ -291,10 +307,7 @@ test.describe('Visual Regression - Reward Calculator', () => {
 
   test('tablet calculator', async ({ page }, testInfo) => {
     if (!isTablet(testInfo)) test.skip();
-    await page.goto('/reward-calculator');
-    await expect(
-      page.getByRole('heading', { name: 'Annual Fee vs Rewards Calculator' })
-    ).toBeVisible();
+    await openCalculator(page);
     await expect(page).toHaveScreenshot('calculator-tablet.png', {
       maxDiffPixels: 100,
       threshold: 0.2,
@@ -303,10 +316,7 @@ test.describe('Visual Regression - Reward Calculator', () => {
 
   test('mobile calculator', async ({ page }, testInfo) => {
     if (!isMobile(testInfo)) test.skip();
-    await page.goto('/reward-calculator');
-    await expect(
-      page.getByRole('heading', { name: 'Annual Fee vs Rewards Calculator' })
-    ).toBeVisible();
+    await openCalculator(page);
     await expect(page).toHaveScreenshot('calculator-mobile.png', {
       maxDiffPixels: 100,
       threshold: 0.2,
@@ -315,12 +325,22 @@ test.describe('Visual Regression - Reward Calculator', () => {
 });
 
 test.describe('Visual Regression - Card Detail Popup', () => {
+  // The details popup (CardDetailsPopup) opens from a card list item's
+  // "view details" button; in the current IA the card list lives on
+  // bank hub pages.
+  const openPopup = async (page: import('@playwright/test').Page) => {
+    await page.goto('/bank/synthetic-bank-2');
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Synthetic Bank 2' })
+    ).toBeVisible();
+    await expect(page.locator('.card-list-item')).toHaveCount(1);
+    await page.locator('.view-details-btn').first().click();
+    await expect(page.locator('.card-full-image')).toBeVisible();
+  };
+
   test('desktop card popup', async ({ page }, testInfo) => {
     if (!isDesktop(testInfo)) test.skip();
-    await openHome(page);
-    await waitForCards(page);
-    await page.locator('.card-list-item').first().click();
-    await expect(page.locator('.card-full-image')).toBeVisible();
+    await openPopup(page);
     // Higher tolerance due to potential font rendering differences in popup
     await expect(page).toHaveScreenshot('card-popup-desktop.png', {
       maxDiffPixels: 20000,
@@ -330,10 +350,7 @@ test.describe('Visual Regression - Card Detail Popup', () => {
 
   test('tablet card popup', async ({ page }, testInfo) => {
     if (!isTablet(testInfo)) test.skip();
-    await openHome(page);
-    await waitForCards(page);
-    await page.locator('.card-list-item').first().click();
-    await expect(page.locator('.card-full-image')).toBeVisible();
+    await openPopup(page);
     // Higher tolerance due to potential font rendering differences in popup
     await expect(page).toHaveScreenshot('card-popup-tablet.png', {
       maxDiffPixels: 20000,
@@ -343,10 +360,7 @@ test.describe('Visual Regression - Card Detail Popup', () => {
 
   test('mobile card popup', async ({ page }, testInfo) => {
     if (!isMobile(testInfo)) test.skip();
-    await openHome(page);
-    await waitForCards(page);
-    await page.locator('.card-list-item').first().click();
-    await expect(page.locator('.card-full-image')).toBeVisible();
+    await openPopup(page);
     // Higher tolerance for mobile due to font rendering differences in popup
     await expect(page).toHaveScreenshot('card-popup-mobile.png', {
       maxDiffPixels: 20000,
