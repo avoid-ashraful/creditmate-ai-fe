@@ -11,6 +11,70 @@ interface RouteOptions {
   delay?: number;
 }
 
+/** Advanced-search option lists, mirrored from src/mocks/handlers.ts. */
+export const ADVANCED_SEARCH_SORT_OPTIONS = [
+  { key: 'relevance', label: 'Relevance', description: 'Best match first' },
+  {
+    key: 'annual_fee',
+    label: 'Annual Fee (Low to High)',
+    description: 'Sort by annual fee ascending',
+  },
+  {
+    key: '-annual_fee',
+    label: 'Annual Fee (High to Low)',
+    description: 'Sort by annual fee descending',
+  },
+  {
+    key: 'interest_rate_apr',
+    label: 'APR (Low to High)',
+    description: 'Sort by interest rate ascending',
+  },
+  {
+    key: '-interest_rate_apr',
+    label: 'APR (High to Low)',
+    description: 'Sort by interest rate descending',
+  },
+  { key: 'name', label: 'Name (A-Z)', description: 'Sort by card name ascending' },
+  { key: '-name', label: 'Name (Z-A)', description: 'Sort by card name descending' },
+  { key: '-created', label: 'Newest First', description: 'Sort by creation date descending' },
+];
+
+export const ADVANCED_SEARCH_CATEGORIES = [
+  { slug: 'travel', name: 'Travel' },
+  { slug: 'cashback', name: 'Cashback' },
+  { slug: 'premium', name: 'Premium' },
+  { slug: 'student', name: 'Student' },
+  { slug: 'business', name: 'Business' },
+  { slug: 'no-annual-fee', name: 'No Annual Fee' },
+];
+
+/**
+ * Field-history entries for a fixture card, newest first, in the exact
+ * serializer shape (services/cardHistory.ts): the detail page's trust
+ * sections render these; feeding them the card-list payload instead is
+ * what used to crash the page into the ErrorBoundary.
+ */
+export const fieldHistoryFor = (card: (typeof cards)[number]) => [
+  {
+    id: card.id * 100 + 2,
+    card_id: card.id,
+    field_name: 'annual_fee',
+    old_value: '450.00',
+    new_value: card.annual_fee,
+    created: '2025-01-12T09:30:00Z',
+  },
+  {
+    id: card.id * 100 + 1,
+    card_id: card.id,
+    field_name: 'interest_rate_apr',
+    old_value: card.interest_rate_apr
+      ? (parseFloat(card.interest_rate_apr) - 1).toFixed(2)
+      : null,
+    new_value: card.interest_rate_apr,
+    created: '2025-01-08T09:30:00Z',
+  },
+];
+
 export const SEARCH_SUGGESTIONS_RESPONSE = {
   annual_fee_ranges: [
     { label: 'Free', filter: 'annual_fee=0' },
@@ -56,6 +120,89 @@ export const mockApi = (page: Page, options: RouteOptions = {}) => {
       return;
     }
 
+    // Card field history (detail-page trust sections). Must be served its
+    // own serializer shape — the generic list payload below crashes it.
+    const historyMatch = url.pathname.match(/\/credit-cards\/(\d+)\/field-history\/$/);
+    if (historyMatch) {
+      const historyCard = cards.find(c => c.id === Number(historyMatch[1]));
+      const entries = historyCard ? fieldHistoryFor(historyCard) : [];
+      await route.fulfill({
+        json: { count: entries.length, next: null, previous: null, results: entries },
+      });
+      return;
+    }
+
+    // Advanced search family (discovery page). Mirrors the response shape
+    // of src/mocks/handlers.ts; specs that register their own
+    // advanced-search route after mockApi() keep precedence.
+    if (url.pathname.endsWith('/credit-cards/advanced-search/sort-options/')) {
+      await route.fulfill({ json: { sort_options: ADVANCED_SEARCH_SORT_OPTIONS } });
+      return;
+    }
+
+    if (url.pathname.endsWith('/credit-cards/advanced-search/categories/')) {
+      await route.fulfill({ json: { categories: ADVANCED_SEARCH_CATEGORIES } });
+      return;
+    }
+
+    if (url.pathname.endsWith('/credit-cards/advanced-search/normalize/')) {
+      await route.fulfill({
+        json: { normalized_query: {}, query_hash: 'e2e', canonical_string: '' },
+      });
+      return;
+    }
+
+    if (url.pathname.endsWith('/credit-cards/advanced-search/')) {
+      let results = allCards;
+      const advSearch = url.searchParams.get('search');
+      if (advSearch) {
+        const term = advSearch.toLowerCase();
+        results = results.filter(
+          card =>
+            card.name.toLowerCase().includes(term) || card.bank_name.toLowerCase().includes(term)
+        );
+      }
+      const categories = url.searchParams.get('categories')?.split(',').filter(Boolean) ?? [];
+      if (categories.length > 0) {
+        // Same convention as src/mocks/handlers.ts: the synthetic fixtures
+        // carry no category mapping, so membership is by card-name match.
+        results = results.filter(card =>
+          categories.some(cat => card.name.toLowerCase().includes(cat.toLowerCase()))
+        );
+      }
+      if (url.searchParams.get('is_islamic') === 'true') {
+        results = results.filter(card => card.is_islamic);
+      }
+      const advMin = url.searchParams.get('annual_fee_min');
+      const advMax = url.searchParams.get('annual_fee_max');
+      if (advMin) {
+        results = results.filter(
+          card => card.annual_fee !== null && parseFloat(card.annual_fee) >= parseFloat(advMin)
+        );
+      }
+      if (advMax) {
+        results = results.filter(
+          card => card.annual_fee !== null && parseFloat(card.annual_fee) <= parseFloat(advMax)
+        );
+      }
+      await route.fulfill({
+        json: {
+          query: advSearch ?? '',
+          total: results.length,
+          page: 1,
+          page_size: 20,
+          results,
+          facets: {},
+          took: 1,
+          source: 'database',
+          sort_options: ADVANCED_SEARCH_SORT_OPTIONS,
+          categories: ADVANCED_SEARCH_CATEGORIES,
+          normalized_query: {},
+        },
+      });
+      return;
+    }
+
     // Card detail pages always request a review summary and list. Keep the
     // default mock aligned with the review API contract so unrelated tests do
     // not feed card-list payloads into the review components.
@@ -85,6 +232,16 @@ export const mockApi = (page: Page, options: RouteOptions = {}) => {
     if (search) {
       const term = search.toLowerCase();
       results = results.filter(card => card.name.toLowerCase().includes(term));
+    }
+
+    const bank = url.searchParams.get('bank');
+    if (bank) {
+      results = results.filter(card => card.bank_id === Number(bank));
+    }
+
+    const bankName = url.searchParams.get('bank_name');
+    if (bankName) {
+      results = results.filter(card => card.bank_name === bankName);
     }
 
     const range = url.searchParams.get('annual_fee_range');
