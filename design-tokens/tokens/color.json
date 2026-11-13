@@ -550,6 +550,23 @@
         "type": "color"
       }
     },
+    "score": {
+      "background": {
+        "value": "{color.navy.900}",
+        "comment": "CreditMate Score chip fill, ink navy in BOTH themes (redesign plan V2, P2). Gold numeral on it is 7.09:1 (light) / ~8.0:1 (dark); paper band word is ~15.3:1.",
+        "type": "color"
+      },
+      "numeral": {
+        "value": "{color.accent.base}",
+        "comment": "Score numeral in Fraunces on the navy chip. Gold is text-grade on navy only — never on paper.",
+        "type": "color"
+      },
+      "text": {
+        "value": "{color.paper.100}",
+        "comment": "Score band word on the navy chip.",
+        "type": "color"
+      }
+    },
     "success": {
       "base": {
         "value": "{color.emerald.700}",

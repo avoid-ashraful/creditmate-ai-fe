@@ -135,6 +135,9 @@
   --color-shell-text: #f5f2ec;
   --color-shell-text-secondary: #8ca2c4;
   --color-shell-border: #182c55;
+  --color-score-background: #0f1b33;
+  --color-score-numeral: #c9a227;
+  --color-score-text: #f5f2ec;
   --color-success-base: #047857;
   --color-success-hover: #065f46;
   --color-success-subtle: #ecfdf5;
@@ -209,7 +212,7 @@
   --shadow-none: none;
   --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 1px 2px 0 rgba(30, 41, 59, 0.05), 0 12px 32px -12px rgba(30, 41, 59, 0.16);
+  --shadow-card: 0 1px 2px 0 rgba(15, 27, 51, 0.05), 0 10px 28px -12px rgba(15, 27, 51, 0.14);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
@@ -217,8 +220,6 @@
   --shadow-inner: inset 0 2px 4px 0 rgba(15, 23, 42, 0.06);
   --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.35);
   --shadow-focus-error: 0 0 0 3px rgba(239, 68, 68, 0.35);
-  --shadow-primary-glow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
-  --shadow-primary-glow-strong: 0 6px 8px -1px rgba(37, 99, 235, 0.4);
 
   /* spacing */
   --spacing-12: 12px;
@@ -313,6 +314,9 @@
     --color-shell-text: #f5f2ec;
     --color-shell-text-secondary: #8ca2c4;
     --color-shell-border: #122344;
+    --color-score-background: #0f1b33;
+    --color-score-numeral: #d4af37;
+    --color-score-text: #f5f2ec;
     --color-success-base: #34d399;
     --color-success-hover: #6ee7b7;
     --color-success-subtle: #064e3b;
@@ -388,6 +392,9 @@
   --color-shell-text: #f5f2ec;
   --color-shell-text-secondary: #8ca2c4;
   --color-shell-border: #122344;
+  --color-score-background: #0f1b33;
+  --color-score-numeral: #d4af37;
+  --color-score-text: #f5f2ec;
   --color-success-base: #34d399;
   --color-success-hover: #6ee7b7;
   --color-success-subtle: #064e3b;
@@ -571,6 +578,9 @@
   --color-shell-text: #f5f2ec;
   --color-shell-text-secondary: #8ca2c4;
   --color-shell-border: #182c55;
+  --color-score-background: #0f1b33;
+  --color-score-numeral: #c9a227;
+  --color-score-text: #f5f2ec;
   --color-success-base: #047857;
   --color-success-hover: #065f46;
   --color-success-subtle: #ecfdf5;
@@ -645,7 +655,7 @@
   --shadow-none: none;
   --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 1px 2px 0 rgba(30, 41, 59, 0.05), 0 12px 32px -12px rgba(30, 41, 59, 0.16);
+  --shadow-card: 0 1px 2px 0 rgba(15, 27, 51, 0.05), 0 10px 28px -12px rgba(15, 27, 51, 0.14);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
@@ -653,8 +663,6 @@
   --shadow-inner: inset 0 2px 4px 0 rgba(15, 23, 42, 0.06);
   --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.35);
   --shadow-focus-error: 0 0 0 3px rgba(239, 68, 68, 0.35);
-  --shadow-primary-glow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
-  --shadow-primary-glow-strong: 0 6px 8px -1px rgba(37, 99, 235, 0.4);
 
   /* spacing */
   --spacing-12: 12px;

@@ -24,7 +24,7 @@ const ScoreBadge: React.FC<ScoreBadgeProps> = ({ score }) => {
       aria-label={`${copy.badgeLabel}: ${score.toFixed(1)} (${copy.bands[band]})`}
       title={copy.badgeLabel}
     >
-      {score.toFixed(1)} {copy.bands[band]}
+      <span className="card-badge-score-value">{score.toFixed(1)}</span> {copy.bands[band]}
     </span>
   );
 };

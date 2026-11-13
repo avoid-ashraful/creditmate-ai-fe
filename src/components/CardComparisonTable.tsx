@@ -5,6 +5,7 @@ import { CreditCard } from '../types';
 import { getComparisonSummary } from '../utils/narratives';
 
 import CardTextSummary from './CardTextSummary';
+import './CardComparisonTable.css';
 
 interface CardComparisonTableProps {
   cards: CreditCard[];

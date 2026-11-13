@@ -124,6 +124,22 @@
             "description": "Hairline on the spine; also the spine's edge against the navy/950 page ground."
           }
         },
+        "score": {
+          "background": {
+            "type": "color",
+            "value": "#0F1B33",
+            "description": "Score chip fill stays ink navy in dark mode (same value as light by design)."
+          },
+          "numeral": {
+            "type": "color",
+            "value": "#D4AF37",
+            "description": "Brightened gold numeral on the navy chip in dark mode (~8.0:1)."
+          },
+          "text": {
+            "type": "color",
+            "value": "#F5F2EC"
+          }
+        },
         "success": {
           "base": {
             "type": "color",
@@ -913,6 +929,23 @@
           "description": "Hairline dividers on the spine."
         }
       },
+      "score": {
+        "background": {
+          "type": "color",
+          "value": "#0F1B33",
+          "description": "CreditMate Score chip fill, ink navy in BOTH themes (redesign plan V2, P2). Gold numeral on it is 7.09:1 (light) / ~8.0:1 (dark); paper band word is ~15.3:1."
+        },
+        "numeral": {
+          "type": "color",
+          "value": "#C9A227",
+          "description": "Score numeral in Fraunces on the navy chip. Gold is text-grade on navy only — never on paper."
+        },
+        "text": {
+          "type": "color",
+          "value": "#F5F2EC",
+          "description": "Score band word on the navy chip."
+        }
+      },
       "success": {
         "base": {
           "type": "color",
@@ -1270,19 +1303,19 @@
             "y": "1px",
             "blur": "2px",
             "spread": "0",
-            "color": "rgba(30, 41, 59, 0.05)",
+            "color": "rgba(15, 27, 51, 0.05)",
             "type": "dropShadow"
           },
           {
             "x": "0",
-            "y": "12px",
-            "blur": "32px",
+            "y": "10px",
+            "blur": "28px",
             "spread": "-12px",
-            "color": "rgba(30, 41, 59, 0.16)",
+            "color": "rgba(15, 27, 51, 0.14)",
             "type": "dropShadow"
           }
         ],
-        "description": "Resting elevation for cards and panels that sit directly on the tinted page ground (Clay-style soft diffuse depth: large blur, low opacity, slate-tinted). Not for nested elements."
+        "description": "Resting elevation for cards and panels that sit directly on the tinted page ground. Ledger rule (plan V2 §2.6): hairline border + whisper shadow, navy-tinted stops (was slate-tinted)."
       },
       "md": {
         "type": "boxShadow",
@@ -1394,29 +1427,6 @@
           "blur": "0",
           "spread": "3px",
           "color": "rgba(239, 68, 68, 0.35)",
-          "type": "dropShadow"
-        }
-      },
-      "primaryGlow": {
-        "type": "boxShadow",
-        "value": {
-          "x": "0",
-          "y": "4px",
-          "blur": "6px",
-          "spread": "-1px",
-          "color": "rgba(37, 99, 235, 0.3)",
-          "type": "dropShadow"
-        },
-        "description": "Primary button resting shadow (current GradientButton value)."
-      },
-      "primaryGlowStrong": {
-        "type": "boxShadow",
-        "value": {
-          "x": "0",
-          "y": "6px",
-          "blur": "8px",
-          "spread": "-1px",
-          "color": "rgba(37, 99, 235, 0.4)",
           "type": "dropShadow"
         }
       }

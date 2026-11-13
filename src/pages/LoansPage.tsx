@@ -49,6 +49,8 @@ import {
   ScenarioResultItem,
 } from '../services/loans';
 
+import './LoansPage.css';
+
 const LOAN_TYPES: LoanType[] = ['personal', 'home', 'car', 'secured_against_deposit'];
 
 const typeLabel = (copy: LoansCopy, type: LoanType): string =>

@@ -197,7 +197,7 @@
   background: var(--color-primary-base);
   border-color: var(--color-primary-base);
   color: var(--color-primary-contrast);
-  box-shadow: var(--shadow-primary-glow-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .results-step {
@@ -293,7 +293,7 @@
 
 .share-btn:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-primary-glow-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .see-all-btn {
@@ -363,7 +363,7 @@
 
 .next-btn:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-primary-glow-strong);
+  box-shadow: var(--shadow-md);
 }
 
 @media (max-width: 768px) {

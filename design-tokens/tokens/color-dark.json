@@ -96,6 +96,22 @@
           "type": "color"
         }
       },
+      "score": {
+        "background": {
+          "value": "{color.navy.900}",
+          "comment": "Score chip fill stays ink navy in dark mode (same value as light by design).",
+          "type": "color"
+        },
+        "numeral": {
+          "value": "{color.gold.400}",
+          "comment": "Brightened gold numeral on the navy chip in dark mode (~8.0:1).",
+          "type": "color"
+        },
+        "text": {
+          "value": "{color.paper.100}",
+          "type": "color"
+        }
+      },
       "success": {
         "base": {
           "value": "{color.emerald.400}",

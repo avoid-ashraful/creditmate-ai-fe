@@ -1,17 +1,27 @@
 /* CardListItem — the card tile's own styles (moved from HomePage.css so the
- * tile looks identical on every page that renders it, Phase 0). */
+ * tile looks identical on every page that renders it, Phase 0).
+ *
+ * Midnight Ledger (plan V2, P2): a white ledger card on the paper ground —
+ * hairline border + whisper shadow, 8px radius per the usage map. Hover
+ * animates colour and shadow only (no lift, per the plan's motion rule);
+ * the selected state is the primary-subtle well with a navy border. */
 
 .card-list-item {
   background: var(--color-background-surface);
-  border: 2px solid transparent;
-  border-radius: 20px;
+  /* Establishes the text colour the tile's un-classed values inherit —
+     in the app this was previously inherited from the shell, which left
+     the standalone tile (Storybook, future surfaces) at the canvas
+     default. Same value the shell provides, so no app change. */
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color var(--motion-standard) var(--motion-ease-out),
+    border-color var(--motion-standard) var(--motion-ease-out),
+    box-shadow var(--motion-standard) var(--motion-ease-out);
   cursor: pointer;
   position: relative;
-  box-shadow: 0 4px 20px color-mix(in srgb, var(--color-black) 6%, transparent);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
@@ -22,15 +32,15 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: color-mix(in srgb, var(--color-indigo-500) 10%, transparent);
+  background: var(--color-primary-subtle);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--motion-standard) var(--motion-ease-out);
+  pointer-events: none;
 }
 
 .card-list-item:hover {
-  box-shadow: 0 12px 40px color-mix(in srgb, var(--color-black) 12%, transparent);
-  transform: translateY(-4px);
-  border-color: color-mix(in srgb, var(--color-indigo-500) 20%, transparent);
+  border-color: var(--color-primary-border);
+  box-shadow: var(--shadow-card);
 }
 
 .card-list-item:hover::before {
@@ -39,6 +49,171 @@
 
 .card-list-item.selected {
   border-color: var(--color-primary-base);
-  background: color-mix(in srgb, var(--color-indigo-500) 10%, transparent);
-  box-shadow: 0 8px 30px color-mix(in srgb, var(--color-indigo-500) 20%, transparent);
+  background: var(--color-primary-subtle);
+  box-shadow: var(--shadow-card);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-list-item,
+  .card-list-item::before {
+    transition: none;
+  }
+}
+
+/* ---- Tile internals (moved from HomePage.css in P2) -----------------
+ * These rules used to live in the Home page stylesheet, which meant the
+ * tile rendered unstyled anywhere HomePage.css was not loaded (Storybook,
+ * and any future surface reusing the tile). They belong to the component.
+ * The .card-list.list layout overrides stay in HomePage.css with the
+ * list layout they belong to. */
+.compare-button-container {
+  margin-top: var(--spacing-md);
+  text-align: center;
+}
+
+.add-to-compare-btn {
+  background: var(--color-primary-base);
+  color: var(--color-primary-contrast);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-12) var(--spacing-lg);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color var(--motion-standard) var(--motion-ease-out);
+  width: 100%;
+}
+
+.add-to-compare-btn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.add-to-compare-btn.in-list {
+  background: var(--color-emerald-700);
+}
+
+.add-to-compare-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.card-image {
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+}
+
+.card-image img {
+  max-width: 100%;
+  max-height: 150px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-md);
+}
+
+.card-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+.bank-name {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: var(--color-background-muted);
+  padding: var(--spacing-xs) var(--spacing-12);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.card-details {
+  margin-bottom: var(--spacing-md);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+}
+
+.detail-label {
+  color: var(--color-text-secondary);
+}
+
+.card-rewards,
+.card-features {
+  margin-top: var(--spacing-md);
+}
+
+.card-rewards h4,
+.card-features h4 {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.feature-list {
+  padding-left: var(--spacing-md);
+  list-style-type: disc;
+}
+
+.more-features {
+  color: var(--color-primary-base);
+  font-style: italic;
+}
+
+.card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.card-badge {
+  padding: 0 var(--spacing-sm);
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-md);
+  font-size: var(--typography-font-size-xs);
+  font-weight: var(--typography-font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.card-badge-islamic {
+  border-color: var(--color-primary-base);
+  color: var(--color-primary-base);
+}
+
+.card-badge-score {
+  border-color: transparent;
+  background: var(--color-score-background);
+  color: var(--color-score-text);
+}
+
+/* The numeral is the chip's dealt moment: Fraunces in gold on the navy
+   chip — gold is text-grade on navy (7.09:1 light / ~8.0:1 dark). The
+   band word stays paper so the chip reads as one ledger entry. */
+.card-badge-score-value {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
+  color: var(--color-score-numeral);
+}
+
+/* All bands share the navy chip; the band word carries the distinction. */
+.card-badge-score-fair,
+.card-badge-score-basic {
+  border-color: transparent;
+  background: var(--color-score-background);
+  color: var(--color-score-text);
+}
+
+.card-badge-score-basic {
+  font-weight: var(--typography-font-weight-medium);
 }

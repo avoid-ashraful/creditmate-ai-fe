@@ -43,6 +43,8 @@ import {
 } from '../services/bankAccounts';
 import { fetchAllPages } from '../utils/fetchAllPages';
 
+import './AccountsPage.css';
+
 const BALANCE_PRESETS = [10000, 50000, 100000, 300000, 1000000];
 const SEGMENTS: AccountSegment[] = [
   'general',
