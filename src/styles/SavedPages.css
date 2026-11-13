@@ -7,7 +7,7 @@
   width: min(100% - 2rem, 960px);
   margin: 2rem auto;
   color: var(--color-text-primary);
-  animation: saved-enter 180ms ease-out;
+  animation: saved-enter var(--motion-standard) var(--motion-ease-out);
 }
 .saved-page h1 {
   font-family: var(--typography-font-family-display);

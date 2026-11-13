@@ -30,13 +30,19 @@ class Boundary extends React.Component<Props, State> {
     if (this.state.failed) {
       const bengali = this.props.language === 'bn';
       return (
-        <main role="alert" className="error-boundary">
-          <h1>{bengali ? 'কিছু সমস্যা হয়েছে' : 'Something went wrong'}</h1>
-          <p>{bengali ? 'পৃষ্ঠাটি দেখানো যায়নি।' : 'The page could not be displayed.'}</p>
-          <button type="button" onClick={() => window.location.reload()}>
-            {bengali ? 'পুনরায় লোড করুন' : 'Reload page'}
-          </button>{' '}
-          <Link to="/">{bengali ? 'হোমে যান' : 'Go home'}</Link>
+        // The alert role belongs on the message, not on <main>: role="alert"
+        // on the landmark itself is invalid ARIA and erases the main
+        // landmark (axe aria-allowed-role / landmark-one-main, found in the
+        // Midnight Ledger P6 re-audit).
+        <main className="error-boundary">
+          <div role="alert">
+            <h1>{bengali ? 'কিছু সমস্যা হয়েছে' : 'Something went wrong'}</h1>
+            <p>{bengali ? 'পৃষ্ঠাটি দেখানো যায়নি।' : 'The page could not be displayed.'}</p>
+            <button type="button" onClick={() => window.location.reload()}>
+              {bengali ? 'পুনরায় লোড করুন' : 'Reload page'}
+            </button>{' '}
+            <Link to="/">{bengali ? 'হোমে যান' : 'Go home'}</Link>
+          </div>
         </main>
       );
     }

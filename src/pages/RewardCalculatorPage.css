@@ -82,8 +82,10 @@
   border-radius: 0.375rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: background-color var(--transition-duration-slow) var(--transition-easing-ease),
+    border-color var(--transition-duration-slow) var(--transition-easing-ease),
+    color var(--transition-duration-slow) var(--transition-easing-ease),
+    box-shadow var(--transition-duration-slow) var(--transition-easing-ease);
 }
 
 .calculate-button:hover:not(:disabled) {
@@ -277,8 +279,10 @@
   border-radius: 0.375rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: background-color var(--transition-duration-slow) var(--transition-easing-ease),
+    border-color var(--transition-duration-slow) var(--transition-easing-ease),
+    color var(--transition-duration-slow) var(--transition-easing-ease),
+    box-shadow var(--transition-duration-slow) var(--transition-easing-ease);
 }
 
 .export-compare-button:hover {

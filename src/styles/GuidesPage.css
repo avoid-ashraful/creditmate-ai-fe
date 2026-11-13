@@ -235,7 +235,7 @@ ol.guides-list-block {
   font-weight: 600;
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-md);
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-duration-base) var(--transition-easing-ease);
 }
 
 .guides-button:hover {

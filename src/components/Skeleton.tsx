@@ -7,7 +7,7 @@ interface SkeletonProps {
   height?: string;
 }
 
-/** A single shimmering placeholder block. Decorative, so hidden from assistive tech. */
+/** A single static placeholder block. Decorative, so hidden from assistive tech. */
 export const Skeleton: React.FC<SkeletonProps> = ({ width, height }) => (
   <span className="skeleton" aria-hidden="true" style={{ width, height }} data-testid="skeleton" />
 );

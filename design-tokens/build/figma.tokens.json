@@ -1321,10 +1321,10 @@
           "y": "1px",
           "blur": "2px",
           "spread": "0",
-          "color": "rgba(15, 23, 42, 0.06)",
+          "color": "rgba(15, 27, 51, 0.06)",
           "type": "dropShadow"
         },
-        "description": "Resting state for dense lists and inline controls."
+        "description": "Resting state for dense lists and inline controls. Navy-tinted stop (plan V2 §2.6: all shadow stops are navy rgba(15, 27, 51, …), never slate)."
       },
       "sm": {
         "type": "boxShadow",
@@ -1445,10 +1445,10 @@
           "y": "2px",
           "blur": "4px",
           "spread": "0",
-          "color": "rgba(15, 23, 42, 0.06)",
+          "color": "rgba(15, 27, 51, 0.06)",
           "type": "innerShadow"
         },
-        "description": "Inset wells such as disabled or read-only inputs."
+        "description": "Inset wells such as disabled or read-only inputs. Navy-tinted stop (plan V2 §2.6)."
       },
       "focus": {
         "type": "boxShadow",
@@ -1457,10 +1457,10 @@
           "y": "0",
           "blur": "0",
           "spread": "3px",
-          "color": "rgba(37, 99, 235, 0.35)",
+          "color": "rgba(29, 50, 96, 0.35)",
           "type": "dropShadow"
         },
-        "description": "Keyboard focus ring. Pair with color.border.focus."
+        "description": "Keyboard focus ring. Pair with color.border.focus. Midnight Ledger (plan V2 §2.6): primary navy rgba(29, 50, 96, .35) — replaces the legacy blue rgba(37, 99, 235, .35) that survived P0. One shared value serves both themes (shadow.json is theme-agnostic); in dark the ring's visibility is carried by the gold border/focus colour it pairs with."
       },
       "focusError": {
         "type": "boxShadow",

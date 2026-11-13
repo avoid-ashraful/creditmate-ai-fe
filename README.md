@@ -69,10 +69,18 @@ npm run tokens:build   # regenerate all outputs
 npm run tokens:check   # fails if committed outputs are stale or hand-edited
 ```
 
-The light theme sits on a tinted lavender-grey ground (`#ECEEF3`) with white
-surfaces floating above it; the dark theme uses the same token structure.
+The visual identity is **Midnight Ledger** (redesign plan V2, Nov 2026): an
+open-"C" logo mark with a single gold dot, built on ink navy (`#0F1B33`),
+primary navy (`#1D3260`), brand gold (`#C9A227`) and a warm paper ground
+(`#F5F2EC`); the dark theme steps down the same navy ladder. Fraunces
+(self-hosted) is reserved for the wordmark, page H1s, hero numerals and
+Learn headlines — UI text stays on the sans stack, and Bengali display text
+falls back to Hind Siliguri. Gold is decorative on light grounds (2.17:1 on
+paper): links and focus are navy, and gold-coloured text uses the deep-gold
+token. The logo, its variants and the gold rule are catalogued in Storybook
+under **Brand/Logo** — run `npm run storybook`.
 Components live in `src/components/` (including the `ui/` primitives and the
-`shell/` app frame) and are catalogued in Storybook — run `npm run storybook`.
+`shell/` app frame) and are catalogued in Storybook.
 Accessibility is treated as a release gate: Playwright + axe checks cover the
 main routes in both themes (see [`docs/ACCESSIBILITY.md`](docs/ACCESSIBILITY.md)).
 

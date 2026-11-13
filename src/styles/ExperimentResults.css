@@ -89,7 +89,7 @@
   box-shadow: 0 8px 30px color-mix(in srgb, var(--color-black) 8%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-black) 6%, transparent);
   overflow: hidden;
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow var(--transition-duration-slow) var(--transition-easing-ease);
 }
 
 .experiment-card:hover {
@@ -116,7 +116,7 @@
   font-size: 0.75rem;
   color: var(--color-text-secondary);
   font-family: monospace;
-  background: var(--color-indigo-50);
+  background: var(--color-navy-50);
   padding: var(--spacing-2xs) var(--spacing-sm);
   border-radius: 4px;
 }
@@ -135,8 +135,8 @@
 }
 
 .status-running {
-  background: var(--color-blue-100);
-  color: var(--color-blue-700);
+  background: var(--color-navy-100);
+  color: var(--color-navy-700);
 }
 
 .status-significant {
@@ -197,8 +197,8 @@
 }
 
 .variant-label.control {
-  background: var(--color-indigo-50);
-  color: var(--color-indigo-800);
+  background: var(--color-navy-50);
+  color: var(--color-navy-800);
 }
 
 .variant-label.treatment {

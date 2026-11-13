@@ -320,7 +320,9 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
               onClick={toggleLang}
               aria-label={`${copy.languageLabel}: ${lang === 'en' ? 'বাংলা' : 'English'}`}
             >
-              {lang === 'en' ? 'বাংলা' : 'English'}
+              {/* The label is the *other* language's name — tag it so screen
+                  readers pronounce it correctly (axe re-audit, P6). */}
+              <span lang={lang === 'en' ? 'bn' : 'en'}>{lang === 'en' ? 'বাংলা' : 'English'}</span>
             </button>
             <ThemeToggle />
           </div>
@@ -472,7 +474,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           </nav>
           <div className="cm-moresheet-controls">
             <button type="button" className="cm-lang-toggle" onClick={toggleLang}>
-              {lang === 'en' ? 'বাংলা' : 'English'}
+              <span lang={lang === 'en' ? 'bn' : 'en'}>{lang === 'en' ? 'বাংলা' : 'English'}</span>
             </button>
             <ThemeToggle />
             <AccountMenu />
