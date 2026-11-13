@@ -12,7 +12,11 @@
   color: var(--color-primary-contrast);
 }
 
+/* Editorial treatment (plan V2 P4): Fraunces for the About title and
+   section headlines, matching the rest of the Learn set. */
 .about-header h1 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
   font-size: 2.5rem;
   margin-bottom: var(--spacing-md);
 }
@@ -33,6 +37,8 @@
 }
 
 .mission-section h2 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
   font-size: 1.875rem;
   margin-bottom: var(--spacing-lg);
   text-align: center;
@@ -52,6 +58,8 @@
 }
 
 .problem-section h2 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
   font-size: 1.875rem;
   margin-bottom: var(--spacing-xl);
   text-align: center;
@@ -65,9 +73,10 @@
 
 .problem-card {
   background-color: var(--color-background-surface);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   height: 100%;
 }
 
@@ -86,6 +95,8 @@
 }
 
 .solution-section h2 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
   font-size: 1.875rem;
   margin-bottom: var(--spacing-lg);
   text-align: center;
@@ -108,7 +119,7 @@
 .feature {
   background-color: var(--color-background-base);
   padding: var(--spacing-lg);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   border-left: var(--spacing-xs) solid var(--color-primary-base);
 }
 
@@ -128,6 +139,8 @@
 }
 
 .team-section h2 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
   font-size: 1.875rem;
   margin-bottom: var(--spacing-lg);
 }
@@ -144,23 +157,25 @@
   gap: var(--spacing-xl);
 }
 
+/* Ledger card (plan V2 P4): hairline + card shadow; hover deepens the
+   shadow only — the old translateY lift is gone. */
 .team-member {
   background-color: var(--color-background-surface);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--motion-large) var(--motion-ease-out);
 }
 
 .team-member:hover {
-  transform: translateY(-5px);
   box-shadow: var(--shadow-md);
 }
 
 .member-photo.placeholder {
   width: 120px;
   height: 120px;
-  background-color: var(--color-border-strong);
+  background-color: var(--color-background-muted);
   border-radius: 50%;
   margin: 0 auto var(--spacing-md);
 }
@@ -186,6 +201,8 @@
 }
 
 .contact-section h2 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
   font-size: 1.875rem;
   margin-bottom: var(--spacing-md);
 }

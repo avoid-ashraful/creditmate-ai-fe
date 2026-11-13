@@ -20,11 +20,15 @@
   text-align: left;
   margin-bottom: var(--spacing-xl);
   padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
+/* Editorial treatment (plan V2 P4): Fraunces earns its keep on Learn —
+   article titles and section headlines take the display face. */
 .guides-header h1,
 .guides-article-header h1 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
   font-size: 2.25rem;
   line-height: 1.2;
   margin-bottom: var(--spacing-md);
@@ -54,10 +58,10 @@
 
 .guides-card {
   background-color: var(--color-background-surface);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
 }
@@ -115,6 +119,8 @@
 }
 
 .guides-section h2 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
   font-size: 1.5rem;
   margin-bottom: var(--spacing-md);
   padding-top: var(--spacing-sm);
@@ -163,9 +169,11 @@ ol.guides-list-block {
   font-size: 0.9375rem;
 }
 
+/* Ledger tables (plan V2 P4): hairline row rules, no vertical
+   borders; figures stay tabular via the table's numeric cells. */
 .guides-table-wrap th,
 .guides-table-wrap td {
-  border: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: var(--spacing-md);
   text-align: left;
   vertical-align: top;
@@ -173,6 +181,7 @@ ol.guides-list-block {
 
 .guides-table-wrap thead th {
   background-color: var(--color-background-base);
+  border-bottom: 1px solid var(--color-border-base);
   font-weight: 700;
 }
 
@@ -192,7 +201,7 @@ ol.guides-list-block {
 }
 
 .guides-related {
-  border-top: 1px solid var(--color-border-strong);
+  border-top: 1px solid var(--color-border-subtle);
   padding-top: var(--spacing-lg);
 }
 
@@ -203,9 +212,10 @@ ol.guides-list-block {
 
 .guides-cta {
   background-color: var(--color-background-surface);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
+  box-shadow: var(--shadow-card);
 }
 
 .guides-cta h2 {

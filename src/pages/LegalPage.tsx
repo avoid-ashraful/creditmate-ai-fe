@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
+import ScoreScaleRuler from '../components/ScoreScaleRuler';
 import { CONTACT_EMAIL } from '../config/site';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import { fillCopy, useLanguage } from '../locales';
@@ -110,6 +111,10 @@ const LegalPage: React.FC = () => {
               ))}
             </ul>
           )}
+          {/* Plan V2 P4: the score section carries the 0–10 ledger
+              ruler. Both locales name this section after CreditMate
+              (and no other methodology section does). */}
+          {isMethodology && section.heading.includes('CreditMate') && <ScoreScaleRuler />}
         </section>
       ))}
       {key === 'contact' && (

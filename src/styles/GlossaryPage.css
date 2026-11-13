@@ -10,6 +10,8 @@
 }
 
 .glossary-header h1 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
   font-size: 2rem;
   margin-bottom: var(--spacing-md);
 }
@@ -31,7 +33,7 @@
 .search-box input {
   width: 100%;
   padding: var(--spacing-md) var(--spacing-lg);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-base);
   border-radius: var(--radius-md);
   font-size: 1rem;
   transition: border-color 0.2s ease;
@@ -50,7 +52,7 @@
 
 .category-button {
   background-color: var(--color-background-base);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-base);
   color: var(--color-text-primary);
   padding: var(--spacing-xs) var(--spacing-md);
   border-radius: var(--radius-md);
@@ -78,19 +80,20 @@
   gap: var(--spacing-lg);
 }
 
+/* Ledger card (plan V2 P4): hairline border + card shadow; the hover
+   deepens the shadow only — no lift (quiet micro-interactions). */
 .glossary-item {
   background-color: var(--color-background-surface);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-border-base);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border-subtle);
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
     box-shadow 0.2s ease;
 }
 
 .glossary-item:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 .term {
@@ -127,11 +130,11 @@
 
 .no-results {
   background-color: var(--color-background-surface);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: var(--spacing-xl);
   text-align: center;
   color: var(--color-text-secondary);
-  border: 1px dashed var(--color-border-strong);
+  border: 1px dashed var(--color-border-base);
 }
 
 /* Responsive adjustments */
@@ -162,7 +165,7 @@
   min-height: var(--spacing-lg);
   min-width: var(--spacing-lg);
   padding: var(--spacing-xs) var(--spacing-md);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-base);
   border-radius: var(--radius-md);
   background-color: var(--color-background-base);
   color: var(--color-text-primary);
