@@ -8,24 +8,39 @@
   object-fit: contain;
 }
 
+/* Bank names are Fraunces on the hub (plan V2 P3); Bengali bank names
+   fall through the display stack to Hind Siliguri. */
+.bank-page .category-header h1 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
+  letter-spacing: var(--typography-letter-spacing-tight, -0.01em);
+}
+
 .bank-website {
   margin-top: 0.5rem;
 }
 
+/* The stats strip is a ledger row (plan V2 P3): hairline rules above
+   and below, hairline dividers between entries — no boxes. */
 .bank-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1rem 0;
   justify-content: center;
   margin: 0 auto 2rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .bank-stat {
   min-width: 140px;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--color-border-base, var(--color-slate-200));
-  border-radius: 12px;
+  padding: 0 1.25rem;
   text-align: center;
+}
+
+.bank-stat + .bank-stat {
+  border-left: 1px solid var(--color-border-subtle);
 }
 
 .bank-stat dt {
@@ -39,6 +54,8 @@
   margin: 0.35rem 0 0;
   font-size: 1.15rem;
   font-weight: 700;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .bank-cards-heading {
@@ -60,9 +77,11 @@
 .banks-search input {
   width: min(420px, 100%);
   padding: 0.65rem 1rem;
-  border: 1px solid var(--color-border-base, var(--color-slate-300));
-  border-radius: 999px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
   font-size: 1rem;
+  background: var(--color-background-surface);
+  color: var(--color-text-primary);
 }
 
 .banks-grid {
@@ -81,16 +100,20 @@
   gap: 0.5rem;
   height: 100%;
   padding: 1.25rem 1rem;
-  border: 1px solid var(--color-border-base, var(--color-slate-200));
-  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-surface);
   text-align: center;
   text-decoration: none;
   color: inherit;
+  transition: border-color var(--transition-duration-fast) var(--transition-easing-ease-out),
+    box-shadow var(--transition-duration-fast) var(--transition-easing-ease-out);
 }
 
 .bank-tile-link:hover,
 .bank-tile-link:focus-visible {
   border-color: var(--color-primary-base);
+  box-shadow: var(--shadow-card);
 }
 
 .bank-tile-logo {
@@ -112,6 +135,7 @@
 }
 
 .bank-tile-name {
+  font-family: var(--typography-font-family-display);
   font-weight: 600;
 }
 
@@ -126,12 +150,20 @@
   color: var(--color-text-secondary);
 }
 
-/* Cross-vertical hub lists (redesign Phase 2) */
+/* Cross-vertical hub lists (redesign Phase 2). Ledger entries in P3:
+   hairline rules between rows instead of spaced bare links. */
 .bank-hub-list {
   list-style: none;
   margin: 0 0 var(--spacing-md);
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+}
+
+.bank-hub-list li {
+  padding: var(--spacing-sm) 0;
+}
+
+.bank-hub-list li + li {
+  border-top: 1px solid var(--color-border-subtle);
 }

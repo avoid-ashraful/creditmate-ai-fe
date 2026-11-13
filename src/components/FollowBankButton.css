@@ -6,17 +6,20 @@
 
 .cm-follow-bank-button {
   padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   background: var(--color-background-surface);
   color: var(--color-text-primary);
   font-size: var(--typography-font-size-sm);
   font-weight: var(--typography-font-weight-medium);
   cursor: pointer;
+  transition: background-color var(--transition-duration-fast) var(--transition-easing-ease-out),
+    border-color var(--transition-duration-fast) var(--transition-easing-ease-out);
 }
 
 .cm-follow-bank-button:hover {
   background: var(--color-state-hover-surface);
+  border-color: var(--color-primary-base);
 }
 
 .cm-follow-bank-button.is-following {

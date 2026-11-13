@@ -55,6 +55,18 @@
   border-top: 1px solid var(--color-border-subtle);
 }
 
+/* The one gold-wordmark moment in reviews (plan V2 P3): the Community
+   reviewed chip takes the deep-gold text treatment — accent.text is
+   AA on the accent tint in both themes (4.71:1 light / 6.20:1 dark,
+   pinned in tokens.test.ts). Scoped to this chip only: the accent
+   tone elsewhere (e.g. ChangeCard "New") stays navy, and the chip
+   keeps its ◆ icon + word, never colour alone. */
+.community-reviewed .cm-status-chip--accent {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent-text);
+  border-color: var(--color-accent-border);
+}
+
 .community-chip {
   display: inline-flex;
   align-items: center;
@@ -76,7 +88,8 @@
 /* --- Own review state card: holds its footprint across state changes --- */
 .own-review-card {
   background: var(--color-background-surface);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-card);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-md);
