@@ -1,19 +1,13 @@
-/* Placeholder blocks for loading states. The shimmer is in animations/motion.css. */
+/* Placeholder blocks for loading states. Midnight Ledger P6: the animated
+   shimmer is retired — skeletons are static muted blocks (paper-200 on the
+   light ground, the muted step on dark), matching the Discovery skeletons. */
 
 .skeleton {
   display: block;
   /* Default line height. Callers pass an explicit height for larger blocks. */
   height: 1rem;
   border-radius: var(--radius-md);
-  background: linear-gradient(
-    90deg,
-    var(--color-background-muted) 25%,
-    var(--color-background-elevated) 50%,
-    var(--color-background-muted) 75%
-  );
-  background-size: 200% 100%;
-  /* Fixed shimmer period. There is no matching motion token. */
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  background: var(--color-background-muted);
 }
 
 .skeleton-label {

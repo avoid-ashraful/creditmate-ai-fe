@@ -36,7 +36,7 @@
   border: 1px solid var(--color-border-base);
   border-radius: var(--radius-md);
   font-size: 1rem;
-  transition: border-color 0.2s ease;
+  transition: border-color var(--transition-duration-base) var(--transition-easing-ease);
 }
 
 .search-box input:focus {
@@ -58,8 +58,10 @@
   border-radius: var(--radius-md);
   font-size: 0.875rem;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background-color var(--transition-duration-base) var(--transition-easing-ease),
+    border-color var(--transition-duration-base) var(--transition-easing-ease),
+    color var(--transition-duration-base) var(--transition-easing-ease),
+    box-shadow var(--transition-duration-base) var(--transition-easing-ease);
 }
 
 .category-button:hover {
@@ -88,8 +90,10 @@
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-card);
   border: 1px solid var(--color-border-subtle);
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background-color var(--transition-duration-base) var(--transition-easing-ease),
+    border-color var(--transition-duration-base) var(--transition-easing-ease),
+    color var(--transition-duration-base) var(--transition-easing-ease),
+    box-shadow var(--transition-duration-base) var(--transition-easing-ease);
 }
 
 .glossary-item:hover {

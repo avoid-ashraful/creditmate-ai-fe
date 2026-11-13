@@ -1,17 +1,10 @@
 /*
  * Shared motion for CSS-driven effects. Durations and easings use the
- * --transition-* tokens. Keyframes are kept here so every infinite animation
- * is covered by the reduced-motion block below.
+ * --motion-* / --transition-* tokens. The reduced-motion block below covers
+ * every animation and transition in the app. (The skeleton-shimmer keyframes
+ * that used to live here were removed in Midnight Ledger P6 — skeletons are
+ * static blocks now, see components/Skeleton.css.)
  */
-
-@keyframes skeleton-shimmer {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: -100% 0;
-  }
-}
 
 /*
  * Reduced motion (WCAG 2.3.3). Animations and transitions are cut to a

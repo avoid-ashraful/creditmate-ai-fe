@@ -125,8 +125,10 @@
   text-decoration: none;
   padding: var(--spacing-12) var(--spacing-md);
   border-radius: var(--radius-md);
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: background-color var(--transition-duration-slow) var(--transition-easing-ease),
+    border-color var(--transition-duration-slow) var(--transition-easing-ease),
+    color var(--transition-duration-slow) var(--transition-easing-ease),
+    box-shadow var(--transition-duration-slow) var(--transition-easing-ease);
   background: color-mix(in srgb, var(--color-white) 10%, transparent);
   backdrop-filter: blur(10px);
 }
@@ -144,8 +146,10 @@
   border-radius: var(--radius-md);
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: background-color var(--transition-duration-slow) var(--transition-easing-ease),
+    border-color var(--transition-duration-slow) var(--transition-easing-ease),
+    color var(--transition-duration-slow) var(--transition-easing-ease),
+    box-shadow var(--transition-duration-slow) var(--transition-easing-ease);
   backdrop-filter: blur(10px);
 }
 
@@ -217,8 +221,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: background-color var(--transition-duration-slow) var(--transition-easing-ease),
+    border-color var(--transition-duration-slow) var(--transition-easing-ease),
+    color var(--transition-duration-slow) var(--transition-easing-ease),
+    box-shadow var(--transition-duration-slow) var(--transition-easing-ease);
   position: relative;
   overflow: hidden;
 }
@@ -257,8 +263,10 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: background-color var(--transition-duration-slow) var(--transition-easing-ease),
+    border-color var(--transition-duration-slow) var(--transition-easing-ease),
+    color var(--transition-duration-slow) var(--transition-easing-ease),
+    box-shadow var(--transition-duration-slow) var(--transition-easing-ease);
   font-size: 1.1rem;
   line-height: 1;
 }
@@ -302,8 +310,10 @@
   border-radius: var(--radius-md);
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: background-color var(--transition-duration-slow) var(--transition-easing-ease),
+    border-color var(--transition-duration-slow) var(--transition-easing-ease),
+    color var(--transition-duration-slow) var(--transition-easing-ease),
+    box-shadow var(--transition-duration-slow) var(--transition-easing-ease);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -462,8 +472,10 @@
   font-weight: 600;
   color: var(--color-text-primary);
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background-color var(--transition-duration-base) var(--transition-easing-ease),
+    border-color var(--transition-duration-base) var(--transition-easing-ease),
+    color var(--transition-duration-base) var(--transition-easing-ease),
+    box-shadow var(--transition-duration-base) var(--transition-easing-ease);
 }
 
 .differences-toggle input {
@@ -487,8 +499,10 @@
   border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background-color var(--transition-duration-base) var(--transition-easing-ease),
+    border-color var(--transition-duration-base) var(--transition-easing-ease),
+    color var(--transition-duration-base) var(--transition-easing-ease),
+    box-shadow var(--transition-duration-base) var(--transition-easing-ease);
 }
 
 .print-button:hover {

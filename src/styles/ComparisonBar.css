@@ -108,7 +108,7 @@
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
-  transition: background-color 0.2s;
+  transition: background-color var(--transition-duration-base);
   white-space: nowrap;
 }
 

@@ -127,13 +127,13 @@
 .search-autocomplete-did-you-mean-button {
   background: transparent;
   border: none;
-  color: var(--color-blue-500);
+  color: var(--color-text-link);
   cursor: pointer;
   font-weight: 500;
 }
 
 .search-autocomplete-did-you-mean-button:focus {
-  outline: 2px solid var(--color-blue-500);
+  outline: 2px solid var(--color-border-focus);
   outline-offset: 2px;
 }
 

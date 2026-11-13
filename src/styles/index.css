@@ -16,7 +16,7 @@ code {
  * `:focus:not(:focus-visible)` for mouse-only styling.
  */
 :focus-visible {
-  outline: 3px solid var(--color-border-focus, var(--color-blue-500)) !important;
+  outline: 3px solid var(--color-border-focus, var(--color-navy-700)) !important;
   outline-offset: 2px;
 }
 
