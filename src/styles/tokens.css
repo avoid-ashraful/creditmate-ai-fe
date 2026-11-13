@@ -139,6 +139,9 @@
   --color-score-background: #0f1b33;
   --color-score-numeral: #c9a227;
   --color-score-text: #f5f2ec;
+  --color-citation-background: #0f1b33;
+  --color-citation-numeral: #c9a227;
+  --color-citation-text: #f5f2ec;
   --color-success-base: #047857;
   --color-success-hover: #065f46;
   --color-success-subtle: #ecfdf5;
@@ -319,6 +322,9 @@
     --color-score-background: #0f1b33;
     --color-score-numeral: #d4af37;
     --color-score-text: #f5f2ec;
+    --color-citation-background: #0f1b33;
+    --color-citation-numeral: #d4af37;
+    --color-citation-text: #f5f2ec;
     --color-success-base: #34d399;
     --color-success-hover: #6ee7b7;
     --color-success-subtle: #064e3b;
@@ -398,6 +404,9 @@
   --color-score-background: #0f1b33;
   --color-score-numeral: #d4af37;
   --color-score-text: #f5f2ec;
+  --color-citation-background: #0f1b33;
+  --color-citation-numeral: #d4af37;
+  --color-citation-text: #f5f2ec;
   --color-success-base: #34d399;
   --color-success-hover: #6ee7b7;
   --color-success-subtle: #064e3b;
@@ -585,6 +594,9 @@
   --color-score-background: #0f1b33;
   --color-score-numeral: #c9a227;
   --color-score-text: #f5f2ec;
+  --color-citation-background: #0f1b33;
+  --color-citation-numeral: #c9a227;
+  --color-citation-text: #f5f2ec;
   --color-success-base: #047857;
   --color-success-hover: #065f46;
   --color-success-subtle: #ecfdf5;

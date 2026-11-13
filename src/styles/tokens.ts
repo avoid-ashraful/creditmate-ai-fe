@@ -47,6 +47,11 @@ export const color = {
       numeral: '#D4AF37',
       text: '#F5F2EC',
     },
+    citation: {
+      background: '#0F1B33',
+      numeral: '#D4AF37',
+      text: '#F5F2EC',
+    },
     success: {
       base: '#34d399',
       hover: '#6ee7b7',
@@ -273,6 +278,11 @@ export const color = {
     border: '#182C55',
   },
   score: {
+    background: '#0F1B33',
+    numeral: '#C9A227',
+    text: '#F5F2EC',
+  },
+  citation: {
     background: '#0F1B33',
     numeral: '#C9A227',
     text: '#F5F2EC',
@@ -518,6 +528,9 @@ export const cssVars = {
   '--color-dark-score-background': '#0F1B33',
   '--color-dark-score-numeral': '#D4AF37',
   '--color-dark-score-text': '#F5F2EC',
+  '--color-dark-citation-background': '#0F1B33',
+  '--color-dark-citation-numeral': '#D4AF37',
+  '--color-dark-citation-text': '#F5F2EC',
   '--color-dark-success-base': '#34d399',
   '--color-dark-success-hover': '#6ee7b7',
   '--color-dark-success-subtle': '#064e3b',
@@ -695,6 +708,9 @@ export const cssVars = {
   '--color-score-background': '#0F1B33',
   '--color-score-numeral': '#C9A227',
   '--color-score-text': '#F5F2EC',
+  '--color-citation-background': '#0F1B33',
+  '--color-citation-numeral': '#C9A227',
+  '--color-citation-text': '#F5F2EC',
   '--color-success-base': '#047857',
   '--color-success-hover': '#065f46',
   '--color-success-subtle': '#ecfdf5',

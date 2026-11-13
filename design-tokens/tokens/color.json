@@ -572,6 +572,23 @@
         "type": "color"
       }
     },
+    "citation": {
+      "background": {
+        "value": "{color.navy.900}",
+        "comment": "Advisor citation chip fill, ink navy in BOTH themes (redesign plan V2, P5). Gold's second structural job: the numeral signals 'sourced'. Paper label on it is 15.34:1.",
+        "type": "color"
+      },
+      "numeral": {
+        "value": "{color.accent.base}",
+        "comment": "Citation index numeral on the navy chip (7.09:1). Gold is text-grade on navy only — never on paper.",
+        "type": "color"
+      },
+      "text": {
+        "value": "{color.paper.100}",
+        "comment": "Citation label on the navy chip.",
+        "type": "color"
+      }
+    },
     "success": {
       "base": {
         "value": "{color.emerald.700}",
