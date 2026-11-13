@@ -48,6 +48,11 @@
           "value": "{color.gold.700}",
           "type": "color"
         },
+        "text": {
+          "value": "{color.gold.400}",
+          "comment": "Bright gold for gold-coloured text on dark grounds (Community reviewed chip, P3): 6.20:1 on accent.subtle (gold.900), 7.90:1 on the dark surface.",
+          "type": "color"
+        },
         "contrast": {
           "value": "{color.navy.950}",
           "type": "color"

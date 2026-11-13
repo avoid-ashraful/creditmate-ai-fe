@@ -76,6 +76,11 @@
             "type": "color",
             "value": "#86691F"
           },
+          "text": {
+            "type": "color",
+            "value": "#D4AF37",
+            "description": "Bright gold for gold-coloured text on dark grounds (Community reviewed chip, P3): 6.20:1 on accent.subtle (gold.900), 7.90:1 on the dark surface."
+          },
           "contrast": {
             "type": "color",
             "value": "#0B1428"
@@ -875,6 +880,11 @@
         "border": {
           "type": "color",
           "value": "#E9D48E"
+        },
+        "text": {
+          "type": "color",
+          "value": "#86691F",
+          "description": "Deep gold for gold-coloured TEXT on light grounds (plan V2 §2.3 goldDeep role; Community reviewed chip, P3): 4.71:1 on accent.subtle, 5.18:1 on white. Brand gold (accent.base) is never text on light."
         },
         "contrast": {
           "type": "color",
