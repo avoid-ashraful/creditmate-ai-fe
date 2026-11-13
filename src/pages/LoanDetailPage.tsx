@@ -741,7 +741,7 @@ const LoanDetailPage: React.FC = () => {
           <section className="loan-detail-section" aria-labelledby="loan-history-heading">
             <h2 id="loan-history-heading">{copy.sectionHistory}</h2>
             {history.length > 0 ? (
-              <ul>
+              <ul className="loan-history-list">
                 {history.map(entry => (
                   <li key={entry.id}>
                     {entry.created.slice(0, 10)} — {entry.fieldName}: {entry.oldValue} →{' '}

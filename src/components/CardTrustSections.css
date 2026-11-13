@@ -6,7 +6,8 @@
   background: var(--color-background-surface);
   padding: var(--spacing-lg);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-card);
 }
 
 .provenance-section h2,
@@ -35,7 +36,7 @@
 }
 
 .provenance-row + .provenance-row {
-  border-top: 1px solid var(--color-border-base);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .provenance-row dt {
@@ -80,16 +81,36 @@
   padding: 0;
 }
 
+/* Ledger timeline: a paper hairline rail with a neutral point per
+   change. Entries arrive newest-first (cardHistory service contract),
+   so the FIRST point is the latest change — and the latest change is
+   the one point allowed to be gold (plan V2 P3). Gold is decorative
+   here: the field name and date beside it carry the meaning. */
 .history-item {
   padding: var(--spacing-md) 0 var(--spacing-md) var(--spacing-lg);
-  border-left-width: 2px;
+  border-left-width: 1px;
   border-left-style: solid;
-  border-left-color: var(--color-border-strong);
+  border-left-color: var(--color-border-subtle);
   position: relative;
 }
 
-.history-item + .history-item {
-  border-top: 1px solid var(--color-border-base);
+.history-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: calc(var(--spacing-md) + var(--spacing-2xs));
+  width: var(--spacing-sm);
+  height: var(--spacing-sm);
+  transform: translateX(-50%);
+  border-radius: var(--radius-full);
+  background: var(--color-background-surface);
+  border: 2px solid var(--color-border-strong);
+  box-sizing: border-box;
+}
+
+.history-item:first-child::before {
+  background: var(--color-accent-base);
+  border-color: var(--color-accent-base);
 }
 
 .history-field {

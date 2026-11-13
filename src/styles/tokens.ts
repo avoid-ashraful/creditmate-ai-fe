@@ -26,6 +26,7 @@ export const color = {
       hover: '#DEC05E',
       subtle: '#3D2F0D',
       border: '#86691F',
+      text: '#D4AF37',
       contrast: '#0B1428',
     },
     secondary: {
@@ -255,6 +256,7 @@ export const color = {
     hover: '#A8861F',
     subtle: '#FAF4E0',
     border: '#E9D48E',
+    text: '#86691F',
     contrast: '#1A2436',
   },
   secondary: {
@@ -502,6 +504,7 @@ export const cssVars = {
   '--color-dark-accent-hover': '#DEC05E',
   '--color-dark-accent-subtle': '#3D2F0D',
   '--color-dark-accent-border': '#86691F',
+  '--color-dark-accent-text': '#D4AF37',
   '--color-dark-accent-contrast': '#0B1428',
   '--color-dark-secondary-base': '#DCE3EF',
   '--color-dark-secondary-hover': '#EEF1F7',
@@ -678,6 +681,7 @@ export const cssVars = {
   '--color-accent-hover': '#A8861F',
   '--color-accent-subtle': '#FAF4E0',
   '--color-accent-border': '#E9D48E',
+  '--color-accent-text': '#86691F',
   '--color-accent-contrast': '#1A2436',
   '--color-secondary-base': '#0F1B33',
   '--color-secondary-hover': '#122344',

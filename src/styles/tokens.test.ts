@@ -686,6 +686,16 @@ describe('design tokens — WCAG contrast ratios', () => {
       'Score band word on score chip (light)',
       4.5,
     ],
+    // Midnight Ledger Community reviewed chip (plan V2 P3): deep-gold
+    // text on the accent tint. Brand gold itself is never text on
+    // light — accent.text is the goldDeep role.
+    [
+      '--color-accent-text',
+      '--color-accent-subtle',
+      'Community reviewed chip text on accent tint (light)',
+      4.5,
+    ],
+    ['--color-accent-text', '--color-background-surface', 'Accent text on surface (light)', 4.5],
   ];
 
   const darkContrastPairs: Array<[string, string, string, number]> = [
@@ -802,6 +812,15 @@ describe('design tokens — WCAG contrast ratios', () => {
       4.5,
     ],
     ['--color-score-text', '--color-score-background', 'Score band word on score chip (dark)', 4.5],
+    // Midnight Ledger Community reviewed chip (plan V2 P3) — same
+    // pairs as light: bright gold text on the deep-gold tint.
+    [
+      '--color-accent-text',
+      '--color-accent-subtle',
+      'Community reviewed chip text on accent tint (dark)',
+      4.5,
+    ],
+    ['--color-accent-text', '--color-background-surface', 'Accent text on surface (dark)', 4.5],
   ];
 
   // Build a map of all CSS variables for both light and dark

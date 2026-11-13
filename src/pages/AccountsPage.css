@@ -219,9 +219,32 @@
 .accounts-history-list li {
   display: flex;
   gap: 1rem;
-  padding: 0.4rem 0;
+  padding: 0.4rem 0 0.4rem 1.25rem;
   border-bottom: 1px solid var(--color-border-subtle);
   flex-wrap: wrap;
+  position: relative;
+}
+
+/* Timeline points on the ledger rules: neutral for every change, gold
+   only on the latest (entries arrive newest-first; plan V2 P3). The
+   field name and date carry the meaning — gold is decorative. */
+.accounts-history-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  transform: translateY(-50%);
+  border-radius: var(--radius-full);
+  background: var(--color-background-surface);
+  border: 2px solid var(--color-border-strong);
+  box-sizing: border-box;
+}
+
+.accounts-history-list li:first-child::before {
+  background: var(--color-accent-base);
+  border-color: var(--color-accent-base);
 }
 
 .accounts-history-field {

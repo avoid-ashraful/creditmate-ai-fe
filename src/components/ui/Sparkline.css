@@ -1,8 +1,12 @@
+/* Midnight Ledger discipline (plan V2 P3): the line is primary navy;
+   the single gold point is the latest recorded value — the same
+   "latest gets the mate point" rule as the fee-history timelines.
+   The point is decorative; the figure and aria-label carry the data. */
 .cm-sparkline {
-  color: var(--color-text-secondary);
+  color: var(--color-primary-base);
   flex: none;
 }
 
 .cm-sparkline-last {
-  fill: var(--color-primary-base);
+  fill: var(--color-accent-base);
 }

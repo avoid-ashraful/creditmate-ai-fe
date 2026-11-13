@@ -11,6 +11,14 @@
   padding: var(--spacing-lg);
 }
 
+/* Detail page titles are Fraunces (plan V2 §2.5 whitelist: page H1s).
+   Bengali titles fall through the display stack to Hind Siliguri. */
+.p2-detail h1 {
+  font-family: var(--typography-font-family-display);
+  font-weight: var(--typography-font-weight-semibold);
+  letter-spacing: var(--typography-letter-spacing-tight, -0.01em);
+}
+
 .p2-detail-grid {
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);

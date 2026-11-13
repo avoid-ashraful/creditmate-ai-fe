@@ -86,7 +86,7 @@
    the sticky DetailSummary in the aside repeats it while scrolling. */
 .card-detail-header h1 {
   font-size: var(--typography-font-size-2xl);
-  font-weight: var(--typography-font-weight-bold);
+  font-weight: var(--typography-font-weight-semibold);
   margin: 0 0 var(--spacing-sm);
   color: var(--color-text-primary);
 }
@@ -115,6 +115,8 @@
   cursor: wait;
 }
 
+/* Ledger cards (plan V2 P3): hairline border + whisper shadow carry
+   the separation on paper, not a heavy UI border. */
 .pros-cons-section,
 .specs-section,
 .rewards-section,
@@ -124,7 +126,8 @@
   background: var(--color-background-surface);
   padding: var(--spacing-lg);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-card);
 }
 
 .score-section h2 {
@@ -140,10 +143,13 @@
   margin-bottom: var(--spacing-sm);
 }
 
+/* The score total is the section's hero numeral: Fraunces, ink navy
+   (plan V2 P3; the band word beside it carries the verdict in words). */
 .score-total {
+  font-family: var(--typography-font-family-display);
   font-size: var(--typography-font-size-3xl, 2rem);
-  font-weight: var(--typography-font-weight-bold);
-  color: var(--color-success-hover);
+  font-weight: var(--typography-font-weight-semibold);
+  color: var(--color-text-primary);
 }
 
 .score-band {
@@ -282,7 +288,7 @@
 }
 
 .specs-table tr {
-  border-bottom: 1px solid var(--color-border-base);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .specs-table tr:last-child {
@@ -348,12 +354,13 @@
   padding: var(--spacing-lg);
   background: var(--color-background-surface);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-card);
 }
 
 .similar-card-item {
   background: var(--color-background-surface);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
   display: flex;
@@ -399,7 +406,8 @@
   padding: var(--spacing-lg);
   background: var(--color-background-surface);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-base);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-card);
 }
 
 .reviews-placeholder {

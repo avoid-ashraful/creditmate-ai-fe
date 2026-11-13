@@ -497,6 +497,11 @@
         "value": "{color.gold.200}",
         "type": "color"
       },
+      "text": {
+        "value": "{color.gold.700}",
+        "comment": "Deep gold for gold-coloured TEXT on light grounds (plan V2 §2.3 goldDeep role; Community reviewed chip, P3): 4.71:1 on accent.subtle, 5.18:1 on white. Brand gold (accent.base) is never text on light.",
+        "type": "color"
+      },
       "contrast": {
         "value": "{color.ink.900}",
         "comment": "Ink text on gold (6.43:1 on gold.500); white on gold is only 2.3:1 and must not be used.",
