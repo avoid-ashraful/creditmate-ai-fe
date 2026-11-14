@@ -995,7 +995,7 @@ const CardDetailPage: React.FC = () => {
       </header>
 
       <div className="p2-detail-grid">
-        <aside className="p2-detail-aside">
+        <aside className="p2-detail-aside" aria-label={detail.summaryAsideLabel}>
           <DetailSummary
             identity={{ bankName: card.bankName ?? '', productName: card.name }}
             heroValue={
