@@ -14,6 +14,8 @@ export interface DetailCopy {
   inShortlist: string;
 
   // Card summary
+  /** Accessible name for the sticky summary aside on detail pages. */
+  summaryAsideLabel: string;
   scoreHeroLabel: string;
   scoreHowCalculated: string;
   /** Placeholders: {spend} */
@@ -114,6 +116,7 @@ const DETAIL_COPY: Record<Language, DetailCopy> = {
     addToShortlist: 'Add to shortlist',
     inShortlist: 'In shortlist',
 
+    summaryAsideLabel: 'Card summary',
     scoreHeroLabel: 'CreditMate Score',
     scoreHowCalculated: "How it's calculated",
     estNetValueLabel: 'Estimated net value a year at your {spend} monthly spend',
@@ -207,6 +210,7 @@ const DETAIL_COPY: Record<Language, DetailCopy> = {
     addToShortlist: 'শর্টলিস্টে যোগ করুন',
     inShortlist: 'শর্টলিস্টে আছে',
 
+    summaryAsideLabel: 'কার্ডের সারাংশ',
     scoreHeroLabel: 'ক্রেডিটমেট স্কোর',
     scoreHowCalculated: 'কীভাবে হিসাব করা হয়',
     estNetValueLabel: 'আপনার {spend} মাসিক খরচে বছরে আনুমানিক নিট মূল্য',
